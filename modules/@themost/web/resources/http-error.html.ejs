@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <!--[if IE]><meta http-equiv="x-ua-compatible" content="IE=9" /><![endif]-->
+    <title>Error <%= (locals.error.status || '500') + ' | ' + (locals.error.title || 'Internal Server Error')%></title>
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
+    <link href='//fonts.googleapis.com/css?family=Roboto:400,700&subset=cyrillic,latin,greek' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Ubuntu:400,700' rel='stylesheet' type='text/css'>
+    <style>
+        .error-page {
+            font-family: 'Roboto', Arial,sans-serif;
+            background-color: #f3f5f6;
+            color:#768399;
+        }
+        .error-number {
+            font-family: 'Ubuntu', serif;
+            font-weight:700;
+            font-size: 16em;
+            margin-top:0.5em;
+        }
+        .btn-default {
+            color:#768399;
+        }
+        .btn-default:hover {
+            color:#566379;
+        }
+    </style>
+</head>
+<body class="error-page">
+<div class="container">
+    <div class="col-md-12">
+        <h1 class="error-number text-center"><%=(locals.error.status || 500)%></h1>
+        <h1 class="text-center"><%= (locals.error.title || 'Internal Server Error')%></h1>
+        <p class="text-center"><%= (locals.error.message || 'The server encountered an internal error and was unable to complete your request.')%></p>
+        <% if ((process.env.NODE_ENV === 'development') && (locals.error.innerMessage)) { %>
+            <p class="text-center">
+                <%=(locals.error.innerMessage)%>
+            </p>
+        <% } %>
+        <% if ((process.env.NODE_ENV === 'development') && (locals.error.stack)) { %>
+            <pre style="font-size:0.8em" class="col-md-push-2 col-md-8">
+                <%=(locals.error.stack)%>
+            </pre>
+        <% } %>
+        <div class="clearfix"></div>
+        <div class="text-center">
+            <div class="btn-group">
+                <a href="<%=(locals.returnUrl || '/index.html')%>" class="btn btn-default btn-lg text-normal"><i class="glyphicon glyphicon-home"></i> home</a>
+                <!--<a href="#" class="btn btn-default btn-lg"><i class="glyphicon glyphicon-inbox"></i> contact admin</a>-->
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
