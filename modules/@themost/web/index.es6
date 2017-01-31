@@ -8,7 +8,7 @@
  * found in the LICENSE file at https://themost.io/license
  */
 'use strict';
-
+//import polyfill from 'babel-polyfill';
 import {_} from 'lodash';
 import path from 'path';
 import {HttpApplication} from './app';

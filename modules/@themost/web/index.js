@@ -8,6 +8,7 @@
  * found in the LICENSE file at https://themost.io/license
  */
 'use strict';
+//import polyfill from 'babel-polyfill';
 
 Object.defineProperty(exports, "__esModule", {
     value: true

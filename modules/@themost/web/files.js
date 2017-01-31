@@ -492,7 +492,7 @@ var FileSystemStorage = exports.FileSystemStorage = function (_FileStorage) {
         }
 
         /**
-         * @param {function(Error=)} callback
+         * @param {Function} callback
          */
 
     }, {

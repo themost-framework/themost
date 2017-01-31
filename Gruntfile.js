@@ -17,8 +17,9 @@ module.exports = function(grunt) {
             compile: {
                 options: {
                     sourceMap: true,
-                    presets: ["env"],
+                    presets: [ "env" ],
                     plugins: [
+                        "transform-async-functions",
                         "transform-decorators-legacy",
                         ["babel-plugin-transform-builtin-extend", {
                             globals: ["Error", "Array"]

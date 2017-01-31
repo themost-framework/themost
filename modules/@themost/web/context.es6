@@ -303,8 +303,8 @@ export class HttpContext extends da.classes.DefaultDataContext {
 
     /**
      * Executes the specified code in unattended mode.
-     * @param {function(function(Error=, *=))} fn
-     * @param {function(Error=, *=)} callback
+     * @param {Function} fn
+     * @param {Function} callback
      */
     unattended(fn, callback) {
         const self = this;

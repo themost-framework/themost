@@ -156,7 +156,7 @@ function createResponseInternal(req) {
  *
  * @param {HttpContext} context
  * @param {Error|*} err
- * @param {function(Error=)} callback
+ * @param {Function} callback
  * @private
  */
 function htmlErrorInternal(context, err, callback) {
@@ -972,7 +972,7 @@ var HttpApplication = exports.HttpApplication = function (_SequentialEventEmitt)
         /**
          * Resolves ETag header for the given file. If the specifed does not exist or is invalid returns null.
          * @param {string=} file - A string that represents the file we want to query
-         * @param {function(Error,string=)} callback
+         * @param {Function} callback
          */
 
     }, {
@@ -1008,7 +1008,7 @@ var HttpApplication = exports.HttpApplication = function (_SequentialEventEmitt)
         /**
          * @param {HttpContext} context
          * @param {string} executionPath
-         * @param {function(Error, Boolean)} callback
+         * @param {Function} callback
          */
 
     }, {
@@ -1336,7 +1336,7 @@ var HttpApplication = exports.HttpApplication = function (_SequentialEventEmitt)
 
         /**
          * Executes an internal process
-         * @param {function(HttpContext)} fn
+         * @param {Function} fn
          */
 
     }, {
@@ -1348,7 +1348,7 @@ var HttpApplication = exports.HttpApplication = function (_SequentialEventEmitt)
 
         /**
          * Executes an unattended internal process
-         * @param {function(HttpContext)} fn
+         * @param {Function} fn
          */
 
     }, {

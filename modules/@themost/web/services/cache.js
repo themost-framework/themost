@@ -51,7 +51,7 @@ var HttpCache = exports.HttpCache = function (_SequentialEventEmitt) {
 
     /**
      * Initializes data caching.
-     * @param {function(Error=)} callback
+     * @param {Function} callback
      */
 
 
@@ -75,7 +75,7 @@ var HttpCache = exports.HttpCache = function (_SequentialEventEmitt) {
         /**
          * Removes a cached value.
          * @param {string} key - A string that represents the key of the cached value
-         * @param {function(Error=,number=)} callback - Returns the number of deleted entries. This parameter is optional.
+         * @param {Function} callback - Returns the number of deleted entries. This parameter is optional.
          */
 
     }, {
@@ -94,7 +94,7 @@ var HttpCache = exports.HttpCache = function (_SequentialEventEmitt) {
 
         /**
         * Flush all cached data.
-        * @param {function(Error=)} callback - This parameter is optional.
+        * @param {Function} callback - This parameter is optional.
         */
 
     }, {
@@ -117,7 +117,7 @@ var HttpCache = exports.HttpCache = function (_SequentialEventEmitt) {
          * @param {string} key - A string that represents the key of the cached value
          * @param {*} value - The value to be cached
          * @param {number=} ttl - A TTL in seconds. This parameter is optional.
-         * @param {function(Error=,boolean=)} callback - Returns true on success. This parameter is optional.
+         * @param {Function} callback - Returns true on success. This parameter is optional.
          */
 
     }, {
@@ -137,9 +137,9 @@ var HttpCache = exports.HttpCache = function (_SequentialEventEmitt) {
 
         /**
          * Gets data from cache or executes the defined function and adds the result to the cache with the specified key
-         * @param {string|*} key - A string thath represents the of the cached data
-         * @param {function(function(Error=,*=))} fn - A function to execute if data will not be found in cache
-         * @param {function(Error=,*=)} callback - A callback function that will return the result or an error, if any.
+         * @param {string|*} key - A string which represents the key of the cached data
+         * @param {Function} fn - A function to execute if data will not be found in cache
+         * @param {Function} callback - A callback function that will return the result or an error, if any.
          */
 
     }, {
@@ -177,7 +177,7 @@ var HttpCache = exports.HttpCache = function (_SequentialEventEmitt) {
         /**
          * Gets a cached value defined by the given key.
          * @param {string|*} key
-         * @param {function(Error=,*=)} callback - A callback that returns the cached value, if any.
+         * @param {Function} callback - A callback that returns the cached value, if any.
          */
 
     }, {

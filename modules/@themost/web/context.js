@@ -347,8 +347,8 @@ var HttpContext = exports.HttpContext = function (_da$classes$DefaultDa) {
 
         /**
          * Executes the specified code in unattended mode.
-         * @param {function(function(Error=, *=))} fn
-         * @param {function(Error=, *=)} callback
+         * @param {Function} fn
+         * @param {Function} callback
          */
 
     }, {

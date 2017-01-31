@@ -114,7 +114,7 @@ function createResponseInternal(req) {
  *
  * @param {HttpContext} context
  * @param {Error|*} err
- * @param {function(Error=)} callback
+ * @param {Function} callback
  * @private
  */
 function htmlErrorInternal(context, err, callback) {
@@ -875,7 +875,7 @@ export class HttpApplication extends SequentialEventEmitter {
     /**
      * Resolves ETag header for the given file. If the specifed does not exist or is invalid returns null.
      * @param {string=} file - A string that represents the file we want to query
-     * @param {function(Error,string=)} callback
+     * @param {Function} callback
      */
     resolveETag(file, callback) {
         fs.exists(file, function(exists) {
@@ -913,7 +913,7 @@ export class HttpApplication extends SequentialEventEmitter {
     /**
      * @param {HttpContext} context
      * @param {string} executionPath
-     * @param {function(Error, Boolean)} callback
+     * @param {Function} callback
      */
     unmodifiedRequest(context, executionPath, callback) {
         try {
@@ -1240,7 +1240,7 @@ export class HttpApplication extends SequentialEventEmitter {
 
     /**
      * Executes an internal process
-     * @param {function(HttpContext)} fn
+     * @param {Function} fn
      */
     execute(fn) {
         const request = createRequestInternal.call(this);
@@ -1249,7 +1249,7 @@ export class HttpApplication extends SequentialEventEmitter {
 
     /**
      * Executes an unattended internal process
-     * @param {function(HttpContext)} fn
+     * @param {Function} fn
      */
     unattended(fn) {
         //create context

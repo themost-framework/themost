@@ -410,7 +410,7 @@ export class FileSystemStorage extends FileStorage {
     }
 
     /**
-     * @param {function(Error=)} callback
+     * @param {Function} callback
      */
     init(callback) {
         this.ensure(function(err) {
