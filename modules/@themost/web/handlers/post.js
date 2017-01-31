@@ -1,253 +1,94 @@
 /**
- * MOST Web Framework
- * A JavaScript Web Framework
- * http://themost.io
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
+ *                     Anthi Oikonomou anthioikonomou@gmail.com
  *
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com, Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Released under the BSD3-Clause license
- * Date: 2014-07-02
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
  */
-/**
- * @private
- */
-var formidable = require('formidable'),
-    util = require('util'),
-    querystring = require('querystring'),
-    xml = require('most-xml');
+'use strict';
 
-/**
- * @class UnknownValue
- * @constructor
- */
-function UnknownValue() {
-    //
-}
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.default = undefined;
 
-UnknownValue.prototype.valueOf = function() { return null; }
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-UnknownValue.prototype.toJSON = function() { return null; }
+var _formidable = require('formidable');
 
-UnknownValue.DateTimeRegex = /^(\d{4})(?:-?W(\d+)(?:-?(\d+)D?)?|(?:-(\d+))?-(\d+))(?:[T ](\d+):(\d+)(?::(\d+)(?:\.(\d+))?)?)?(?:Z(-?\d*))?$/g;
-UnknownValue.BooleanTrueRegex = /^true$/ig;
-UnknownValue.BooleanFalseRegex = /^false$/ig;
-UnknownValue.NullRegex = /^null$/ig;
-UnknownValue.UndefinedRegex = /^undefined$/ig;
-UnknownValue.IntegerRegex =/^[-+]?\d+$/g;
-UnknownValue.FloatRegex =/^[+-]?\d+(\.\d+)?$/g;
-/**
- * @class UnknownPropertyDescriptor
- * @constructor
- */
-function UnknownPropertyDescriptor(obj, name) {
-    Object.defineProperty(this, 'value', { configurable:false, enumerable:true, get: function() { return obj[name]; }, set: function(value) { obj[name]=value; } });
-    Object.defineProperty(this, 'name', { configurable:false, enumerable:true, get: function() { return name; } });
-}
-/**
- * @param {string} value
- */
-UnknownValue.convert = function(value) {
-    var result;
-    if ((typeof value === 'string'))
-    {
-        if (value.length==0) {
-            result = value
-        }
-        if (value.match(UnknownValue.BooleanTrueRegex)) {
-            result = true;
-        }
-        else if (value.match(UnknownValue.BooleanFalseRegex)) {
-            result = false;
-        }
-        else if (value.match(UnknownValue.NullRegex) || value.match(UnknownValue.UndefinedRegex)) {
-            result = null;
-        }
-        else if (value.match(UnknownValue.IntegerRegex)) {
-            result = parseInt(value);
-        }
-        else if (value.match(UnknownValue.FloatRegex)) {
-            result = parseFloat(value);
-        }
-        else if (value.match(UnknownValue.DateTimeRegex)) {
-            result = new Date(Date.parse(value));
-        }
-        else {
-            result = value;
-        }
-    }
-    else {
-        result = value;
-    }
-    return result;
-}
+var _formidable2 = _interopRequireDefault(_formidable);
 
+var _lodash = require('lodash');
 
+var _utils = require('@themost/common/utils');
+
+var _mostXml = require('most-xml');
+
+var _mostXml2 = _interopRequireDefault(_mostXml);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 /**
- * @class PostHandler
- * @constructor
+ * @class
  * @augments HttpHandler
  */
-function PostHandler() {
-
-}
-
-/**
- *
- * @param {*} origin
- * @param {string} expr
- * @param {string} value
- * @param {*=} options
- * @returns {*}
- * @private
- */
-function extend(origin, expr, value, options) {
-
-    options = options || { convertValues:false };
-    //find base notation
-    var match = /(^\w+)\[/.exec(expr), name, descriptor, expr1;
-    if (match) {
-        //get property name
-        name = match[1];
-        //validate array property
-        if (/^\d+$/g.test(name)) {
-            //property is an array
-            if (!util.isArray(origin.value))
-                origin.value = [];
-            // get new expression
-            expr1 = expr.substr(match.index + match[1].length);
-            extend(origin, expr1, value, options);
-        }
-        else {
-            //set property value (unknown)
-            origin[name] = origin[name] || new UnknownValue();
-            descriptor = new UnknownPropertyDescriptor(origin, name);
-            // get new expression
-            expr1 = expr.substr(match.index + match[1].length);
-            extend(descriptor, expr1, value, options);
-        }
+var PostHandler = function () {
+    function PostHandler() {
+        _classCallCheck(this, PostHandler);
     }
-    else if (expr.indexOf('[')==0) {
-        //get property
-        var re = /\[(.*?)\]/g;
-        match = re.exec(expr);
-        if (match) {
-            name = match[1];
-            // get new expression
-            expr1 = expr.substr(match.index + match[0].length);
-            if (/^\d+$/g.test(name)) {
-                //property is an array
-                if (!util.isArray(origin.value))
-                    origin.value = [];
-            }
-            if (expr1.length==0) {
-                if (origin.value instanceof UnknownValue) {
-                    origin.value = {};
-                }
-                var typedValue;
-                //convert string value
-                if ((typeof value === 'string') && options.convertValues) {
-                    typedValue = UnknownValue.convert(value);
-                }
-                else {
-                    typedValue = value;
-                }
-                if (util.isArray(origin.value))
-                    origin.value.push(typedValue);
-                else
-                    origin.value[name] = typedValue;
-            }
-            else {
-                if (origin.value instanceof UnknownValue) {
-                    origin.value = { };
-                };
-                origin.value[name] = origin.value[name] || new UnknownValue();
-                descriptor = new UnknownPropertyDescriptor(origin.value, name);
-                extend(descriptor, expr1, value, options);
-            }
-        }
-        else {
-            throw new Error('Invalid object property notation. Expected [name]');
-        }
-    }
-    else if (/^[\w\-]*$/.test(expr)) {
-        if (options.convertValues)
-            origin[expr] = UnknownValue.convert(value);
-        else
-            origin[expr] = value;
-    }
-    else {
-        throw new Error('Invalid object property notation. Expected property[name] or [name]');
-    }
-    return origin;
-}
 
-/**
- * Parses a form object and returns form parameters as object e.g. user[name]=user&user1[password]=1234 returns user: { name: 'user1', password:'1234'}
- * @param form
- * @private
- */
-function parseForm(form) {
-    var result = {};
-    if (typeof form === 'undefined' || form==null)
-        return result;
-    var keys = Object.keys(form);
-    keys.forEach(function(key) {
-        if (form.hasOwnProperty(key))
-        {
-            extend(result, key, form[key]);
-        }
-    });
-    return result;
-}
+    _createClass(PostHandler, [{
+        key: 'beginRequest',
 
-PostHandler.prototype.beginRequest = function(context, callback) {
-    try {
-        var request = context.request;
-        //extend params object (parse form data)
-        if (typeof request.socket === 'undefined') {
-            callback();
-        }
-        else {
-            request.headers = request.headers || {};
-            if (/^application\/x-www-form-urlencoded/i.test(request.headers['content-type'])) {
-                //use formidable to parse request data
-                var f = new formidable.IncomingForm();
-                f.parse(request, function (err, form, files) {
-                    if (err) {
-                        callback(err);
-                        return;
-                    }
-                    try {
-                        //add form
-                        if (form) {
-                            util._extend(context.params, parseForm(form));
-                        }
-                        //add files
-                        if (files)
-                            util._extend(context.params, files);
+        /**
+         *
+         * @param {HttpContext} context
+         * @param {Function} callback
+         */
+        value: function beginRequest(context, callback) {
+            try {
+                var request = context.request;
+                //extend params object (parse form data)
+                if (typeof request.socket === 'undefined') {
+                    callback();
+                } else {
+                    request.headers = request.headers || {};
+                    if (/^application\/x-www-form-urlencoded/i.test(request.headers['content-type'])) {
+                        //use formidable to parse request data
+                        var f = new _formidable2.default.IncomingForm();
+                        f.parse(request, function (err, form, files) {
+                            if (err) {
+                                return callback(err);
+                            }
+                            try {
+                                //add form
+                                if (form) {
+                                    _lodash._.assign(context.params, _utils.LangUtils.parseForm(form));
+                                }
+                                //add files
+                                if (files) _lodash._.assign(context.params, files);
+                                callback();
+                            } catch (err) {
+                                callback(err);
+                            }
+                        });
+                    } else {
                         callback();
                     }
-                    catch (e) {
-                        callback(e);
-                    }
-                });
+                }
+            } catch (e) {
+                _utils.TraceUtils.log(e);
+                callback(new Error("An internal server error occured while parsing request data."));
             }
-            else {
-                callback();
-            }
-
         }
-    }
-    catch  (e) {
-        console.log(e);
-        callback(new Error("An internal server error occured while parsing request data."));
-    }
+    }]);
 
-};
+    return PostHandler;
+}();
 
-if (typeof exports !== 'undefined') {
-    exports.createInstance = function() {
-        return new PostHandler();
-    };
-}
+exports.default = PostHandler;
+//# sourceMappingURL=post.js.map

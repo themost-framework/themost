@@ -19,13 +19,16 @@ module.exports = function(grunt) {
                     sourceMap: true,
                     presets: ["env"],
                     plugins: [
-                        "transform-decorators-legacy"
+                        "transform-decorators-legacy",
+                        ["babel-plugin-transform-builtin-extend", {
+                            globals: ["Error", "Array"]
+                        }]
                     ]
                 },
                 files: [{
                     expand: true,
                     cwd:'',
-                    src: ['test/**/*.es6','modules/@themost/**/*.es6'],
+                    src: ['test/**/*.es6','test-app/**/*.es6','modules/@themost/**/*.es6'],
                     dest: '',
                     ext: '.js'
                 }]

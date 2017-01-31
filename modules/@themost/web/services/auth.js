@@ -1,119 +1,124 @@
 /**
- * MOST Web Framework
- * A JavaScript Web Framework
- * http://themost.io
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
+ *                     Anthi Oikonomou anthioikonomou@gmail.com
  *
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com, Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Released under the BSD3-Clause license
- * Date: 2014-11-15
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
  */
-/**
- * @ignore
- */
-var common = require('@themost/common'),
-    crypto = require('crypto'),
-    util = require('util');
+'use strict';
 
-if (typeof exports !== 'undefined') {
-    exports.createInstance = function(context) {
-        return {
-            login:function(userName, userPassword, callback) {
-                callback = callback || function() {};
-                try {
-                    context.model('user').where('name').equal(userName).select(['id','enabled']).silent().first(function(err, result) {
-                        if (err) {
-                            callback(new Error('Login failed due to server error. Please try again or contact your system administrator.'));
-                        }
-                        else {
-                            if (result) {
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+exports.createInstance = createInstance;
+
+var _errors = require('@themost/common/errors');
+
+var _utils = require('@themost/common/utils');
+
+var _crypto = require('crypto');
+
+var _crypto2 = _interopRequireDefault(_crypto);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function createInstance(context) {
+    return {
+        login: function login(userName, userPassword, callback) {
+            callback = callback || function () {};
+            try {
+                context.model('user').where('name').equal(userName).select(['id', 'enabled']).silent().first(function (err, result) {
+                    if (err) {
+                        callback(new Error('Login failed due to server error. Please try again or contact your system administrator.'));
+                    } else {
+                        if (result) {
+                            var _ret = function () {
                                 if (!result.enabled) {
-                                    callback(new common.HttpForbiddenException('The account is disabled. Please contact your system administrator.'));
-                                    return;
+                                    callback(new _errors.HttpForbiddenError('The account is disabled. Please contact your system administrator.'));
+                                    return {
+                                        v: void 0
+                                    };
                                 }
                                 //user was found
                                 var model = context.model('UserCredential');
                                 if (typeof model === 'undefined' || model === null) {
-                                    console.log('UserCredential model is missing.');
+                                    _utils.TraceUtils.log('UserCredential model is missing.');
                                     callback(new Error('Login failed due to server error.'));
-                                    return;
+                                    return {
+                                        v: void 0
+                                    };
                                 }
                                 model.where('id').equal(result.id).silent().first(function (err, creds) {
                                     if (err) {
-                                        console.log(err);
+                                        _utils.TraceUtils.log(err);
                                         callback(new Error('Login failed due to server error. Please try again or contact your system administrator.'));
-                                    }
-                                    else {
+                                    } else {
                                         if (creds) {
                                             var authenticated = false;
                                             //user credentials were found
                                             //1. clear text
                                             if (/^\{clear\}/i.test(creds.userPassword)) {
-                                                authenticated = (creds.userPassword.replace(/^\{clear\}/i, '') == userPassword)
+                                                authenticated = creds.userPassword.replace(/^\{clear\}/i, '') == userPassword;
                                             }
                                             //2. md5 text
                                             else if (/^\{md5\}/i.test(creds.userPassword)) {
-                                                var md5password = crypto.createHash('md5').update(userPassword).digest('hex');
-                                                authenticated = (creds.userPassword.replace(/^\{md5\}/i, '') == md5password)
-                                            }
-                                            //3. sha1 text
-                                            else if (/^\{sha1\}/i.test(creds.userPassword)) {
-                                                var sha1password = crypto.createHash('sha1').update(userPassword).digest('hex');
-                                                authenticated = (creds.userPassword.replace(/^\{sha1\}/i, '') == sha1password)
-                                            }
+                                                    var md5password = _crypto2.default.createHash('md5').update(userPassword).digest('hex');
+                                                    authenticated = creds.userPassword.replace(/^\{md5\}/i, '') == md5password;
+                                                }
+                                                //3. sha1 text
+                                                else if (/^\{sha1\}/i.test(creds.userPassword)) {
+                                                        var sha1password = _crypto2.default.createHash('sha1').update(userPassword).digest('hex');
+                                                        authenticated = creds.userPassword.replace(/^\{sha1\}/i, '') == sha1password;
+                                                    }
                                             if (authenticated) {
                                                 //set cookie
                                                 context.application.setAuthCookie(context, userName);
-                                                context.user = model.convert({ name: userName, authenticationType:'Basic' });
+                                                context.user = model.convert({ name: userName, authenticationType: 'Basic' });
                                                 callback();
+                                            } else {
+                                                callback(new _errors.HttpUnauthorizedError('Unknown username or bad password.'));
                                             }
-                                            else {
-                                                callback(new common.HttpUnauthorizedException('Unknown username or bad password.'));
-                                            }
-                                        }
-                                        else {
-                                            console.log(util.log('User credentials cannot be found (%s).', userName));
-                                            callback(new common.HttpUnauthorizedException('Unknown username or bad password.'));
+                                        } else {
+                                            _utils.TraceUtils.log('User credentials cannot be found (%s).', userName);
+                                            callback(new _errors.HttpUnauthorizedError('Unknown username or bad password.'));
                                         }
                                     }
                                 });
-                            }
-                            else {
-                                //user was not found
-                                callback(new common.HttpUnauthorizedException('Unknown username. Please try again.'));
-                            }
+                            }();
+
+                            if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
+                        } else {
+                            //user was not found
+                            callback(new _errors.HttpUnauthorizedError('Unknown username. Please try again.'));
                         }
-                    });
-                }
-                catch (e) {
-                    console.log(e);
-                    callback(new Error('Login failed due to internal server error.'));
-                }
-
-            },
-            logout:function(callback) {
-                callback = callback || function() {};
-                var anonymousIdentity = { name: 'anonymous', authenticationType:'None' };
-                try {
-                    //get user model, if any
-                    var model = context.model('User');
-                    //set auth cookie to anonymous
-                    context.application.setAuthCookie(context, 'anonymous');
-                    //check user model and set HttpContext.user property
-                    if (model)
-                        context.user = model.convert(anonymousIdentity);
-                    else
-                        context.user = anonymousIdentity;
-                    callback(null);
-                }
-                catch(e) {
-                    console.log(e);
-                    if (context)
-                        context.user = anonymousIdentity;
-                }
-
+                    }
+                });
+            } catch (e) {
+                _utils.TraceUtils.log(e);
+                callback(new Error('Login failed due to internal server error.'));
+            }
+        },
+        logout: function logout(callback) {
+            callback = callback || function () {};
+            var anonymousIdentity = { name: 'anonymous', authenticationType: 'None' };
+            try {
+                //get user model, if any
+                var model = context.model('User');
+                //set auth cookie to anonymous
+                context.application.setAuthCookie(context, 'anonymous');
+                //check user model and set HttpContext.user property
+                if (model) context.user = model.convert(anonymousIdentity);else context.user = anonymousIdentity;
+                callback(null);
+            } catch (e) {
+                _utils.TraceUtils.log(e);
+                if (context) context.user = anonymousIdentity;
             }
         }
-    }
+    };
 }
-
+//# sourceMappingURL=auth.js.map

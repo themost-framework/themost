@@ -2,10 +2,10 @@
     "handlers": [
         { "name":"query","type":"./handlers/querystring" },
         { "name":"auth","type":"./handlers/auth" },
-        { "name":"basic-auth","type":"./handlers/basic-auth" },
+        { "name":"basic_auth","type":"./handlers/basic_auth" },
         { "name":"static","type":"./handlers/static" },
         { "name":"mvc","type":"./handlers/view" },
-        { "name":"multipart","type":"./multipart" },
+        { "name":"multipart","type":"./handlers/multipart" },
         { "name":"json","type":"./handlers/json" },
         { "name":"post","type":"./handlers/post" },
         { "name":"route","type":"./handlers/route" },
@@ -15,7 +15,7 @@
         { "name": "EJS View Engine", "extension": "ejs", "type": "./engines/ejs" }
     ],
     "controllers": {
-        "base": "./controllers/data-controller.js"
+        "base": "./controllers/data.js"
     },
     "settings": {
         "crypto": {

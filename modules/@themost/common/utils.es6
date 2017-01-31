@@ -1,0 +1,551 @@
+/**
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
+ *                     Anthi Oikonomou anthioikonomou@gmail.com
+ *
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
+ */
+'use strict';
+import crypto from 'crypto';
+import winston from 'winston';
+import {_} from 'lodash';
+
+const UUID_CHARS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+const HEX_CHARS = 'abcdef1234567890';
+const STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
+
+
+const DateTimeRegex = /^(\d{4})(?:-?W(\d+)(?:-?(\d+)D?)?|(?:-(\d+))?-(\d+))(?:[T ](\d+):(\d+)(?::(\d+)(?:\.(\d+))?)?)?(?:Z(-?\d*))?$/g;
+const BooleanTrueRegex = /^true$/ig;
+const BooleanFalseRegex = /^false$/ig;
+const NullRegex = /^null$/ig;
+const UndefinedRegex = /^undefined$/ig;
+const IntegerRegex =/^[-+]?\d+$/g;
+const FloatRegex =/^[+-]?\d+(\.\d+)?$/g;
+
+
+const logger = new winston.Logger({
+    level: (process.NODE_ENV === 'development') ? 'debug' : 'info',
+    transports: [
+        new (winston.transports.Console)({
+            timestamp: function() {
+                return (new Date()).toUTCString()
+            },
+            formatter: function(options) {
+                return '[' + options.timestamp() +'] ['+ options.level.toUpperCase() +'] '+ (options.message ? options.message : '') +
+                    (options.meta && Object.keys(options.meta).length ? '\n\t'+ JSON.stringify(options.meta, null, 4) : '' );
+            }
+        })
+    ]
+});
+
+/**
+ * @class
+ */
+export class NumberUtils {
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * Converts a base-26 formatted string to the equivalent integer
+     * @static
+     * @param {string} s A base-26 formatted string e.g. aaaaaaaa for 0, baaaaaaa for 1 etc
+     * @return {number} The equivalent integer value
+     */
+    static fromBase26(s) {
+        let num = 0;
+        if (!/[a-z]{8}/.test(s)) {
+            throw new Error('Invalid base-26 format.');
+        }
+        const a = 'a'.charCodeAt(0);
+        for (let i = 7; i >=0; i--) {
+            num = (num * 26) + (s[i].charCodeAt(0) - a);
+        }
+        return num;
+    }
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * Converts an integer to the equivalent base-26 formatted string
+     * @static
+     * @param {number} x The integer to be converted
+     * @return {string} The equivalent string value
+     */
+    static toBase26(x) {
+        //noinspection ES6ConvertVarToLetConst
+        let num = parseInt(x);
+        if (num<0) {
+            throw new Error('A non-positive integer cannot be converted to base-26 format.');
+        }
+        if (num>208827064575) {
+            throw new Error('A positive integer bigger than 208827064575 cannot be converted to base-26 format.');
+        }
+        let out = "";
+        let length= 1;
+        const a = 'a'.charCodeAt(0);
+        while(length<=8)
+        {
+            out += String.fromCharCode(a + (num % 26));
+            num = Math.floor(num / 26);
+            length += 1;
+        }
+        return out;
+    }
+
+
+}
+
+/**
+ * @class
+ */
+export class TextUtils {
+    /**
+     * Converts the given parameter to MD5 hex string
+     * @static
+     * @param {*} value
+     * @returns {string|undefined}
+     */
+    static toMD5(value) {
+        if (typeof value === 'undefined' || value == null) {
+            return;
+        }
+        const md5 = crypto.createHash('md5');
+        if (typeof value === 'string') {
+            md5.update(value);
+        }
+        else if (value instanceof Date) {
+            md5.update(value.toUTCString());
+        }
+        else {
+            md5.update(JSON.stringify(value));
+        }
+        return md5.digest('hex');
+    }
+
+    /**
+     * Converts the given parameter to SHA1 hex string
+     * @static
+     * @param {*} value
+     * @returns {string|undefined}
+     */
+    static toSHA1(value) {
+        if (typeof value === 'undefined' || value == null) {
+            return;
+        }
+        const sha1 = crypto.createHash('sha1');
+        if (typeof value === 'string') {
+            sha1.update(value);
+        }
+        else if (value instanceof Date) {
+            sha1.update(value.toUTCString());
+        }
+        else {
+            sha1.update(JSON.stringify(value));
+        }
+        return sha1.digest('hex');
+    }
+
+    /**
+     * Converts the given parameter to SHA256 hex string
+     * @static
+     * @param {*} value
+     * @returns {string|undefined}
+     */
+    static toSHA256(value) {
+        if (typeof value === 'undefined' || value == null) {
+            return;
+        }
+        const sha256 = crypto.createHash('sha256');
+        if (typeof value === 'string') {
+            sha256.update(value);
+        }
+        else if (value instanceof Date) {
+            sha256.update(value.toUTCString());
+        }
+        else {
+            sha256.update(JSON.stringify(value));
+        }
+        return sha256.digest('hex');
+    }
+
+    /**
+     * Returns a random GUID/UUID string
+     * @static
+     * @returns {string}
+     */
+    static newUUID() {
+        const uuid = [];
+        let i;
+        // rfc4122, version 4 form
+        let r, n;
+        // rfc4122 requires these characters
+        uuid[8] = uuid[13] = uuid[18] = uuid[23] = '-';
+        uuid[14] = '4';
+
+        // Fill in random data.  At i==19 set the high bits of clock sequence as
+        // per rfc4122, sec. 4.1.5
+        for (i = 0; i < 36; i++) {
+            if (!uuid[i]) {
+                r = 0 | Math.random()*16;
+                n = (i == 19) ? (r & 0x3) | 0x8 : r;
+                uuid[i] = UUID_CHARS.substring(n,1);
+            }
+        }
+        return uuid.join('');
+    }
+
+
+
+
+
+}
+
+/**
+ * @class
+ * @constructor
+ */
+export class TraceUtils {
+    /**
+     * @static
+     * @param {...*} data
+     */
+    static log(data) {
+        const args = Array.prototype.slice.call(arguments);
+        if (args.length==0) { return; }
+        if (data instanceof Error) {
+            return TraceUtils.error.apply(this, args);
+        }
+        return logger.info.apply(logger, args);
+    }
+
+    /**
+     * @static
+     * @param {...*} data
+     */
+    static error(data) {
+        const args = Array.prototype.slice.call(arguments);
+        if (args.length==0) { return; }
+        if (data instanceof Error) {
+            if (data.stack) {
+                return logger.error(data.stack);
+            }
+            else {
+                return logger.error.apply(logger, args);
+            }
+        }
+        return logger.error.apply(logger, args);
+    }
+
+    /**
+     *
+     * @static
+     * @param {...*} data
+     */
+    static info(data) {
+        const args = Array.prototype.slice.call(arguments);
+        if (args.length==0) { return; }
+        return logger.info.apply(logger, args);
+    }
+
+    /**
+     *
+     * @static
+     * @param {*} data
+     */
+    static warn(data) {
+        const args = Array.prototype.slice.call(arguments);
+        if (args.length==0) { return; }
+        return logger.warn.apply(logger, args);
+    }
+
+    /**
+     *
+     * @static
+     * @param {...*} data
+     */
+    static debug(data) {
+        const args = Array.prototype.slice.call(arguments);
+        if (args.length==0) { return; }
+        return logger.debug.apply(logger, args);
+    }
+}
+/**
+ * @class
+ */
+export class RandomUtils {
+    /**
+     * Returns a random string based on the length specified
+     * @param {Number} length
+     */
+    static randomChars(length) {
+        length = length || 8;
+        const chars = "abcdefghkmnopqursuvwxz2456789ABCDEFHJKLMNPQURSTUVWXYZ";
+        let str = "";
+        for(let i = 0; i < length; i++) {
+            str += chars.substr(this.randomInt(0, chars.length-1),1);
+        }
+        return str;
+    }
+
+    /**
+     * Returns a random integer between a minimum and a maximum value
+     * @param {number} min
+     * @param {number} max
+     */
+    static randomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    /**
+     * Returns a random string based on the length specified
+     * @static
+     * @param {number} length
+     * @returns {string}
+     */
+    static randomHex(length) {
+        length = (length || 8)*2;
+        let str = "";
+        for(let i = 0; i < length; i++) {
+            str += HEX_CHARS.substr(this.randomInt(0, HEX_CHARS.length-1),1);
+        }
+        return str;
+    }
+}
+
+/**
+ * @class
+ */
+export class LangUtils {
+    /**
+     * Returns an array of strings which represents the arguments' names of the given function
+     * @param {Function} fn
+     * @returns {Array}
+     */
+    static getFunctionParams(fn) {
+        if (!_.isFunction(fn))
+            return [];
+        const fnStr = fn.toString().replace(STRIP_COMMENTS, '');
+        let result = fnStr.slice(fnStr.indexOf('(')+1, fnStr.indexOf(')')).match(/([^\s,]+)/g);
+        if(result === null)
+            result = [];
+        return result;
+    }
+    /**
+     * @param {string} value
+     */
+    static convert(value) {
+        let result;
+        if ((typeof value === 'string'))
+        {
+            if (value.length==0) {
+                result = value
+            }
+            if (value.match(BooleanTrueRegex)) {
+                result = true;
+            }
+            else if (value.match(BooleanFalseRegex)) {
+                result = false;
+            }
+            else if (value.match(NullRegex) || value.match(UndefinedRegex)) {
+                result = null;
+            }
+            else if (value.match(IntegerRegex)) {
+                result = parseInt(value);
+            }
+            else if (value.match(FloatRegex)) {
+                result = parseFloat(value);
+            }
+            else if (value.match(DateTimeRegex)) {
+                result = new Date(Date.parse(value));
+            }
+            else {
+                result = value;
+            }
+        }
+        else {
+            result = value;
+        }
+        return result;
+    }
+
+    /**
+     *
+     * @param {*} origin
+     * @param {string} expr
+     * @param {string} value
+     * @param {*=} options
+     * @returns {*}
+     */
+    static extend(origin, expr, value, options) {
+
+        options = options || { convertValues:false };
+        //find base notation
+        let match = /(^\w+)\[/.exec(expr), name, descriptor, expr1;
+        if (match) {
+            //get property name
+            name = match[1];
+            //validate array property
+            if (/^\d+$/g.test(name)) {
+                //property is an array
+                if (!_.isArray(origin.value))
+                    origin.value = [];
+                // get new expression
+                expr1 = expr.substr(match.index + match[1].length);
+                LangUtils.extend(origin, expr1, value);
+            }
+            else {
+                //set property value (unknown)
+                origin[name] = origin[name] || new LangUtils();
+                descriptor = new UnknownPropertyDescriptor(origin, name);
+                // get new expression
+                expr1 = expr.substr(match.index + match[1].length);
+                LangUtils.extend(descriptor, expr1, value);
+            }
+        }
+        else if (expr.indexOf('[')==0) {
+            //get property
+            const re = /\[(.*?)\]/g;
+            match = re.exec(expr);
+            if (match) {
+                name = match[1];
+                // get new expression
+                expr1 = expr.substr(match.index + match[0].length);
+                if (/^\d+$/g.test(name)) {
+                    //property is an array
+                    if (!_.isArray(origin.value))
+                        origin.value = [];
+                }
+                if (expr1.length==0) {
+                    if (origin.value instanceof LangUtils) {
+                        origin.value = {};
+                    }
+                    let typedValue;
+                    //convert string value
+                    if ((typeof value === 'string') && options.convertValues) {
+                        typedValue = LangUtils.convert(value);
+                    }
+                    else {
+                        typedValue = value;
+                    }
+                    if (_.isArray(origin.value))
+                        origin.value.push(typedValue);
+                    else
+                        origin.value[name] = typedValue;
+                }
+                else {
+                    if (origin.value instanceof LangUtils) {
+                        origin.value = { };
+                    }
+                    origin.value[name] = origin.value[name] || new LangUtils();
+                    descriptor = new UnknownPropertyDescriptor(origin.value, name);
+                    LangUtils.extend(descriptor, expr1, value);
+                }
+            }
+            else {
+                throw new Error('Invalid object property notation. Expected [name]');
+            }
+        }
+        else if (/^\w+$/.test(expr)) {
+            if (options.convertValues)
+                origin[expr] = LangUtils.convert(value);
+            else
+                origin[expr] = value;
+        }
+        else {
+            throw new Error('Invalid object property notation. Expected property[name] or [name]');
+        }
+        return origin;
+    }
+
+
+    /**
+     *
+     * @param {*} form
+     * @returns {*}
+     */
+    static parseForm (form) {
+        const result = {};
+        if (typeof form === 'undefined' || form==null)
+            return result;
+        const keys = Object.keys(form);
+        keys.forEach(function(key) {
+            if (form.hasOwnProperty(key))
+            {
+                LangUtils.extend(result, key, form[key])
+            }
+        });
+        return result;
+    }
+    /**
+     * Parses any value or string and returns the resulted object.
+     * @param {*} any
+     * @returns {*}
+     */
+    static parseValue(any) {
+        return LangUtils.convert(any);
+    }
+    /**
+     * Parses any value and returns the equivalent integer.
+     * @param {*} any
+     * @returns {*}
+     */
+    static parseInt(any) {
+        return parseInt(any) || 0;
+    }
+    /**
+     * Parses any value and returns the equivalent float number.
+     * @param {*} any
+     * @returns {*}
+     */
+    static parseFloat(any) {
+        return parseFloat(any) || 0;
+    }
+    /**
+     * Parses any value and returns the equivalent boolean.
+     * @param {*} any
+     * @returns {*}
+     */
+    static parseBoolean(any) {
+        if (typeof any === 'undefined' || any == null)
+            return false;
+        else if (typeof any === 'number')
+            return any != 0;
+        else if (typeof any === 'string') {
+            if (any.match(LangUtils.IntegerRegex) || any.match(LangUtils.FloatRegex)) {
+                return parseInt(any, 10) != 0;
+            }
+            else if (any.match(LangUtils.BooleanTrueRegex))
+                return true;
+            else if (any.match(LangUtils.BooleanFalseRegex))
+                return false;
+            else if (/^yes$|^on$|^y$|^valid$/i.test(any))
+                return true;
+            else if (/^no$|^off$|^n$|^invalid$/i.test(any))
+                return false;
+            else
+                return false;
+        }
+        else if (typeof any === 'boolean')
+            return any;
+        else {
+            return (parseInt(any) || 0) != 0;
+        }
+    }
+
+}
+
+LangUtils.DateTimeRegex = /^(\d{4})(?:-?W(\d+)(?:-?(\d+)D?)?|(?:-(\d+))?-(\d+))(?:[T ](\d+):(\d+)(?::(\d+)(?:\.(\d+))?)?)?(?:Z(-?\d*))?$/g;
+LangUtils.BooleanTrueRegex = /^true$/ig;
+LangUtils.BooleanFalseRegex = /^false$/ig;
+LangUtils.NullRegex = /^null$/ig;
+LangUtils.UndefinedRegex = /^undefined$/ig;
+LangUtils.IntegerRegex =/^[-+]?\d+$/g;
+LangUtils.FloatRegex =/^[+-]?\d+(\.\d+)?$/g;
+/**
+ * @class
+ * @constructor
+ */
+function UnknownPropertyDescriptor(obj, name) {
+    Object.defineProperty(this, 'value', { configurable:false, enumerable:true, get: function() { return obj[name]; }, set: function(value) { obj[name]=value; } });
+    Object.defineProperty(this, 'name', { configurable:false, enumerable:true, get: function() { return name; } });
+}

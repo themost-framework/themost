@@ -1,27 +1,27 @@
 /**
- * MOST Web Framework
- * A JavaScript Web Framework
- * http://themost.io
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
+ *                     Anthi Oikonomou anthioikonomou@gmail.com
  *
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com, Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Released under the BSD3-Clause license
- * Date: 2014-06-10
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
  */
+'use strict';
 /**
- * @class NoopHandler
- * @constructor
+ * @class
  * @augments HttpHandler
  */
-function NoopHandler() {
-    //
-}
 
-/**
- * @returns HttpHandler
- * */
-NoopHandler.prototype.createInstance = function () {
-    return new NoopHandler();
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var NoopHandler = function NoopHandler() {
+  _classCallCheck(this, NoopHandler);
 };
 
-if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') module.exports = NoopHandler.prototype.createInstance();
+exports.default = NoopHandler;
+//# sourceMappingURL=noop.js.map
