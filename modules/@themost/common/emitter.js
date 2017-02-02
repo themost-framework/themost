@@ -18,7 +18,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _events = require('events');
 
-var _events2 = _interopRequireDefault(_events);
+var events = _interopRequireDefault(_events).default;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -94,5 +94,5 @@ var SequentialEventEmitter = exports.SequentialEventEmitter = function (_events$
     }]);
 
     return SequentialEventEmitter;
-}(_events2.default.EventEmitter);
+}(events.EventEmitter);
 //# sourceMappingURL=emitter.js.map

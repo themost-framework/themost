@@ -18,6 +18,8 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _lodash = require('lodash');
 
+var _ = _lodash._;
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 //noinspection JSUnusedLocalSymbols
@@ -87,8 +89,8 @@ var HtmlWriter = exports.HtmlWriter = function () {
     }, {
         key: 'writeAttributes',
         value: function writeAttributes(obj) {
-            if (_lodash._.isNil(obj)) return this;
-            if (_lodash._.isArray(obj)) {
+            if (_.isNil(obj)) return this;
+            if (_.isArray(obj)) {
                 for (var i = 0; i < obj.length; i++) {
                     this.bufferedAttributes.push({ name: obj[i].name, value: obj[i].value });
                 }
@@ -115,16 +117,16 @@ var HtmlWriter = exports.HtmlWriter = function () {
             //write <TAG
             if (this.indent) {
                 //this.buffer += '\n';
-                this.buffer += _lodash._.repeat('\t', this.bufferedTags.length);
+                this.buffer += _.repeat('\t', this.bufferedTags.length);
             }
             this.buffer += HTML_START_TAG_STRING.replace(/%0/, tag);
             this.bufferedTags.push(tag);
             if (this.bufferedAttributes.length > 0) {
                 var s = '';
-                _lodash._.forEach(this.bufferedAttributes, function (attr) {
+                _.forEach(this.bufferedAttributes, function (attr) {
                     //write attribute='value'
                     s += HTML_SPACE_CHAR;
-                    s += HTML_ATTR_STRING.replace(/%0/, attr.name).replace(/%1/, _lodash._.escape(attr.value));
+                    s += HTML_ATTR_STRING.replace(/%0/, attr.name).replace(/%1/, _.escape(attr.value));
                 });
                 this.buffer += s;
             }
@@ -145,15 +147,15 @@ var HtmlWriter = exports.HtmlWriter = function () {
             //write <TAG
             if (this.indent) {
                 this.buffer += '\n';
-                this.buffer += _lodash._.repeat('\t', this.bufferedTags.length);
+                this.buffer += _.repeat('\t', this.bufferedTags.length);
             }
             this.buffer += HTML_START_TAG_STRING.replace(/%0/, tag);
             if (this.bufferedAttributes.length > 0) {
                 var s = '';
-                _lodash._.forEach(this.bufferedAttributes, function (attr) {
+                _.forEach(this.bufferedAttributes, function (attr) {
                     //write attribute='value'
                     s += HTML_SPACE_CHAR;
-                    s += HTML_ATTR_STRING.replace(/%0/, attr.name).replace(/%1/, _lodash._.escape(attr.value));
+                    s += HTML_ATTR_STRING.replace(/%0/, attr.name).replace(/%1/, _.escape(attr.value));
                 });
                 this.buffer += s;
             }
@@ -174,7 +176,7 @@ var HtmlWriter = exports.HtmlWriter = function () {
             if (tagsLength == 0) return this;
             if (this.indent) {
                 this.buffer += '\n';
-                this.buffer += _lodash._.repeat('\t', tagsLength - 1);
+                this.buffer += _.repeat('\t', tagsLength - 1);
             }
             this.buffer += HTML_END_TAG_STRING.replace(/%0/, this.bufferedTags[tagsLength - 1]);
             this.bufferedTags.splice(tagsLength - 1, 1);
@@ -193,9 +195,9 @@ var HtmlWriter = exports.HtmlWriter = function () {
             if (!s) return this;
             if (this.indent) {
                 this.buffer += '\n';
-                this.buffer += _lodash._.repeat('\t', this.bufferedTags.length);
+                this.buffer += _.repeat('\t', this.bufferedTags.length);
             }
-            this.buffer += _lodash._.escape(s);
+            this.buffer += _.escape(s);
             return this;
         }
 

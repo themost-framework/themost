@@ -16,7 +16,7 @@ Object.defineProperty(exports, "__esModule", {
 var _emitter = require('./emitter');
 
 Object.keys(_emitter).forEach(function (key) {
-  if (key === "default" || key === "__esModule") return;
+  if (key === "default") return;
   Object.defineProperty(exports, key, {
     enumerable: true,
     get: function get() {
@@ -28,7 +28,7 @@ Object.keys(_emitter).forEach(function (key) {
 var _errors = require('./errors');
 
 Object.keys(_errors).forEach(function (key) {
-  if (key === "default" || key === "__esModule") return;
+  if (key === "default") return;
   Object.defineProperty(exports, key, {
     enumerable: true,
     get: function get() {
@@ -40,7 +40,7 @@ Object.keys(_errors).forEach(function (key) {
 var _html = require('./html');
 
 Object.keys(_html).forEach(function (key) {
-  if (key === "default" || key === "__esModule") return;
+  if (key === "default") return;
   Object.defineProperty(exports, key, {
     enumerable: true,
     get: function get() {
@@ -52,7 +52,7 @@ Object.keys(_html).forEach(function (key) {
 var _utils = require('./utils');
 
 Object.keys(_utils).forEach(function (key) {
-  if (key === "default" || key === "__esModule") return;
+  if (key === "default") return;
   Object.defineProperty(exports, key, {
     enumerable: true,
     get: function get() {

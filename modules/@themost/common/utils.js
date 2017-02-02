@@ -12,19 +12,21 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.LangUtils = exports.RandomUtils = exports.TraceUtils = exports.TextUtils = exports.NumberUtils = undefined;
+exports.LangUtils = exports.RandomUtils = exports.TraceUtils = exports.TextUtils = exports.NumberUtils = exports.Args = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _crypto = require('crypto');
 
-var _crypto2 = _interopRequireDefault(_crypto);
+var crypto = _interopRequireDefault(_crypto).default;
 
 var _winston = require('winston');
 
-var _winston2 = _interopRequireDefault(_winston);
+var winston = _interopRequireDefault(_winston).default;
 
 var _lodash = require('lodash');
+
+var _ = _lodash._;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -42,9 +44,9 @@ var UndefinedRegex = /^undefined$/ig;
 var IntegerRegex = /^[-+]?\d+$/g;
 var FloatRegex = /^[+-]?\d+(\.\d+)?$/g;
 
-var logger = new _winston2.default.Logger({
+var logger = new winston.Logger({
     level: process.NODE_ENV === 'development' ? 'debug' : 'info',
-    transports: [new _winston2.default.transports.Console({
+    transports: [new winston.transports.Console({
         timestamp: function timestamp() {
             return new Date().toUTCString();
         },
@@ -54,9 +56,155 @@ var logger = new _winston2.default.Logger({
     })]
 });
 
+var Args = exports.Args = function () {
+    function Args() {
+        _classCallCheck(this, Args);
+    }
+
+    _createClass(Args, null, [{
+        key: 'check',
+
+        /**
+         * Checks the expression and throws an exception if the condition is not met.
+         * @param {*} expr
+         * @param {string} message
+         */
+        value: function check(expr, message) {
+            Args.notNull(expr, "Expression");
+            if (typeof expr === 'function') {
+                expr.call();
+            }
+            var res = void 0;
+            if (typeof expr === 'function') {
+                res = !expr.call();
+            } else {
+                res = !expr;
+            }
+            if (res) {
+                var err = new Error(message);
+                err.code = "ECHECK";
+                throw err;
+            }
+        }
+
+        /**
+         *
+         * @param {*} arg
+         * @param {string} name
+         */
+
+    }, {
+        key: 'notNull',
+        value: function notNull(arg, name) {
+            if (typeof arg === 'undefined' || arg == null) {
+                var err = new Error(name + " may not be null or undefined");
+                err.code = "ENULL";
+                throw err;
+            }
+        }
+
+        /**
+         * @param {*} arg
+         * @param {string} name
+         */
+
+    }, {
+        key: 'notString',
+        value: function notString(arg, name) {
+            if (typeof arg !== 'string') {
+                var err = new Error(name + " must be a string");
+                err.code = "EARG";
+                throw err;
+            }
+        }
+
+        /**
+         * @param {*} arg
+         * @param {string} name
+         */
+
+    }, {
+        key: 'notFunction',
+        value: function notFunction(arg, name) {
+            if (typeof arg !== 'function') {
+                var err = new Error(name + " must be a function");
+                err.code = "EARG";
+                throw err;
+            }
+        }
+
+        /**
+         * @param {*} arg
+         * @param {string} name
+         */
+
+    }, {
+        key: 'notNumber',
+        value: function notNumber(arg, name) {
+            if (typeof arg !== 'string') {
+                var err = new Error(name + " must be number");
+                err.code = "EARG";
+                throw err;
+            }
+        }
+
+        /**
+         * @param {string|*} arg
+         * @param {string} name
+         */
+
+    }, {
+        key: 'notEmpty',
+        value: function notEmpty(arg, name) {
+            Args.notNull(arg, name);
+            Args.notString(arg, name);
+            if (arg.length == 0) {
+                var err = new Error(name + " may not be empty");
+                err.code = "EEMPTY";
+                return err;
+            }
+        }
+
+        /**
+         * @param {number|*} arg
+         * @param {string} name
+         */
+
+    }, {
+        key: 'notNegative',
+        value: function notNegative(arg, name) {
+            Args.notNumber(arg, name);
+            if (arg < 0) {
+                var err = new Error(name + " may not be negative");
+                err.code = "ENEG";
+                return err;
+            }
+        }
+
+        /**
+         * @param {number|*} arg
+         * @param {string} name
+         */
+
+    }, {
+        key: 'positive',
+        value: function positive(arg, name) {
+            Args.notNumber(arg, name);
+            if (arg <= 0) {
+                var err = new Error(name + " may not be negative or zero");
+                err.code = "EPOS";
+                return err;
+            }
+        }
+    }]);
+
+    return Args;
+}();
+
 /**
  * @class
  */
+
 
 var NumberUtils = exports.NumberUtils = function () {
     function NumberUtils() {
@@ -142,7 +290,7 @@ var TextUtils = exports.TextUtils = function () {
             if (typeof value === 'undefined' || value == null) {
                 return;
             }
-            var md5 = _crypto2.default.createHash('md5');
+            var md5 = crypto.createHash('md5');
             if (typeof value === 'string') {
                 md5.update(value);
             } else if (value instanceof Date) {
@@ -166,7 +314,7 @@ var TextUtils = exports.TextUtils = function () {
             if (typeof value === 'undefined' || value == null) {
                 return;
             }
-            var sha1 = _crypto2.default.createHash('sha1');
+            var sha1 = crypto.createHash('sha1');
             if (typeof value === 'string') {
                 sha1.update(value);
             } else if (value instanceof Date) {
@@ -190,7 +338,7 @@ var TextUtils = exports.TextUtils = function () {
             if (typeof value === 'undefined' || value == null) {
                 return;
             }
-            var sha256 = _crypto2.default.createHash('sha256');
+            var sha256 = crypto.createHash('sha256');
             if (typeof value === 'string') {
                 sha256.update(value);
             } else if (value instanceof Date) {
@@ -417,7 +565,7 @@ var LangUtils = exports.LangUtils = function () {
          * @returns {Array}
          */
         value: function getFunctionParams(fn) {
-            if (!_lodash._.isFunction(fn)) return [];
+            if (!_.isFunction(fn)) return [];
             var fnStr = fn.toString().replace(STRIP_COMMENTS, '');
             var result = fnStr.slice(fnStr.indexOf('(') + 1, fnStr.indexOf(')')).match(/([^\s,]+)/g);
             if (result === null) result = [];
@@ -481,7 +629,7 @@ var LangUtils = exports.LangUtils = function () {
                 //validate array property
                 if (/^\d+$/g.test(name)) {
                     //property is an array
-                    if (!_lodash._.isArray(origin.value)) origin.value = [];
+                    if (!_.isArray(origin.value)) origin.value = [];
                     // get new expression
                     expr1 = expr.substr(match.index + match[1].length);
                     LangUtils.extend(origin, expr1, value);
@@ -503,7 +651,7 @@ var LangUtils = exports.LangUtils = function () {
                     expr1 = expr.substr(match.index + match[0].length);
                     if (/^\d+$/g.test(name)) {
                         //property is an array
-                        if (!_lodash._.isArray(origin.value)) origin.value = [];
+                        if (!_.isArray(origin.value)) origin.value = [];
                     }
                     if (expr1.length == 0) {
                         if (origin.value instanceof LangUtils) {
@@ -516,7 +664,7 @@ var LangUtils = exports.LangUtils = function () {
                         } else {
                             typedValue = value;
                         }
-                        if (_lodash._.isArray(origin.value)) origin.value.push(typedValue);else origin.value[name] = typedValue;
+                        if (_.isArray(origin.value)) origin.value.push(typedValue);else origin.value[name] = typedValue;
                     } else {
                         if (origin.value instanceof LangUtils) {
                             origin.value = {};

@@ -41,6 +41,122 @@ const logger = new winston.Logger({
     ]
 });
 
+
+export class Args {
+    /**
+     * Checks the expression and throws an exception if the condition is not met.
+     * @param {*} expr
+     * @param {string} message
+     */
+    static check(expr, message) {
+        Args.notNull(expr,"Expression");
+        if (typeof expr === 'function') {
+            expr.call()
+        }
+        let res;
+        if (typeof expr === 'function') {
+            res = !(expr.call());
+        }
+        else {
+            res = (!expr);
+        }
+        if (res) {
+            const err = new Error(message);
+            err.code = "ECHECK";
+            throw err;
+        }
+    }
+
+    /**
+     *
+     * @param {*} arg
+     * @param {string} name
+     */
+    static notNull(arg, name) {
+        if (typeof arg === 'undefined' || arg == null) {
+            const err = new Error(name + " may not be null or undefined");
+            err.code = "ENULL";
+            throw err;
+        }
+    }
+
+    /**
+     * @param {*} arg
+     * @param {string} name
+     */
+    static notString(arg, name) {
+        if (typeof arg !== 'string') {
+            const err = new Error(name + " must be a string");
+            err.code = "EARG";
+            throw err;
+        }
+    }
+
+    /**
+     * @param {*} arg
+     * @param {string} name
+     */
+    static notFunction(arg, name) {
+        if (typeof arg !== 'function') {
+            const err = new Error(name + " must be a function");
+            err.code = "EARG";
+            throw err;
+        }
+    }
+
+    /**
+     * @param {*} arg
+     * @param {string} name
+     */
+    static notNumber(arg, name) {
+        if (typeof arg !== 'string') {
+            const err = new Error(name + " must be number");
+            err.code = "EARG";
+            throw err;
+        }
+    }
+
+    /**
+     * @param {string|*} arg
+     * @param {string} name
+     */
+    static notEmpty(arg, name) {
+        Args.notNull(arg,name);
+        Args.notString(arg,name);
+        if (arg.length == 0) {
+            const err = new Error(name + " may not be empty");
+            err.code = "EEMPTY";
+            return err;
+        }
+    }
+
+    /**
+     * @param {number|*} arg
+     * @param {string} name
+     */
+    static notNegative(arg, name) {
+        Args.notNumber(arg,name);
+        if (arg<0) {
+            const err = new Error(name + " may not be negative");
+            err.code = "ENEG";
+            return err;
+        }
+    }
+
+    /**
+     * @param {number|*} arg
+     * @param {string} name
+     */
+    static positive(arg, name) {
+        Args.notNumber(arg,name);
+        if (arg<=0) {
+            const err = new Error(name + " may not be negative or zero");
+            err.code = "EPOS";
+            return err;
+        }
+    }
+}
+
 /**
  * @class
  */
