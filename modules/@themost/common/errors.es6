@@ -10,13 +10,28 @@
 'use strict';
 
 /**
- * @classdesc Abstract Method Exception class
+ * @module @themost/common
+ */
+
+/**
+ * @classdesc Abstract Method Exception
  * @class
  * @augments Error
  * */
-export class AbstractMethodError extends Error {
+export class AbstractMethodError extends TypeError {
     constructor(message) {
-        super(message || 'Cannot call an abstract method.');
+        super(message || 'Class does not implement inherited abstract method.');
+    }
+}
+
+/**
+ * @classdesc Abstract Class Exception
+ * @class
+ * @augments Error
+ * */
+export class AbstractClassError extends TypeError {
+    constructor(message) {
+        super(message || 'An abstract class cannot be instantiated.');
     }
 }
 

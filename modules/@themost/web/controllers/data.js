@@ -20,19 +20,31 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _util = require('util');
 
-var _util2 = _interopRequireDefault(_util);
+var util = _interopRequireDefault(_util).default;
 
 var _lodash = require('lodash');
 
+var _ = _lodash._;
+
 var _mostXml = require('most-xml');
 
-var _mostXml2 = _interopRequireDefault(_mostXml);
+var xml = _interopRequireDefault(_mostXml).default;
 
 var _mvc = require('./../mvc');
 
+var HttpController = _mvc.HttpController;
+
 var _errors = require('@themost/common/errors');
 
+var HttpError = _errors.HttpError;
+var HttpMethodNotAllowedError = _errors.HttpMethodNotAllowedError;
+var HttpBadRequestError = _errors.HttpBadRequestError;
+var HttpNotFoundError = _errors.HttpNotFoundError;
+var HttpServerError = _errors.HttpServerError;
+
 var _utils = require('@themost/common/utils');
+
+var TraceUtils = _utils.TraceUtils;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -217,18 +229,18 @@ var HttpDataController = function (_HttpController) {
                         var target = self.model.convert(context.params[self.model.name] || context.params.data, true);
                         self.model.save(target, function (err) {
                             if (err) {
-                                callback(_errors.HttpError.create(err));
+                                callback(HttpError.create(err));
                             } else {
                                 if (context.params.attr('returnUrl')) callback(null, context.params.attr('returnUrl'));
                                 callback(null, self.result(target));
                             }
                         });
                     }).unhandle(function () {
-                        callback(new _errors.HttpMethodNotAllowedError());
+                        callback(new HttpMethodNotAllowedError());
                     });
                 })();
             } catch (e) {
-                callback(_errors.HttpError.create(e));
+                callback(HttpError.create(e));
             }
         }
 
@@ -252,14 +264,14 @@ var HttpDataController = function (_HttpController) {
                         if (target) {
                             self.model.save(target, function (err) {
                                 if (err) {
-                                    callback(_errors.HttpError.create(err));
+                                    callback(HttpError.create(err));
                                 } else {
                                     if (context.params.attr('returnUrl')) callback(null, context.params.attr('returnUrl'));
                                     callback(null, self.result(target));
                                 }
                             });
                         } else {
-                            callback(new _errors.HttpBadRequestError());
+                            callback(new HttpBadRequestError());
                         }
                     }).handle('DELETE', function () {
                         //get context param
@@ -267,14 +279,14 @@ var HttpDataController = function (_HttpController) {
                         if (target) {
                             self.model.remove(target, function (err) {
                                 if (err) {
-                                    callback(_errors.HttpError.create(err));
+                                    callback(HttpError.create(err));
                                 } else {
                                     if (context.params.attr('returnUrl')) callback(null, context.params.attr('returnUrl'));
                                     callback(null, self.result(null));
                                 }
                             });
                         } else {
-                            callback(new _errors.HttpBadRequestError());
+                            callback(new HttpBadRequestError());
                         }
                     }).handle('GET', function () {
                         if (context.request.route) {
@@ -290,7 +302,7 @@ var HttpDataController = function (_HttpController) {
                         var id = context.params.attr('id');
                         if (id) {
                             //create the equivalent open data filter
-                            filter = _util2.default.format('%s eq %s', self.model.primaryKey, id);
+                            filter = util.format('%s eq %s', self.model.primaryKey, id);
                         } else {
                             //get the requested open data filter
                             filter = context.params.attr('$filter');
@@ -298,7 +310,7 @@ var HttpDataController = function (_HttpController) {
                         if (filter) {
                             self.model.filter(filter, function (err, q) {
                                 if (err) {
-                                    callback(_errors.HttpError.create(err));
+                                    callback(HttpError.create(err));
                                     return;
                                 }
                                 q.take(1, function (err, result) {
@@ -309,19 +321,19 @@ var HttpDataController = function (_HttpController) {
                                             if (result.length > 0) callback(null, self.result(result));else callback(null, self.result(null));
                                         }
                                     } catch (e) {
-                                        callback(_errors.HttpError.create(e));
+                                        callback(HttpError.create(e));
                                     }
                                 });
                             });
                         } else {
-                            callback(new _errors.HttpBadRequestError());
+                            callback(new HttpBadRequestError());
                         }
                     }).unhandle(function () {
-                        callback(new _errors.HttpMethodNotAllowedError());
+                        callback(new HttpMethodNotAllowedError());
                     });
                 })();
             } catch (e) {
-                callback(_errors.HttpError.create(e));
+                callback(HttpError.create(e));
             }
         }
     }, {
@@ -334,7 +346,7 @@ var HttpDataController = function (_HttpController) {
                     (function () {
                         //prepare client model
                         var clone = JSON.parse(JSON.stringify(self.model));
-                        var m = _util2.default._extend({}, clone);
+                        var m = util._extend({}, clone);
                         //delete private properties
                         var keys = Object.keys(m);
                         for (var i = 0; i < keys.length; i++) {
@@ -385,10 +397,10 @@ var HttpDataController = function (_HttpController) {
                         callback(null, self.result(m));
                     })();
                 } else {
-                    callback(new _errors.HttpNotFoundError());
+                    callback(new HttpNotFoundError());
                 }
             }).unhandle(function () {
-                callback(new _errors.HttpMethodNotAllowedError());
+                callback(new HttpMethodNotAllowedError());
             });
         }
 
@@ -417,30 +429,30 @@ var HttpDataController = function (_HttpController) {
                         var id = context.params.attr('id');
                         if (id) {
                             //create the equivalent open data filter
-                            filter = _util2.default.format('%s eq %s', self.model.primaryKey, id);
+                            filter = util.format('%s eq %s', self.model.primaryKey, id);
                         } else {
                             //get the requested open data filter
                             filter = context.params.attr('$filter');
                         }
                         self.model.filter(filter, function (err, q) {
                             if (err) {
-                                callback(_errors.HttpError.create(err));
+                                callback(HttpError.create(err));
                                 return;
                             }
                             q.take(1, function (err, result) {
                                 try {
                                     if (err) {
-                                        callback(_errors.HttpError.create(e));
+                                        callback(HttpError.create(e));
                                     } else {
-                                        if (result.length > 0) callback(null, self.result(result));else callback(new _errors.HttpNotFoundError('Item Not Found'));
+                                        if (result.length > 0) callback(null, self.result(result));else callback(new HttpNotFoundError('Item Not Found'));
                                     }
                                 } catch (e) {
-                                    callback(_errors.HttpError.create(e));
+                                    callback(HttpError.create(e));
                                 }
                             });
                         });
                     }).unhandle(function () {
-                        callback(new _errors.HttpMethodNotAllowedError());
+                        callback(new HttpMethodNotAllowedError());
                     });
                 })();
             } catch (e) {
@@ -466,21 +478,21 @@ var HttpDataController = function (_HttpController) {
                         if (target) {
                             self.model.remove(target, function (err) {
                                 if (err) {
-                                    callback(_errors.HttpError.create(err));
+                                    callback(HttpError.create(err));
                                 } else {
                                     if (context.params.attr('returnUrl')) callback(null, context.params.attr('returnUrl'));
                                     callback(null, self.result(target));
                                 }
                             });
                         } else {
-                            callback(new _errors.HttpBadRequestError());
+                            callback(new HttpBadRequestError());
                         }
                     }).unhandle(function () {
-                        callback(new _errors.HttpMethodNotAllowedError());
+                        callback(new HttpMethodNotAllowedError());
                     });
                 })();
             } catch (e) {
-                callback(_errors.HttpError.create(e));
+                callback(HttpError.create(e));
             }
         }
         /**
@@ -536,7 +548,7 @@ var HttpDataController = function (_HttpController) {
                         }
                         //set $skip
                         if (!/^\d+$/.test(skip)) {
-                            return callback(new _errors.HttpBadRequestError("Skip may be a non-negative integer."));
+                            return callback(new HttpBadRequestError("Skip may be a non-negative integer."));
                         }
                         //set expandable levels
                         if (!isNaN(levels)) {
@@ -591,7 +603,7 @@ var HttpDataController = function (_HttpController) {
                     var count = /^true$/ig.test(context.params.attr('$inlinecount')) || false,
                         first = /^true$/ig.test(context.params.attr('$first')) || false,
                         asArray = /^true$/ig.test(context.params.attr('$array')) || false;
-                    _utils.TraceUtils.debug(context.request.url);
+                    TraceUtils.debug(context.request.url);
                     context.handle('GET', function () {
                         if (context.request.route) {
                             if (context.request.route.static) {
@@ -607,7 +619,7 @@ var HttpDataController = function (_HttpController) {
                         function (err, q) {
                             try {
                                 if (err) {
-                                    return callback(_errors.HttpError.create(err));
+                                    return callback(HttpError.create(err));
                                 }
                                 //apply as array parameter
                                 q.asArray(asArray);
@@ -615,7 +627,7 @@ var HttpDataController = function (_HttpController) {
                                     return q.first().then(function (result) {
                                         return callback(null, self.result(result));
                                     }).catch(function (err) {
-                                        return callback(_errors.HttpError.create(err));
+                                        return callback(HttpError.create(err));
                                     });
                                 }
 
@@ -630,20 +642,20 @@ var HttpDataController = function (_HttpController) {
                                             return callback(null, self.result(result));
                                         }
                                     }).catch(function (err) {
-                                        return callback(_errors.HttpError.create(err));
+                                        return callback(HttpError.create(err));
                                     });
                                 } else {
                                     if (count) {
                                         return q.take(take).list().then(function (result) {
                                             return callback(null, self.result(result));
                                         }).catch(function (err) {
-                                            return callback(_errors.HttpError.create(err));
+                                            return callback(HttpError.create(err));
                                         });
                                     } else {
                                         return q.take(take).getItems().then(function (result) {
                                             return callback(null, self.result(result));
                                         }).catch(function (err) {
-                                            return callback(_errors.HttpError.create(err));
+                                            return callback(HttpError.create(err));
                                         });
                                     }
                                 }
@@ -656,22 +668,22 @@ var HttpDataController = function (_HttpController) {
                         try {
                             target = self.model.convert(context.params[self.model.name] || context.params.data, true);
                         } catch (err) {
-                            _utils.TraceUtils.log(err);
-                            var er = new _errors.HttpError(422, "An error occured while converting data objects.", err.message);
+                            TraceUtils.log(err);
+                            var er = new HttpError(422, "An error occured while converting data objects.", err.message);
                             er.code = 'EDATA';
                             return callback(er);
                         }
                         if (target) {
                             self.model.save(target, function (err) {
                                 if (err) {
-                                    _utils.TraceUtils.log(err);
-                                    callback(_errors.HttpError.create(err));
+                                    TraceUtils.log(err);
+                                    callback(HttpError.create(err));
                                 } else {
                                     callback(null, self.result(target));
                                 }
                             });
                         } else {
-                            return callback(new _errors.HttpBadRequestError());
+                            return callback(new HttpBadRequestError());
                         }
                     }).handle('DELETE', function () {
                         //get data
@@ -679,28 +691,28 @@ var HttpDataController = function (_HttpController) {
                         try {
                             target = self.model.convert(context.params[self.model.name] || context.params.data, true);
                         } catch (err) {
-                            _utils.TraceUtils.log(err);
-                            var er = new _errors.HttpError(422, "An error occured while converting data objects.", err.message);
+                            TraceUtils.log(err);
+                            var er = new HttpError(422, "An error occured while converting data objects.", err.message);
                             er.code = 'EDATA';
                             return callback(er);
                         }
                         if (target) {
                             self.model.remove(target, function (err) {
                                 if (err) {
-                                    callback(_errors.HttpError.create(err));
+                                    callback(HttpError.create(err));
                                 } else {
                                     callback(null, self.result(target));
                                 }
                             });
                         } else {
-                            return callback(new _errors.HttpBadRequestError());
+                            return callback(new HttpBadRequestError());
                         }
                     }).unhandle(function () {
-                        return callback(new _errors.HttpMethodNotAllowedError());
+                        return callback(new HttpMethodNotAllowedError());
                     });
                 })();
             } catch (e) {
-                callback(_errors.HttpError.create(e));
+                callback(HttpError.create(e));
             }
         }
         /**
@@ -780,27 +792,27 @@ var HttpDataController = function (_HttpController) {
                     var self = _this7,
                         parent = self.context.params.parent,
                         model = self.context.params.model;
-                    if (_lodash._.isNil(parent) || _lodash._.isNil(model)) {
-                        callback(new _errors.HttpBadRequestError());
+                    if (_.isNil(parent) || _.isNil(model)) {
+                        callback(new HttpBadRequestError());
                         return {
                             v: void 0
                         };
                     }
                     self.model.where(self.model.primaryKey).equal(parent).select([self.model.primaryKey]).first(function (err, result) {
                         if (err) {
-                            _utils.TraceUtils.log(err);
-                            callback(new _errors.HttpServerError());
+                            TraceUtils.log(err);
+                            callback(new HttpServerError());
                             return;
                         }
-                        if (_lodash._.isNil(result)) {
-                            callback(new _errors.HttpNotFoundError());
+                        if (_.isNil(result)) {
+                            callback(new HttpNotFoundError());
                             return;
                         }
                         //get parent object (DataObject)
                         var obj = self.model.convert(result);
                         var associatedModel = self.context.model(model);
-                        if (_lodash._.isNil(associatedModel)) {
-                            callback(new _errors.HttpNotFoundError());
+                        if (_.isNil(associatedModel)) {
+                            callback(new HttpNotFoundError());
                             return;
                         }
                         /**
@@ -863,8 +875,8 @@ var HttpDataController = function (_HttpController) {
                         field = associatedModel.attributes.filter(function (x) {
                             return x.type === self.model.name;
                         })[0];
-                        if (_lodash._.isNil(field)) {
-                            callback(new _errors.HttpNotFoundError());
+                        if (_.isNil(field)) {
+                            callback(new HttpNotFoundError());
                             return;
                         }
                         //get field mapping
@@ -883,14 +895,15 @@ var HttpDataController = function (_HttpController) {
 
                 if ((typeof _ret8 === 'undefined' ? 'undefined' : _typeof(_ret8)) === "object") return _ret8.v;
             } catch (e) {
-                _utils.TraceUtils.log(e);
-                callback(e, new _errors.HttpServerError());
+                TraceUtils.log(e);
+                callback(e, new HttpServerError());
             }
         }
     }]);
 
     return HttpDataController;
-}(_mvc.HttpController);
+}(HttpController);
 
 exports.default = HttpDataController;
+module.exports = exports['default'];
 //# sourceMappingURL=data.js.map

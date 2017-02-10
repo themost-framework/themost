@@ -12,6 +12,7 @@ import {TraceUtils} from '../../modules/@themost/common/index';
 import util from 'util';
 import {assert} from 'chai';
 import Rx from 'rx';
+import fs from 'fs';
 
 
 describe('Common Tests', () => {
@@ -20,6 +21,25 @@ describe('Common Tests', () => {
         TraceUtils.info('test message %s.', 'my string');
         TraceUtils.error(new Error('Operation was cancelled by the user'));
         return done();
+    });
+
+    it('should use observables', function(done) {
+
+        const fn = function() {
+            return Rx.Observable.fromCallback(fs.exists)('~/Downloads/index.html')
+                .flatMap( exists => {
+                    return exists ? Rx.Observable.return('File exists') : Rx.Observable.return('File does not exist');
+                });
+        };
+        let source = fn();
+
+        source.subscribe(res => {
+            util.log(res);
+            return done();
+        }, err => {
+            return done(err);
+        });
+
     });
 
 });

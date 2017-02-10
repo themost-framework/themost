@@ -10,7 +10,11 @@
 'use strict';
 
 /**
- * @classdesc Abstract Method Exception class
+ * @module @themost/common
+ */
+
+/**
+ * @classdesc Abstract Method Exception
  * @class
  * @augments Error
  * */
@@ -21,7 +25,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-function _extendableBuiltin5(cls) {
+function _extendableBuiltin3(cls) {
     function ExtendableBuiltin() {
         var instance = Reflect.construct(cls, Array.from(arguments));
         Object.setPrototypeOf(instance, Object.getPrototypeOf(this));
@@ -46,7 +50,7 @@ function _extendableBuiltin5(cls) {
     return ExtendableBuiltin;
 }
 
-function _extendableBuiltin3(cls) {
+function _extendableBuiltin(cls) {
     function ExtendableBuiltin() {
         var instance = Reflect.construct(cls, Array.from(arguments));
         Object.setPrototypeOf(instance, Object.getPrototypeOf(this));
@@ -77,42 +81,36 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-function _extendableBuiltin(cls) {
-    function ExtendableBuiltin() {
-        var instance = Reflect.construct(cls, Array.from(arguments));
-        Object.setPrototypeOf(instance, Object.getPrototypeOf(this));
-        return instance;
-    }
-
-    ExtendableBuiltin.prototype = Object.create(cls.prototype, {
-        constructor: {
-            value: cls,
-            enumerable: false,
-            writable: true,
-            configurable: true
-        }
-    });
-
-    if (Object.setPrototypeOf) {
-        Object.setPrototypeOf(ExtendableBuiltin, cls);
-    } else {
-        ExtendableBuiltin.__proto__ = cls;
-    }
-
-    return ExtendableBuiltin;
-}
-
-var AbstractMethodError = exports.AbstractMethodError = function (_extendableBuiltin2) {
-    _inherits(AbstractMethodError, _extendableBuiltin2);
+var AbstractMethodError = exports.AbstractMethodError = function (_TypeError) {
+    _inherits(AbstractMethodError, _TypeError);
 
     function AbstractMethodError(message) {
         _classCallCheck(this, AbstractMethodError);
 
-        return _possibleConstructorReturn(this, (AbstractMethodError.__proto__ || Object.getPrototypeOf(AbstractMethodError)).call(this, message || 'Cannot call an abstract method.'));
+        return _possibleConstructorReturn(this, (AbstractMethodError.__proto__ || Object.getPrototypeOf(AbstractMethodError)).call(this, message || 'Class does not implement inherited abstract method.'));
     }
 
     return AbstractMethodError;
-}(_extendableBuiltin(Error));
+}(TypeError);
+
+/**
+ * @classdesc Abstract Class Exception
+ * @class
+ * @augments Error
+ * */
+
+
+var AbstractClassError = exports.AbstractClassError = function (_TypeError2) {
+    _inherits(AbstractClassError, _TypeError2);
+
+    function AbstractClassError(message) {
+        _classCallCheck(this, AbstractClassError);
+
+        return _possibleConstructorReturn(this, (AbstractClassError.__proto__ || Object.getPrototypeOf(AbstractClassError)).call(this, message || 'An abstract class cannot be instantiated.'));
+    }
+
+    return AbstractClassError;
+}(TypeError);
 
 /**
  * @class
@@ -120,8 +118,8 @@ var AbstractMethodError = exports.AbstractMethodError = function (_extendableBui
  */
 
 
-var FileNotFoundError = exports.FileNotFoundError = function (_extendableBuiltin4) {
-    _inherits(FileNotFoundError, _extendableBuiltin4);
+var FileNotFoundError = exports.FileNotFoundError = function (_extendableBuiltin2) {
+    _inherits(FileNotFoundError, _extendableBuiltin2);
 
     function FileNotFoundError(message) {
         _classCallCheck(this, FileNotFoundError);
@@ -130,7 +128,7 @@ var FileNotFoundError = exports.FileNotFoundError = function (_extendableBuiltin
     }
 
     return FileNotFoundError;
-}(_extendableBuiltin3(Error));
+}(_extendableBuiltin(Error));
 
 /**
  * @class
@@ -138,8 +136,8 @@ var FileNotFoundError = exports.FileNotFoundError = function (_extendableBuiltin
  */
 
 
-var HttpError = exports.HttpError = function (_extendableBuiltin6) {
-    _inherits(HttpError, _extendableBuiltin6);
+var HttpError = exports.HttpError = function (_extendableBuiltin4) {
+    _inherits(HttpError, _extendableBuiltin4);
 
     /**
      * @constructor
@@ -150,7 +148,7 @@ var HttpError = exports.HttpError = function (_extendableBuiltin6) {
     function HttpError(status, message, innerMessage) {
         _classCallCheck(this, HttpError);
 
-        var _this3 = _possibleConstructorReturn(this, (HttpError.__proto__ || Object.getPrototypeOf(HttpError)).call(this, message));
+        var _this4 = _possibleConstructorReturn(this, (HttpError.__proto__ || Object.getPrototypeOf(HttpError)).call(this, message));
 
         var errors = require('./resources/http-error-codes.json');
         var hstatus = typeof status === 'undefined' || status == null ? 500 : parseInt(status);
@@ -158,16 +156,16 @@ var HttpError = exports.HttpError = function (_extendableBuiltin6) {
             return x.status === hstatus;
         });
         if (err) {
-            _this3.title = err.title;
-            _this3.message = message || err.message;
-            _this3.status = err.status;
+            _this4.title = err.title;
+            _this4.message = message || err.message;
+            _this4.status = err.status;
         } else {
-            _this3.title = 'Internal Server Error';
-            _this3.message = message || 'The server encountered an internal error and was unable to complete the request.';
-            _this3.status = hstatus;
+            _this4.title = 'Internal Server Error';
+            _this4.message = message || 'The server encountered an internal error and was unable to complete the request.';
+            _this4.status = hstatus;
         }
-        _this3.innerMessage = innerMessage;
-        return _this3;
+        _this4.innerMessage = innerMessage;
+        return _this4;
     }
 
     /**
@@ -186,7 +184,7 @@ var HttpError = exports.HttpError = function (_extendableBuiltin6) {
     }]);
 
     return HttpError;
-}(_extendableBuiltin5(Error));
+}(_extendableBuiltin3(Error));
 
 /**
  * @classdesc HTTP 400 Bad Request exception class

@@ -1,0 +1,15 @@
+{
+    "sourceMap": true,
+    "presets": [ "env" ],
+    "plugins": [
+        ["transform-es2015-modules-commonjs-simple", {
+            "noMangle":true,
+            "addExports":true
+        }],
+        "transform-es2015-typeof-symbol",
+        "transform-decorators-legacy",
+        ["babel-plugin-transform-builtin-extend", {
+            "globals": ["Error", "Array"]
+        }]
+    ]
+}

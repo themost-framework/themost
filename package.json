@@ -48,17 +48,18 @@
   },
   "devDependencies": {
     "babel-cli": "^6.22.2",
-    "babel-plugin-async-to-promises": "^1.0.5",
-    "babel-plugin-syntax-async-functions": "^6.13.0",
-    "babel-plugin-transform-async-functions": "^6.22.0",
     "babel-plugin-transform-async-to-generator": "^6.22.0",
     "babel-plugin-transform-builtin-extend": "^1.1.0",
     "babel-plugin-transform-decorators-legacy": "^1.3.4",
+    "babel-plugin-transform-es2015-modules-commonjs-simple": "^6.7.4",
+    "babel-plugin-transform-es2015-typeof-symbol": "^6.22.0",
     "babel-plugin-transform-regenerator": "^6.22.0",
     "babel-preset-env": "^1.1.8",
     "chai": "^3.5.0",
     "grunt": "^1.0.1",
     "grunt-babel": "^6.0.0",
+    "grunt-contrib-watch": "^1.0.0",
+    "grunt-newer": "^1.2.0",
     "load-grunt-tasks": "^3.5.2"
   }
 }

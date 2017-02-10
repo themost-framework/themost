@@ -46,9 +46,9 @@ export class Args {
     /**
      * Checks the expression and throws an exception if the condition is not met.
      * @param {*} expr
-     * @param {string} message
+     * @param {string|error} err
      */
-    static check(expr, message) {
+    static check(expr, err) {
         Args.notNull(expr,"Expression");
         if (typeof expr === 'function') {
             expr.call()
@@ -61,6 +61,9 @@ export class Args {
             res = (!expr);
         }
         if (res) {
+            if (err instanceof Error) {
+                throw err;
+            }
             const err = new Error(message);
             err.code = "ECHECK";
             throw err;

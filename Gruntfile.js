@@ -14,27 +14,52 @@ module.exports = function(grunt) {
     require('load-grunt-tasks')(grunt);
     grunt.initConfig({
         babel: {
-            compile: {
-                options: {
-                    sourceMap: true,
-                    presets: [ "env" ],
-                    plugins: [
-                        "transform-async-functions",
-                        "transform-decorators-legacy",
-                        ["babel-plugin-transform-builtin-extend", {
-                            globals: ["Error", "Array"]
-                        }]
-                    ]
-                },
+            common: {
                 files: [{
-                    expand: true,
-                    cwd:'',
-                    src: ['test/**/*.es6','test-app/**/*.es6','modules/@themost/**/*.es6'],
-                    dest: '',
-                    ext: '.js'
+                    "expand": true,
+                    "cwd":"modules/@themost/common",
+                    "src": ["**/*.es6","!node_modules/**/*.es6"],
+                    "dest": "modules/@themost/common",
+                    "ext": ".js"
+                }]
+            },
+            web: {
+                files: [{
+                    "expand": true,
+                    "cwd":"modules/@themost/web",
+                    "src": ["lib/*.es6","index.es6"],
+                    "dest": "modules/@themost/web",
+                    "ext": ".js"
+                }]
+            },
+            test: {
+                files: [{
+                    "expand": true,
+                    "cwd":"",
+                    "src": ["test/**/*.es6", "test-app/**/*.es6"],
+                    "dest": "",
+                    "ext": ".js"
                 }]
             }
-        }
+        },
+        watch: {
+            common: {
+                files: ["modules/@themost/common/*.es6"],
+                tasks: ["babel:common"],
+                options: {
+                    spawn: false,
+                },
+            },
+            web: {
+                files: ["modules/@themost/web/lib/**/*.es6", "modules/@themost/web/*.es6"],
+                tasks: ["babel:web"],
+                options: {
+                    spawn: false,
+                },
+            },
+        },
     });
+    grunt.loadNpmTasks('grunt-newer');
+    grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.registerTask('default', ['babel']);
 };

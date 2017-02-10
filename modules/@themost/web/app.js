@@ -20,49 +20,63 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 var _lodash = require('lodash');
 
+var _ = _lodash._;
+
 var _util = require('util');
 
-var _util2 = _interopRequireDefault(_util);
+var util = _interopRequireDefault(_util).default;
 
 var _http = require('http');
 
-var _http2 = _interopRequireDefault(_http);
+var http = _interopRequireDefault(_http).default;
 
 var _path = require('path');
 
-var _path2 = _interopRequireDefault(_path);
+var path = _interopRequireDefault(_path).default;
 
 var _fs = require('fs');
 
-var _fs2 = _interopRequireDefault(_fs);
+var fs = _interopRequireDefault(_fs).default;
 
 var _url = require('url');
 
-var _url2 = _interopRequireDefault(_url);
+var url = _interopRequireDefault(_url).default;
 
 var _async = require('async');
 
-var _async2 = _interopRequireDefault(_async);
+var async = _interopRequireDefault(_async).default;
 
 var _querystring = require('querystring');
 
-var _querystring2 = _interopRequireDefault(_querystring);
+var querystring = _interopRequireDefault(_querystring).default;
 
 var _crypto = require('crypto');
 
-var _crypto2 = _interopRequireDefault(_crypto);
+var crypto = _interopRequireDefault(_crypto).default;
 
 var _emitter = require('@themost/common/emitter');
 
+var SequentialEventEmitter = _emitter.SequentialEventEmitter;
+
 var _utils = require('@themost/common/utils');
+
+var TraceUtils = _utils.TraceUtils;
+var RandomUtils = _utils.RandomUtils;
+var LangUtils = _utils.LangUtils;
 
 var _errors = require('@themost/common/errors');
 
+var HttpError = _errors.HttpError;
+var HttpServerError = _errors.HttpServerError;
+var HttpNotFoundError = _errors.HttpNotFoundError;
+
 var _context = require('./context');
+
+var HttpContext = _context.HttpContext;
 
 var _mostData = require('most-data');
 
-var _mostData2 = _interopRequireDefault(_mostData);
+var da = _interopRequireDefault(_mostData).default;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -85,11 +99,11 @@ function handleRequestInternal(request, response, callback) {
     var self = this,
         context = self.createContext(request, response);
     //add query string
-    if (request.url.indexOf('?') > 0) _lodash._.assign(context.params, _querystring2.default.parse(request.url.substring(request.url.indexOf('?') + 1)));
+    if (request.url.indexOf('?') > 0) _.assign(context.params, querystring.parse(request.url.substring(request.url.indexOf('?') + 1)));
     //add form
-    if (request.form) _lodash._.assign(context.params, request.form);
+    if (request.form) _.assign(context.params, request.form);
     //add files
-    if (request.files) _lodash._.assign(context.params, request.files);
+    if (request.files) _.assign(context.params, request.files);
 
     self.processRequest(context, function (err) {
         if (err) {
@@ -119,7 +133,7 @@ function handleRequestInternal(request, response, callback) {
  */
 function createRequestInternal(options) {
     var opt = options ? options : {};
-    var request = new _http2.default.IncomingMessage();
+    var request = new http.IncomingMessage();
     request.method = opt.method ? opt.method : 'GET';
     request.url = opt.url ? opt.url : '/';
     request.httpVersion = '1.1';
@@ -149,7 +163,7 @@ function createRequestInternal(options) {
  * @private
  */
 function createResponseInternal(req) {
-    return new _http2.default.ServerResponse(req);
+    return new http.ServerResponse(req);
 }
 
 /**
@@ -162,7 +176,7 @@ function createResponseInternal(req) {
 function htmlErrorInternal(context, err, callback) {
     try {
         var _ret = function () {
-            if (_lodash._.isNil(context)) {
+            if (_.isNil(context)) {
                 callback(err);
                 return {
                     v: void 0
@@ -171,7 +185,7 @@ function htmlErrorInternal(context, err, callback) {
             var request = context.request,
                 response = context.response,
                 ejs = require('ejs');
-            if (_lodash._.isNil(request) || _lodash._.isNil(response)) {
+            if (_.isNil(request) || _.isNil(response)) {
                 callback(err);
                 return {
                     v: void 0
@@ -179,10 +193,10 @@ function htmlErrorInternal(context, err, callback) {
             }
             //HTML custom errors
             if (/text\/html/g.test(request.headers.accept)) {
-                _fs2.default.readFile(_path2.default.join(__dirname, './resources/http-error.html.ejs'), 'utf8', function (readErr, data) {
+                fs.readFile(path.join(__dirname, './resources/http-error.html.ejs'), 'utf8', function (readErr, data) {
                     if (readErr) {
                         //log process error
-                        _utils.TraceUtils.log(readErr);
+                        TraceUtils.log(readErr);
                         //continue error execution
                         callback(err);
                         return;
@@ -190,15 +204,15 @@ function htmlErrorInternal(context, err, callback) {
                     //compile data
                     var str = void 0;
                     try {
-                        if (err instanceof _errors.HttpError) {
+                        if (err instanceof HttpError) {
                             str = ejs.render(data, { error: err });
                         } else {
-                            var httpErr = new _errors.HttpError(500, null, err.message);
+                            var httpErr = new HttpError(500, null, err.message);
                             httpErr.stack = err.stack;
                             str = ejs.render(data, { error: httpErr });
                         }
                     } catch (e) {
-                        _utils.TraceUtils.log(e);
+                        TraceUtils.log(e);
                         //continue error execution
                         callback(err);
                         return;
@@ -217,7 +231,7 @@ function htmlErrorInternal(context, err, callback) {
         if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
     } catch (e) {
         //log process error
-        _utils.TraceUtils.log(e);
+        TraceUtils.log(e);
         //and continue execution
         callback(err);
     }
@@ -247,9 +261,9 @@ function startInternal(options, callback) {
                 port: process.env.PORT ? process.env.PORT : HTTP_SERVER_DEFAULT_PORT
             };
             //extend options
-            _lodash._.assign(opts, options);
+            _.assign(opts, options);
 
-            var server_ = _http2.default.createServer(function (request, response) {
+            var server_ = http.createServer(function (request, response) {
                 var context = self.createContext(request, response);
                 //begin request processing
                 self.processRequest(context, function (err) {
@@ -310,12 +324,12 @@ function startInternal(options, callback) {
 
             //start listening
             server_.listen(opts.port, opts.bind);
-            _utils.TraceUtils.log(_util2.default.format('Web application is running at http://%s:%s/', opts.bind, opts.port));
+            TraceUtils.log(util.format('Web application is running at http://%s:%s/', opts.bind, opts.port));
             //do callback
             callback.call(self);
         })();
     } catch (e) {
-        _utils.TraceUtils.log(e);
+        TraceUtils.log(e);
     }
 }
 
@@ -343,7 +357,7 @@ function httpApplicationErrors(application) {
                 //send plain text
                 response.writeHead(error.status || 500, { "Content-Type": "text/plain" });
                 //if error is an HTTP Exception
-                if (error instanceof _errors.HttpError) {
+                if (error instanceof HttpError) {
                     response.write(error.status + ' ' + error.message + "\n");
                 } else {
                     //otherwise send status 500
@@ -351,10 +365,10 @@ function httpApplicationErrors(application) {
                 }
                 //send extra data (on development)
                 if (process.env.NODE_ENV === 'development') {
-                    if (!_lodash._.isEmpty(error.innerMessage)) {
+                    if (!_.isEmpty(error.innerMessage)) {
                         response.write(error.innerMessage + "\n");
                     }
-                    if (!_lodash._.isEmpty(error.stack)) {
+                    if (!_.isEmpty(error.stack)) {
                         response.write(error.stack + "\n");
                     }
                 }
@@ -367,12 +381,12 @@ function httpApplicationErrors(application) {
             if (/application\/json/g.test(context.request.headers.accept)) {
                 //prepare JSON result
                 var result = void 0;
-                if (err instanceof _errors.HttpError || typeof err.status !== 'undefined') {
+                if (err instanceof HttpError || typeof err.status !== 'undefined') {
                     result = new mvc.HttpJsonResult({ status: error.status, code: error.code, message: error.message, innerMessage: error.innerMessage });
                 } else if (process.env.NODE_ENV === 'development') {
                     result = new mvc.HttpJsonResult(err);
                 } else {
-                    result = new mvc.HttpJsonResult(new _errors.HttpServerError());
+                    result = new mvc.HttpJsonResult(new HttpServerError());
                 }
                 //execute redirect result
                 result.execute(context, function (err) {
@@ -384,7 +398,7 @@ function httpApplicationErrors(application) {
             callback.call(self, error);
         },
         unauthorized: function unauthorized(context, error, callback) {
-            if (_lodash._.isNil(context) || _lodash._.isNil(context)) {
+            if (_.isNil(context) || _.isNil(context)) {
                 return callback.call(self);
             }
             if (error.status != 401) {
@@ -744,12 +758,12 @@ var HttpApplication = exports.HttpApplication = function (_SequentialEventEmitt)
 
         var _this = _possibleConstructorReturn(this, (HttpApplication.__proto__ || Object.getPrototypeOf(HttpApplication)).call(this));
 
-        _this.executionPath = _path2.default.join(process.cwd(), 'app');
+        _this.executionPath = path.join(process.cwd(), 'app');
         /**
          * Gets the current application configuration path
          * @type {*}
          */
-        _this.configPath = _path2.default.join(process.cwd(), 'app');
+        _this.configPath = path.join(process.cwd(), 'app');
         /**
          * Gets or sets application configuration settings
          * @type {ApplicationConfig}
@@ -799,7 +813,7 @@ var HttpApplication = exports.HttpApplication = function (_SequentialEventEmitt)
 
         Object.defineProperty(self, 'cache', {
             get: function get() {
-                if (!_lodash._.isNil($cache)) return $cache;
+                if (!_.isNil($cache)) return $cache;
                 var HttpCache = require("./services/cache");
                 /**
                  * @type {HttpCache|*}
@@ -845,28 +859,28 @@ var HttpApplication = exports.HttpApplication = function (_SequentialEventEmitt)
             var str = void 0;
             //first of all try to load environment specific configuration
             try {
-                _utils.TraceUtils.log(_util2.default.format('Init: Loading environment specific configuration file (app.%s.json)', env));
-                str = _path2.default.join(process.cwd(), 'config', 'app.' + env + '.json');
+                TraceUtils.log(util.format('Init: Loading environment specific configuration file (app.%s.json)', env));
+                str = path.join(process.cwd(), 'config', 'app.' + env + '.json');
                 /**
                  * @type {ApplicationConfig}
                  */
                 this.config = require(str);
-                _utils.TraceUtils.log(_util2.default.format('Init: Environment specific configuration file (app.%s.json) was succesfully loaded.', env));
+                TraceUtils.log(util.format('Init: Environment specific configuration file (app.%s.json) was succesfully loaded.', env));
             } catch (e) {
                 if (e.code === 'MODULE_NOT_FOUND') {
-                    _utils.TraceUtils.log(_util2.default.format('Init: Environment specific configuration file (app.%s.json) is missing.', env));
+                    TraceUtils.log(util.format('Init: Environment specific configuration file (app.%s.json) is missing.', env));
                     //try to load default configuration file
                     try {
-                        _utils.TraceUtils.log('Init: Loading environment default configuration file (app.json)');
-                        str = _path2.default.join(process.cwd(), 'config', 'app.json');
+                        TraceUtils.log('Init: Loading environment default configuration file (app.json)');
+                        str = path.join(process.cwd(), 'config', 'app.json');
                         /**
                          * @type {ApplicationConfig}
                          */
                         this.config = require(str);
-                        _utils.TraceUtils.log('Init: Default configuration file (app.json) was succesfully loaded.');
+                        TraceUtils.log('Init: Default configuration file (app.json) was succesfully loaded.');
                     } catch (e) {
                         if (e.code === 'MODULE_NOT_FOUND') {
-                            _utils.TraceUtils.log('Init: An error occured while loading default configuration (app.json). Configuration cannot be found or is inaccesible.');
+                            TraceUtils.log('Init: An error occured while loading default configuration (app.json). Configuration cannot be found or is inaccesible.');
                             //load internal configuration file
                             /**
                              * @type {ApplicationConfig}
@@ -874,40 +888,40 @@ var HttpApplication = exports.HttpApplication = function (_SequentialEventEmitt)
                             this.config = require('./resources/app.json');
                             this.config.settings.crypto = {
                                 "algorithm": "aes256",
-                                "key": _utils.RandomUtils.randomHex(32)
+                                "key": RandomUtils.randomHex(32)
                             };
-                            _utils.TraceUtils.log('Init: Internal configuration file (app.json) was succesfully loaded.');
+                            TraceUtils.log('Init: Internal configuration file (app.json) was succesfully loaded.');
                         } else {
-                            _utils.TraceUtils.log('Init: An error occured while loading default configuration (app.json)');
+                            TraceUtils.log('Init: An error occured while loading default configuration (app.json)');
                             throw e;
                         }
                     }
                 } else {
-                    _utils.TraceUtils.log(_util2.default.format('Init: An error occured while loading application specific configuration (app).', env));
+                    TraceUtils.log(util.format('Init: An error occured while loading application specific configuration (app).', env));
                     throw e;
                 }
             }
             //load routes (if empty)
-            if (_lodash._.isNil(this.config.routes)) {
+            if (_.isNil(this.config.routes)) {
                 try {
-                    this.config.routes = require(_path2.default.join(process.cwd(), 'config/routes.json'));
+                    this.config.routes = require(path.join(process.cwd(), 'config/routes.json'));
                 } catch (e) {
                     if (e.code === 'MODULE_NOT_FOUND') {
                         //load internal default route file
-                        _utils.TraceUtils.log('Init: Application specific routes configuration cannot be found. The default routes configuration will be loaded instead.');
+                        TraceUtils.log('Init: Application specific routes configuration cannot be found. The default routes configuration will be loaded instead.');
                         this.config.routes = require('./resources/routes.json');
                     } else {
-                        _utils.TraceUtils.log('Init: An error occured while trying to load application routes configuration.');
+                        TraceUtils.log('Init: An error occured while trying to load application routes configuration.');
                         throw e;
                     }
                 }
             }
             //load data types (if empty)
-            if (_lodash._.isNil(this.config.dataTypes)) {
+            if (_.isNil(this.config.dataTypes)) {
                 try {
-                    this.config.dataTypes = _mostData2.default.cfg.current.dataTypes;
+                    this.config.dataTypes = da.cfg.current.dataTypes;
                 } catch (e) {
-                    _utils.TraceUtils.log('Init: An error occured while trying to load application data types configuration.');
+                    TraceUtils.log('Init: An error occured while trying to load application data types configuration.');
                     throw e;
                 }
             }
@@ -933,7 +947,7 @@ var HttpApplication = exports.HttpApplication = function (_SequentialEventEmitt)
                     }
                 })(defaultHandlers[i]);
             }
-            _lodash._.forEach(handlers, function (h) {
+            _.forEach(handlers, function (h) {
                 try {
                     var handlerPath = h.type;
                     if (handlerPath.indexOf('/') == 0) handlerPath = self.mapPath(handlerPath);
@@ -941,7 +955,7 @@ var HttpApplication = exports.HttpApplication = function (_SequentialEventEmitt)
                     var handler = null;
                     if (handlerModule) {
                         if (typeof handlerModule.default != 'function') {
-                            _utils.TraceUtils.log(_util2.default.format('The specified handler (%s) cannot be instantiated. The module does not export default constructor.', h.name));
+                            TraceUtils.log(util.format('The specified handler (%s) cannot be instantiated. The module does not export default constructor.', h.name));
                             return;
                         }
                         var HandlerCtor = handlerModule.default;
@@ -949,7 +963,7 @@ var HttpApplication = exports.HttpApplication = function (_SequentialEventEmitt)
                         if (handler) self.handlers.push(handler);
                     }
                 } catch (e) {
-                    throw new Error(_util2.default.format('The specified handler (%s) cannot be loaded. %s', h.name, e.message));
+                    throw new Error(util.format('The specified handler (%s) cannot be loaded. %s', h.name, e.message));
                 }
             });
             //initialize basic directives collection
@@ -965,8 +979,8 @@ var HttpApplication = exports.HttpApplication = function (_SequentialEventEmitt)
     }, {
         key: 'mapPath',
         value: function mapPath(s) {
-            var uri = _url2.default.parse(s).pathname;
-            return _path2.default.join(this.executionPath, uri);
+            var uri = url.parse(s).pathname;
+            return path.join(this.executionPath, uri);
         }
 
         /**
@@ -978,10 +992,10 @@ var HttpApplication = exports.HttpApplication = function (_SequentialEventEmitt)
     }, {
         key: 'resolveETag',
         value: function resolveETag(file, callback) {
-            _fs2.default.exists(file, function (exists) {
+            fs.exists(file, function (exists) {
                 try {
                     if (exists) {
-                        _fs2.default.stat(file, function (err, stats) {
+                        fs.stat(file, function (err, stats) {
                             if (err) {
                                 callback(err);
                             } else {
@@ -989,7 +1003,7 @@ var HttpApplication = exports.HttpApplication = function (_SequentialEventEmitt)
                                     callback(null);
                                 } else {
                                     //validate if-none-match
-                                    var md5 = _crypto2.default.createHash('md5');
+                                    var md5 = crypto.createHash('md5');
                                     md5.update(stats.mtime.toString());
                                     var result = md5.digest('base64');
                                     callback(null, result);
@@ -1030,7 +1044,7 @@ var HttpApplication = exports.HttpApplication = function (_SequentialEventEmitt)
 
                 if ((typeof _ret3 === 'undefined' ? 'undefined' : _typeof(_ret3)) === "object") return _ret3.v;
             } catch (e) {
-                _utils.TraceUtils.log(e);
+                TraceUtils.log(e);
                 callback(null, false);
             }
         }
@@ -1044,7 +1058,7 @@ var HttpApplication = exports.HttpApplication = function (_SequentialEventEmitt)
         value: function resolveMime(request) {
             if (typeof request === 'string') {
                 //get file extension
-                var extensionName = _path2.default.extname(request);
+                var extensionName = path.extname(request);
                 var arr = this.config.mimes.filter(function (x) {
                     return x.extension == extensionName;
                 });
@@ -1052,7 +1066,7 @@ var HttpApplication = exports.HttpApplication = function (_SequentialEventEmitt)
                 return null;
             } else if ((typeof request === 'undefined' ? 'undefined' : _typeof(request)) === 'object') {
                 //get file extension
-                var extensionName = _path2.default.extname(request.url);
+                var extensionName = path.extname(request.url);
                 var arr = this.config.mimes.filter(function (x) {
                     return x.extension == extensionName;
                 });
@@ -1074,7 +1088,7 @@ var HttpApplication = exports.HttpApplication = function (_SequentialEventEmitt)
             if (!this.config.settings.crypto.algorithm) throw new Error('Data encryption algorithm is missing. The operation cannot be completed');
             if (!this.config.settings.crypto.key) throw new Error('Data encryption key is missing. The operation cannot be completed');
             //encrypt
-            var cipher = _crypto2.default.createCipher(this.config.settings.crypto.algorithm, this.config.settings.crypto.key);
+            var cipher = crypto.createCipher(this.config.settings.crypto.algorithm, this.config.settings.crypto.key);
             return cipher.update(data, 'utf8', 'hex') + cipher.final('hex');
         }
 
@@ -1091,7 +1105,7 @@ var HttpApplication = exports.HttpApplication = function (_SequentialEventEmitt)
             if (!this.config.settings.crypto.algorithm) throw new Error('Data encryption algorithm is missing. The operation cannot be completed');
             if (!this.config.settings.crypto.key) throw new Error('Data encryption key is missing. The operation cannot be completed');
             //decrypt
-            var decipher = _crypto2.default.createDecipher(this.config.settings.crypto.algorithm, this.config.settings.crypto.key);
+            var decipher = crypto.createDecipher(this.config.settings.crypto.algorithm, this.config.settings.crypto.key);
             return decipher.update(data, 'hex', 'utf8') + decipher.final('utf8');
         }
 
@@ -1109,8 +1123,8 @@ var HttpApplication = exports.HttpApplication = function (_SequentialEventEmitt)
             var value = void 0;
             var expires = void 0;
             if (typeof options !== 'undefined' && options != null) {
-                value = JSON.stringify(_util2.default._extend(options, defaultOptions));
-                if (_util2.default.isDate(options.expires)) {
+                value = JSON.stringify(util._extend(options, defaultOptions));
+                if (util.isDate(options.expires)) {
                     expires = options.expires.toUTCString();
                 }
             } else {
@@ -1143,8 +1157,8 @@ var HttpApplication = exports.HttpApplication = function (_SequentialEventEmitt)
                 }
                 return null;
             } catch (e) {
-                _utils.TraceUtils.log('GetAuthCookie failed.');
-                _utils.TraceUtils.log(e.message);
+                TraceUtils.log('GetAuthCookie failed.');
+                TraceUtils.log(e.message);
                 return null;
             }
         }
@@ -1210,7 +1224,7 @@ var HttpApplication = exports.HttpApplication = function (_SequentialEventEmitt)
                                                                             });
                                                                         }
                                                                     });else {
-                                                                        var er = new _errors.HttpNotFoundError();
+                                                                        var er = new HttpNotFoundError();
                                                                         if (context.request && context.request.url) {
                                                                             er.resource = context.request.url;
                                                                         }
@@ -1246,11 +1260,11 @@ var HttpApplication = exports.HttpApplication = function (_SequentialEventEmitt)
                 //there is only one adapter so try to instantiate it
                 adapter = this.config.adapters[0];
             } else {
-                adapter = _lodash._.find(this.config.adapters, function (x) {
+                adapter = _.find(this.config.adapters, function (x) {
                     return x.default;
                 });
             }
-            if (_lodash._.isEmpty(adapter)) throw new Error('There is no default data adapter or the configuration is incorrect.');
+            if (_.isEmpty(adapter)) throw new Error('There is no default data adapter or the configuration is incorrect.');
             //try to instantiate adapter
             if (!adapter.invariantName) throw new Error('The default data adapter has no invariant name.');
             var adapterType = this.config.adapterTypes[adapter.invariantName];
@@ -1276,7 +1290,7 @@ var HttpApplication = exports.HttpApplication = function (_SequentialEventEmitt)
     }, {
         key: 'createContext',
         value: function createContext(request, response) {
-            var context = new _context.HttpContext(request, response);
+            var context = new HttpContext(request, response);
             //set context application
             context.application = this;
             //set handler events
@@ -1303,8 +1317,8 @@ var HttpApplication = exports.HttpApplication = function (_SequentialEventEmitt)
         value: function executeExternalRequest(options, data, callback) {
             //make request
             var https = require('https'),
-                opts = typeof options === 'string' ? _url2.default.parse(options) : options,
-                httpModule = opts.protocol === 'https:' ? https : _http2.default;
+                opts = typeof options === 'string' ? url.parse(options) : options,
+                httpModule = opts.protocol === 'https:' ? https : http;
             var req = httpModule.request(opts, function (res) {
                 res.setEncoding('utf8');
                 var data = '';
@@ -1381,17 +1395,17 @@ var HttpApplication = exports.HttpApplication = function (_SequentialEventEmitt)
             if (typeof extension === 'undefined') {
                 //register all application extensions
                 var extensionFolder = this.mapPath('/extensions');
-                if (_fs2.default.existsSync(extensionFolder)) {
-                    var arr = _fs2.default.readdirSync(extensionFolder);
+                if (fs.existsSync(extensionFolder)) {
+                    var arr = fs.readdirSync(extensionFolder);
                     for (var i = 0; i < arr.length; i++) {
-                        if (_path2.default.extname(arr[i]) == '.js') require(_path2.default.join(extensionFolder, arr[i]));
+                        if (path.extname(arr[i]) == '.js') require(path.join(extensionFolder, arr[i]));
                     }
                 }
             } else {
                 //register the specified extension
                 if (typeof extension === 'string') {
-                    var extensionPath = this.mapPath(_util2.default.format('/extensions/%s.js', extension));
-                    if (_fs2.default.existsSync(extensionPath)) {
+                    var extensionPath = this.mapPath(util.format('/extensions/%s.js', extension));
+                    if (fs.existsSync(extensionPath)) {
                         //load extension
                         require(extensionPath);
                     }
@@ -1411,9 +1425,9 @@ var HttpApplication = exports.HttpApplication = function (_SequentialEventEmitt)
         value: function executeRequest(options, callback) {
             var opts = {};
             if (typeof options === 'string') {
-                _util2.default._extend(opts, { url: options });
+                util._extend(opts, { url: options });
             } else {
-                _util2.default._extend(opts, options);
+                util._extend(opts, options);
             }
             var request = createRequestInternal.call(this, opts),
                 response = createResponseInternal.call(this, request);
@@ -1422,7 +1436,7 @@ var HttpApplication = exports.HttpApplication = function (_SequentialEventEmitt)
                 return;
             }
             if (opts.url.indexOf('/') != 0) {
-                var uri = _url2.default.parse(opts.url);
+                var uri = url.parse(opts.url);
                 opts.host = uri.host;
                 opts.hostname = uri.hostname;
                 opts.path = uri.path;
@@ -1480,7 +1494,7 @@ var HttpApplication = exports.HttpApplication = function (_SequentialEventEmitt)
                             //get body
                             var body = null;
                             var encoding = null;
-                            if (_util2.default.isArray(response.output)) {
+                            if (util.isArray(response.output)) {
                                 if (response.output.length > 0) {
                                     body = response.output[0].substr(response._header.length);
                                     encoding = response.outputEncodings[0];
@@ -1519,11 +1533,11 @@ var HttpApplication = exports.HttpApplication = function (_SequentialEventEmitt)
                 if (err instanceof Error) {
                     var _ret4 = function () {
                         //always log error
-                        _utils.TraceUtils.log(err);
+                        TraceUtils.log(err);
                         //get response object
                         var response = context.response,
                             ejs = require('ejs');
-                        if (_lodash._.isNil(response)) {
+                        if (_.isNil(response)) {
                             callback.call(_this2);
                         }
                         if (response._headerSent) {
@@ -1537,7 +1551,7 @@ var HttpApplication = exports.HttpApplication = function (_SequentialEventEmitt)
                                 //send plain text
                                 response.writeHead(err.status || 500, { "Content-Type": "text/plain" });
                                 //if error is an HTTP Exception
-                                if (err instanceof _errors.HttpError) {
+                                if (err instanceof HttpError) {
                                     response.write(err.status + ' ' + err.message + "\n");
                                 } else {
                                     //otherwise send status 500
@@ -1545,10 +1559,10 @@ var HttpApplication = exports.HttpApplication = function (_SequentialEventEmitt)
                                 }
                                 //send extra data (on development)
                                 if (process.env.NODE_ENV === 'development') {
-                                    if (!_lodash._.isEmpty(err.innerMessage)) {
+                                    if (!_.isEmpty(err.innerMessage)) {
                                         response.write(err.innerMessage + "\n");
                                     }
-                                    if (!_lodash._.isEmpty(err.stack)) {
+                                    if (!_.isEmpty(err.stack)) {
                                         response.write(err.stack + "\n");
                                     }
                                 }
@@ -1562,7 +1576,7 @@ var HttpApplication = exports.HttpApplication = function (_SequentialEventEmitt)
                     callback.call(this);
                 }
             } catch (e) {
-                _utils.TraceUtils.log(e);
+                TraceUtils.log(e);
                 if (context.response) {
                     context.response.writeHead(500, { "Content-Type": "text/plain" });
                     context.response.write("500 Internal Server Error");
@@ -1588,7 +1602,7 @@ var HttpApplication = exports.HttpApplication = function (_SequentialEventEmitt)
                     clusters = require('os').cpus().length;
                 } else {
                     //get cluster number
-                    clusters = _utils.LangUtils.parseInt(options.cluster);
+                    clusters = LangUtils.parseInt(options.cluster);
                 }
                 if (clusters > 1) {
                     var cluster = require('cluster');
@@ -1689,7 +1703,7 @@ var HttpApplication = exports.HttpApplication = function (_SequentialEventEmitt)
     }]);
 
     return HttpApplication;
-}(_emitter.SequentialEventEmitter);
+}(SequentialEventEmitter);
 
 /**
  * @type HttpApplication

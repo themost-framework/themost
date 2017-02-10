@@ -67,9 +67,9 @@ var Args = exports.Args = function () {
         /**
          * Checks the expression and throws an exception if the condition is not met.
          * @param {*} expr
-         * @param {string} message
+         * @param {string|error} err
          */
-        value: function check(expr, message) {
+        value: function check(expr, err) {
             Args.notNull(expr, "Expression");
             if (typeof expr === 'function') {
                 expr.call();
@@ -81,9 +81,12 @@ var Args = exports.Args = function () {
                 res = !expr;
             }
             if (res) {
-                var err = new Error(message);
-                err.code = "ECHECK";
-                throw err;
+                if (_err instanceof Error) {
+                    throw _err;
+                }
+                var _err = new Error(message);
+                _err.code = "ECHECK";
+                throw _err;
             }
         }
 
