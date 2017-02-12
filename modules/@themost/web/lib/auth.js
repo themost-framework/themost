@@ -33,6 +33,7 @@ var _utils = require('@themost/common/utils');
 var Args = _utils.Args;
 var TraceUtils = _utils.TraceUtils;
 var LangUtils = _utils.LangUtils;
+var RandomUtils = _utils.RandomUtils;
 
 var _consumers = require('./consumers');
 
@@ -251,7 +252,7 @@ var AuthStrategy = exports.AuthStrategy = function (_HttpApplicationServi) {
     _inherits(AuthStrategy, _HttpApplicationServi);
 
     /**
-     * @param {HttpApplication2} app
+     * @param {HttpApplication} app
      */
     function AuthStrategy(app) {
         _classCallCheck(this, AuthStrategy);
@@ -310,6 +311,17 @@ var AuthStrategy = exports.AuthStrategy = function (_HttpApplicationServi) {
         value: function logout(thisContext) {
             throw new AbstractMethodError();
         }
+
+        /**
+         * Gets the unattended execution account
+         * @returns {string}
+         */
+
+    }, {
+        key: 'getUnattendedExecutionAccount',
+        value: function getUnattendedExecutionAccount() {
+            throw new AbstractMethodError();
+        }
     }]);
 
     return AuthStrategy;
@@ -321,7 +333,7 @@ var DefaultAuthStrategy = exports.DefaultAuthStrategy = function (_HttpApplicati
     _inherits(DefaultAuthStrategy, _HttpApplicationServi2);
 
     /**
-     * @param {HttpApplication2} app
+     * @param {HttpApplication} app
      */
     function DefaultAuthStrategy(app) {
         _classCallCheck(this, DefaultAuthStrategy);
@@ -332,7 +344,8 @@ var DefaultAuthStrategy = exports.DefaultAuthStrategy = function (_HttpApplicati
         _this4[optionsProperty] = {
             "name": ".MAUTH",
             "slidingExpiration": false,
-            "expirationTimeout": 420
+            "expirationTimeout": 420,
+            "unattendedExecutionAccount": RandomUtils.randomChars(16)
         };
         //get keys
         var keys = _.keys(_this4[optionsProperty]);
@@ -347,6 +360,17 @@ var DefaultAuthStrategy = exports.DefaultAuthStrategy = function (_HttpApplicati
         key: 'getOptions',
         value: function getOptions() {
             return this[optionsProperty];
+        }
+
+        /**
+         * Gets the unattended execution account
+         * @returns {string}
+         */
+
+    }, {
+        key: 'getUnattendedExecutionAccount',
+        value: function getUnattendedExecutionAccount() {
+            return this[optionsProperty].unattendedExecutionAccount;
         }
 
         /**
@@ -481,7 +505,7 @@ var EncryptionStrategy = exports.EncryptionStrategy = function (_HttpApplication
     _inherits(EncryptionStrategy, _HttpApplicationServi3);
 
     /**
-     * @param {HttpApplication2} app
+     * @param {HttpApplication} app
      */
     function EncryptionStrategy(app) {
         _classCallCheck(this, EncryptionStrategy);
@@ -529,7 +553,7 @@ var DefaultEncyptionStrategy = exports.DefaultEncyptionStrategy = function (_Enc
     _inherits(DefaultEncyptionStrategy, _EncryptionStrategy);
 
     /**
-     * @param {HttpApplication2} app
+     * @param {HttpApplication} app
      */
     function DefaultEncyptionStrategy(app) {
         _classCallCheck(this, DefaultEncyptionStrategy);

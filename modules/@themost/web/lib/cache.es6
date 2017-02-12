@@ -23,7 +23,7 @@ import {Args,TraceUtils,LangUtils} from '@themost/common/utils';
 export class CacheStrategy extends HttpApplicationService {
     /**
      *
-     * @param {HttpApplication2} app
+     * @param {HttpApplication} app
      */
     constructor(app) {
         Args.check(new.target !== CacheStrategy, new AbstractClassError());
@@ -90,7 +90,7 @@ export class DefaultCacheStrategy extends CacheStrategy  {
     /**
      *
      * @constructor
-     * @param {HttpApplication2} app
+     * @param {HttpApplication} app
      */
     constructor(app) {
         super(app);

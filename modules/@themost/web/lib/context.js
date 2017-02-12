@@ -80,7 +80,7 @@ var HttpContext = exports.HttpContext = function () {
     /**
      *
      * @constructor
-     * @param {HttpApplication2} app
+     * @param {HttpApplication} app
      * @param {ClientRequest} request
      * @param {ServerResponse} response
      */

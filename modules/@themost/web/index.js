@@ -109,6 +109,18 @@ Object.keys(_interfaces).forEach(function (key) {
   });
 });
 
+var _auth = require('./lib/auth');
+
+Object.keys(_auth).forEach(function (key) {
+  if (key === "default") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function get() {
+      return _auth[key];
+    }
+  });
+});
+
 var _localization = require('./lib/localization');
 
 Object.keys(_localization).forEach(function (key) {

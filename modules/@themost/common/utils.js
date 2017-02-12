@@ -81,12 +81,12 @@ var Args = exports.Args = function () {
                 res = !expr;
             }
             if (res) {
-                if (_err instanceof Error) {
-                    throw _err;
+                if (err instanceof Error) {
+                    throw err;
                 }
-                var _err = new Error(message);
-                _err.code = "ECHECK";
-                throw _err;
+                var error = new Error(err);
+                error.code = "ECHECK";
+                throw error;
             }
         }
 

@@ -182,7 +182,7 @@ class RouteHandler {
  */
 export class RoutingStrategy extends HttpApplicationService {
     /**
-     * @param {HttpApplication2} app
+     * @param {HttpApplication} app
      */
     constructor(app) {
         Args.check(new.target !== RoutingStrategy, new AbstractClassError());
@@ -237,7 +237,7 @@ const routesProperty = Symbol('routes');
  */
 export class DefaultRoutingStrategy extends RoutingStrategy {
     /**
-     * @param {HttpApplication2} app
+     * @param {HttpApplication} app
      */
     constructor(app) {
         super(app);
@@ -256,7 +256,7 @@ export class DefaultRoutingStrategy extends RoutingStrategy {
 /**
  * @class
  */
-export class HttpRouteConsumer extends HttpConsumer {
+export class RouteConsumer extends HttpConsumer {
     constructor() {
         super(function() {
             /**

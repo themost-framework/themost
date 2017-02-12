@@ -56,7 +56,7 @@ var LocalizationStrategy = exports.LocalizationStrategy = function (_HttpApplica
 
     /**
      *
-     * @param {HttpApplication2} app
+     * @param {HttpApplication} app
      */
     function LocalizationStrategy(app) {
         _classCallCheck(this, LocalizationStrategy);
@@ -130,7 +130,7 @@ var DefaultLocalizationStrategy = exports.DefaultLocalizationStrategy = function
 
     /**
      *
-     * @param {HttpApplication2} app
+     * @param {HttpApplication} app
      */
     function DefaultLocalizationStrategy(app) {
         _classCallCheck(this, DefaultLocalizationStrategy);

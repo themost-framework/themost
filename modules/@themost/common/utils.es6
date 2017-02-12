@@ -64,9 +64,9 @@ export class Args {
             if (err instanceof Error) {
                 throw err;
             }
-            const err = new Error(message);
-            err.code = "ECHECK";
-            throw err;
+            const error = new Error(err);
+            error.code = "ECHECK";
+            throw error;
         }
     }
 

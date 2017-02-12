@@ -61,7 +61,7 @@ var CacheStrategy = exports.CacheStrategy = function (_HttpApplicationServi) {
 
     /**
      *
-     * @param {HttpApplication2} app
+     * @param {HttpApplication} app
      */
     function CacheStrategy(app) {
         _classCallCheck(this, CacheStrategy);
@@ -151,7 +151,7 @@ var DefaultCacheStrategy = exports.DefaultCacheStrategy = function (_CacheStrate
     /**
      *
      * @constructor
-     * @param {HttpApplication2} app
+     * @param {HttpApplication} app
      */
     function DefaultCacheStrategy(app) {
         _classCallCheck(this, DefaultCacheStrategy);

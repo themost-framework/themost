@@ -40,7 +40,7 @@ var applicationProperty = Symbol('application');
 
 var HttpApplicationService = exports.HttpApplicationService = function () {
   /**
-   * @param {HttpApplication2} app
+   * @param {HttpApplication} app
    */
   function HttpApplicationService(app) {
     _classCallCheck(this, HttpApplicationService);
@@ -50,7 +50,7 @@ var HttpApplicationService = exports.HttpApplicationService = function () {
     this[applicationProperty] = app;
   }
   /**
-   * @returns {HttpApplication2}
+   * @returns {HttpApplication}
    */
 
 

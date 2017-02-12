@@ -13,7 +13,7 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.HttpRouteConsumer = exports.DefaultRoutingStrategy = exports.RoutingStrategy = exports.HttpRoute = undefined;
+exports.RouteConsumer = exports.DefaultRoutingStrategy = exports.RoutingStrategy = exports.HttpRoute = undefined;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
@@ -251,7 +251,7 @@ var RoutingStrategy = exports.RoutingStrategy = function (_HttpApplicationServi)
     _inherits(RoutingStrategy, _HttpApplicationServi);
 
     /**
-     * @param {HttpApplication2} app
+     * @param {HttpApplication} app
      */
     function RoutingStrategy(app) {
         _classCallCheck(this, RoutingStrategy);
@@ -324,7 +324,7 @@ var DefaultRoutingStrategy = exports.DefaultRoutingStrategy = function (_Routing
     _inherits(DefaultRoutingStrategy, _RoutingStrategy);
 
     /**
-     * @param {HttpApplication2} app
+     * @param {HttpApplication} app
      */
     function DefaultRoutingStrategy(app) {
         _classCallCheck(this, DefaultRoutingStrategy);
@@ -355,13 +355,13 @@ var DefaultRoutingStrategy = exports.DefaultRoutingStrategy = function (_Routing
  */
 
 
-var HttpRouteConsumer = exports.HttpRouteConsumer = function (_HttpConsumer) {
-    _inherits(HttpRouteConsumer, _HttpConsumer);
+var RouteConsumer = exports.RouteConsumer = function (_HttpConsumer) {
+    _inherits(RouteConsumer, _HttpConsumer);
 
-    function HttpRouteConsumer() {
-        _classCallCheck(this, HttpRouteConsumer);
+    function RouteConsumer() {
+        _classCallCheck(this, RouteConsumer);
 
-        return _possibleConstructorReturn(this, (HttpRouteConsumer.__proto__ || Object.getPrototypeOf(HttpRouteConsumer)).call(this, function () {
+        return _possibleConstructorReturn(this, (RouteConsumer.__proto__ || Object.getPrototypeOf(RouteConsumer)).call(this, function () {
             /**
              * @type {HttpContext}
              */
@@ -377,6 +377,6 @@ var HttpRouteConsumer = exports.HttpRouteConsumer = function (_HttpConsumer) {
         }));
     }
 
-    return HttpRouteConsumer;
+    return RouteConsumer;
 }(HttpConsumer);
 //# sourceMappingURL=route.js.map

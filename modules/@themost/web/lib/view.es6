@@ -18,6 +18,7 @@ import util from 'util';
 import fs from 'fs';
 import path from 'path';
 import xml from 'most-xml';
+import Rx from 'rx';
 
 
 if (typeof _.dasherize != 'function') {
@@ -32,11 +33,21 @@ if (typeof _.dasherize != 'function') {
     }
 }
 
+const STR_CONTROLLERS_FOLDER = 'controllers';
+const STR_CONTROLLER_FILE = 'controllers/%s-controller.js';
+const STR_CONTROLLER_RELPATH = 'controllers/%s-controller.js';
+
 /**
  * @classdesc Default view handler (as it had been implemented for version 1.x of MOST Web Framework)
  * @class
  */
 class ViewHandler {
+    /**
+     *
+     * @param {string} controllerName
+     * @param {HttpContext} context
+     * @param {Function} callback
+     */
     static queryControllerClass(controllerName, context, callback) {
 
         if (typeof controllerName === 'undefined' || controllerName==null) {
@@ -44,8 +55,7 @@ class ViewHandler {
         }
         else {
             //get controller class path and model (if any)
-            let controllerPath = context.application.mapPath(util.format(ViewHandler.STR_CONTROLLER_RELPATH, _.dasherize(controllerName)));
-
+            let controllerPath = context.getApplication().mapExecutionPath(util.format(STR_CONTROLLER_RELPATH, _.dasherize(controllerName)));
             const controllerModel = context.model(controllerName);
             //if controller does not exists
             fs.exists(controllerPath, function(exists){
@@ -56,11 +66,11 @@ class ViewHandler {
                         if (controllerModel) {
                             const controllerType = controllerModel.type || 'data';
                             //try to find controller based on the model's type in controllers folder (e.g. /library-controller.js)
-                            controllerPath = context.application.mapPath(util.format(ViewHandler.STR_CONTROLLER_RELPATH, controllerType));
+                            controllerPath = context.getApplication().mapExecutionPath(util.format(STR_CONTROLLER_RELPATH, controllerType));
                             fs.exists(controllerPath, function(exists) {
                                if (!exists) {
                                    //get controller path according to related model's type (e.g ./data-controller)
-                                   controllerPath = util.format(ViewHandler.STR_CONTROLLER_FILE, controllerType);
+                                   controllerPath = util.format(STR_CONTROLLER_FILE, controllerType);
                                    //if controller does not exist
                                    controllerPath = path.join(__dirname, controllerPath);
                                    fs.exists(controllerPath, function(exists) {
@@ -76,7 +86,7 @@ class ViewHandler {
                             });
                         }
                         else {
-                            const ControllerCtor = context.application.config.controllers[controllerName] || require('./../controllers/base').default;
+                            const ControllerCtor = context.getApplication().getConfiguration().controllers[controllerName] || require('./../controllers/base').default;
                             callback(null, ControllerCtor);
                         }
                     }
@@ -344,9 +354,7 @@ class ViewHandler {
 
 }
 
-ViewHandler.STR_CONTROLLERS_FOLDER = 'controllers';
-ViewHandler.STR_CONTROLLER_FILE = './controllers/%s-controller.js';
-ViewHandler.STR_CONTROLLER_RELPATH = '/controllers/%s-controller.js';
+
 
 
 /**

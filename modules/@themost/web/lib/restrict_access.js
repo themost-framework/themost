@@ -76,7 +76,7 @@ var RestrictAccessService = exports.RestrictAccessService = function (_HttpAppli
     _inherits(RestrictAccessService, _HttpApplicationServi);
 
     /**
-     * @param {HttpApplication2} app
+     * @param {HttpApplication} app
      */
     function RestrictAccessService(app) {
         _classCallCheck(this, RestrictAccessService);

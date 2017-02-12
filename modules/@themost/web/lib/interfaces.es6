@@ -20,7 +20,7 @@ const applicationProperty = Symbol('application');
  */
 export class HttpApplicationService {
     /**
-     * @param {HttpApplication2} app
+     * @param {HttpApplication} app
      */
     constructor(app) {
         Args.check(new.target !== HttpApplicationService, new AbstractClassError());
@@ -28,7 +28,7 @@ export class HttpApplicationService {
         this[applicationProperty] = app;
     }
     /**
-     * @returns {HttpApplication2}
+     * @returns {HttpApplication}
      */
     getApplication() {
         return this[applicationProperty];

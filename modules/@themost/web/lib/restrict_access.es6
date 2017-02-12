@@ -34,7 +34,7 @@ const applicationProperty = Symbol('application');
 
 export class RestrictAccessService extends HttpApplicationService{
     /**
-     * @param {HttpApplication2} app
+     * @param {HttpApplication} app
      */
     constructor(app) {
        super(app);

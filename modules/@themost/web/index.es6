@@ -17,6 +17,7 @@ export * from './lib/results';
 export * from './lib/static';
 export * from './lib/route';
 export * from './lib/interfaces';
+export * from './lib/auth';
 export * from './lib/localization';
 
 

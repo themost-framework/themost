@@ -44,7 +44,7 @@ export class HttpContext {
     /**
      *
      * @constructor
-     * @param {HttpApplication2} app
+     * @param {HttpApplication} app
      * @param {ClientRequest} request
      * @param {ServerResponse} response
      */

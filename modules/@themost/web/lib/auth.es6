@@ -11,12 +11,13 @@
 import {_} from 'lodash';
 import crypto from 'crypto';
 import moment from 'moment';
-import {Args,TraceUtils,LangUtils} from '@themost/common/utils';
+import {Args,TraceUtils,LangUtils,RandomUtils} from '@themost/common/utils';
 import {HttpConsumer} from './consumers';
 import Rx from 'rx';
 import {HttpNextResult} from './results';
 import {HttpApplicationService} from "./interfaces";
 import {AbstractClassError, AbstractMethodError, HttpForbiddenError, HttpUnauthorizedError} from "@themost/common/errors";
+
 
 const ANONYMOUS_IDENTITY = { name: 'anonymous', authenticationType:'None' };
 /**
@@ -175,7 +176,7 @@ export class BasicAuthConsumer extends HttpConsumer {
 
 export class AuthStrategy extends HttpApplicationService {
     /**
-     * @param {HttpApplication2} app
+     * @param {HttpApplication} app
      */
     constructor(app) {
         Args.check(new.target !== AuthStrategy, new AbstractClassError());
@@ -220,13 +221,21 @@ export class AuthStrategy extends HttpApplicationService {
         throw new AbstractMethodError();
     }
 
+    /**
+     * Gets the unattended execution account
+     * @returns {string}
+     */
+    getUnattendedExecutionAccount() {
+        throw new AbstractMethodError();
+    }
+
 }
 
 const optionsProperty = Symbol('options');
 
 export class DefaultAuthStrategy extends HttpApplicationService {
     /**
-     * @param {HttpApplication2} app
+     * @param {HttpApplication} app
      */
     constructor(app) {
         super(app);
@@ -234,7 +243,8 @@ export class DefaultAuthStrategy extends HttpApplicationService {
         this[optionsProperty] = {
             "name":".MAUTH",
             "slidingExpiration": false,
-            "expirationTimeout":420
+            "expirationTimeout":420,
+            "unattendedExecutionAccount":RandomUtils.randomChars(16)
         };
         //get keys
         const keys = _.keys(this[optionsProperty]);
@@ -246,6 +256,14 @@ export class DefaultAuthStrategy extends HttpApplicationService {
 
     getOptions() {
         return this[optionsProperty];
+    }
+
+    /**
+     * Gets the unattended execution account
+     * @returns {string}
+     */
+    getUnattendedExecutionAccount() {
+        return this[optionsProperty].unattendedExecutionAccount;
     }
 
     /**
@@ -371,7 +389,7 @@ export class DefaultAuthStrategy extends HttpApplicationService {
 export class EncryptionStrategy extends HttpApplicationService {
 
     /**
-     * @param {HttpApplication2} app
+     * @param {HttpApplication} app
      */
     constructor(app) {
         Args.check(new.target !== AuthStrategy, new AbstractClassError());
@@ -405,7 +423,7 @@ const cryptoProperty = Symbol('crypto');
  */
 export class DefaultEncyptionStrategy extends EncryptionStrategy {
     /**
-     * @param {HttpApplication2} app
+     * @param {HttpApplication} app
      */
     constructor(app) {
         super(app);

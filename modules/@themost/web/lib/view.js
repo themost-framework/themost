@@ -61,6 +61,10 @@ var _mostXml = require('most-xml');
 
 var xml = _interopRequireDefault(_mostXml).default;
 
+var _rx = require('rx');
+
+var Rx = _interopRequireDefault(_rx).default;
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -79,6 +83,10 @@ if (typeof _.dasherize != 'function') {
         return s;
     };
 }
+
+var STR_CONTROLLERS_FOLDER = 'controllers';
+var STR_CONTROLLER_FILE = 'controllers/%s-controller.js';
+var STR_CONTROLLER_RELPATH = 'controllers/%s-controller.js';
 
 /**
  * @classdesc Default view handler (as it had been implemented for version 1.x of MOST Web Framework)
@@ -355,6 +363,13 @@ var ViewHandler = function () {
         }
     }], [{
         key: 'queryControllerClass',
+
+        /**
+         *
+         * @param {string} controllerName
+         * @param {HttpContext} context
+         * @param {Function} callback
+         */
         value: function queryControllerClass(controllerName, context, callback) {
 
             if (typeof controllerName === 'undefined' || controllerName == null) {
@@ -362,8 +377,7 @@ var ViewHandler = function () {
             } else {
                 (function () {
                     //get controller class path and model (if any)
-                    var controllerPath = context.application.mapPath(util.format(ViewHandler.STR_CONTROLLER_RELPATH, _.dasherize(controllerName)));
-
+                    var controllerPath = context.getApplication().mapExecutionPath(util.format(STR_CONTROLLER_RELPATH, _.dasherize(controllerName)));
                     var controllerModel = context.model(controllerName);
                     //if controller does not exists
                     fs.exists(controllerPath, function (exists) {
@@ -375,11 +389,11 @@ var ViewHandler = function () {
                                     (function () {
                                         var controllerType = controllerModel.type || 'data';
                                         //try to find controller based on the model's type in controllers folder (e.g. /library-controller.js)
-                                        controllerPath = context.application.mapPath(util.format(ViewHandler.STR_CONTROLLER_RELPATH, controllerType));
+                                        controllerPath = context.getApplication().mapExecutionPath(util.format(STR_CONTROLLER_RELPATH, controllerType));
                                         fs.exists(controllerPath, function (exists) {
                                             if (!exists) {
                                                 //get controller path according to related model's type (e.g ./data-controller)
-                                                controllerPath = util.format(ViewHandler.STR_CONTROLLER_FILE, controllerType);
+                                                controllerPath = util.format(STR_CONTROLLER_FILE, controllerType);
                                                 //if controller does not exist
                                                 controllerPath = path.join(__dirname, controllerPath);
                                                 fs.exists(controllerPath, function (exists) {
@@ -391,7 +405,7 @@ var ViewHandler = function () {
                                         });
                                     })();
                                 } else {
-                                    var ControllerCtor = context.application.config.controllers[controllerName] || require('./../controllers/base').default;
+                                    var ControllerCtor = context.getApplication().getConfiguration().controllers[controllerName] || require('./../controllers/base').default;
                                     callback(null, ControllerCtor);
                                 }
                             } else {
@@ -410,15 +424,13 @@ var ViewHandler = function () {
     return ViewHandler;
 }();
 
-ViewHandler.STR_CONTROLLERS_FOLDER = 'controllers';
-ViewHandler.STR_CONTROLLER_FILE = './controllers/%s-controller.js';
-ViewHandler.STR_CONTROLLER_RELPATH = '/controllers/%s-controller.js';
-
 /**
  * Gets the controller of the given url
  * @param {string|*} requestUri - A string that represents the url we want to parse.
  * @private
  * */
+
+
 function queryController(requestUri) {
     try {
         if (requestUri === undefined) return null;

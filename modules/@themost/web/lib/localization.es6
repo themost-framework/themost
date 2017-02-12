@@ -21,7 +21,7 @@ import {Args,TraceUtils} from '@themost/common/utils';
 export class LocalizationStrategy extends HttpApplicationService {
     /**
      *
-     * @param {HttpApplication2} app
+     * @param {HttpApplication} app
      */
     constructor(app) {
         Args.check(new.target !== LocalizationStrategy, new AbstractClassError());
@@ -75,7 +75,7 @@ const librariesProperty = Symbol();
 export class DefaultLocalizationStrategy extends LocalizationStrategy {
     /**
      *
-     * @param {HttpApplication2} app
+     * @param {HttpApplication} app
      */
     constructor(app) {
         super(app);

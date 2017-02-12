@@ -12,7 +12,7 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.HttpApplication2 = undefined;
+exports.HttpApplication = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -54,6 +54,7 @@ var AuthConsumer = _auth.AuthConsumer;
 var BasicAuthConsumer = _auth.BasicAuthConsumer;
 var EncryptionStrategy = _auth.EncryptionStrategy;
 var DefaultEncyptionStrategy = _auth.DefaultEncyptionStrategy;
+var AuthStrategy = _auth.AuthStrategy;
 
 var _restrict_access = require('./restrict_access');
 
@@ -78,6 +79,7 @@ var _route = require('./route');
 
 var RoutingStrategy = _route.RoutingStrategy;
 var DefaultRoutingStrategy = _route.DefaultRoutingStrategy;
+var RouteConsumer = _route.RouteConsumer;
 
 var _localization = require('./localization');
 
@@ -109,6 +111,10 @@ var _interfaces = require('./interfaces');
 
 var HttpApplicationService = _interfaces.HttpApplicationService;
 
+var _view = require('./view');
+
+var ViewConsumer = _view.ViewConsumer;
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -124,7 +130,7 @@ var HTTP_SERVER_DEFAULT_PORT = 3000;
  */
 function startInternal(options) {
     /**
-     * @type {HttpApplication2|*}
+     * @type {HttpApplication|*}
      */
     var self = this;
     try {
@@ -173,11 +179,17 @@ function startInternal(options) {
                             context.response.write('500 Internal Server Error\n');
                         }
 
-                        context.finalize(function () {
+                        if (typeof context.finalize === 'function') {
+                            context.finalize(function () {
+                                if (context.response) {
+                                    context.response.end();
+                                }
+                            });
+                        } else {
                             if (context.response) {
                                 context.response.end();
                             }
-                        });
+                        }
                     }
                 });
             });
@@ -195,12 +207,12 @@ function startInternal(options) {
  * Initializes application
  * @private
  * @static
- * @return {HttpApplication2}
+ * @return {HttpApplication}
  */
 function initInternal() {
 
     /**
-     * @type {HttpApplication2|*}
+     * @type {HttpApplication|*}
      */
     var self = this;
     /**
@@ -266,7 +278,7 @@ function initInternal() {
  */
 function processRequestInternal(context, callback) {
     /**
-     * @type {HttpApplication2|*}
+     * @type {HttpApplication|*}
      */
     var self = this,
 
@@ -335,7 +347,7 @@ function processRequestInternal(context, callback) {
  */
 function processErrorInternal(context, error, callback) {
     /**
-     * @type {HttpApplication2|*}
+     * @type {HttpApplication|*}
      */
     var self = this,
 
@@ -360,6 +372,46 @@ function processErrorInternal(context, error, callback) {
     });
 }
 
+/**
+ * Creates a mock-up server request
+ * @private
+ * @param {*} options
+ */
+function createRequestInternal(options) {
+    var opt = options ? options : {};
+    var request = new http.IncomingMessage();
+    request.method = opt.method ? opt.method : 'GET';
+    request.url = opt.url ? opt.url : '/';
+    request.httpVersion = '1.1';
+    request.headers = opt.headers ? opt.headers : {
+        host: 'localhost',
+        'user-agent': 'Mozilla/5.0 (X11; Linux i686; rv:10.0) Gecko/20100101 Firefox/22.0',
+        accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'accept-language': 'en-US,en;q=0.5',
+        'accept-encoding': 'gzip, deflate',
+        connection: 'keep-alive',
+        'cache-control': 'max-age=0' };
+    if (opt.cookie) request.headers.cookie = opt.cookie;
+    request.cookies = opt.cookies ? opt.cookies : {};
+    request.session = opt.session ? opt.session : {};
+    request.params = opt.params ? opt.params : {};
+    request.query = opt.query ? opt.query : {};
+    request.form = opt.form ? opt.form : {};
+    request.body = opt.body ? opt.body : {};
+    request.files = opt.files ? opt.files : {};
+    return request;
+}
+
+/**
+ * Creates a mock-up server response
+ * @param {ClientRequest} req
+ * @returns {ServerResponse|*}
+ * @private
+ */
+function createResponseInternal(req) {
+    return new http.ServerResponse(req);
+}
+
 var currentProperty = Symbol('current');
 var consumersProperty = Symbol('consumers');
 var errorConsumersProperty = Symbol('errorConsumers');
@@ -367,34 +419,123 @@ var otherwiseConsumerProperty = Symbol('otherwise');
 var configProperty = Symbol('config');
 var serverProperty = Symbol('server');
 var servicesProperty = Symbol('services');
+var executionPathProperty = Symbol('executionPath');
+var configPathProperty = Symbol('configPath');
 
 /**
  * @classdesc Represents an HTTP server application
  * @class
  */
 
-var HttpApplication2 = exports.HttpApplication2 = function () {
+var HttpApplication = exports.HttpApplication = function () {
     /**
      * @constructor
      */
-    function HttpApplication2() {
-        _classCallCheck(this, HttpApplication2);
+    function HttpApplication() {
+        _classCallCheck(this, HttpApplication);
 
         this[consumersProperty] = [];
         this[errorConsumersProperty] = [];
-        this[configProperty] = {};
         this[servicesProperty] = {};
-        this.executionPath = process.cwd();
+        this[executionPathProperty] = process.cwd();
+        this[configPathProperty] = path.join(process.cwd(), 'config');
+        //load configuration
     }
 
     /**
-     * @returns {HttpApplicationConfig|*}
+     * Sets the execution path of the current HTTP application
+     * @param {string} executionPath
+     * @return {HttpApplication}
      */
 
 
-    _createClass(HttpApplication2, [{
+    _createClass(HttpApplication, [{
+        key: 'setExecutionPath',
+        value: function setExecutionPath(executionPath) {
+            Args.notEmpty(executionPath, 'Execution Path');
+            this[executionPathProperty] = executionPath;
+            return this;
+        }
+
+        /**
+         * Gets the execution path of the current HTTP application
+         * @returns {string}
+         */
+
+    }, {
+        key: 'getExecutionPath',
+        value: function getExecutionPath() {
+            return this[executionPathProperty];
+        }
+
+        /**
+         * Resolves the given path
+         * @param {string} arg
+         */
+
+    }, {
+        key: 'mapExecutionPath',
+        value: function mapExecutionPath(arg) {
+            Args.check(_.isString(arg), 'Path must be a string');
+            path.resolve(this.getExecutionPath(), arg);
+        }
+
+        /**
+         * Gets the configuration path of the current HTTP application
+         * @returns {string}
+         */
+
+    }, {
+        key: 'getConfigurationPath',
+        value: function getConfigurationPath() {
+            return this[configPathProperty];
+        }
+
+        /**
+         * @returns {HttpApplicationConfig|*}
+         */
+
+    }, {
         key: 'getConfiguration',
         value: function getConfiguration() {
+            if (typeof this[configProperty] === 'undefined') {
+                //load configuration
+                try {
+                    var env = process.env['NODE_ENV'] || 'production';
+                    this[configProperty] = require(path.join(this[configPathProperty], 'app.' + env + '.json'));
+                } catch (err) {
+                    if (err.code === 'MODULE_NOT_FOUND') {
+                        TraceUtils.warn('Data: The environment specific configuration cannot be found or is inaccesible.');
+                        try {
+                            this[configProperty] = require(path.join(this[configPathProperty], 'app.json'));
+                        } catch (err) {
+                            if (err.code === 'MODULE_NOT_FOUND') {
+                                TraceUtils.warn('Data: The default application configuration cannot be found or is inaccesible.');
+                            } else {
+                                TraceUtils.error('Data: An error occured while trying to open default application configuration.');
+                                TraceUtils.error(err);
+                            }
+                            this[configProperty] = require('./resources/app.json');
+                        }
+                    } else {
+                        TraceUtils.error('Data: An error occured while trying to open application configuration.');
+                        TraceUtils.error(err);
+                        this[configProperty] = require('./resources/app.json');
+                    }
+                }
+                try {
+                    this[configProperty].routes = require(path.join(this[configPathProperty], 'routes.json'));
+                } catch (err) {
+                    if (err.code === 'MODULE_NOT_FOUND') {
+                        TraceUtils.warn('Data: Route configuration cannot be found or is inaccesible.');
+                        this[configProperty].routes = require('./resources/routes.json');
+                    } else {
+                        TraceUtils.error('Data: An error occured while trying to open route configuration.');
+                        TraceUtils.error(err);
+                        this[configProperty].routes = require('./resources/routes.json');
+                    }
+                }
+            }
             return this[configProperty];
         }
 
@@ -411,7 +552,7 @@ var HttpApplication2 = exports.HttpApplication2 = function () {
         /**
          * @param {Function|HttpConsumer} consumer
          * @param {*=} params
-         * @returns HttpApplication2
+         * @returns HttpApplication
          */
 
     }, {
@@ -428,7 +569,7 @@ var HttpApplication2 = exports.HttpApplication2 = function () {
         /**
          * @param {Function|HttpErrorConsumer} consumer
          * @param {*=} params
-         * @returns HttpApplication2
+         * @returns HttpApplication
          */
 
     }, {
@@ -446,7 +587,7 @@ var HttpApplication2 = exports.HttpApplication2 = function () {
          * @param {string} uri
          * @param {Function|HttpConsumer} consumer
          * @param {*=} params
-         * @returns HttpApplication2
+         * @returns HttpApplication
          */
 
     }, {
@@ -463,7 +604,7 @@ var HttpApplication2 = exports.HttpApplication2 = function () {
         /**
          * @param {Function|HttpConsumer} consumer
          * @param {*=} params
-         * @returns HttpApplication2
+         * @returns HttpApplication
          */
 
     }, {
@@ -529,7 +670,7 @@ var HttpApplication2 = exports.HttpApplication2 = function () {
 
         /**
          * Enables application default routing strategy
-         * @returns {HttpApplication2}
+         * @returns {HttpApplication}
          */
 
     }, {
@@ -540,7 +681,7 @@ var HttpApplication2 = exports.HttpApplication2 = function () {
 
         /**
          * Enables application default routing strategy
-         * @returns {HttpApplication2}
+         * @returns {HttpApplication}
          */
 
     }, {
@@ -551,7 +692,7 @@ var HttpApplication2 = exports.HttpApplication2 = function () {
 
         /**
          * Enables application default routing strategy
-         * @returns {HttpApplication2}
+         * @returns {HttpApplication}
          */
 
     }, {
@@ -562,7 +703,7 @@ var HttpApplication2 = exports.HttpApplication2 = function () {
 
         /**
          * Enables application default localization strategy
-         * @returns {HttpApplication2}
+         * @returns {HttpApplication}
          */
 
     }, {
@@ -573,7 +714,7 @@ var HttpApplication2 = exports.HttpApplication2 = function () {
 
         /**
          * Enables basic authentication
-         * @returns {HttpApplication2}
+         * @returns {HttpApplication}
          */
 
     }, {
@@ -584,7 +725,7 @@ var HttpApplication2 = exports.HttpApplication2 = function () {
 
         /**
          * Enables application authentication
-         * @returns {HttpApplication2}
+         * @returns {HttpApplication}
          */
 
     }, {
@@ -608,7 +749,7 @@ var HttpApplication2 = exports.HttpApplication2 = function () {
         /**
          * Enables static content requests
          * @param {string=} rootDir
-         * @returns {HttpApplication2}
+         * @returns {HttpApplication}
          */
 
     }, {
@@ -621,7 +762,7 @@ var HttpApplication2 = exports.HttpApplication2 = function () {
          * Enables static content requests
          * @param {string=} whenDir
          * @param {string=} rootDir
-         * @returns {HttpApplication2}
+         * @returns {HttpApplication}
          */
 
     }, {
@@ -631,9 +772,24 @@ var HttpApplication2 = exports.HttpApplication2 = function () {
         }
 
         /**
+         * Enables static content requests
+         * @returns {HttpApplication}
+         */
+
+    }, {
+        key: 'useViewContent',
+        value: function useViewContent() {
+            if (!this.hasService(RoutingStrategy)) {
+                this.useStrategy(RoutingStrategy, DefaultRoutingStrategy);
+            }
+            this.any(new RouteConsumer());
+            return this.any(new ViewConsumer());
+        }
+
+        /**
          * Starts the current HTTP application.
          * @param {HttpApplicationOptions=} options
-         * @return {HttpApplication2}
+         * @return {HttpApplication}
          */
 
     }, {
@@ -658,19 +814,72 @@ var HttpApplication2 = exports.HttpApplication2 = function () {
         }
 
         /**
-         * @returns {HttpApplication2}
+         * @returns {HttpApplication}
          */
 
+    }, {
+        key: 'execute',
+
+
+        /**
+         * Creates a new context and executes the given function
+         * @param {Function} fn - A function to execute. The first argument is the current context
+         * @returns {Observable}
+         */
+        value: function execute(fn) {
+            var self = this;
+            return Rx.Observable.fromNodeCallback(function (callback) {
+                //create context
+                var request = createRequestInternal.call(self),
+                    response = createResponseInternal.call(self, request);
+                var context = self.createContext(request, response);
+                fn(context).subscribe(function () {
+                    return callback();
+                }, function (err) {
+                    return callback(err);
+                });
+            });
+        }
+
+        /**
+         * Creates a new context and executes the given function in unattended mode
+         * @param {Function} fn
+         * @returns {Observable}
+         */
+
+    }, {
+        key: 'executeUnattended',
+        value: function executeUnattended(fn) {
+            var self = this;
+            return Rx.Observable.fromNodeCallback(function (callback) {
+                //create context
+                var request = createRequestInternal.call(self),
+                    response = createResponseInternal.call(self, request);
+                var context = self.createContext(request, response);
+                //get unattended execution account
+                if (this.hasService(AuthStrategy)) {
+                    var account = this.getService(AuthStrategy).getUnattendedExecutionAccount();
+                    if (_.isEmpty(account)) {
+                        context.user = { name: account, authenticationType: 'Basic' };
+                    }
+                }
+                fn(context).subscribe(function () {
+                    return callback();
+                }, function (err) {
+                    return callback(err);
+                });
+            });
+        }
     }], [{
         key: 'getCurrent',
         value: function getCurrent() {
-            if (_.isNil(HttpApplication2[currentProperty])) {
-                HttpApplication2[currentProperty] = new HttpApplication2();
+            if (_.isNil(HttpApplication[currentProperty])) {
+                HttpApplication[currentProperty] = new HttpApplication();
             }
-            return HttpApplication2[currentProperty];
+            return HttpApplication[currentProperty];
         }
     }]);
 
-    return HttpApplication2;
+    return HttpApplication;
 }();
 //# sourceMappingURL=app.js.map
