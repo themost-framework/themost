@@ -12,8 +12,8 @@ import {_} from 'lodash';
 import async from 'async';
 import crypto from 'crypto';
 import {Args, TraceUtils, RandomUtils} from '@themost/common/utils';
-import {HttpError, HttpNotFoundError, AbstractClassError, AbstractMethodError} from '@themost/common/errors';
-import {HttpNextResult,HttpEndResult,HttpResult,HttpAnyResult} from './results';
+import {HttpError, HttpNotFoundError} from '@themost/common/errors';
+import {HttpNextResult,HttpResult,HttpAnyResult} from './results';
 import {AuthConsumer, BasicAuthConsumer, EncryptionStrategy, DefaultEncyptionStrategy, AuthStrategy} from './auth';
 import {RestrictAccessConsumer,RestrictAccessService} from './restrict_access';
 import {HttpConsumer,HttpRouteConsumer,HttpErrorConsumer} from './consumers';
@@ -22,6 +22,7 @@ import {HttpContext} from './context';
 import {RoutingStrategy,DefaultRoutingStrategy,RouteConsumer} from './route';
 import {LocalizationStrategy,DefaultLocalizationStrategy} from './localization';
 import {CacheStrategy,DefaultCacheStrategy} from './cache';
+import {DataConfigurationStrategy,DefaultDataConfigurationStrategy} from './data';
 import {Rx} from 'rx';
 import path from 'path';
 import http from 'http';
@@ -349,8 +350,7 @@ export class HttpApplication {
         this[servicesProperty] = {};
         this[executionPathProperty] = process.cwd();
         this[configPathProperty] = path.join(process.cwd(),'config');
-        //load configuration
-
+        this.useStrategy(DataConfigurationStrategy, DefaultDataConfigurationStrategy);
     }
 
     /**
@@ -360,7 +360,8 @@ export class HttpApplication {
      */
     setExecutionPath(executionPath) {
         Args.notEmpty(executionPath,'Execution Path');
-        this[executionPathProperty] = executionPath;
+        this[executionPathProperty] = path.resolve(process.cwd(), executionPath);
+        this[configPathProperty] = path.join(this[executionPathProperty],'config');
         return this;
     }
 
@@ -378,7 +379,7 @@ export class HttpApplication {
      */
     mapExecutionPath(arg) {
         Args.check(_.isString(arg),'Path must be a string');
-        path.resolve(this.getExecutionPath(), arg);
+        return path.resolve(this.getExecutionPath(), arg);
     }
 
     /**
@@ -460,6 +461,19 @@ export class HttpApplication {
             this[consumersProperty].push(new HttpConsumer(consumer, params));
         }
         return this;
+    }
+
+    /**
+     * @param {Function} consumerConstructor
+     * @returns {boolean}
+     */
+    hasConsumer(consumerConstructor) {
+        if (typeof consumerConstructor !== 'function') {
+            return false;
+        }
+       return _.findIndex(this[consumersProperty],(x)=> {
+           return x instanceof consumerConstructor;
+       })>=0;
     }
 
     /**
@@ -628,11 +642,18 @@ export class HttpApplication {
      * @returns {HttpApplication}
      */
     useViewContent() {
+        //chekc if application does not have a service of type RoutingStrategy
         if (!this.hasService(RoutingStrategy))  {
             this.useStrategy(RoutingStrategy, DefaultRoutingStrategy);
         }
-        this.any(new RouteConsumer());
-        return this.any(new ViewConsumer());
+        //check if application does not have a consumer of type RouteConsumer
+        if (!this.hasConsumer(RouteConsumer))
+            //and add it
+            this.any(new RouteConsumer());
+        //check if application does not have a consumer of type ViewConsumer
+        if (!this.hasConsumer(ViewConsumer))
+            //and add it
+            return this.any(new ViewConsumer());
     }
 
     /**

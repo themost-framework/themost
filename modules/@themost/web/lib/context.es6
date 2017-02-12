@@ -15,6 +15,8 @@ import {HttpViewContext} from './mvc';
 import {Args,TraceUtils} from '@themost/common/utils';
 import {HttpBadRequestError} from '@themost/common/errors';
 import {LocalizationStrategy} from './localization';
+import {DefaultDataContext} from 'most-data/data-context'
+import {DataConfigurationStrategy} from "./data";
 
 function parseCookies(request) {
     let list = {};
@@ -38,9 +40,9 @@ const applicationProperty = Symbol('application');
  * @property {*} params
  * @property {ClientRequest} request - Gets or sets the HTTP request of the current context
  * @property {ServerResponse} response - Gets or sets the HTTP response of the current context
- * @augments HttpContext
+ * @augments DefaultDataContext
  */
-export class HttpContext {
+export class HttpContext extends DefaultDataContext {
     /**
      *
      * @constructor
@@ -49,6 +51,9 @@ export class HttpContext {
      * @param {ServerResponse} response
      */
     constructor(app, request, response) {
+
+        super();
+
         this[applicationProperty] = app;
         /**
          * Gets or sets the HTTP request of the current context
@@ -62,6 +67,16 @@ export class HttpContext {
         this.response = response;
     }
 
+    /**
+     * @returns DataConfiguration
+     */
+    getConfiguration() {
+        return this.getApplication().getService(DataConfigurationStrategy).getConfiguration();
+    }
+
+    /**
+     * @returns {HttpApplication}
+     */
     getApplication() {
         return this[applicationProperty];
     }
@@ -153,7 +168,7 @@ export class HttpContext {
     is(method) {
         Args.notNull(this.request,'HTTP Request');
         if (_.isNil(method)) { return false; }
-        Args.notString(this.request,'HTTP Method');
+        Args.notString(this.request.method,'HTTP Method');
         return (this.request.method.toUpperCase() == method.toUpperCase());
     }
     /**

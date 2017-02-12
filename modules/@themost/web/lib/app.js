@@ -38,13 +38,10 @@ var _errors = require('@themost/common/errors');
 
 var HttpError = _errors.HttpError;
 var HttpNotFoundError = _errors.HttpNotFoundError;
-var AbstractClassError = _errors.AbstractClassError;
-var AbstractMethodError = _errors.AbstractMethodError;
 
 var _results = require('./results');
 
 var HttpNextResult = _results.HttpNextResult;
-var HttpEndResult = _results.HttpEndResult;
 var HttpResult = _results.HttpResult;
 var HttpAnyResult = _results.HttpAnyResult;
 
@@ -90,6 +87,11 @@ var _cache = require('./cache');
 
 var CacheStrategy = _cache.CacheStrategy;
 var DefaultCacheStrategy = _cache.DefaultCacheStrategy;
+
+var _data = require('./data');
+
+var DataConfigurationStrategy = _data.DataConfigurationStrategy;
+var DefaultDataConfigurationStrategy = _data.DefaultDataConfigurationStrategy;
 
 var _rx = require('rx');
 
@@ -439,7 +441,7 @@ var HttpApplication = exports.HttpApplication = function () {
         this[servicesProperty] = {};
         this[executionPathProperty] = process.cwd();
         this[configPathProperty] = path.join(process.cwd(), 'config');
-        //load configuration
+        this.useStrategy(DataConfigurationStrategy, DefaultDataConfigurationStrategy);
     }
 
     /**
@@ -453,7 +455,8 @@ var HttpApplication = exports.HttpApplication = function () {
         key: 'setExecutionPath',
         value: function setExecutionPath(executionPath) {
             Args.notEmpty(executionPath, 'Execution Path');
-            this[executionPathProperty] = executionPath;
+            this[executionPathProperty] = path.resolve(process.cwd(), executionPath);
+            this[configPathProperty] = path.join(this[executionPathProperty], 'config');
             return this;
         }
 
@@ -477,7 +480,7 @@ var HttpApplication = exports.HttpApplication = function () {
         key: 'mapExecutionPath',
         value: function mapExecutionPath(arg) {
             Args.check(_.isString(arg), 'Path must be a string');
-            path.resolve(this.getExecutionPath(), arg);
+            return path.resolve(this.getExecutionPath(), arg);
         }
 
         /**
@@ -564,6 +567,22 @@ var HttpApplication = exports.HttpApplication = function () {
                 this[consumersProperty].push(new HttpConsumer(consumer, params));
             }
             return this;
+        }
+
+        /**
+         * @param {Function} consumerConstructor
+         * @returns {boolean}
+         */
+
+    }, {
+        key: 'hasConsumer',
+        value: function hasConsumer(consumerConstructor) {
+            if (typeof consumerConstructor !== 'function') {
+                return false;
+            }
+            return _.findIndex(this[consumersProperty], function (x) {
+                return x instanceof consumerConstructor;
+            }) >= 0;
         }
 
         /**
@@ -779,11 +798,18 @@ var HttpApplication = exports.HttpApplication = function () {
     }, {
         key: 'useViewContent',
         value: function useViewContent() {
+            //chekc if application does not have a service of type RoutingStrategy
             if (!this.hasService(RoutingStrategy)) {
                 this.useStrategy(RoutingStrategy, DefaultRoutingStrategy);
             }
-            this.any(new RouteConsumer());
-            return this.any(new ViewConsumer());
+            //check if application does not have a consumer of type RouteConsumer
+            if (!this.hasConsumer(RouteConsumer))
+                //and add it
+                this.any(new RouteConsumer());
+            //check if application does not have a consumer of type ViewConsumer
+            if (!this.hasConsumer(ViewConsumer))
+                //and add it
+                return this.any(new ViewConsumer());
         }
 
         /**

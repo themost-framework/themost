@@ -47,9 +47,21 @@ var _localization = require('./localization');
 
 var LocalizationStrategy = _localization.LocalizationStrategy;
 
+var _dataContext = require('most-data/data-context');
+
+var DefaultDataContext = _dataContext.DefaultDataContext;
+
+var _data = require('./data');
+
+var DataConfigurationStrategy = _data.DataConfigurationStrategy;
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 function parseCookies(request) {
     var list = {};
@@ -73,10 +85,12 @@ var applicationProperty = Symbol('application');
  * @property {*} params
  * @property {ClientRequest} request - Gets or sets the HTTP request of the current context
  * @property {ServerResponse} response - Gets or sets the HTTP response of the current context
- * @augments HttpContext
+ * @augments DefaultDataContext
  */
 
-var HttpContext = exports.HttpContext = function () {
+var HttpContext = exports.HttpContext = function (_DefaultDataContext) {
+    _inherits(HttpContext, _DefaultDataContext);
+
     /**
      *
      * @constructor
@@ -87,20 +101,38 @@ var HttpContext = exports.HttpContext = function () {
     function HttpContext(app, request, response) {
         _classCallCheck(this, HttpContext);
 
-        this[applicationProperty] = app;
+        var _this = _possibleConstructorReturn(this, (HttpContext.__proto__ || Object.getPrototypeOf(HttpContext)).call(this));
+
+        _this[applicationProperty] = app;
         /**
          * Gets or sets the HTTP request of the current context
          * @type {ClientRequest}
          */
-        this.request = request;
+        _this.request = request;
         /**
          * Gets or sets the HTTP response of the current context
          * @type {ServerResponse}
          */
-        this.response = response;
+        _this.response = response;
+        return _this;
     }
 
+    /**
+     * @returns DataConfiguration
+     */
+
+
     _createClass(HttpContext, [{
+        key: 'getConfiguration',
+        value: function getConfiguration() {
+            return this.getApplication().getService(DataConfigurationStrategy).getConfiguration();
+        }
+
+        /**
+         * @returns {HttpApplication}
+         */
+
+    }, {
         key: 'getApplication',
         value: function getApplication() {
             return this[applicationProperty];
@@ -210,7 +242,7 @@ var HttpContext = exports.HttpContext = function () {
             if (_.isNil(method)) {
                 return false;
             }
-            Args.notString(this.request, 'HTTP Method');
+            Args.notString(this.request.method, 'HTTP Method');
             return this.request.method.toUpperCase() == method.toUpperCase();
         }
         /**
@@ -418,5 +450,5 @@ var HttpContext = exports.HttpContext = function () {
     }]);
 
     return HttpContext;
-}();
+}(DefaultDataContext);
 //# sourceMappingURL=context.js.map

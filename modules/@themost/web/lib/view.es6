@@ -75,13 +75,13 @@ class ViewHandler {
                                    controllerPath = path.join(__dirname, controllerPath);
                                    fs.exists(controllerPath, function(exists) {
                                        if (!exists)
-                                           callback(null, require('./../controllers/base').default);
+                                           callback(null, require('./../controllers/base'));
                                        else
-                                           callback(null, require(controllerPath).default);
+                                           callback(null, require(controllerPath));
                                    });
                                }
                                else {
-                                   callback(null, require(controllerPath).default);
+                                   callback(null, require(controllerPath));
                                }
                             });
                         }
@@ -92,11 +92,11 @@ class ViewHandler {
                     }
                     else {
                         //return controller class
-                        callback(null, require(controllerPath).default);
+                        callback(null, require(controllerPath));
                     }
                 }
-                catch (e) {
-                    callback(e);
+                catch (err) {
+                    callback(err);
                 }
             });
         }
@@ -107,6 +107,7 @@ class ViewHandler {
      * @param {Function} callback
      */
     mapRequest(context, callback) {
+        const self = this;
         callback = callback || function () { };
         //try to map request
         try {
@@ -142,9 +143,8 @@ class ViewHandler {
                     //set controller's context
                     controller.context = context;
                     //set request handler
-                    const handler = new ViewHandler();
-                    handler.controller = controller;
-                    context.request.currentHandler = handler;
+                    self.controller = controller;
+                    context.request.currentHandler = self;
                     return callback(null, true);
                 }
                 catch(err) {
@@ -394,12 +394,12 @@ export class ViewConsumer extends HttpConsumer {
             try {
                 let handler = new ViewHandler();
                 //execute mapRequest
-                return Rx.Observable.fromNodeCallback(handler.mapRequest)(context)
+                return Rx.Observable.fromNodeCallback(handler.mapRequest, handler)(context)
                     .flatMap(()=> {
                         //if request has been mapped
                         if (context.request.currentHandler instanceof ViewHandler) {
                             //execute post map request
-                            return Rx.Observable.fromNodeCallback(handler.postMapRequest)(context);
+                            return Rx.Observable.fromNodeCallback(handler.postMapRequest, handler)(context);
                         }
                         //otherwise return next result
                         return Rx.Observable.return(new HttpNextResult());
@@ -407,7 +407,7 @@ export class ViewConsumer extends HttpConsumer {
                         //if current handler is an instance of ViewHandler
                         if (context.request.currentHandler instanceof ViewHandler) {
                             //process request
-                            return Rx.Observable.fromNodeCallback(handler.processRequest)(context).flatMap((res)=> {
+                            return Rx.Observable.fromNodeCallback(handler.processRequest, handler)(context).flatMap((res)=> {
                                 if (res instanceof HttpEndResult) {
                                     return res.toObservable();
                                 }

@@ -107,6 +107,7 @@ var ViewHandler = function () {
          * @param {Function} callback
          */
         value: function mapRequest(context, callback) {
+            var self = this;
             callback = callback || function () {};
             //try to map request
             try {
@@ -149,9 +150,8 @@ var ViewHandler = function () {
                             //set controller's context
                             controller.context = context;
                             //set request handler
-                            var handler = new ViewHandler();
-                            handler.controller = controller;
-                            context.request.currentHandler = handler;
+                            self.controller = controller;
+                            context.request.currentHandler = self;
                             return callback(null, true);
                         } catch (err) {
                             return callback(err);
@@ -397,10 +397,10 @@ var ViewHandler = function () {
                                                 //if controller does not exist
                                                 controllerPath = path.join(__dirname, controllerPath);
                                                 fs.exists(controllerPath, function (exists) {
-                                                    if (!exists) callback(null, require('./../controllers/base').default);else callback(null, require(controllerPath).default);
+                                                    if (!exists) callback(null, require('./../controllers/base'));else callback(null, require(controllerPath));
                                                 });
                                             } else {
-                                                callback(null, require(controllerPath).default);
+                                                callback(null, require(controllerPath));
                                             }
                                         });
                                     })();
@@ -410,10 +410,10 @@ var ViewHandler = function () {
                                 }
                             } else {
                                 //return controller class
-                                callback(null, require(controllerPath).default);
+                                callback(null, require(controllerPath));
                             }
-                        } catch (e) {
-                            callback(e);
+                        } catch (err) {
+                            callback(err);
                         }
                     });
                 })();
@@ -463,11 +463,11 @@ var ViewConsumer = exports.ViewConsumer = function (_HttpConsumer) {
                     var handler = new ViewHandler();
                     //execute mapRequest
                     return {
-                        v: Rx.Observable.fromNodeCallback(handler.mapRequest)(context).flatMap(function () {
+                        v: Rx.Observable.fromNodeCallback(handler.mapRequest, handler)(context).flatMap(function () {
                             //if request has been mapped
                             if (context.request.currentHandler instanceof ViewHandler) {
                                 //execute post map request
-                                return Rx.Observable.fromNodeCallback(handler.postMapRequest)(context);
+                                return Rx.Observable.fromNodeCallback(handler.postMapRequest, handler)(context);
                             }
                             //otherwise return next result
                             return Rx.Observable.return(new HttpNextResult());
@@ -475,7 +475,7 @@ var ViewConsumer = exports.ViewConsumer = function (_HttpConsumer) {
                             //if current handler is an instance of ViewHandler
                             if (context.request.currentHandler instanceof ViewHandler) {
                                 //process request
-                                return Rx.Observable.fromNodeCallback(handler.processRequest)(context).flatMap(function (res) {
+                                return Rx.Observable.fromNodeCallback(handler.processRequest, handler)(context).flatMap(function (res) {
                                     if (res instanceof HttpEndResult) {
                                         return res.toObservable();
                                     }
