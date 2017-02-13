@@ -27,7 +27,7 @@ module.exports = function(grunt) {
                 files: [{
                     "expand": true,
                     "cwd":"modules/@themost/web",
-                    "src": ["lib/*.es6","index.es6"],
+                    "src": ["lib/**/*.es6","index.es6"],
                     "dest": "modules/@themost/web",
                     "ext": ".js"
                 }]
@@ -44,19 +44,26 @@ module.exports = function(grunt) {
         },
         watch: {
             common: {
-                files: ["modules/@themost/common/*.es6"],
-                tasks: ["babel:common"],
+                files: ["modules/@themost/common/**/*.es6","!modules/@themost/common/node_modules/**/*.es6"],
+                tasks: ["newer:babel:common"],
                 options: {
                     spawn: false,
                 },
             },
             web: {
-                files: ["modules/@themost/web/lib/*.es6","modules/@themost/web/index.es6"],
+                files: ["modules/@themost/web/lib/**/*.es6","modules/@themost/web/index.es6"],
                 tasks: ["newer:babel:web"],
                 options: {
                     spawn: false,
                 },
             },
+            test: {
+                files: ["test/**/*.es6", "test-app/**/*.es6"],
+                tasks: ["newer:babel:test"],
+                options: {
+                    spawn: false,
+                },
+            }
         },
     });
     grunt.loadNpmTasks('grunt-newer');

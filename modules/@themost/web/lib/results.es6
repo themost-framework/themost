@@ -1,6 +1,9 @@
 'use strict';
 import Rx from 'rx';
 import {Args} from '@themost/common/utils';
+import {_} from 'lodash';
+import {FormatterStrategy} from "./formatters";
+import {HttpMethodNotAllowedError} from "@themost/common/errors";
 /**
  * @class
  * @abstract
@@ -33,6 +36,8 @@ export class HttpAnyResult extends HttpResult {
     constructor(data) {
         super();
         this.data = data;
+        this.contentType = 'text/html';
+        this.contentEncoding = 'utf8';
     }
 
     /**
@@ -41,8 +46,50 @@ export class HttpAnyResult extends HttpResult {
      * @returns {HttpAnyResult}
      */
     static create(data) {
-        Args.check(!(data instanceof Error), "Invalid argument. Data may not be an instance of Error class.");
         return new HttpAnyResult(data);
+    }
+
+    /**
+     * Executes an HttpResult instance against an existing HttpContext.
+     * @param {HttpContext} context
+     * @returns {Observable}
+     * */
+    execute(context) {
+        const self = this;
+        return Rx.Observable.fromNodeCallback(function(callback) {
+            try {
+                /**
+                 * @type {FormatterStrategy}
+                 */
+                const formatterStrategy = context.getApplication().getService(FormatterStrategy),
+                    /**
+                     * @type {ServerResponse}
+                     */
+                    response = context.response;
+
+                if (_.isNil(self.data)) {
+                    response.writeHead(204);
+                    return callback();
+                }
+
+                if (_.isNil(formatterStrategy)) {
+                    return callback(new HttpMethodNotAllowedError());
+                }
+
+                const formatter = formatterStrategy.findFormatter(context);
+                if (_.isNil(formatter)) {
+                    return callback(new HttpMethodNotAllowedError());
+                }
+                return formatter.execute(context, self.data).subscribe(()=>{
+                   return callback();
+                }, (err) => {
+                    return callback(err);
+                });
+            }
+            catch(err) {
+                callback(err);
+            }
+        })();
     }
 
 }

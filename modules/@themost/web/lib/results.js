@@ -15,6 +15,18 @@ var _utils = require('@themost/common/utils');
 
 var Args = _utils.Args;
 
+var _lodash = require('lodash');
+
+var _ = _lodash._;
+
+var _formatters = require('./formatters');
+
+var FormatterStrategy = _formatters.FormatterStrategy;
+
+var _errors = require('@themost/common/errors');
+
+var HttpMethodNotAllowedError = _errors.HttpMethodNotAllowedError;
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -67,6 +79,8 @@ var HttpAnyResult = exports.HttpAnyResult = function (_HttpResult) {
         var _this = _possibleConstructorReturn(this, (HttpAnyResult.__proto__ || Object.getPrototypeOf(HttpAnyResult)).call(this));
 
         _this.data = data;
+        _this.contentType = 'text/html';
+        _this.contentEncoding = 'utf8';
         return _this;
     }
 
@@ -77,10 +91,55 @@ var HttpAnyResult = exports.HttpAnyResult = function (_HttpResult) {
      */
 
 
-    _createClass(HttpAnyResult, null, [{
+    _createClass(HttpAnyResult, [{
+        key: 'execute',
+
+
+        /**
+         * Executes an HttpResult instance against an existing HttpContext.
+         * @param {HttpContext} context
+         * @returns {Observable}
+         * */
+        value: function execute(context) {
+            var self = this;
+            return Rx.Observable.fromNodeCallback(function (callback) {
+                try {
+                    /**
+                     * @type {FormatterStrategy}
+                     */
+                    var formatterStrategy = context.getApplication().getService(FormatterStrategy),
+
+                    /**
+                     * @type {ServerResponse}
+                     */
+                    response = context.response;
+
+                    if (_.isNil(self.data)) {
+                        response.writeHead(204);
+                        return callback();
+                    }
+
+                    if (_.isNil(formatterStrategy)) {
+                        return callback(new HttpMethodNotAllowedError());
+                    }
+
+                    var formatter = formatterStrategy.findFormatter(context);
+                    if (_.isNil(formatter)) {
+                        return callback(new HttpMethodNotAllowedError());
+                    }
+                    return formatter.execute(context, self.data).subscribe(function () {
+                        return callback();
+                    }, function (err) {
+                        return callback(err);
+                    });
+                } catch (err) {
+                    callback(err);
+                }
+            })();
+        }
+    }], [{
         key: 'create',
         value: function create(data) {
-            Args.check(!(data instanceof Error), "Invalid argument. Data may not be an instance of Error class.");
             return new HttpAnyResult(data);
         }
     }]);

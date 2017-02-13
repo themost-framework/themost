@@ -314,35 +314,22 @@ class ViewHandler {
                     * exists in request's parameters.
                     * note: the last parameter (in this version) must be a callback function
                     * */
-                    if (methodParams.length>1) {
+                    if (methodParams.length>0) {
                         let k=0;
-                        while (k<methodParams.length-1) {
+                        while (k<methodParams.length) {
                             //get context parameter
-                            params.push(context.params.attr(methodParams[k]));
+                            if (typeof context.params.attr === 'function')
+                                params.push(context.params.attr(methodParams[k]));
+                            else
+                                params.push(context.params[methodParams[k]]);
                             k++;
                         }
                     }
-                    //and finally push callback function parameter
-                    /**
-                     * @type HttpResult
-                     * */
-                    params.push(function (err, result) {
-                        if (err) {
-                            //throw error
-                            return callback(err);
-                        }
-                        else {
-                            //execute http result
-                            result.execute(context, function(err) {
-                                if (err) {
-                                    return callback(err);
-                                }
-                                return callback(null, HttpEndResult.create());
-                            });
-                        }
+                    return fn.apply(controller, params).subscribe((result) => {
+                        return callback(null, result);
+                    },(err) => {
+                        return callback(err);
                     });
-                    //invoke controller method
-                    return fn.apply(controller, params);
                 }
             }
             return callback();
@@ -411,7 +398,7 @@ export class ViewConsumer extends HttpConsumer {
                                 if (res instanceof HttpEndResult) {
                                     return res.toObservable();
                                 }
-                                return Rx.Observable.return(new HttpNextResult());
+                                return Rx.Observable.return(res);
                             });
                         }
                         return Rx.Observable.return(new HttpNextResult());

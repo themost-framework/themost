@@ -38,6 +38,7 @@ var _errors = require('@themost/common/errors');
 
 var HttpError = _errors.HttpError;
 var HttpNotFoundError = _errors.HttpNotFoundError;
+var HttpMethodNotAllowedError = _errors.HttpMethodNotAllowedError;
 
 var _results = require('./results');
 
@@ -120,6 +121,11 @@ var ViewConsumer = _view.ViewConsumer;
 var _formatters = require('./formatters');
 
 var FormatterStrategy = _formatters.FormatterStrategy;
+var DefaultFormatterStrategy = _formatters.DefaultFormatterStrategy;
+
+var _querystring = require('./querystring');
+
+var QuerystringConsumer = _querystring.QuerystringConsumer;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -156,7 +162,7 @@ function startInternal(options) {
         var server_ = http.createServer(function (request, response) {
             var context = self.createContext(request, response);
             //begin request processing
-            Rx.Observable.fromNodeCallback(processRequestInternal)(context).subscribe(function (result) {
+            Rx.Observable.fromNodeCallback(processRequestInternal)(context).subscribe(function () {
                 context.finalize(function () {
                     if (context.response) {
                         context.response.end();
@@ -324,12 +330,26 @@ function processRequestInternal(context, callback) {
                 return otherWiseConsumer.callable.apply(context).subscribe(function (result) {
                     if (result instanceof HttpNextResult) {
                         return callback(new HttpNotFoundError());
-                    } else if (result instanceof HttpResult) {
-                        //continue series execution (call series callback with no error)
-                        return callback(null, finalRes);
                     }
-                    //else break series execution and return result
-                    return callback(new HttpAnyResult(result));
+                    if (result instanceof HttpResult) {
+                        if (typeof finalRes.execute === 'function') {
+                            //execute result
+                            return finalRes.execute(context).subscribe(function () {
+                                return callback();
+                            }, function (err) {
+                                return callback(err);
+                            });
+                        }
+                        return callback(null, result);
+                    } else {
+                        //create an instance of HttpAnyResult class
+                        var intermediateRes = new HttpAnyResult(result);
+                        return intermediateRes.execute(context).subscribe(function () {
+                            callback();
+                        }, function (err) {
+                            return callback(err);
+                        });
+                    }
                 }, function (err) {
                     return callback(err);
                 });
@@ -337,11 +357,27 @@ function processRequestInternal(context, callback) {
                 return callback(new HttpNotFoundError());
             }
         }
-        //if result is an error
+        ///////////////////////
+        //Final Execution
+        ///////////////////////
+        //handle error
         if (finalRes instanceof Error) {
             return callback(finalRes);
         }
-        return callback(null, finalRes);
+        //handle HttpAnyResult
+        else if (finalRes instanceof HttpResult) {
+                if (typeof finalRes.execute === 'function') {
+                    //execute result
+                    return finalRes.execute(context).subscribe(function () {
+                        return callback();
+                    }, function (err) {
+                        return callback(err);
+                    });
+                }
+                return callback(null, result);
+            }
+        //throw exception
+        return callback(new HttpMethodNotAllowedError());
     });
 }
 
@@ -665,6 +701,7 @@ var HttpApplication = exports.HttpApplication = function () {
             Args.notFunction(strategyCtor, "Service constructor");
             Args.notFunction(strategyCtor, "Strategy constructor");
             this[servicesProperty]['' + serviceCtor.name] = new strategyCtor(this);
+            return this;
         }
 
         /**
@@ -790,6 +827,17 @@ var HttpApplication = exports.HttpApplication = function () {
         key: 'useStaticContent',
         value: function useStaticContent(rootDir) {
             return this.any(new StaticContentConsumer(rootDir));
+        }
+
+        /**
+         * Enables static content requests
+         * @returns {HttpApplication}
+         */
+
+    }, {
+        key: 'useQuerystring',
+        value: function useQuerystring() {
+            return this.any(new QuerystringConsumer());
         }
 
         /**

@@ -14,6 +14,7 @@ import {LangUtils} from '@themost/common/utils';
 import {_} from 'lodash';
 import ejs from 'ejs';
 import path from 'path';
+import fs from 'fs';
 
 
 /**
@@ -63,7 +64,6 @@ export default class EjsEngine {
     render(filename, data, callback) {
         const self = this;
         try {
-            const fs = require('fs'), common = require('@themost/common');
             fs.readFile(filename,'utf-8', function(err, str) {
                 try {
                     if (err) {

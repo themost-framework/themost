@@ -12,7 +12,7 @@ import {_} from 'lodash';
 import async from 'async';
 import crypto from 'crypto';
 import {Args, TraceUtils, RandomUtils} from '@themost/common/utils';
-import {HttpError, HttpNotFoundError} from '@themost/common/errors';
+import {HttpError, HttpNotFoundError, HttpMethodNotAllowedError} from '@themost/common/errors';
 import {HttpNextResult,HttpResult,HttpAnyResult} from './results';
 import {AuthConsumer, BasicAuthConsumer, EncryptionStrategy, DefaultEncyptionStrategy, AuthStrategy} from './auth';
 import {RestrictAccessConsumer,RestrictAccessService} from './restrict_access';
@@ -29,7 +29,8 @@ import http from 'http';
 import https from 'https';
 import {HttpApplicationService} from "./interfaces";
 import {ViewConsumer} from "./view";
-import {FormatterStrategy} from "./formatters";
+import {FormatterStrategy, DefaultFormatterStrategy} from "./formatters";
+import {QuerystringConsumer} from "./querystring";
 
 const HTTP_SERVER_DEFAULT_BIND = '127.0.0.1';
 const HTTP_SERVER_DEFAULT_PORT = 3000;
@@ -63,7 +64,7 @@ function startInternal(options) {
             const context = self.createContext(request, response);
             //begin request processing
             Rx.Observable.fromNodeCallback(processRequestInternal)(context)
-                .subscribe((result)=> {
+                .subscribe(()=> {
                     context.finalize(function() {
                         if (context.response) { context.response.end(); }
                     });
@@ -205,7 +206,7 @@ function processRequestInternal(context, callback) {
          * @param {Function} cb
          */
         function(consumer, cb) {
-        consumer.callable.apply(context).subscribe(result=> {
+        consumer.callable.apply(context).subscribe((result)=> {
             //if result is an instance of HttpNextResult
             if (result instanceof HttpNextResult) {
                 //continue series execution (call series callback with no error)
@@ -232,12 +233,26 @@ function processRequestInternal(context, callback) {
                         if (result instanceof HttpNextResult) {
                             return callback(new HttpNotFoundError());
                         }
-                        else if (result instanceof HttpResult) {
-                            //continue series execution (call series callback with no error)
-                            return callback(null, finalRes);
+                        if (result instanceof HttpResult) {
+                            if (typeof finalRes.execute === 'function') {
+                                //execute result
+                                return finalRes.execute(context).subscribe(() => {
+                                    return callback();
+                                }, (err) => {
+                                    return callback(err);
+                                });
+                            }
+                            return callback(null, result);
                         }
-                        //else break series execution and return result
-                        return callback(new HttpAnyResult(result));
+                        else {
+                            //create an instance of HttpAnyResult class
+                            const intermediateRes = new HttpAnyResult(result);
+                            return intermediateRes.execute(context).subscribe(() => {
+                                callback();
+                            }, (err) => {
+                                return callback(err);
+                            });
+                        }
                     }, err => {
                         return callback(err);
                     });
@@ -246,13 +261,31 @@ function processRequestInternal(context, callback) {
                     return callback(new HttpNotFoundError());
                 }
             }
-            //if result is an error
+            ///////////////////////
+            //Final Execution
+            ///////////////////////
+            //handle error
             if (finalRes instanceof Error) {
                 return callback(finalRes);
             }
-            return callback(null, finalRes);
+            //handle HttpAnyResult
+            else if (finalRes instanceof HttpResult) {
+                if (typeof finalRes.execute === 'function') {
+                    //execute result
+                    return finalRes.execute(context).subscribe(() => {
+                        return callback();
+                    }, (err) => {
+                        return callback(err);
+                    });
+                }
+                return callback(null, result);
+            }
+            //throw exception
+            return callback(new HttpMethodNotAllowedError());
+
     });
 }
+
 
 /**
  * Processes HTTP errors under current application
@@ -541,6 +574,7 @@ export class HttpApplication {
         Args.notFunction(strategyCtor,"Service constructor");
         Args.notFunction(strategyCtor,"Strategy constructor");
         this[servicesProperty][`${serviceCtor.name}`] = new strategyCtor(this);
+        return this;
     }
 
     /**
@@ -634,6 +668,14 @@ export class HttpApplication {
      */
     useStaticContent(rootDir) {
         return this.any(new StaticContentConsumer(rootDir));
+    }
+
+    /**
+     * Enables static content requests
+     * @returns {HttpApplication}
+     */
+    useQuerystring() {
+        return this.any(new QuerystringConsumer());
     }
 
     /**

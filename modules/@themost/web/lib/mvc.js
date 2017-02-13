@@ -12,7 +12,7 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.HtmlViewHelper = exports.HttpViewContext = exports.HttpViewEngineReference = exports.HttpViewEngine = exports.HttpController = exports.HttpViewResult = exports.HttpFileResult = exports.HttpRedirectResult = exports.HttpXmlResult = exports.HttpJavascriptResult = exports.HttpJsonResult = exports.HttpEmptyResult = exports.HttpContentResult = exports.HttpResult = undefined;
+exports.HtmlViewHelper = exports.HttpViewContext = exports.HttpViewEngine = exports.HttpController = exports.HttpViewResult = exports.HttpFileResult = exports.HttpRedirectResult = exports.HttpXmlResult = exports.HttpJavascriptResult = exports.HttpJsonResult = exports.HttpEmptyResult = exports.HttpContentResult = undefined;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
@@ -21,6 +21,10 @@ var _createClass = function () { function defineProperties(target, props) { for 
 var _lodash = require('lodash');
 
 var _ = _lodash._;
+
+var _rx = require('rx');
+
+var Rx = _interopRequireDefault(_rx).default;
 
 var _fs = require('fs');
 
@@ -52,88 +56,29 @@ var HttpNotFoundError = _errors.HttpNotFoundError;
 var HttpForbiddenError = _errors.HttpForbiddenError;
 var HttpError = _errors.HttpError;
 
-var _emitter = require('@themost/common/emitter');
-
-var SequentialEventEmitter = _emitter.SequentialEventEmitter;
-
 var _html = require('@themost/common/html');
 
 var HtmlWriter = _html.HtmlWriter;
 
+var _results = require('./results');
+
+var HttpAnyResult = _results.HttpAnyResult;
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-/**
- * @classdesc Represents an HTTP result
- * @class
- * @property {*} data - Gets or sets the data associated with the HTTP result
- */
-var HttpResult = function () {
-    function HttpResult() {
-        _classCallCheck(this, HttpResult);
-
-        this.contentType = 'text/html';
-        this.contentEncoding = 'utf8';
-    }
-
-    /**
-     *
-     * @param {Number=} status
-     */
-
-
-    _createClass(HttpResult, [{
-        key: 'status',
-        value: function status(_status) {
-            this.responseStatus = _status;
-            return this;
-        }
-
-        /**
-         * Executes an HttpResult instance against an existing HttpContext.
-         * @param {HttpContext} context
-         * @param {Function} callback
-         * */
-
-    }, {
-        key: 'execute',
-        value: function execute(context, callback) {
-            var self = this;
-            callback = callback || function () {};
-            try {
-                var response = context.response;
-                if (_.isNil(self.data)) {
-                    response.writeHead(204);
-                    return callback.call(context);
-                }
-                response.writeHead(this.responseStatus || 200, { "Content-Type": this.contentType });
-                response.write(self.data, this.contentEncoding);
-                return callback.call(context);
-            } catch (err) {
-                callback.call(context, err);
-            }
-        }
-    }]);
-
-    return HttpResult;
-}();
-
 /**
  * @classdesc Represents a user-defined HTTP content result, typically an HTML or XML string.
  * @class
- * @augments HttpResult
+ * @augments HttpAnyResult
  * */
-
-
-exports.HttpResult = HttpResult;
-
-var HttpContentResult = exports.HttpContentResult = function (_HttpResult) {
-    _inherits(HttpContentResult, _HttpResult);
+var HttpContentResult = exports.HttpContentResult = function (_HttpAnyResult) {
+    _inherits(HttpContentResult, _HttpAnyResult);
 
     /**
      * @constructor
@@ -151,17 +96,17 @@ var HttpContentResult = exports.HttpContentResult = function (_HttpResult) {
     }
 
     return HttpContentResult;
-}(HttpResult);
+}(HttpAnyResult);
 
 /**
  * @classdesc Represents an empty HTTP result.
  * @class
- * @augments HttpResult
+ * @augments HttpAnyResult
  */
 
 
-var HttpEmptyResult = exports.HttpEmptyResult = function (_HttpResult2) {
-    _inherits(HttpEmptyResult, _HttpResult2);
+var HttpEmptyResult = exports.HttpEmptyResult = function (_HttpAnyResult2) {
+    _inherits(HttpEmptyResult, _HttpAnyResult2);
 
     function HttpEmptyResult() {
         _classCallCheck(this, HttpEmptyResult);
@@ -173,13 +118,13 @@ var HttpEmptyResult = exports.HttpEmptyResult = function (_HttpResult2) {
         key: 'execute',
         value: function execute(context, callback) {
             //do nothing
-            callback = callback || function () {};
-            callback.call(context);
+            context.response.writeHead(204);
+            callback();
         }
     }]);
 
     return HttpEmptyResult;
-}(HttpResult);
+}(HttpAnyResult);
 
 /**
  * @param {string} key
@@ -197,11 +142,11 @@ function _json_ignore_null_replacer(key, value) {
 /**
  * @classdesc Represents an action that is used to send JSON-formatted content.
  * @class
- * @augments HttpResult
+ * @augments HttpAnyResult
  */
 
-var HttpJsonResult = exports.HttpJsonResult = function (_HttpResult3) {
-    _inherits(HttpJsonResult, _HttpResult3);
+var HttpJsonResult = exports.HttpJsonResult = function (_HttpAnyResult3) {
+    _inherits(HttpJsonResult, _HttpAnyResult3);
 
     /**
      * @constructor
@@ -222,17 +167,17 @@ var HttpJsonResult = exports.HttpJsonResult = function (_HttpResult3) {
     }
 
     return HttpJsonResult;
-}(HttpResult);
+}(HttpAnyResult);
 
 /**
  * @classdesc Represents an action that is used to send Javascript-formatted content.
  * @class
- * @augments HttpResult
+ * @augments HttpAnyResult
  */
 
 
-var HttpJavascriptResult = exports.HttpJavascriptResult = function (_HttpResult4) {
-    _inherits(HttpJavascriptResult, _HttpResult4);
+var HttpJavascriptResult = exports.HttpJavascriptResult = function (_HttpAnyResult4) {
+    _inherits(HttpJavascriptResult, _HttpAnyResult4);
 
     /**
      * @constructor
@@ -250,17 +195,17 @@ var HttpJavascriptResult = exports.HttpJavascriptResult = function (_HttpResult4
     }
 
     return HttpJavascriptResult;
-}(HttpResult);
+}(HttpAnyResult);
 
 /**
  * @classdesc Represents an action that is used to send XML-formatted content.
  * @class
- * @augments HttpResult
+ * @augments HttpAnyResult
  */
 
 
-var HttpXmlResult = exports.HttpXmlResult = function (_HttpResult5) {
-    _inherits(HttpXmlResult, _HttpResult5);
+var HttpXmlResult = exports.HttpXmlResult = function (_HttpAnyResult5) {
+    _inherits(HttpXmlResult, _HttpAnyResult5);
 
     /**
      * @constructor
@@ -274,22 +219,22 @@ var HttpXmlResult = exports.HttpXmlResult = function (_HttpResult5) {
         _this5.contentType = 'text/xml';
         _this5.contentEncoding = 'utf8';
         if (typeof data === 'undefined' || data == null) return _possibleConstructorReturn(_this5);
-        if ((typeof data === 'undefined' ? 'undefined' : _typeof(data)) === 'object') _this5.data = xml.serialize(data, { item: 'Item' }).outerXML();else _this5.data = data;
+        if ((typeof data === 'undefined' ? 'undefined' : _typeof(data)) === 'object') _this5.data = xml.serialize(data).outerXML();else _this5.data = data;
         return _this5;
     }
 
     return HttpXmlResult;
-}(HttpResult);
+}(HttpAnyResult);
 
 /**
  * @classdesc Represents a redirect action to a specified URI.
  * @class
- * @augments HttpResult
+ * @augments HttpAnyResult
  */
 
 
-var HttpRedirectResult = exports.HttpRedirectResult = function (_HttpResult6) {
-    _inherits(HttpRedirectResult, _HttpResult6);
+var HttpRedirectResult = exports.HttpRedirectResult = function (_HttpAnyResult6) {
+    _inherits(HttpRedirectResult, _HttpAnyResult6);
 
     /**
      * @constructor
@@ -325,17 +270,17 @@ var HttpRedirectResult = exports.HttpRedirectResult = function (_HttpResult6) {
     }]);
 
     return HttpRedirectResult;
-}(HttpResult);
+}(HttpAnyResult);
 
 /**
  * @classdesc Represents a static file result
  * @class
- * @augments HttpResult
+ * @augments HttpAnyResult
  */
 
 
-var HttpFileResult = exports.HttpFileResult = function (_HttpResult7) {
-    _inherits(HttpFileResult, _HttpResult7);
+var HttpFileResult = exports.HttpFileResult = function (_HttpAnyResult7) {
+    _inherits(HttpFileResult, _HttpAnyResult7);
 
     /**
      *
@@ -365,11 +310,10 @@ var HttpFileResult = exports.HttpFileResult = function (_HttpResult7) {
         value: function execute(context, callback) {
             callback = callback || function () {};
             var physicalPath = this.physicalPath,
-                fileName = this.fileName,
-                app = require('./index');
+                fileName = this.fileName;
             fs.exists(physicalPath, function (exists) {
                 if (!exists) {
-                    callback(new app.HttpNotFoundError());
+                    callback(new HttpNotFoundError());
                 } else {
                     try {
                         fs.stat(physicalPath, function (err, stats) {
@@ -377,7 +321,7 @@ var HttpFileResult = exports.HttpFileResult = function (_HttpResult7) {
                                 callback(err);
                             } else {
                                 if (!stats.isFile()) {
-                                    callback(new app.HttpNotFoundError());
+                                    callback(new HttpNotFoundError());
                                 } else {
                                     var _ret = function () {
                                         //get if-none-match header
@@ -413,23 +357,8 @@ var HttpFileResult = exports.HttpFileResult = function (_HttpResult7) {
 
                                         //throw exception (MIME not found or access denied)
                                         if (_.isNil(contentType)) {
-                                            callback(new app.HttpForbiddenError());
+                                            callback(new HttpForbiddenError());
                                         } else {
-                                            /*//finally process request
-                                            fs.readFile(physicalPath, 'binary', function (err, data) {
-                                                if (err) {
-                                                    callback(e);
-                                                }
-                                                else {
-                                                    //add Content-Disposition: attachment; filename="<file name.ext>"
-                                                    context.response.writeHead(200, {
-                                                        'Content-Type': contentType + (contentEncoding ? ';charset=' + contentEncoding : ''),
-                                                        'ETag': responseETag
-                                                    });
-                                                    context.response.write(data, "binary");
-                                                    callback();
-                                                }
-                                            });*/
                                             //create read stream
                                             var source = fs.createReadStream(physicalPath);
                                             //add Content-Disposition: attachment; filename="<file name.ext>"
@@ -461,7 +390,7 @@ var HttpFileResult = exports.HttpFileResult = function (_HttpResult7) {
     }]);
 
     return HttpFileResult;
-}(HttpResult);
+}(HttpAnyResult);
 
 /**
  * @param controller
@@ -474,7 +403,7 @@ var HttpFileResult = exports.HttpFileResult = function (_HttpResult7) {
 
 
 function queryDefaultViewPath(controller, view, extension, callback) {
-    return queryAbsoluteViewPath.call(this, this.application.mapPath('/views'), controller, view, extension, callback);
+    return queryAbsoluteViewPath.call(this, this.getApplication().mapExecutionPath('views'), controller, view, extension, callback);
 }
 /**
  * @param view
@@ -484,7 +413,7 @@ function queryDefaultViewPath(controller, view, extension, callback) {
  * @private
  */
 function querySharedViewPath(view, extension, callback) {
-    return queryAbsoluteViewPath.call(this, this.application.mapPath('/views'), 'shared', view, extension, callback);
+    return queryAbsoluteViewPath.call(this, this.getApplication().mapExecutionPath('views'), 'shared', view, extension, callback);
 }
 
 /**
@@ -524,11 +453,11 @@ function isAbsolute(p) {
  * @class
  * @param {string=} name - The name of the view.
  * @param {Array=} data - The data that are going to be used to render the view.
- * @augments HttpResult
+ * @augments HttpAnyResult
  */
 
-var HttpViewResult = exports.HttpViewResult = function (_HttpResult8) {
-    _inherits(HttpViewResult, _HttpResult8);
+var HttpViewResult = exports.HttpViewResult = function (_HttpAnyResult8) {
+    _inherits(HttpViewResult, _HttpAnyResult8);
 
     function HttpViewResult(name, data) {
         _classCallCheck(this, HttpViewResult);
@@ -566,8 +495,7 @@ var HttpViewResult = exports.HttpViewResult = function (_HttpResult8) {
         value: function execute(context, callback) {
             var self = this;
             callback = callback || function () {};
-            var app = require('./index'),
-                util = require('util'),
+            var util = require('util'),
                 fs = require('fs');
             /**
              * @type ServerResponse
@@ -576,7 +504,7 @@ var HttpViewResult = exports.HttpViewResult = function (_HttpResult8) {
             //if the name is not defined get the action name of the current controller
             if (!this.name)
                 //get action name
-                this.name = context.data['action'];
+                this.name = context.request.routeData['action'];
             //validate [path] route param in order to load a view that is located in a views' sub-directory (or in another absolute path)
             var routePath = void 0;
             if (context.request.route) {
@@ -591,14 +519,14 @@ var HttpViewResult = exports.HttpViewResult = function (_HttpResult8) {
             }
 
             //and of course controller's name
-            var controllerName = context.data['controller'];
+            var controllerName = context.request.routeData['controller'];
             //enumerate existing view engines e.g /views/controller/index.[html].ejs or /views/controller/index.[html].xform etc.
             /**
              * {HttpViewEngineReference|*}
              */
             var viewPath = void 0,
                 viewEngine = void 0;
-            async.eachSeries(context.application.config.engines, function (engine, cb) {
+            async.eachSeries(context.getApplication().getConfiguration().engines, function (engine, cb) {
                 if (viewPath) {
                     cb();return;
                 }
@@ -652,8 +580,7 @@ var HttpViewResult = exports.HttpViewResult = function (_HttpResult8) {
                 }
                 if (viewEngine) {
                     var _ret3 = function () {
-                        var engine = require(viewEngine.type);
-                        var EngineCtor = engine.default;
+                        var EngineCtor = require(viewEngine.type);
                         if (typeof EngineCtor !== 'function') {
                             return {
                                 v: callback(new ReferenceError(util.format('The specified engine %s module does not export default class', viewEngine.type)))
@@ -703,7 +630,7 @@ var HttpViewResult = exports.HttpViewResult = function (_HttpResult8) {
     }]);
 
     return HttpViewResult;
-}(HttpResult);
+}(HttpAnyResult);
 
 /**
  * @classdesc Provides methods that respond to HTTP requests that are made to a web application
@@ -725,14 +652,14 @@ var HttpController = function () {
     /**
      * Creates a view result object for the given request.
      * @param {*=} data
-     * @returns {HttpViewResult}
+     * @returns {Observable}
      */
 
 
     _createClass(HttpController, [{
         key: 'view',
         value: function view(data) {
-            return new HttpViewResult(null, data);
+            return new HttpViewResult(null, data).toObservable();
         }
 
         /**
@@ -799,7 +726,7 @@ var HttpController = function () {
          * serve user settings object ({ culture: 'en-US', notifyMe: false}) as a variable with name window.settings
          * @param {String} name
          * @param {String|*} obj
-         * @returns HttpResult
+         * @returns HttpAnyResult
          * */
 
     }, {
@@ -812,13 +739,13 @@ var HttpController = function () {
 
         /**
          * Invokes a default action and returns an HttpViewResult instance
-         * @param {Function} callback
+         * @returns {Observable}
          */
 
     }, {
         key: 'action',
-        value: function action(callback) {
-            callback(null, this.view());
+        value: function action() {
+            return this.view();
         }
 
         /**
@@ -858,7 +785,7 @@ var HttpController = function () {
          * Creates a binary file result object by using the specified path.
          * @param {string}  physicalPath
          * @param {string=}  fileName
-         * @returns {HttpFileResult|HttpResult}
+         * @returns {HttpFileResult|HttpAnyResult}
          * */
 
     }, {
@@ -911,8 +838,7 @@ HttpController.prototype.htm = HttpController.prototype.html;
  * @augments {EventEmitter}
  */
 
-var HttpViewEngine = exports.HttpViewEngine = function (_SequentialEventEmitt) {
-    _inherits(HttpViewEngine, _SequentialEventEmitt);
+var HttpViewEngine = exports.HttpViewEngine = function () {
 
     /**
      * @constructor
@@ -921,13 +847,10 @@ var HttpViewEngine = exports.HttpViewEngine = function (_SequentialEventEmitt) {
     function HttpViewEngine(context) {
         _classCallCheck(this, HttpViewEngine);
 
-        var _this9 = _possibleConstructorReturn(this, (HttpViewEngine.__proto__ || Object.getPrototypeOf(HttpViewEngine)).call(this));
-
         if (new.target === HttpViewEngine) {
             throw new TypeError("Cannot construct abstract instances directly");
         }
-        _this9.context = context;
-        return _this9;
+        this.context = context;
     }
 
     /**
@@ -946,29 +869,7 @@ var HttpViewEngine = exports.HttpViewEngine = function (_SequentialEventEmitt) {
     }]);
 
     return HttpViewEngine;
-}(SequentialEventEmitter);
-
-/**
- * @classdesc Represents an HTTP view engine in application configuration
- * @abstract
- * @class
- * @property {string} type - Gets or sets the class associated with an HTTP view engine
- * @property {string} name - Gets or sets the name of an HTTP view engine
- * @property {string} extension - Gets or sets the layout extension associated with an HTTP view engine
- */
-
-
-var HttpViewEngineReference =
-/**
- * @constructor
- */
-exports.HttpViewEngineReference = function HttpViewEngineReference() {
-    _classCallCheck(this, HttpViewEngineReference);
-
-    if (new.target === HttpViewEngineReference) {
-        throw new TypeError("Cannot construct abstract instances directly");
-    }
-};
+}();
 
 /**
  * Encapsulates information that is related to rendering a view.
@@ -981,9 +882,7 @@ exports.HttpViewEngineReference = function HttpViewEngineReference() {
  */
 
 
-var HttpViewContext = exports.HttpViewContext = function (_SequentialEventEmitt2) {
-    _inherits(HttpViewContext, _SequentialEventEmitt2);
-
+var HttpViewContext = exports.HttpViewContext = function () {
     function HttpViewContext(context) {
         _classCallCheck(this, HttpViewContext);
 
@@ -991,37 +890,35 @@ var HttpViewContext = exports.HttpViewContext = function (_SequentialEventEmitt2
          * Gets or sets the body of the current view
          * @type {String}
          */
-        var _this10 = _possibleConstructorReturn(this, (HttpViewContext.__proto__ || Object.getPrototypeOf(HttpViewContext)).call(this));
-
-        _this10.body = '';
+        this.body = '';
         /**
          * Gets or sets the title of the page if the view will be fully rendered
          * @type {String}
          */
-        _this10.title = '';
+        this.title = '';
         /**
          * Gets or sets the view layout page if the view will be fully rendered
          * @type {String}
          */
-        _this10.layout = null;
+        this.layout = null;
         /**
          * Gets or sets the view data
          * @type {String}
          */
-        _this10.data = null;
+        this.data = null;
         /**
          * Represents the current HTTP context
          * @type {HttpContext}
          */
-        _this10.context = context;
+        this.context = context;
 
         /**
          * @type {HtmlWriter}
          */
-        _this10.writer = undefined;
+        this.writer = undefined;
 
         var writer = null;
-        Object.defineProperty(_this10, 'writer', {
+        Object.defineProperty(this, 'writer', {
             get: function get() {
                 if (writer) return writer;
                 writer = new HtmlWriter();
@@ -1030,21 +927,20 @@ var HttpViewContext = exports.HttpViewContext = function (_SequentialEventEmitt2
             }, configurable: false, enumerable: false
         });
 
-        var self = _this10;
-        Object.defineProperty(_this10, 'model', {
+        var self = this;
+        Object.defineProperty(this, 'model', {
             get: function get() {
                 if (self.context.params) if (self.context.params.controller) return self.context.model(self.context.params.controller);
                 return null;
             }, configurable: false, enumerable: false
         });
 
-        _this10.html = new HtmlViewHelper(_this10);
+        this.html = new HtmlViewHelper(this);
         //class extension initiators
-        if (typeof _this10.init === 'function') {
+        if (typeof this.init === 'function') {
             //call init() method
-            _this10.init();
+            this.init();
         }
-        return _this10;
     }
 
     /**
@@ -1058,7 +954,6 @@ var HttpViewContext = exports.HttpViewContext = function (_SequentialEventEmitt2
         key: 'render',
         value: function render(url, callback) {
             callback = callback || function () {};
-            var app = require('./index');
             //get response cookie, if any
             var requestCookie = this.context.response.getHeader('set-cookie');
             if (typeof this.context.request.headers.cookie !== 'undefined') requestCookie = this.context.request.headers.cookie;
@@ -1087,19 +982,6 @@ var HttpViewContext = exports.HttpViewContext = function (_SequentialEventEmitt2
         key: 'translate',
         value: function translate(s, lib) {
             return this.context.translate(s, lib);
-        }
-
-        /**
-         *
-         * @param {String} s
-         * @param {String=} lib
-         * @returns {String}
-         */
-
-    }, {
-        key: '$T',
-        value: function $T(s, lib) {
-            return this.translate(s, lib);
         }
 
         /**
@@ -1143,7 +1025,7 @@ var HttpViewContext = exports.HttpViewContext = function (_SequentialEventEmitt2
     }]);
 
     return HttpViewContext;
-}(SequentialEventEmitter);
+}();
 
 /**
  * @classdesc A helper class for an instance of HttpViewContext class

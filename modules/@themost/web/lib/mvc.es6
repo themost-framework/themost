@@ -10,6 +10,7 @@
 'use strict';
 
 import {_} from 'lodash';
+import Rx from 'rx';
 import fs from 'fs';
 import util from 'util';
 import path from 'path';
@@ -17,60 +18,15 @@ import crypto from 'crypto';
 import async from 'async';
 import xml from 'most-xml';
 import {HttpNotFoundError,HttpForbiddenError,HttpError} from '@themost/common/errors';
-import {SequentialEventEmitter} from '@themost/common/emitter';
 import {HtmlWriter} from '@themost/common/html';
-
-/**
- * @classdesc Represents an HTTP result
- * @class
- * @property {*} data - Gets or sets the data associated with the HTTP result
- */
-export class HttpResult {
-
-    constructor() {
-        this.contentType = 'text/html';
-        this.contentEncoding = 'utf8';
-    }
-
-    /**
-     *
-     * @param {Number=} status
-     */
-    status(status) {
-        this.responseStatus = status;
-        return this;
-    }
-
-    /**
-     * Executes an HttpResult instance against an existing HttpContext.
-     * @param {HttpContext} context
-     * @param {Function} callback
-     * */
-    execute(context, callback) {
-        const self = this;
-        callback = callback || function() {};
-        try {
-            const response = context.response;
-            if (_.isNil(self.data)) {
-                response.writeHead(204);
-                return callback.call(context);
-            }
-            response.writeHead(this.responseStatus || 200, {"Content-Type": this.contentType});
-            response.write(self.data, this.contentEncoding);
-            return callback.call(context);
-        }
-        catch(err) {
-            callback.call(context, err);
-        }
-    }
-}
+import {HttpAnyResult} from "./results";
 
 /**
  * @classdesc Represents a user-defined HTTP content result, typically an HTML or XML string.
  * @class
- * @augments HttpResult
+ * @augments HttpAnyResult
  * */
-export class HttpContentResult extends HttpResult {
+export class HttpContentResult extends HttpAnyResult {
     /**
      * @constructor
      * @param {string} content
@@ -86,13 +42,13 @@ export class HttpContentResult extends HttpResult {
 /**
  * @classdesc Represents an empty HTTP result.
  * @class
- * @augments HttpResult
+ * @augments HttpAnyResult
  */
-export class HttpEmptyResult extends HttpResult {
+export class HttpEmptyResult extends HttpAnyResult {
     execute(context, callback) {
         //do nothing
-        callback = callback || function() {};
-        callback.call(context);
+        context.response.writeHead(204);
+        callback();
     }
 }
 
@@ -111,9 +67,9 @@ function _json_ignore_null_replacer(key, value) {
 /**
  * @classdesc Represents an action that is used to send JSON-formatted content.
  * @class
- * @augments HttpResult
+ * @augments HttpAnyResult
  */
-export class HttpJsonResult extends HttpResult {
+export class HttpJsonResult extends HttpAnyResult {
     /**
      * @constructor
      * @param {*} data
@@ -134,9 +90,9 @@ export class HttpJsonResult extends HttpResult {
 /**
  * @classdesc Represents an action that is used to send Javascript-formatted content.
  * @class
- * @augments HttpResult
+ * @augments HttpAnyResult
  */
-export class HttpJavascriptResult extends HttpResult {
+export class HttpJavascriptResult extends HttpAnyResult {
     /**
      * @constructor
      * @param {*} data
@@ -153,9 +109,9 @@ export class HttpJavascriptResult extends HttpResult {
 /**
  * @classdesc Represents an action that is used to send XML-formatted content.
  * @class
- * @augments HttpResult
+ * @augments HttpAnyResult
  */
-export class HttpXmlResult extends HttpResult {
+export class HttpXmlResult extends HttpAnyResult {
     /**
      * @constructor
      * @param {*} data
@@ -167,7 +123,7 @@ export class HttpXmlResult extends HttpResult {
         if (typeof data === 'undefined' || data == null)
             return;
         if (typeof data === 'object')
-            this.data= xml.serialize(data, { item:'Item' }).outerXML();
+            this.data= xml.serialize(data).outerXML();
         else
             this.data=data;
     }
@@ -176,9 +132,9 @@ export class HttpXmlResult extends HttpResult {
 /**
  * @classdesc Represents a redirect action to a specified URI.
  * @class
- * @augments HttpResult
+ * @augments HttpAnyResult
  */
-export class HttpRedirectResult extends HttpResult {
+export class HttpRedirectResult extends HttpAnyResult {
     /**
      * @constructor
      * @param {string|*} url
@@ -207,9 +163,9 @@ export class HttpRedirectResult extends HttpResult {
 /**
  * @classdesc Represents a static file result
  * @class
- * @augments HttpResult
+ * @augments HttpAnyResult
  */
-export class HttpFileResult extends HttpResult {
+export class HttpFileResult extends HttpAnyResult {
     /**
      *
      * @constructor
@@ -229,10 +185,11 @@ export class HttpFileResult extends HttpResult {
      */
     execute(context, callback) {
         callback = callback || function() {};
-        const physicalPath = this.physicalPath, fileName = this.fileName, app = require('./index');
+        const physicalPath = this.physicalPath,
+            fileName = this.fileName;
         fs.exists(physicalPath, function(exists) {
             if (!exists) {
-                callback(new app.HttpNotFoundError());
+                callback(new HttpNotFoundError());
             }
             else {
                 try {
@@ -242,7 +199,7 @@ export class HttpFileResult extends HttpResult {
                         }
                         else {
                             if (!stats.isFile()) {
-                                callback(new app.HttpNotFoundError());
+                                callback(new HttpNotFoundError());
                             }
                             else {
                                 //get if-none-match header
@@ -277,24 +234,9 @@ export class HttpFileResult extends HttpResult {
 
                                 //throw exception (MIME not found or access denied)
                                 if (_.isNil(contentType)) {
-                                    callback(new app.HttpForbiddenError())
+                                    callback(new HttpForbiddenError())
                                 }
                                 else {
-                                    /*//finally process request
-                                    fs.readFile(physicalPath, 'binary', function (err, data) {
-                                        if (err) {
-                                            callback(e);
-                                        }
-                                        else {
-                                            //add Content-Disposition: attachment; filename="<file name.ext>"
-                                            context.response.writeHead(200, {
-                                                'Content-Type': contentType + (contentEncoding ? ';charset=' + contentEncoding : ''),
-                                                'ETag': responseETag
-                                            });
-                                            context.response.write(data, "binary");
-                                            callback();
-                                        }
-                                    });*/
                                     //create read stream
                                     const source = fs.createReadStream(physicalPath);
                                     //add Content-Disposition: attachment; filename="<file name.ext>"
@@ -333,7 +275,7 @@ export class HttpFileResult extends HttpResult {
  * @private
  */
 function queryDefaultViewPath(controller, view, extension, callback) {
-   return queryAbsoluteViewPath.call(this, this.application.mapPath('/views'), controller, view, extension, callback);
+   return queryAbsoluteViewPath.call(this, this.getApplication().mapExecutionPath('views'), controller, view, extension, callback);
 }
 /**
  * @param view
@@ -343,7 +285,7 @@ function queryDefaultViewPath(controller, view, extension, callback) {
  * @private
  */
 function querySharedViewPath(view, extension, callback) {
-    return queryAbsoluteViewPath.call(this, this.application.mapPath('/views'), 'shared', view, extension, callback);
+    return queryAbsoluteViewPath.call(this, this.getApplication().mapExecutionPath('views'), 'shared', view, extension, callback);
 }
 
 /**
@@ -385,9 +327,9 @@ function isAbsolute(p) {
  * @class
  * @param {string=} name - The name of the view.
  * @param {Array=} data - The data that are going to be used to render the view.
- * @augments HttpResult
+ * @augments HttpAnyResult
  */
-export class HttpViewResult extends HttpResult {
+export class HttpViewResult extends HttpAnyResult {
     constructor(name, data) {
         super();
         this.name = name;
@@ -413,7 +355,7 @@ export class HttpViewResult extends HttpResult {
     execute(context, callback) {
         const self = this;
         callback = callback || function() {};
-        const app = require('./index'), util = require('util'), fs = require('fs');
+        const util = require('util'), fs = require('fs');
         /**
          * @type ServerResponse
          * */
@@ -421,7 +363,7 @@ export class HttpViewResult extends HttpResult {
         //if the name is not defined get the action name of the current controller
         if (!this.name)
             //get action name
-            this.name = context.data['action'];
+            this.name = context.request.routeData['action'];
         //validate [path] route param in order to load a view that is located in a views' sub-directory (or in another absolute path)
         let routePath;
         if (context.request.route) {
@@ -436,13 +378,13 @@ export class HttpViewResult extends HttpResult {
         }
 
         //and of course controller's name
-        const controllerName = context.data['controller'];
+        const controllerName = context.request.routeData['controller'];
         //enumerate existing view engines e.g /views/controller/index.[html].ejs or /views/controller/index.[html].xform etc.
         /**
          * {HttpViewEngineReference|*}
          */
         let viewPath, viewEngine;
-        async.eachSeries(context.application.config.engines, function(engine, cb) {
+        async.eachSeries(context.getApplication().getConfiguration().engines, function(engine, cb) {
             if (viewPath) { cb(); return; }
             if (routePath && isAbsolute(routePath)) {
                 queryAbsoluteViewPath.call(context, routePath, controllerName, viewName, engine.extension, function(err, result) {
@@ -487,8 +429,7 @@ export class HttpViewResult extends HttpResult {
         }, function(err) {
             if (err) { callback(err); return; }
             if (viewEngine) {
-                const engine = require(viewEngine.type);
-                let EngineCtor = engine.default;
+                let EngineCtor = require(viewEngine.type);
                 if (typeof EngineCtor !== 'function') {
                     return callback(new ReferenceError(util.format('The specified engine %s module does not export default class', viewEngine.type)));
                 }
@@ -557,10 +498,10 @@ export class HttpController {
     /**
      * Creates a view result object for the given request.
      * @param {*=} data
-     * @returns {HttpViewResult}
+     * @returns {Observable}
      */
     view(data) {
-        return new HttpViewResult(null, data);
+        return (new HttpViewResult(null, data)).toObservable();
     }
 
     /**
@@ -617,7 +558,7 @@ export class HttpController {
      * serve user settings object ({ culture: 'en-US', notifyMe: false}) as a variable with name window.settings
      * @param {String} name
      * @param {String|*} obj
-     * @returns HttpResult
+     * @returns HttpAnyResult
      * */
     jsvar(name, obj) {
         if (typeof name !== 'string')
@@ -636,10 +577,10 @@ export class HttpController {
 
     /**
      * Invokes a default action and returns an HttpViewResult instance
-     * @param {Function} callback
+     * @returns {Observable}
      */
-    action(callback) {
-        callback(null, this.view());
+    action() {
+        return this.view();
     }
 
     /**
@@ -670,7 +611,7 @@ export class HttpController {
      * Creates a binary file result object by using the specified path.
      * @param {string}  physicalPath
      * @param {string=}  fileName
-     * @returns {HttpFileResult|HttpResult}
+     * @returns {HttpFileResult|HttpAnyResult}
      * */
     file(physicalPath, fileName) {
         return new HttpFileResult(physicalPath, fileName);
@@ -707,14 +648,13 @@ HttpController.prototype.htm = HttpController.prototype.html;
  * @property {HttpContext} context
  * @augments {EventEmitter}
  */
-export class HttpViewEngine extends SequentialEventEmitter {
+export class HttpViewEngine {
 
     /**
      * @constructor
      * @param {HttpContext=} context
      */
     constructor(context) {
-        super();
         if (new.target === HttpViewEngine) {
             throw new TypeError("Cannot construct abstract instances directly");
         }
@@ -732,27 +672,6 @@ export class HttpViewEngine extends SequentialEventEmitter {
     }
 }
 
-
-/**
- * @classdesc Represents an HTTP view engine in application configuration
- * @abstract
- * @class
- * @property {string} type - Gets or sets the class associated with an HTTP view engine
- * @property {string} name - Gets or sets the name of an HTTP view engine
- * @property {string} extension - Gets or sets the layout extension associated with an HTTP view engine
- */
-export class HttpViewEngineReference
-{
-    /**
-     * @constructor
-     */
-    constructor() {
-        if (new.target === HttpViewEngineReference) {
-            throw new TypeError("Cannot construct abstract instances directly");
-        }
-    }
-}
-
 /**
  * Encapsulates information that is related to rendering a view.
  * @class
@@ -762,9 +681,8 @@ export class HttpViewEngineReference
  * @constructor
  * @augments {EventEmitter}
  */
-export class HttpViewContext extends SequentialEventEmitter {
+export class HttpViewContext {
     constructor(context) {
-        super();
         /**
          * Gets or sets the body of the current view
          * @type {String}
@@ -832,7 +750,6 @@ export class HttpViewContext extends SequentialEventEmitter {
      */
     render(url, callback) {
         callback = callback || function() {};
-        const app = require('./index');
         //get response cookie, if any
         let requestCookie = this.context.response.getHeader('set-cookie');
         if (typeof this.context.request.headers.cookie !== 'undefined')
@@ -859,16 +776,6 @@ export class HttpViewContext extends SequentialEventEmitter {
      */
     translate(s, lib) {
         return this.context.translate(s, lib);
-    }
-
-    /**
-     *
-     * @param {String} s
-     * @param {String=} lib
-     * @returns {String}
-     */
-    $T(s, lib) {
-        return this.translate(s, lib);
     }
 
     /**

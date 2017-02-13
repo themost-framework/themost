@@ -11,6 +11,7 @@
 import {HttpApplicationService} from "./interfaces";
 import {AbstractClassError, AbstractMethodError} from "@themost/common/errors";
 import {Args} from "@themost/common/utils";
+import {_} from 'lodash';
 import Rx from 'rx';
 import accepts from 'accepts';
 import xml from 'most-xml';
@@ -22,30 +23,6 @@ export class FormatterStrategy extends HttpApplicationService {
         Args.check(new.target !== FormatterStrategy, new AbstractClassError());
         super(app);
         this[formattersProperty] = { };
-    }
-
-    /**
-     * Adds a formatter to the collection of application formatters
-     * @param {Function} formatterCtor
-     */
-    addFormatter(formatterCtor) {
-        throw new AbstractMethodError();
-    }
-
-    /**
-     * Gets a formatter based on the given type
-     * @param {Function} formatterCtor
-     */
-    getFormatter(formatterCtor) {
-        throw new AbstractMethodError();
-    }
-
-}
-
-export class DefaultFormatterStrategy extends HttpApplicationService {
-    constructor(app) {
-        super(app);
-        this.addFormatter(JsonOutputFormatter);
     }
 
     /**
@@ -65,6 +42,33 @@ export class DefaultFormatterStrategy extends HttpApplicationService {
         Args.check(typeof formatterCtor === 'function', 'Formatter constructor mub be a function');
         return this[formattersProperty][`${formatterCtor.name}`] = new formatterCtor();
     }
+
+    /**
+     * Finds a formatter for the given HTTP context
+     * @param context
+     * @returns {OutputFormatter}
+     */
+    findFormatter(context) {
+        const formatters = this[formattersProperty];
+        for (let key in formatters) {
+            if (formatters.hasOwnProperty(key)) {
+                if (formatters[key].isMatch(context)) {
+                    return formatters[key];
+                }
+            }
+        }
+    }
+
+}
+
+export class DefaultFormatterStrategy extends FormatterStrategy {
+    constructor(app) {
+        super(app);
+        this.addFormatter(HtmlOutputFormatter);
+        this.addFormatter(JsonOutputFormatter);
+        this.addFormatter(XmlOutputFormatter);
+    }
+
 }
 /**
  * @class
@@ -189,7 +193,7 @@ export class JsonOutputFormatter extends OutputFormatter {
                 context.response.write(JSON.stringify(data), 'utf8');
             }
             return callback();
-        });
+        })();
     }
 }
 
@@ -246,6 +250,68 @@ export class XmlOutputFormatter extends OutputFormatter {
             }
             context.response.write(xml.serialize(data).outerXML(), 'utf8');
             return callback();
-        });
+        })();
+    }
+}
+
+export class HtmlOutputFormatter extends OutputFormatter {
+
+    constructor() {
+        super();
+        this.options = {
+            "ignoreNullValues": true
+        }
+    }
+    /**
+     * Gets the media type associated with an output formatter
+     * @returns {string}
+     */
+    getMediaType() {
+        return 'text/html';
+    }
+    /**
+     * Gets the type associated with an output formatter
+     * @returns {string}
+     */
+    getType() {
+        return 'html';
+    }
+
+    /**
+     * Gets the content type associated with an output formatter
+     * @returns {string}
+     */
+    getContentType() {
+        return 'text/html;charset=utf-8';
+    }
+
+    /**
+     * Executes formatter against the given HTTP context
+     * @param {HttpContext} context
+     * @param {*} data
+     * @returns {Observable}
+     */
+    execute(context, data) {
+        return Rx.Observable.fromNodeCallback((callback) => {
+            if (_.isNil(data)) {
+                //return 204 (no content)
+                context.response.writeHead(204);
+                return callback();
+            }
+            if (data instanceof Error) {
+                const statusCode = data.status || 500;
+                //send error in JSON format
+                context.response.writeHead(statusCode, { "Content-Type": this.getContentType()});
+                context.response.write(statusCode + ' ' + data.message, 'utf8');
+            }
+            else {
+                const HttpViewResult = require('./mvc').HttpViewResult;
+                const result = new HttpViewResult(null, data);
+                return result.execute(context, function(err) {
+                    return callback(err);
+                });
+            }
+            return callback();
+        })();
     }
 }
