@@ -117,6 +117,10 @@ var _view = require('./view');
 
 var ViewConsumer = _view.ViewConsumer;
 
+var _formatters = require('./formatters');
+
+var FormatterStrategy = _formatters.FormatterStrategy;
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -696,6 +700,17 @@ var HttpApplication = exports.HttpApplication = function () {
         key: 'useRoutingStrategy',
         value: function useRoutingStrategy() {
             return this.useStrategy(RoutingStrategy, DefaultRoutingStrategy);
+        }
+
+        /**
+         * Enables application default routing strategy
+         * @returns {HttpApplication}
+         */
+
+    }, {
+        key: 'useFormatterStrategy',
+        value: function useFormatterStrategy() {
+            return this.useStrategy(FormatterStrategy, DefaultFormatterStrategy);
         }
 
         /**

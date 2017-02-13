@@ -10,6 +10,8 @@
 'use strict';
 
 export * from './lib/common';
+export * from './lib/cache';
+export * from './lib/data';
 export * from './lib/app';
 export * from './lib/consumers';
 export * from './lib/context';

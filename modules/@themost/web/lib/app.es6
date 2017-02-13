@@ -29,6 +29,7 @@ import http from 'http';
 import https from 'https';
 import {HttpApplicationService} from "./interfaces";
 import {ViewConsumer} from "./view";
+import {FormatterStrategy} from "./formatters";
 
 const HTTP_SERVER_DEFAULT_BIND = '127.0.0.1';
 const HTTP_SERVER_DEFAULT_PORT = 3000;
@@ -567,6 +568,14 @@ export class HttpApplication {
      */
     useRoutingStrategy() {
         return this.useStrategy(RoutingStrategy, DefaultRoutingStrategy);
+    }
+
+    /**
+     * Enables application default routing strategy
+     * @returns {HttpApplication}
+     */
+    useFormatterStrategy() {
+        return this.useStrategy(FormatterStrategy, DefaultFormatterStrategy);
     }
 
     /**

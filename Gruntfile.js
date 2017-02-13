@@ -51,8 +51,8 @@ module.exports = function(grunt) {
                 },
             },
             web: {
-                files: ["modules/@themost/web/lib/**/*.es6", "modules/@themost/web/*.es6"],
-                tasks: ["babel:web"],
+                files: ["modules/@themost/web/lib/*.es6","modules/@themost/web/index.es6"],
+                tasks: ["newer:babel:web"],
                 options: {
                     spawn: false,
                 },
