@@ -8,6 +8,7 @@
  * found in the LICENSE file at https://themost.io/license
  */
 'use strict';
+import url from 'url';
 import {_} from 'lodash';
 import async from 'async';
 import crypto from 'crypto';
@@ -789,6 +790,138 @@ export class HttpApplication {
                 return callback(err);
             });
         });
+    }
+
+    /**
+     * Executes and external HTTP request
+     * @param {string|*} options
+     * @param {*} data
+     * @returns {Observable}
+     */
+    executeExternalRequest(options, data) {
+
+        return Rx.Observable.fromNodeCallback(function(callback) {
+            //make request
+            const https = require('https'),
+                opts = (typeof options==='string') ? url.parse(options) : options,
+                httpModule = (opts.protocol === 'https:') ? https : http;
+            const req = httpModule.request(opts, (res) => {
+                res.setEncoding('utf8');
+                let data = '';
+                res.on('data', function (chunk) {
+                    data += chunk;
+                });
+                res.on('end', () => {
+                    return callback(null,
+                        { statusCode: res.statusCode,
+                            headers: res.headers,
+                            body:data,
+                            encoding:'utf8'
+                        });
+                });
+            });
+            req.on('error', (err)=> {
+                //return error
+                return callback(err);
+            });
+            if(data)
+            {
+                if (typeof data ==="object" )
+                    req.write(JSON.stringify(data));
+                else
+                    req.write(data.toString());
+            }
+            req.end();
+        })();
+
+
+    }
+
+    /**
+     * Executes an external or internal HTTP request
+     * @param {*|string} options
+     * @returns {Observable}
+     */
+    executeRequest(options) {
+        return Rx.Observable.fromNodeCallback(function(callback) {
+            const requestOptions = { };
+            if (typeof options === 'string') {
+                _.assign(requestOptions, { url:options });
+            }
+            else {
+                _.assign(requestOptions, options);
+            }
+            if (_.isNil(requestOptions.url)) {
+                return callback(new Error('Internal request url cannot be empty at this context.'));
+            }
+            if (requestOptions.url.indexOf('/')!=0)
+            {
+                _.assign(requestOptions, url.parse(requestOptions.url));
+                //execute external request
+                return this.executeExternalRequest(requestOptions,null).subscribe((res)=> {
+                    return callback(null, res);
+                }, (err)=> {
+                    return callback(err);
+                });
+            }
+            else {
+                //create request and response
+                const request = createRequestInternal.call(this,requestOptions),
+                    response = createResponseInternal.call(this,request);
+                //set content length header to -1 (for backward compatibility issues)
+                response.setHeader('Content-Length',-1);
+                //create context
+                const requestContext = this.createContext(request, response);
+                //and finally process context
+                return processRequestInternal.call(this, requestContext, function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    else {
+                        try {
+                            //get statusCode
+                            const statusCode = response.statusCode;
+                            //get headers
+                            const headers = {};
+                            if (response._header) {
+                                const arr = response._header.split('\r\n');
+                                for (let i = 0; i < arr.length; i++) {
+                                    const header = arr[i];
+                                    if (header) {
+                                        const k = header.indexOf(':');
+                                        if (k>0) {
+                                            headers[header.substr(0,k)] = header.substr(k+1);
+                                        }
+                                    }
+                                }
+                            }
+                            //get body
+                            let body = null;
+                            let encoding = null;
+                            if (_.isArray(response.output)) {
+                                if (response.output.length>0) {
+                                    body = response.output[0].substr(response._header.length);
+                                    encoding = response.outputEncodings[0];
+                                }
+                            }
+                            //build result (something like ServerResponse)
+                            const result = {
+                                statusCode: statusCode,
+                                headers: headers,
+                                body:body,
+                                encoding:encoding
+                            };
+                            return callback(null, result);
+                        }
+                        catch (err) {
+                            return callback(err);
+                        }
+                    }
+                });
+            }
+        }, this)();
+
+
     }
 
 }

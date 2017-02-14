@@ -72,10 +72,14 @@ export class HttpContentResult extends HttpAnyResult {
  * @augments HttpAnyResult
  */
 export class HttpEmptyResult extends HttpAnyResult {
-    execute(context, callback) {
+    /**
+     * @param context
+     * @returns {Observable<T>|IteratorResult<T>|*}
+     */
+    execute(context) {
         //do nothing
         context.response.writeHead(204);
-        callback();
+        return Rx.Observable.return();
     }
 }
 
@@ -108,10 +112,20 @@ export class HttpJsonResult extends HttpAnyResult {
         else {
             this.data = JSON.stringify(data, _json_ignore_null_replacer);
         }
-
         this.contentType = 'application/json;charset=utf-8';
         this.contentEncoding = 'utf8';
     }
+
+    /**
+     * @param context
+     * @returns {Observable<T>|IteratorResult<T>|*}
+     */
+    execute(context) {
+        //do nothing
+        context.response.writeHead(204);
+        return Rx.Observable.return();
+    }
+
 }
 
 /**

@@ -14,7 +14,13 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.HttpApplication = undefined;
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _url = require('url');
+
+var url = _interopRequireDefault(_url).default;
 
 var _lodash = require('lodash');
 
@@ -965,6 +971,138 @@ var HttpApplication = exports.HttpApplication = function () {
                     return callback(err);
                 });
             });
+        }
+
+        /**
+         * Executes and external HTTP request
+         * @param {string|*} options
+         * @param {*} data
+         * @returns {Observable}
+         */
+
+    }, {
+        key: 'executeExternalRequest',
+        value: function executeExternalRequest(options, data) {
+
+            return Rx.Observable.fromNodeCallback(function (callback) {
+                //make request
+                var https = require('https'),
+                    opts = typeof options === 'string' ? url.parse(options) : options,
+                    httpModule = opts.protocol === 'https:' ? https : http;
+                var req = httpModule.request(opts, function (res) {
+                    res.setEncoding('utf8');
+                    var data = '';
+                    res.on('data', function (chunk) {
+                        data += chunk;
+                    });
+                    res.on('end', function () {
+                        return callback(null, { statusCode: res.statusCode,
+                            headers: res.headers,
+                            body: data,
+                            encoding: 'utf8'
+                        });
+                    });
+                });
+                req.on('error', function (err) {
+                    //return error
+                    return callback(err);
+                });
+                if (data) {
+                    if ((typeof data === 'undefined' ? 'undefined' : _typeof(data)) === "object") req.write(JSON.stringify(data));else req.write(data.toString());
+                }
+                req.end();
+            })();
+        }
+
+        /**
+         * Executes an external or internal HTTP request
+         * @param {*|string} options
+         * @returns {Observable}
+         */
+
+    }, {
+        key: 'executeRequest',
+        value: function executeRequest(options) {
+            return Rx.Observable.fromNodeCallback(function (callback) {
+                var _this = this;
+
+                var requestOptions = {};
+                if (typeof options === 'string') {
+                    _.assign(requestOptions, { url: options });
+                } else {
+                    _.assign(requestOptions, options);
+                }
+                if (_.isNil(requestOptions.url)) {
+                    return callback(new Error('Internal request url cannot be empty at this context.'));
+                }
+                if (requestOptions.url.indexOf('/') != 0) {
+                    _.assign(requestOptions, url.parse(requestOptions.url));
+                    //execute external request
+                    return this.executeExternalRequest(requestOptions, null).subscribe(function (res) {
+                        return callback(null, res);
+                    }, function (err) {
+                        return callback(err);
+                    });
+                } else {
+                    var _ret = function () {
+                        //create request and response
+                        var request = createRequestInternal.call(_this, requestOptions),
+                            response = createResponseInternal.call(_this, request);
+                        //set content length header to -1 (for backward compatibility issues)
+                        response.setHeader('Content-Length', -1);
+                        //create context
+                        var requestContext = _this.createContext(request, response);
+                        //and finally process context
+                        return {
+                            v: processRequestInternal.call(_this, requestContext, function (err) {
+                                if (err) {
+                                    return callback(err);
+                                } else {
+                                    try {
+                                        //get statusCode
+                                        var statusCode = response.statusCode;
+                                        //get headers
+                                        var headers = {};
+                                        if (response._header) {
+                                            var arr = response._header.split('\r\n');
+                                            for (var i = 0; i < arr.length; i++) {
+                                                var header = arr[i];
+                                                if (header) {
+                                                    var k = header.indexOf(':');
+                                                    if (k > 0) {
+                                                        headers[header.substr(0, k)] = header.substr(k + 1);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        //get body
+                                        var body = null;
+                                        var encoding = null;
+                                        if (_.isArray(response.output)) {
+                                            if (response.output.length > 0) {
+                                                body = response.output[0].substr(response._header.length);
+                                                encoding = response.outputEncodings[0];
+                                            }
+                                        }
+                                        //build result (something like ServerResponse)
+                                        var _result = {
+                                            statusCode: statusCode,
+                                            headers: headers,
+                                            body: body,
+                                            encoding: encoding
+                                        };
+                                        return callback(null, _result);
+                                    } catch (err) {
+                                        return callback(err);
+                                    }
+                                }
+                            })
+                        };
+                    }();
+
+                    if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
+                }
+            }, this)();
         }
     }], [{
         key: 'getCurrent',

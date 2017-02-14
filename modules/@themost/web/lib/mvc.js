@@ -146,10 +146,15 @@ var HttpEmptyResult = exports.HttpEmptyResult = function (_HttpAnyResult2) {
 
     _createClass(HttpEmptyResult, [{
         key: 'execute',
-        value: function execute(context, callback) {
+
+        /**
+         * @param context
+         * @returns {Observable<T>|IteratorResult<T>|*}
+         */
+        value: function execute(context) {
             //do nothing
             context.response.writeHead(204);
-            callback();
+            return Rx.Observable.return();
         }
     }]);
 
@@ -190,11 +195,25 @@ var HttpJsonResult = exports.HttpJsonResult = function (_HttpAnyResult3) {
         if (data instanceof String) _this3.data = data;else {
             _this3.data = JSON.stringify(data, _json_ignore_null_replacer);
         }
-
         _this3.contentType = 'application/json;charset=utf-8';
         _this3.contentEncoding = 'utf8';
         return _this3;
     }
+
+    /**
+     * @param context
+     * @returns {Observable<T>|IteratorResult<T>|*}
+     */
+
+
+    _createClass(HttpJsonResult, [{
+        key: 'execute',
+        value: function execute(context) {
+            //do nothing
+            context.response.writeHead(204);
+            return Rx.Observable.return();
+        }
+    }]);
 
     return HttpJsonResult;
 }(HttpAnyResult);
