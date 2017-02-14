@@ -123,7 +123,7 @@ var HttpAnyResult = exports.HttpAnyResult = function (_HttpResult) {
                         return callback(new HttpMethodNotAllowedError());
                     }
 
-                    var formatter = formatterStrategy.findFormatter(context);
+                    var formatter = formatterStrategy.find(context);
                     if (_.isNil(formatter)) {
                         return callback(new HttpMethodNotAllowedError());
                     }

@@ -30,13 +30,40 @@ export class HttpContentResult extends HttpAnyResult {
     /**
      * @constructor
      * @param {string} content
+     * @param {string=} contentType
+     * @param {string=} contentEncoding
      */
-    constructor(content) {
+    constructor(content, contentType, contentEncoding) {
         super();
         this.data = content;
-        this.contentType = 'text/html';
-        this.contentEncoding = 'utf8';
+        this.contentType = contentType || 'text/html';
+        this.contentEncoding = contentEncoding || 'utf8';
     }
+
+    /**
+     *
+     * @param {HttpContext} context
+     */
+    execute(context) {
+        const self = this;
+        return Rx.Observable.fromNodeCallback(function(callback) {
+            /**
+             * @type ServerResponse
+             * */
+            const response = context.response;
+            if (_.isNil(self.data)) {
+                response.writeHead(204);
+                return callback();
+            }
+            else {
+                response.writeHead(200, { 'Content-Type': self.contentType });
+                response.write(self.data,self.contentEncoding, function(err) {
+                   return callback(err);
+                });
+            }
+        })();
+    }
+
 }
 
 /**
@@ -147,16 +174,14 @@ export class HttpRedirectResult extends HttpAnyResult {
     /**
      *
      * @param {HttpContext} context
-     * @param {Function} callback
      */
-    execute(context, callback) {
+    execute(context) {
         /**
          * @type ServerResponse
          * */
         const response = context.response;
         response.writeHead(302, { 'Location': this.url });
-        //response.end();
-        callback.call(context);
+        return Rx.Observable.return();
     }
 }
 
@@ -504,26 +529,9 @@ export class HttpController {
         return (new HttpViewResult(null, data)).toObservable();
     }
 
-    /**
-     * Creates a view result based on the context content type
-     * @param {*=} data
-     * @returns HttpViewResult
-     * */
-    result(data) {
-        if (this.context) {
-             const fn = this[this.context.format];
-            if (typeof fn !== 'function')
-                throw new HttpError(400,'Not implemented.');
-            return fn.call(this, data);
-        }
-        else
-            throw new Error('Http context cannot be empty at this context.');
-    }
-
     forbidden(callback) {
         callback(new HttpForbiddenError());
     }
-
     /**
      * Creates a view result object for the given request.
      * @param {*=} data

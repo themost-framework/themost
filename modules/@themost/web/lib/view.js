@@ -85,7 +85,7 @@ if (typeof _.dasherize != 'function') {
 }
 
 var STR_CONTROLLERS_FOLDER = 'controllers';
-var STR_CONTROLLER_FILE = 'controllers/%s-controller.js';
+var STR_CONTROLLER_FILE = './controllers/%s.js';
 var STR_CONTROLLER_RELPATH = 'controllers/%s-controller.js';
 
 /**
@@ -286,6 +286,52 @@ var ViewHandler = function () {
 
         /**
          * @param {HttpContext} context
+         * @param {*} controller
+         * @param {string} action
+         * @returns {boolean}
+         */
+
+    }, {
+        key: 'queryControllerAction',
+
+
+        /**
+         *
+         * @param {HttpContext} context
+         * @param {*} controller
+         * @param {string} action
+         * @returns {*}
+         */
+        value: function queryControllerAction(context, controller, action) {
+            var actionMethod = void 0;
+            //get current http decorator name (e.g. httpGet, httpPost etc)
+            var httpMethodDecorator = _.camelCase('http-' + context.request.method);
+            //get camel cased action name (e.g. test-action as testAction)
+            var method = _.camelCase(action);
+            //get controller prototype
+            var controllerPrototype = Object.getPrototypeOf(controller);
+            if (controllerPrototype) {
+                //query controller methods that support current http request
+                var protoActionMethods = _.filter(Object.getOwnPropertyNames(controllerPrototype), function (x) {
+                    return typeof controller[x] === 'function' && controller[x].httpAction === action && controller[x][httpMethodDecorator] === true;
+                });
+                //if an action was found for the given criteria
+                if (protoActionMethods.length == 1) {
+                    return controller[protoActionMethods[0]];
+                }
+            }
+            //if an action with the given name is a method of current controller
+            if (ViewHandler.isValidControllerAction(context, controller, action)) {
+                return controller[action];
+            }
+            //if an camel cased action with the given name is a method of current controller
+            if (ViewHandler.isValidControllerAction(context, controller, method)) {
+                return controller[method];
+            }
+        }
+
+        /**
+         * @param {HttpContext} context
          * @param {Function} callback
          */
 
@@ -308,23 +354,17 @@ var ViewHandler = function () {
                      */
                     var action = context.request.routeData["action"];
                     if (action) {
-                        //execute action
-                        var fn = controller[action];
-                        if (typeof fn !== 'function') {
-                            fn = controller[_.camelCase(action)];
-                            if (typeof fn !== 'function') fn = controller.action;
-                        }
-                        if (typeof fn !== 'function') {
+                        //query controller action
+                        var actionMethod = self.queryControllerAction(context, controller, action);
+                        if (typeof actionMethod !== 'function') {
                             return callback(new HttpNotFoundError());
                         }
                         //enumerate params
-                        var methodParams = LangUtils.getFunctionParams(fn),
+                        var methodParams = LangUtils.getFunctionParams(actionMethod),
                             params = [];
                         /*
-                        * so if method has more than one parameter
                         * enumerate method parameters and check if a parameter with the same name
                         * exists in request's parameters.
-                        * note: the last parameter (in this version) must be a callback function
                         * */
                         if (methodParams.length > 0) {
                             var k = 0;
@@ -334,7 +374,7 @@ var ViewHandler = function () {
                                 k++;
                             }
                         }
-                        return fn.apply(controller, params).subscribe(function (result) {
+                        return actionMethod.apply(controller, params).subscribe(function (result) {
                             return callback(null, result);
                         }, function (err) {
                             return callback(err);
@@ -382,7 +422,7 @@ var ViewHandler = function () {
                                                 //if controller does not exist
                                                 controllerPath = path.join(__dirname, controllerPath);
                                                 fs.exists(controllerPath, function (exists) {
-                                                    if (!exists) callback(null, require('./../controllers/base'));else callback(null, require(controllerPath));
+                                                    if (!exists) callback(null, require('./controllers/base'));else callback(null, require(controllerPath));
                                                 });
                                             } else {
                                                 callback(null, require(controllerPath));
@@ -390,7 +430,7 @@ var ViewHandler = function () {
                                         });
                                     })();
                                 } else {
-                                    var ControllerCtor = context.getApplication().getConfiguration().controllers[controllerName] || require('./../controllers/base').default;
+                                    var ControllerCtor = context.getApplication().getConfiguration().controllers[controllerName] || require('./controllers/base').default;
                                     callback(null, ControllerCtor);
                                 }
                             } else {
@@ -403,6 +443,22 @@ var ViewHandler = function () {
                     });
                 })();
             }
+        }
+    }, {
+        key: 'isValidControllerAction',
+        value: function isValidControllerAction(context, controller, action) {
+            var httpMethodDecorator = _.camelCase('http-' + context.request.method);
+            if (typeof controller[action] === 'function') {
+                //get httpAction decorator
+                if (typeof controller[action].httpAction === 'undefined' || controller[action].httpAction === action) {
+                    //and supports current request method (see http decorators)
+                    if (controller[action][httpMethodDecorator]) {
+                        //return this action
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
     }]);
 

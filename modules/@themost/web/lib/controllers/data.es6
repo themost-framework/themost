@@ -10,11 +10,14 @@
 'use strict';
 
 import util from 'util';
+import Rx from 'rx';
 import {_} from 'lodash';
 import xml from 'most-xml';
 import {HttpController} from './../mvc';
+import {httpGet,httpAction} from './../decorators';
 import {HttpError,HttpMethodNotAllowedError,HttpBadRequestError,HttpNotFoundError,HttpServerError} from '@themost/common/errors';
 import {TraceUtils} from '@themost/common/utils';
+import {httpPut, httpPost, httpDelete} from "../decorators";
 
 
 /**
@@ -167,10 +170,17 @@ export default class HttpDataController extends HttpController {
     }
 
     /**
-     * Handles data object creation (e.g. /user/1/new.html, /user/1/new.json etc)
-     * @param {Function} callback
+     * Handles data object creation (e.g. /user/new.html, /user/new.json etc)
+     * @returns {Observable}
      */
-    create(callback) {
+    @httpGet()
+    @httpAction('new')
+    getNewItem() {
+
+        return Rx.Observable.fromNodeCallback(function(callback) {
+            callback(null, {});
+        })();
+
         try {
             const self = this, context = self.context;
             context.handle(['GET'],function() {
@@ -198,111 +208,45 @@ export default class HttpDataController extends HttpController {
     }
 
     /**
-     * Handles data object edit (e.g. /user/1/edit.html, /user/1/edit.json etc)
-     * @param {Function} callback
+     * Handles data object insertion (e.g. /user/new.html, /user/new.json etc)
+     * @returns {Observable}
      */
-    edit(callback) {
-        try {
-            const self = this, context = self.context;
-            context.handle(['POST', 'PUT'], function() {
-                //get context param
-                const target = self.model.convert(context.params[self.model.name] || context.params.data, true);
-                if (target) {
-                    self.model.save(target, function(err)
-                    {
-                        if (err) {
-                            callback(HttpError.create(err));
-                        }
-                        else {
-                            if (context.params.attr('returnUrl'))
-                                callback(null, context.params.attr('returnUrl'));
-                            callback(null, self.result(target));
-                        }
-                    });
+    @httpPost()
+    @httpAction('new')
+    postNewItem(data) {
+        const self = this;
+        return Rx.Observable.fromNodeCallback(function(callback) {
+            if (_.isArray(data)) {
+                return callback(new HttpBadRequestError());
+            }
+            const target = self.model.convert(data, true);
+            self.model.insert(target, function(err)
+            {
+                if (err) {
+                    callback(HttpError.create(err));
                 }
                 else {
-                    callback(new HttpBadRequestError());
+                    callback(null, target);
                 }
-            }).handle('DELETE', function() {
-                //get context param
-                const target = context.params[self.model.name] || context.params.data;
-                if (target) {
-                    self.model.remove(target, function(err)
-                    {
-                        if (err) {
-                            callback(HttpError.create(err));
-                        }
-                        else {
-                            if (context.params.attr('returnUrl'))
-                                callback(null, context.params.attr('returnUrl'));
-                            callback(null, self.result(null));
-                        }
-                    });
-                }
-                else {
-                    callback(new HttpBadRequestError());
-                }
-            }).handle('GET', function() {
-                if (context.request.route) {
-                    if (context.request.route.static) {
-                        callback(null, self.result());
-                        return;
-                    }
-                }
-
-                //get context param (id)
-                let filter = null;
-
-                const id = context.params.attr('id');
-                if (id) {
-                    //create the equivalent open data filter
-                    filter = util.format('%s eq %s',self.model.primaryKey,id);
-                }
-                else {
-                    //get the requested open data filter
-                    filter = context.params.attr('$filter');
-                }
-                if (filter) {
-                    self.model.filter(filter, function(err, q) {
-                        if (err) {
-                            callback(HttpError.create(err));
-                            return;
-                        }
-                        q.take(1, function (err, result) {
-                            try {
-                                if (err) {
-                                    callback(err);
-                                }
-                                else {
-                                    if (result.length>0)
-                                        callback(null, self.result(result));
-                                    else
-                                        callback(null, self.result(null));
-                                }
-                            }
-                            catch (e) {
-                                callback(HttpError.create(e));
-                            }
-                        });
-                    });
-                }
-                else {
-                    callback(new HttpBadRequestError());
-                }
-            }).unhandle(function() {
-                callback(new HttpMethodNotAllowedError());
             });
-
-        }
-        catch (e) {
-            callback(HttpError.create(e));
-        }
-
+        })();
     }
 
-    schema(callback) {
+    /**
+     * Handles data object insertion (e.g. /user/new.html, /user/new.json etc)
+     * @returns {Observable}
+     */
+    @httpPut()
+    @httpAction('new')
+    putNewItem(data) {
+        return this.postNewItem(data);
+    }
+
+    @httpGet()
+    @httpAction('schema')
+    getSchema() {
         const self = this, context = self.context;
-        context.handle('GET', function() {
+        return Rx.Observable.fromNodeCallback(function(callback) {
             if (self.model) {
                 //prepare client model
                 const clone = JSON.parse(JSON.stringify(self.model));
@@ -311,8 +255,8 @@ export default class HttpDataController extends HttpController {
                 const keys = Object.keys(m);
                 for (let i = 0; i < keys.length; i++) {
                     const key = keys[i];
-                   if (key.indexOf("_")==0)
-                       delete m[key];
+                    if (key.indexOf("_")==0)
+                        delete m[key];
                 }
                 //delete other server properties
                 delete m.view;
@@ -354,103 +298,93 @@ export default class HttpDataController extends HttpController {
                         }
                     });
                 }
-                callback(null, self.result(m));
+                callback(null, m);
             }
             else {
                 callback(new HttpNotFoundError());
             }
+        })();
 
-        }).unhandle(function() {
-            callback(new HttpMethodNotAllowedError());
-        });
+    }
+
+    /**
+     * Handles data object display (e.g. /user/1/edit.html, /user/1/edit.json etc)
+     * @param {*} id
+     * @returns {Observable}
+     */
+    @httpGet()
+    @httpAction('edit')
+    editItem(id) {
+        return this.getItem(id);
+    }
+
+    /**
+     * Handles data object post (e.g. /user/1/edit.html, /user/1/edit.json etc)
+     * @param {*} id
+     * @returns {Observable|*}
+     */
+    @httpPost()
+    @httpAction('edit')
+    postItem(id) {
+        const self = this;
+        return Rx.Observable.fromNodeCallback(function(callback) {
+            const target = self.model.convert(data, true);
+            if (target) {
+                self.model.save(target, function(err)
+                {
+                    if (err) {
+                        callback(HttpError.create(err));
+                    }
+                    else {
+                        return callback(null, target);
+                    }
+                });
+            }
+            else {
+                callback(new HttpBadRequestError());
+            }
+        })();
+    }
+
+    /**
+     * Handles data object put (e.g. /user/1/edit.html, /user/1/edit.json etc)
+     * @param {*} id
+     * @returns {Observable|*}
+     */
+    @httpPut()
+    @httpAction('edit')
+    putItem(id) {
+        return this.postItem(id);
+    }
+
+    /**
+     * Handles data object post (e.g. /user/1/edit.html, /user/1/edit.json etc)
+     * @param {*} id
+     * @returns {Observable|*}
+     */
+    @httpDelete()
+    @httpAction('edit')
+    deleteItem(id) {
+        const self = this;
+        return Rx.Observable.fromPromise(function(id) {
+                return self.model.where(self.model.getPrimaryKey()).equal(id).first().then(function(item) {
+                    if (_.isNil(item)) {
+                        throw new HttpNotFoundError();
+                    }
+                    return self.model.remove(item);
+                });
+            })(id);
     }
 
     /**
      * Handles data object display (e.g. /user/1/show.html, /user/1/show.json etc)
-     * @param {Function} callback
+     * @param {*} id
+     * @returns {Observable|*}
      */
-    show(callback) {
-        try {
-            const self = this, context = self.context;
-            context.handle('GET', function() {
-                if (context.request.route) {
-                    if (context.request.route.static) {
-                        callback(null, self.result());
-                        return;
-                    }
-                }
-                let filter = null;
-                const id = context.params.attr('id');
-                if (id) {
-                    //create the equivalent open data filter
-                    filter = util.format('%s eq %s',self.model.primaryKey,id);
-                }
-                else {
-                    //get the requested open data filter
-                    filter = context.params.attr('$filter');
-                }
-                self.model.filter(filter, function(err, q) {
-                    if (err) {
-                        callback(HttpError.create(err));
-                        return;
-                    }
-                    q.take(1, function (err, result) {
-                        try {
-                            if (err) {
-                                callback(HttpError.create(e));
-                            }
-                            else {
-                                if (result.length>0)
-                                    callback(null, self.result(result));
-                                else
-                                    callback(new HttpNotFoundError('Item Not Found'));
-                            }
-                        }
-                        catch (e) {
-                            callback(HttpError.create(e));
-                        }
-                    });
-                });
-            }).unhandle(function() {
-                callback(new HttpMethodNotAllowedError());
-            });
-        }
-        catch (e) {
-            callback(e);
-        }
-    }
-    /**
-     * Handles data object deletion (e.g. /user/1/remove.html, /user/1/remove.json etc)
-     * @param {Function} callback
-     */
-    remove(callback) {
-        try {
-            const self = this, context = self.context;
-            context.handle(['POST','DELETE'], function() {
-                const target = context.params[self.model.name] || context.params.data;
-                if (target) {
-                    self.model.remove(target, function(err)
-                    {
-                        if (err) {
-                            callback(HttpError.create(err));
-                        }
-                        else {
-                            if (context.params.attr('returnUrl'))
-                                callback(null, context.params.attr('returnUrl'));
-                            callback(null, self.result(target));
-                        }
-                    });
-                }
-                else {
-                    callback(new HttpBadRequestError());
-                }
-            }).unhandle(function() {
-                callback(new HttpMethodNotAllowedError());
-            });
-        }
-        catch (e) {
-            callback(HttpError.create(e))
-        }
+    @httpGet()
+    @httpAction('show')
+    getItem(id) {
+        return Rx.Observable.fromPromise(this.model.where(this.model.getPrimaryKey()).equal(id).first)(id);
     }
     /**
      * @param {Function} callback
@@ -534,38 +468,34 @@ export default class HttpDataController extends HttpController {
                 }
             });
     }
-    /**
-     *
-     * @param {Function} callback
-     */
-    index(callback) {
 
-        try {
-            const self = this, context = self.context, top = parseInt(context.params.attr('$top')), take = top > 0 ? top : (top == -1 ? top : 25);
-            const count = /^true$/ig.test(context.params.attr('$inlinecount')) || false, first = /^true$/ig.test(context.params.attr('$first')) || false, asArray = /^true$/ig.test(context.params.attr('$array')) || false;
-            TraceUtils.debug(context.request.url);
-            context.handle('GET', function() {
-                if (context.request.route) {
-                    if (context.request.route.static) {
-                        callback(null, self.result([]));
-                        return;
-                    }
-                }
-                self.filter(
-                    /**
-                     * @param {Error} err
-                     * @param {DataQueryable=} q
-                     */
-                    function(err, q) {
+    @httpGet()
+    @httpAction('index')
+    getItems() {
+        const self = this, context = self.context;
+        return Rx.Observable.fromNodeCallback(function(callback) {
+
+            const top = parseInt(context.params.attr('$top')),
+                take = top > 0 ? top : (top == -1 ? top : 25),
+                count = /^true$/ig.test(context.params.attr('$inlinecount')) || false,
+                first = /^true$/ig.test(context.params.attr('$first')) || false,
+                asArray = /^true$/ig.test(context.params.attr('$array')) || false;
+
+            self.filter(
+                /**
+                 * @param {Error} err
+                 * @param {DataQueryable=} q
+                 */
+                function(err, q) {
                     try {
                         if (err) {
                             return callback(HttpError.create(err));
                         }
                         //apply as array parameter
                         q.asArray(asArray);
-                        if (first) {
+                         if (first) {
                             return q.first().then(function(result) {
-                                return callback(null, self.result(result));
+                                return callback(null, result);
                             }).catch(function(err) {
                                 return callback(HttpError.create(err));
                             });
@@ -580,7 +510,7 @@ export default class HttpDataController extends HttpController {
                                     }));
                                 }
                                 else {
-                                    return callback(null, self.result(result));
+                                    return callback(null, result);
                                 }
                             }).catch(function(err) {
                                 return callback(HttpError.create(err));
@@ -589,84 +519,104 @@ export default class HttpDataController extends HttpController {
                         else {
                             if (count) {
                                 return q.take(take).list().then(function(result) {
-                                    return callback(null, self.result(result));
+                                    return callback(null, result);
                                 }).catch(function(err) {
                                     return callback(HttpError.create(err));
                                 });
                             }
                             else {
                                 return q.take(take).getItems().then(function(result) {
-                                    return callback(null, self.result(result));
+                                    return callback(null, result);
                                 }).catch(function(err) {
                                     return callback(HttpError.create(err));
                                 });
                             }
                         }
                     }
-                    catch (e) {
-                        return callback(e);
+                    catch (err) {
+                        return callback(err);
                     }
                 });
-            }).handle(['POST', 'PUT'], function() {
-                let target;
-                try {
-                    target = self.model.convert(context.params[self.model.name] || context.params.data, true);
-                }
-                catch(err) {
-                    TraceUtils.log(err);
-                    const er = new HttpError(422, "An error occured while converting data objects.", err.message);
-                    er.code = 'EDATA';
-                    return callback(er);
-                }
-                if (target) {
-                    self.model.save(target, function(err)
-                    {
-                        if (err) {
-                            TraceUtils.log(err);
-                            callback(HttpError.create(err));
-                        }
-                        else {
-                            callback(null, self.result(target));
-                        }
-                    });
-                }
-                else {
-                    return callback(new HttpBadRequestError());
-                }
-            }).handle('DELETE', function() {
-                //get data
-                let target;
-                try {
-                    target = self.model.convert(context.params[self.model.name] || context.params.data, true);
-                }
-                catch(err) {
-                    TraceUtils.log(err);
-                    const er = new HttpError(422, "An error occured while converting data objects.", err.message);
-                    er.code = 'EDATA';
-                    return callback(er);
-                }
-                if (target) {
-                    self.model.remove(target, function(err)
-                    {
-                        if (err) {
-                            callback(HttpError.create(err));
-                        }
-                        else {
-                            callback(null, self.result(target));
-                        }
-                    });
-                }
-                else {
-                    return callback(new HttpBadRequestError());
-                }
-            }).unhandle(function() {
-                return callback(new HttpMethodNotAllowedError());
-            });
-        }
-        catch (e) {
-            callback(HttpError.create(e));
-        }
+        })();
     }
+    /**
+     * @param {*} data
+     */
+    @httpPut()
+    @httpAction('index')
+    putItems(data) {
+        return this.postItems(data);
+    }
+
+    /**
+     * @param {*} data
+     */
+    @httpPost()
+    @httpAction('index')
+    postItems(data) {
+        const self = this;
+        return Rx.Observable.fromNodeCallback(function(callback) {
+            let target;
+            try {
+                target = self.model.convert(data, true);
+            }
+            catch(err) {
+                TraceUtils.log(err);
+                const err1 = new HttpError(422, "An error occured while converting data objects.", err.message);
+                err1.code = 'EDATA';
+                return callback(err1);
+            }
+            if (target) {
+                self.model.save(target, function(err)
+                {
+                    if (err) {
+                        TraceUtils.log(err);
+                        callback(HttpError.create(err));
+                    }
+                    else {
+                        callback(null, self.result(target));
+                    }
+                });
+            }
+            else {
+                return callback(new HttpBadRequestError());
+            }
+        })();
+    }
+
+    @httpDelete()
+    @httpAction('index')
+    deleteItems(data) {
+        const self = this;
+        return Rx.Observable.fromNodeCallback(function(callback) {
+            //get data
+            let target;
+            try {
+                target = self.model.convert(data, true);
+            }
+            catch(err) {
+                TraceUtils.log(err);
+                const er = new HttpError(422, "An error occured while converting data objects.", err.message);
+                er.code = 'EDATA';
+                return callback(er);
+            }
+            if (target) {
+                self.model.remove(target, function(err)
+                {
+                    if (err) {
+                        callback(HttpError.create(err));
+                    }
+                    else {
+                        callback(null, self.result(target));
+                    }
+                });
+            }
+            else {
+                return callback(new HttpBadRequestError());
+            }
+        })();
+    }
+
     /**
      * Returns an instance of HttpResult class which contains a collection of items based on the specified association.
      * This association should be a one-to-many association or many-many association.
@@ -731,14 +681,15 @@ export default class HttpDataController extends HttpController {
        ...
     }
     </code></pre>
-     * @param {Function} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise.
+     *@returns {Observable}
      */
-    association(callback) {
-        try {
-            const self = this, parent = self.context.params.parent, model = self.context.params.model;
+    @httpGet()
+    @httpAction('association')
+    getAssociatedItems(parent, model) {
+        const self = this;
+        return Rx.Observable.fromNodeCallback(function(callback) {
             if (_.isNil(parent) || _.isNil(model)) {
-                callback(new HttpBadRequestError());
-                return;
+                return callback(new HttpBadRequestError());
             }
             self.model.where(self.model.primaryKey).equal(parent).select([self.model.primaryKey]).first(function(err, result) {
                 if (err) {
@@ -812,10 +763,6 @@ export default class HttpDataController extends HttpController {
                     }
                 });
             });
-        }
-        catch(e) {
-            TraceUtils.log(e);
-            callback(e, new HttpServerError());
-        }
+        })();
     }
 }

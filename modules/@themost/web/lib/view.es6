@@ -34,7 +34,7 @@ if (typeof _.dasherize != 'function') {
 }
 
 const STR_CONTROLLERS_FOLDER = 'controllers';
-const STR_CONTROLLER_FILE = 'controllers/%s-controller.js';
+const STR_CONTROLLER_FILE = './controllers/%s.js';
 const STR_CONTROLLER_RELPATH = 'controllers/%s-controller.js';
 
 /**
@@ -75,7 +75,7 @@ class ViewHandler {
                                    controllerPath = path.join(__dirname, controllerPath);
                                    fs.exists(controllerPath, function(exists) {
                                        if (!exists)
-                                           callback(null, require('./../controllers/base'));
+                                           callback(null, require('./controllers/base'));
                                        else
                                            callback(null, require(controllerPath));
                                    });
@@ -86,7 +86,7 @@ class ViewHandler {
                             });
                         }
                         else {
-                            const ControllerCtor = context.getApplication().getConfiguration().controllers[controllerName] || require('./../controllers/base').default;
+                            const ControllerCtor = context.getApplication().getConfiguration().controllers[controllerName] || require('./controllers/base').default;
                             callback(null, ControllerCtor);
                         }
                     }
@@ -277,6 +277,65 @@ class ViewHandler {
 
     /**
      * @param {HttpContext} context
+     * @param {*} controller
+     * @param {string} action
+     * @returns {boolean}
+     */
+    static isValidControllerAction(context, controller, action) {
+        const httpMethodDecorator = _.camelCase('http-' + context.request.method);
+        if (typeof controller[action] === 'function') {
+            //get httpAction decorator
+            if ((typeof controller[action].httpAction === 'undefined') ||
+                (controller[action].httpAction===action)) {
+                //and supports current request method (see http decorators)
+                if (controller[action][httpMethodDecorator]) {
+                    //return this action
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     *
+     * @param {HttpContext} context
+     * @param {*} controller
+     * @param {string} action
+     * @returns {*}
+     */
+    queryControllerAction(context, controller, action) {
+        let actionMethod;
+        //get current http decorator name (e.g. httpGet, httpPost etc)
+        const httpMethodDecorator = _.camelCase('http-' + context.request.method);
+        //get camel cased action name (e.g. test-action as testAction)
+        const method = _.camelCase(action);
+        //get controller prototype
+        const controllerPrototype = Object.getPrototypeOf(controller);
+        if (controllerPrototype) {
+            //query controller methods that support current http request
+            let protoActionMethods = _.filter(Object.getOwnPropertyNames(controllerPrototype), function(x) {
+                return (typeof controller[x] === 'function')
+                    && (controller[x].httpAction === action)
+                    && (controller[x][httpMethodDecorator] === true);
+            });
+            //if an action was found for the given criteria
+            if (protoActionMethods.length==1) {
+                return controller[protoActionMethods[0]];
+            }
+        }
+        //if an action with the given name is a method of current controller
+        if (ViewHandler.isValidControllerAction(context, controller, action)) {
+            return controller[action];
+        }
+        //if an camel cased action with the given name is a method of current controller
+        if (ViewHandler.isValidControllerAction(context, controller, method)) {
+            return controller[method];
+        }
+    }
+
+    /**
+     * @param {HttpContext} context
      * @param {Function} callback
      */
     processRequest(context, callback) {
@@ -296,23 +355,16 @@ class ViewHandler {
                  */
                 const action = context.request.routeData["action"];
                 if (action) {
-                    //execute action
-                    let fn = controller[action];
-                    if (typeof fn !== 'function') {
-                        fn = controller[_.camelCase(action)];
-                        if (typeof fn !== 'function')
-                            fn = controller.action;
-                    }
-                    if (typeof fn !== 'function') {
+                    //query controller action
+                    let actionMethod = self.queryControllerAction(context, controller, action);
+                    if (typeof actionMethod !== 'function') {
                         return callback(new HttpNotFoundError());
                     }
                     //enumerate params
-                    const methodParams = LangUtils.getFunctionParams(fn), params = [];
+                    const methodParams = LangUtils.getFunctionParams(actionMethod), params = [];
                     /*
-                    * so if method has more than one parameter
                     * enumerate method parameters and check if a parameter with the same name
                     * exists in request's parameters.
-                    * note: the last parameter (in this version) must be a callback function
                     * */
                     if (methodParams.length>0) {
                         let k=0;
@@ -325,7 +377,7 @@ class ViewHandler {
                             k++;
                         }
                     }
-                    return fn.apply(controller, params).subscribe((result) => {
+                    return actionMethod.apply(controller, params).subscribe((result) => {
                         return callback(null, result);
                     },(err) => {
                         return callback(err);

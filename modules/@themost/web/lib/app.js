@@ -581,6 +581,13 @@ var HttpApplication = exports.HttpApplication = function () {
             }
             return this[configProperty];
         }
+    }, {
+        key: 'getMimeType',
+        value: function getMimeType(extension) {
+            return _.find(this.getConfiguration().mimes, function (x) {
+                return x.extension === extension || x.extension === '.' + extension;
+            });
+        }
 
         /**
          * @returns {Server|*}
@@ -861,7 +868,7 @@ var HttpApplication = exports.HttpApplication = function () {
     }, {
         key: 'useViewContent',
         value: function useViewContent() {
-            //chekc if application does not have a service of type RoutingStrategy
+            //check if application does not have a service of type RoutingStrategy
             if (!this.hasService(RoutingStrategy)) {
                 this.useStrategy(RoutingStrategy, DefaultRoutingStrategy);
             }

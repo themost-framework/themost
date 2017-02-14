@@ -83,17 +83,47 @@ var HttpContentResult = exports.HttpContentResult = function (_HttpAnyResult) {
     /**
      * @constructor
      * @param {string} content
+     * @param {string=} contentType
+     * @param {string=} contentEncoding
      */
-    function HttpContentResult(content) {
+    function HttpContentResult(content, contentType, contentEncoding) {
         _classCallCheck(this, HttpContentResult);
 
         var _this = _possibleConstructorReturn(this, (HttpContentResult.__proto__ || Object.getPrototypeOf(HttpContentResult)).call(this));
 
         _this.data = content;
-        _this.contentType = 'text/html';
-        _this.contentEncoding = 'utf8';
+        _this.contentType = contentType || 'text/html';
+        _this.contentEncoding = contentEncoding || 'utf8';
         return _this;
     }
+
+    /**
+     *
+     * @param {HttpContext} context
+     */
+
+
+    _createClass(HttpContentResult, [{
+        key: 'execute',
+        value: function execute(context) {
+            var self = this;
+            return Rx.Observable.fromNodeCallback(function (callback) {
+                /**
+                 * @type ServerResponse
+                 * */
+                var response = context.response;
+                if (_.isNil(self.data)) {
+                    response.writeHead(204);
+                    return callback();
+                } else {
+                    response.writeHead(200, { 'Content-Type': self.contentType });
+                    response.write(self.data, self.contentEncoding, function (err) {
+                        return callback(err);
+                    });
+                }
+            })();
+        }
+    }]);
 
     return HttpContentResult;
 }(HttpAnyResult);
@@ -252,20 +282,18 @@ var HttpRedirectResult = exports.HttpRedirectResult = function (_HttpAnyResult6)
     /**
      *
      * @param {HttpContext} context
-     * @param {Function} callback
      */
 
 
     _createClass(HttpRedirectResult, [{
         key: 'execute',
-        value: function execute(context, callback) {
+        value: function execute(context) {
             /**
              * @type ServerResponse
              * */
             var response = context.response;
             response.writeHead(302, { 'Location': this.url });
-            //response.end();
-            callback.call(context);
+            return Rx.Observable.return();
         }
     }]);
 
@@ -661,28 +689,11 @@ var HttpController = function () {
         value: function view(data) {
             return new HttpViewResult(null, data).toObservable();
         }
-
-        /**
-         * Creates a view result based on the context content type
-         * @param {*=} data
-         * @returns HttpViewResult
-         * */
-
-    }, {
-        key: 'result',
-        value: function result(data) {
-            if (this.context) {
-                var fn = this[this.context.format];
-                if (typeof fn !== 'function') throw new HttpError(400, 'Not implemented.');
-                return fn.call(this, data);
-            } else throw new Error('Http context cannot be empty at this context.');
-        }
     }, {
         key: 'forbidden',
         value: function forbidden(callback) {
             callback(new HttpForbiddenError());
         }
-
         /**
          * Creates a view result object for the given request.
          * @param {*=} data

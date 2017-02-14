@@ -475,6 +475,12 @@ export class HttpApplication {
         return this[configProperty];
     }
 
+    getMimeType(extension) {
+        return _.find(this.getConfiguration().mimes,function(x) {
+            return (x.extension===extension) || (x.extension==='.'+extension);
+        });
+    }
+
     /**
      * @returns {Server|*}
      */
@@ -693,7 +699,7 @@ export class HttpApplication {
      * @returns {HttpApplication}
      */
     useViewContent() {
-        //chekc if application does not have a service of type RoutingStrategy
+        //check if application does not have a service of type RoutingStrategy
         if (!this.hasService(RoutingStrategy))  {
             this.useStrategy(RoutingStrategy, DefaultRoutingStrategy);
         }

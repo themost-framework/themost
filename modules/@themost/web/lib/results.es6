@@ -76,7 +76,7 @@ export class HttpAnyResult extends HttpResult {
                     return callback(new HttpMethodNotAllowedError());
                 }
 
-                const formatter = formatterStrategy.findFormatter(context);
+                const formatter = formatterStrategy.find(context);
                 if (_.isNil(formatter)) {
                     return callback(new HttpMethodNotAllowedError());
                 }

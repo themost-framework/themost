@@ -15,6 +15,8 @@ import {_} from 'lodash';
 import Rx from 'rx';
 import accepts from 'accepts';
 import xml from 'most-xml';
+import path from 'path';
+import url from 'url';
 
 const formattersProperty = Symbol('formatters');
 
@@ -22,41 +24,48 @@ export class FormatterStrategy extends HttpApplicationService {
     constructor(app) {
         Args.check(new.target !== FormatterStrategy, new AbstractClassError());
         super(app);
-        this[formattersProperty] = { };
+        this[formattersProperty] = [ ];
     }
 
     /**
-     * Adds a formatter to the collection of application formatters
+     * Adds a formatter into the collection of application formatters
      * @param {Function} formatterCtor
      */
-    addFormatter(formatterCtor) {
+    add(formatterCtor) {
         Args.check(typeof formatterCtor === 'function', 'Formatter constructor mub be a function');
-        this[formattersProperty][`${formatterCtor.name}`] = new formatterCtor();
+        this[formattersProperty].push(new formatterCtor());
+    }
+
+    /**
+     * Inserts a formatter into the collection at the specified index
+     * @param {number} index
+     * @param {Function} formatterCtor
+     */
+    insert(index, formatterCtor) {
+        Args.check(typeof formatterCtor === 'function', 'Formatter constructor mub be a function');
+        this[formattersProperty].splice(index, 0, new formatterCtor());
     }
 
     /**
      * Gets a formatter based on the given type
      * @param {Function} formatterCtor
      */
-    getFormatter(formatterCtor) {
+    get(formatterCtor) {
         Args.check(typeof formatterCtor === 'function', 'Formatter constructor mub be a function');
-        return this[formattersProperty][`${formatterCtor.name}`] = new formatterCtor();
+        return _.find(this[formattersProperty], function(x) {
+           return x instanceof formatterCtor;
+        });
     }
 
     /**
      * Finds a formatter for the given HTTP context
-     * @param context
+     * @param {HttpContext} context
      * @returns {OutputFormatter}
      */
-    findFormatter(context) {
-        const formatters = this[formattersProperty];
-        for (let key in formatters) {
-            if (formatters.hasOwnProperty(key)) {
-                if (formatters[key].isMatch(context)) {
-                    return formatters[key];
-                }
-            }
-        }
+    find(context) {
+        return _.find(this[formattersProperty], function(x) {
+            return x.isMatch(context);
+        });
     }
 
 }
@@ -64,9 +73,37 @@ export class FormatterStrategy extends HttpApplicationService {
 export class DefaultFormatterStrategy extends FormatterStrategy {
     constructor(app) {
         super(app);
-        this.addFormatter(HtmlOutputFormatter);
-        this.addFormatter(JsonOutputFormatter);
-        this.addFormatter(XmlOutputFormatter);
+        this.add(HtmlOutputFormatter);
+        this.add(JsonOutputFormatter);
+        this.add(XmlOutputFormatter);
+    }
+
+    /**
+     * Finds a formatter for the given HTTP context
+     * @param context
+     * @returns {OutputFormatter}
+     */
+    find(context) {
+        const formatters = this[formattersProperty];
+        const mimeType = context.getApplication().getMimeType(path.extname(url.parse(context.request.url).pathname));
+        if (typeof mimeType === 'undefined') {
+            //get available formatters (as array of types)
+            const types = _.map(this[formattersProperty], (x) => {
+                return x.getType();
+            });
+            let accept = accepts(context.request);
+            let acceptedType = accept.type(types);
+            if (_.isNil(acceptedType)) { return; }
+            return _.find(this[formattersProperty], (x)=> {
+                return x.getType()===acceptedType;
+            })
+        }
+        return _.find(this[formattersProperty], (x)=> {
+            if (mimeType) {
+                return x.getType()===mimeType.extension.substr(1);
+            }
+            return false;
+        });
     }
 
 }
