@@ -12,6 +12,9 @@
 import fs from 'fs';
 import {HttpNotFoundError} from '@themost/common/errors';
 import {HttpContext} from './../context';
+import {HttpViewEngine} from "../interfaces";
+import {HttpViewContext} from "../mvc";
+import {DirectiveHandler} from "../angular/module";
 
 /**
  * @class
@@ -19,23 +22,13 @@ import {HttpContext} from './../context';
  * @property {HttpContext} context
  * @augments {HttpViewEngine}
  */
-export default class NgEngine {
+export default class NgEngine extends HttpViewEngine {
     /**
      * @constructor
      * @param {HttpContext} context
      */
     constructor(context) {
-        let context_ = context;
-        Object.defineProperty(this,'context', {
-            get: function() {
-                return context_;
-            },
-            set: function(value) {
-                context_ = value;
-            },
-            configurable:false,
-            enumerable:false
-        });
+        super(context);
     }
 
     /**
@@ -55,15 +48,18 @@ export default class NgEngine {
                     }
                     return callback(err);
                 }
-                else {
-                    const viewContext = new HttpViewContext(self.context);
-                    viewContext.data = data;
-                    viewContext.body = str;
-                    return callback(null, viewContext);
-                }
+                const viewContext = new HttpViewContext(self.getContext());
+                viewContext.body = str;
+                const directiveHandler = new DirectiveHandler();
+                const args = { context: self.getContext(), target:viewContext };
+                directiveHandler.postExecuteResult(args, function(err) {
+                    if (err) { return callback(err); }
+                    return callback(null, viewContext.body);
+                });
+
             }
-            catch (e) {
-                callback(e);
+            catch (err) {
+                callback(err);
             }
         });
     }

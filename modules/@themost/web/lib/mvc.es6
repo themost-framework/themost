@@ -466,7 +466,7 @@ export class HttpViewResult extends HttpAnyResult {
             }
 
         }, function(err) {
-            if (err) { callback(err); return; }
+            if (err) { return callback(err); }
             if (viewEngine) {
                 let EngineCtor = require(viewEngine.type);
                 if (typeof EngineCtor !== 'function') {
@@ -476,42 +476,23 @@ export class HttpViewResult extends HttpAnyResult {
                  * @type {HttpViewEngine|*}
                  */
                 const engineInstance = new EngineCtor(context);
-                //render
-                const e = { context:context, target:self };
-                context.emit('preExecuteResult', e, function(err) {
+                return engineInstance.render(viewPath, self.data, function(err, result) {
                     if (err) {
-                        callback(err);
+                        return callback(err);
                     }
                     else {
-                        engineInstance.render(viewPath, self.data, function(err, result) {
-                            if (err) {
-                                callback.call(context, err);
-                            }
-                            else {
-                                //HttpViewResult.result or data (?)
-                                self.result = result;
-                                context.emit('postExecuteResult', e, function(err) {
-                                    if (err) {
-                                        callback.call(context, err);
-                                    }
-                                    else {
-                                        response.writeHead(200, {"Content-Type": self.contentType});
-                                        response.write(self.result, self.contentEncoding);
-                                        callback.call(context);
-                                    }
-                                });
-                            }
-                        });
+                        response.writeHead(200, {"Content-Type": self.contentType});
+                        response.write(result, self.contentEncoding);
+                        return callback();
                     }
                 });
-
             }
             else {
-                const er = new HttpNotFoundError();
+                const err1 = new HttpNotFoundError();
                 if (context.request && context.request.url) {
-                    er.resource = context.request.url;
+                    err1.resource = context.request.url;
                 }
-                callback.call(context, er);
+                return callback(err1);
             }
         });
 
@@ -662,37 +643,6 @@ export class HttpController {
  * @returns HttpViewResult
  * */
 HttpController.prototype.htm = HttpController.prototype.html;
-
-/**
- * @classdesc An abstract class which represents a view engine
- * @abstract
- * @class
- * @property {HttpContext} context
- * @augments {EventEmitter}
- */
-export class HttpViewEngine {
-
-    /**
-     * @constructor
-     * @param {HttpContext=} context
-     */
-    constructor(context) {
-        if (new.target === HttpViewEngine) {
-            throw new TypeError("Cannot construct abstract instances directly");
-        }
-        this.context = context;
-    }
-
-    /**
-     * Renders the specified view with the options provided
-     * @param {string} url
-     * @param {*} options
-     * @param {Function} callback
-     */
-    render(url, options, callback) {
-        //
-    }
-}
 
 /**
  * Encapsulates information that is related to rendering a view.

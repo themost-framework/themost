@@ -12,7 +12,7 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.HtmlViewHelper = exports.HttpViewContext = exports.HttpViewEngine = exports.HttpController = exports.HttpViewResult = exports.HttpFileResult = exports.HttpRedirectResult = exports.HttpXmlResult = exports.HttpJavascriptResult = exports.HttpJsonResult = exports.HttpEmptyResult = exports.HttpContentResult = undefined;
+exports.HtmlViewHelper = exports.HttpViewContext = exports.HttpController = exports.HttpViewResult = exports.HttpFileResult = exports.HttpRedirectResult = exports.HttpXmlResult = exports.HttpJavascriptResult = exports.HttpJsonResult = exports.HttpEmptyResult = exports.HttpContentResult = undefined;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
@@ -623,54 +623,32 @@ var HttpViewResult = exports.HttpViewResult = function (_HttpAnyResult8) {
                 }
             }, function (err) {
                 if (err) {
-                    callback(err);return;
+                    return callback(err);
                 }
                 if (viewEngine) {
-                    var _ret3 = function () {
-                        var EngineCtor = require(viewEngine.type);
-                        if (typeof EngineCtor !== 'function') {
-                            return {
-                                v: callback(new ReferenceError(util.format('The specified engine %s module does not export default class', viewEngine.type)))
-                            };
-                        }
-                        /**
-                         * @type {HttpViewEngine|*}
-                         */
-                        var engineInstance = new EngineCtor(context);
-                        //render
-                        var e = { context: context, target: self };
-                        context.emit('preExecuteResult', e, function (err) {
-                            if (err) {
-                                callback(err);
-                            } else {
-                                engineInstance.render(viewPath, self.data, function (err, result) {
-                                    if (err) {
-                                        callback.call(context, err);
-                                    } else {
-                                        //HttpViewResult.result or data (?)
-                                        self.result = result;
-                                        context.emit('postExecuteResult', e, function (err) {
-                                            if (err) {
-                                                callback.call(context, err);
-                                            } else {
-                                                response.writeHead(200, { "Content-Type": self.contentType });
-                                                response.write(self.result, self.contentEncoding);
-                                                callback.call(context);
-                                            }
-                                        });
-                                    }
-                                });
-                            }
-                        });
-                    }();
-
-                    if ((typeof _ret3 === 'undefined' ? 'undefined' : _typeof(_ret3)) === "object") return _ret3.v;
-                } else {
-                    var er = new HttpNotFoundError();
-                    if (context.request && context.request.url) {
-                        er.resource = context.request.url;
+                    var EngineCtor = require(viewEngine.type);
+                    if (typeof EngineCtor !== 'function') {
+                        return callback(new ReferenceError(util.format('The specified engine %s module does not export default class', viewEngine.type)));
                     }
-                    callback.call(context, er);
+                    /**
+                     * @type {HttpViewEngine|*}
+                     */
+                    var engineInstance = new EngineCtor(context);
+                    return engineInstance.render(viewPath, self.data, function (err, result) {
+                        if (err) {
+                            return callback(err);
+                        } else {
+                            response.writeHead(200, { "Content-Type": self.contentType });
+                            response.write(result, self.contentEncoding);
+                            return callback();
+                        }
+                    });
+                } else {
+                    var err1 = new HttpNotFoundError();
+                    if (context.request && context.request.url) {
+                        err1.resource = context.request.url;
+                    }
+                    return callback(err1);
                 }
             });
         }
@@ -861,47 +839,6 @@ exports.HttpController = HttpController;
 HttpController.prototype.htm = HttpController.prototype.html;
 
 /**
- * @classdesc An abstract class which represents a view engine
- * @abstract
- * @class
- * @property {HttpContext} context
- * @augments {EventEmitter}
- */
-
-var HttpViewEngine = exports.HttpViewEngine = function () {
-
-    /**
-     * @constructor
-     * @param {HttpContext=} context
-     */
-    function HttpViewEngine(context) {
-        _classCallCheck(this, HttpViewEngine);
-
-        if (new.target === HttpViewEngine) {
-            throw new TypeError("Cannot construct abstract instances directly");
-        }
-        this.context = context;
-    }
-
-    /**
-     * Renders the specified view with the options provided
-     * @param {string} url
-     * @param {*} options
-     * @param {Function} callback
-     */
-
-
-    _createClass(HttpViewEngine, [{
-        key: 'render',
-        value: function render(url, options, callback) {
-            //
-        }
-    }]);
-
-    return HttpViewEngine;
-}();
-
-/**
  * Encapsulates information that is related to rendering a view.
  * @class
  * @param {HttpContext} context
@@ -910,7 +847,6 @@ var HttpViewEngine = exports.HttpViewEngine = function () {
  * @constructor
  * @augments {EventEmitter}
  */
-
 
 var HttpViewContext = exports.HttpViewContext = function () {
     function HttpViewContext(context) {

@@ -44,17 +44,27 @@ var _fs = require('fs');
 
 var fs = _interopRequireDefault(_fs).default;
 
+var _interfaces = require('../interfaces');
+
+var HttpViewEngine = _interfaces.HttpViewEngine;
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var contextProperty = Symbol('context');
+
 /**
  * @class
- * @param {HttpContext=} context
- * @constructor
- * @property {HttpContext} context Gets or sets an instance of HttpContext that represents the current HTTP context.
  */
-var EjsEngine = function () {
+
+var EjsEngine = function (_HttpViewEngine) {
+    _inherits(EjsEngine, _HttpViewEngine);
+
     /**
      *
      * @param {HttpContext} context
@@ -62,20 +72,7 @@ var EjsEngine = function () {
     function EjsEngine(context) {
         _classCallCheck(this, EjsEngine);
 
-        /**
-         * @type {HttpContext}
-         */
-        var ctx = context;
-        Object.defineProperty(this, 'context', {
-            get: function get() {
-                return ctx;
-            },
-            set: function set(value) {
-                ctx = value;
-            },
-            configurable: false,
-            enumerable: false
-        });
+        return _possibleConstructorReturn(this, (EjsEngine.__proto__ || Object.getPrototypeOf(EjsEngine)).call(this, context));
     }
 
     /**
@@ -115,7 +112,11 @@ var EjsEngine = function () {
                             (function () {
                                 //get view header (if any)
                                 var matcher = /^(\s*)<%#(.*?)%>/;
-                                var properties = { layout: null };
+                                /**
+                                 *
+                                 * @type {{layout:string}}
+                                 */
+                                var properties = {};
                                 if (matcher.test(str)) {
                                     var matches = matcher.exec(str);
                                     properties = JSON.parse(matches[2]);
@@ -123,18 +124,18 @@ var EjsEngine = function () {
                                     str = str.replace(matcher, '');
                                 }
                                 //create view context
-                                var viewContext = new HttpViewContext(self.context);
+                                var viewContext = new HttpViewContext(self.getContext());
                                 //extend view context with page properties
                                 _.assign(viewContext, properties || {});
                                 //set view context data
                                 viewContext.data = data;
                                 var partial = false;
-                                if (self.context && self.context.request.route) partial = LangUtils.parseBoolean(self.context.request.route['partial']);
+                                if (self.getContext() && self.getContext().request.route) partial = LangUtils.parseBoolean(self.getContext().request.route['partial']);
                                 if (properties.layout && !partial) {
                                     var layout = void 0;
                                     if (/^\//.test(properties.layout)) {
                                         //relative to application folder e.g. /views/shared/master.html.ejs
-                                        layout = self.context.application.mapPath(properties.layout);
+                                        layout = self.getContext().getApplication().mapExecutionPath(properties.layout);
                                     } else {
                                         //relative to view file path e.g. ./../master.html.html.ejs
                                         layout = path.resolve(filename, properties.layout);
@@ -173,7 +174,7 @@ var EjsEngine = function () {
     }]);
 
     return EjsEngine;
-}();
+}(HttpViewEngine);
 
 exports.default = EjsEngine;
 module.exports = exports['default'];

@@ -34,3 +34,38 @@ export class HttpApplicationService {
         return this[applicationProperty];
     }
 }
+
+const contextProperty = Symbol('context');
+
+/**
+ * @classdesc An abstract class which represents an HTTP application service
+ * @class
+ *
+ */
+export class HttpViewEngine {
+    /**
+     * @param {HttpContext} context
+     */
+    constructor(context) {
+        Args.check(new.target !== HttpViewEngine, new AbstractClassError());
+        Args.notNull(context, 'HTTP context');
+        this[contextProperty] = context;
+    }
+    /**
+     * @returns {HttpContext}
+     */
+    getContext() {
+        return this[contextProperty];
+    }
+
+    /**
+     * Renders the specified view with the options provided
+     * @param {string} url
+     * @param {*} options
+     * @param {Function} callback
+     */
+    render(url, options, callback) {
+        throw new AbstractMethodError();
+    }
+
+}

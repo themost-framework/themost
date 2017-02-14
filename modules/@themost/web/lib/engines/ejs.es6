@@ -15,35 +15,20 @@ import {_} from 'lodash';
 import ejs from 'ejs';
 import path from 'path';
 import fs from 'fs';
+import {HttpViewEngine} from "../interfaces";
 
+const contextProperty = Symbol('context');
 
 /**
  * @class
- * @param {HttpContext=} context
- * @constructor
- * @property {HttpContext} context Gets or sets an instance of HttpContext that represents the current HTTP context.
  */
-export default class EjsEngine {
+export default class EjsEngine extends HttpViewEngine {
     /**
      *
      * @param {HttpContext} context
      */
     constructor(context) {
-        /**
-         * @type {HttpContext}
-         */
-        let ctx = context;
-        Object.defineProperty(this,'context', {
-            get: function() {
-                return ctx;
-            },
-            set: function(value) {
-                ctx = value;
-            },
-            configurable:false,
-            enumerable:false
-        });
-
+        super(context);
     }
 
     /**
@@ -76,7 +61,11 @@ export default class EjsEngine {
                     else {
                         //get view header (if any)
                         const matcher = /^(\s*)<%#(.*?)%>/;
-                        let properties = { layout:null };
+                        /**
+                         *
+                         * @type {{layout:string}}
+                         */
+                        let properties = { };
                         if (matcher.test(str)) {
                             const matches = matcher.exec(str);
                             properties = JSON.parse(matches[2]);
@@ -84,19 +73,19 @@ export default class EjsEngine {
                             str = str.replace(matcher,'');
                         }
                         //create view context
-                        const viewContext = new HttpViewContext(self.context);
+                        const viewContext = new HttpViewContext(self.getContext());
                         //extend view context with page properties
                         _.assign(viewContext, properties || {});
                         //set view context data
                         viewContext.data = data;
                         let partial = false;
-                        if (self.context && self.context.request.route)
-                            partial = LangUtils.parseBoolean(self.context.request.route['partial']);
+                        if (self.getContext() && self.getContext().request.route)
+                            partial = LangUtils.parseBoolean(self.getContext().request.route['partial']);
                         if (properties.layout && !partial) {
                             let layout;
                             if (/^\//.test(properties.layout)) {
                                 //relative to application folder e.g. /views/shared/master.html.ejs
-                                layout = self.context.application.mapPath(properties.layout);
+                                layout = self.getContext().getApplication().mapExecutionPath(properties.layout);
                             }
                             else {
                                 //relative to view file path e.g. ./../master.html.html.ejs
