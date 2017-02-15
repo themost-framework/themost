@@ -44,31 +44,34 @@ export class AngularServerModuleDefaults {
      * @param {AngularServerModule} module
      */
     static applyDirectives(module) {
-        module.directive('serverInclude', function($context, $angular, $qs, $parse) {
+        module.directive('serverInclude', function($context, $async, $parse) {
             return {
                 replace:true,
                 restrict:'EA',
                 link: function (scope, element, attrs) {
-                    /**
-                     * @ngdoc attrs
-                     * @property {string} serverInclude
-                     * @property {string} src
-                     */
-                    const src = $parse(attrs.serverInclude)(scope);
-                    if (src) {
-                        const deferred = $qs.defer();
-                        $context.getApplication().executeRequest({
-                            url: src,
-                            cookie: $context.request.headers.cookie
-                        }).subscribe((result)=>{
-                            element.removeAttr('data-src');
-                            element.replaceWith($angular.element(result.body.replace(/\n/,'')));
-                            deferred.resolve();
-                        }, (err) => {
-                            element.replaceWith(null);
-                            deferred.reject(err.message);
-                        });
-                    }
+                    return $async(function(resolve, reject) {
+                        //get angular instance
+                        const angular = this.angular;
+                        /**
+                         * @ngdoc attrs
+                         * @property {string} serverInclude
+                         * @property {string} src
+                         */
+                        const src = $parse(attrs.serverInclude)(scope);
+                        if (src) {
+                            $context.getApplication().executeRequest({
+                                url: src,
+                                cookie: $context.request.headers.cookie
+                            }).subscribe((result)=>{
+                                element.removeAttr('data-src');
+                                element.replaceWith(angular.element(result.body.replace(/\n/,'')));
+                                resolve();
+                            }, (err) => {
+                                element.replaceWith(null);
+                                reject(err.message);
+                            });
+                        }
+                    });
                 }
             };
         }).directive('serverInit', function() {
@@ -76,7 +79,11 @@ export class AngularServerModuleDefaults {
                 priority:400,
                 restrict:'A',
                 link: function (scope, element, attrs) {
-                    scope.$eval(attrs['ejsInit']);
+                    /**
+                     * @ngdoc attrs
+                     * @property {string} serverInit
+                     */
+                    scope.$eval(attrs.serverInit);
                 }
             };
         }).directive('serverIf', function($animate, $document) {
@@ -122,7 +129,7 @@ export class AngularServerModuleDefaults {
                     });
                 }
             };
-        }).directive('serverIfPermission', ['$context','$compile', '$qs', function($context, $compile, $qs) {
+        }).directive('serverIfPermission', ['$context','$compile', '$async', function($context, $compile, $async) {
             return {
                 restrict:'E',
                 replace: true,
@@ -130,44 +137,40 @@ export class AngularServerModuleDefaults {
                 compile:function() {
                     return {
                         pre: function preLink(scope, element) {
-                            const DataPermissionEventListener = require('most-data').classes.DataPermissionEventListener;
-                            const deferred = $qs.defer();
-                            try {
-                                const targetModel = $context.model(scope.model);
-                                if (_.isNil(scope.state)) {
-                                    if (scope.mask)
-                                        if (scope.mask == 1)
-                                            scope.state = 0;
-                                        else if (scope.mask == 2)
-                                            scope.state = 1;
-                                        else if (scope.mask == 4)
-                                            scope.state = 2;
-                                        else if (scope.mask == 8)
-                                            scope.state = 4;
-                                        else
-                                            scope.state = scope.mask;
+                            return $async(function(resolve, reject) {
+                                const DataPermissionEventListener = require('most-data').classes.DataPermissionEventListener;
+                                try {
+                                    const targetModel = $context.model(scope.model);
+                                    if (_.isNil(scope.state)) {
+                                        if (scope.mask)
+                                            if (scope.mask == 1)
+                                                scope.state = 0;
+                                            else if (scope.mask == 2)
+                                                scope.state = 1;
+                                            else if (scope.mask == 4)
+                                                scope.state = 2;
+                                            else if (scope.mask == 8)
+                                                scope.state = 4;
+                                            else
+                                                scope.state = scope.mask;
+                                    }
+                                    const p = new DataPermissionEventListener(), e = { model: targetModel, state: scope.state, throwError:false };
+                                    p.validate(e, function(err) {
+                                        if (e.result) {
+                                            const result = $compile(element.contents())(scope);
+                                            element.replaceWith(result);
+                                            resolve();
+                                        }
+                                        else {
+                                            element.replaceWith(null);
+                                            resolve();
+                                        }
+                                    });
                                 }
-                                const p = new DataPermissionEventListener(), e = { model: targetModel, state: scope.state, throwError:false };
-
-
-
-                                p.validate(e, function(err) {
-                                    if (e.result) {
-                                        const result = $compile(element.contents())(scope);
-                                        element.replaceWith(result);
-                                        deferred.resolve();
-                                    }
-                                    else {
-                                        element.replaceWith(null);
-                                        deferred.resolve();
-                                    }
-                                });
-                            }
-                            catch(err) {
-                                deferred.reject(err.message);
-                            }
-
-
+                                catch(err) {
+                                    reject(err.message);
+                                }
+                            });
                         },
                         post: angular.noop
                     }

@@ -566,16 +566,19 @@ export class HttpApplication {
     /**
      * Register a service type in application services
      * @param {Function} serviceCtor
+     * @returns HttpApplication
      */
     useService(serviceCtor) {
         Args.notFunction(serviceCtor,"Service constructor");
         this[servicesProperty][`${serviceCtor.name}`] = new serviceCtor(this);
+        return this;
     }
 
     /**
      * Register a service type in application services
      * @param {Function} serviceCtor
      * @param {Function} strategyCtor
+     * @returns HttpApplication
      */
     useStrategy(serviceCtor, strategyCtor) {
         Args.notFunction(strategyCtor,"Service constructor");

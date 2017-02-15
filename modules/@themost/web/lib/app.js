@@ -693,6 +693,7 @@ var HttpApplication = exports.HttpApplication = function () {
         /**
          * Register a service type in application services
          * @param {Function} serviceCtor
+         * @returns HttpApplication
          */
 
     }, {
@@ -700,12 +701,14 @@ var HttpApplication = exports.HttpApplication = function () {
         value: function useService(serviceCtor) {
             Args.notFunction(serviceCtor, "Service constructor");
             this[servicesProperty]['' + serviceCtor.name] = new serviceCtor(this);
+            return this;
         }
 
         /**
          * Register a service type in application services
          * @param {Function} serviceCtor
          * @param {Function} strategyCtor
+         * @returns HttpApplication
          */
 
     }, {

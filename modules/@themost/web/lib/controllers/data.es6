@@ -259,6 +259,7 @@ export default class HttpDataController extends HttpController {
                         delete m[key];
                 }
                 //delete other server properties
+                delete m.mappings_;
                 delete m.view;
                 delete m.source;
                 delete m.fields;

@@ -346,6 +346,7 @@ var HttpDataController = (_dec = httpGet(), _dec2 = httpAction('new'), _dec3 = h
                             if (key.indexOf("_") == 0) delete m[key];
                         }
                         //delete other server properties
+                        delete m.mappings_;
                         delete m.view;
                         delete m.source;
                         delete m.fields;

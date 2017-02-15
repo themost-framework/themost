@@ -45,7 +45,7 @@ var IntegerRegex = /^[-+]?\d+$/g;
 var FloatRegex = /^[+-]?\d+(\.\d+)?$/g;
 
 var logger = new winston.Logger({
-    level: process.NODE_ENV === 'development' ? 'debug' : 'info',
+    level: process.env.NODE_ENV === 'development' ? 'debug' : 'info',
     transports: [new winston.transports.Console({
         timestamp: function timestamp() {
             return new Date().toUTCString();

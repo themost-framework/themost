@@ -115,15 +115,26 @@ export class HttpJsonResult extends HttpAnyResult {
         this.contentType = 'application/json;charset=utf-8';
         this.contentEncoding = 'utf8';
     }
-
     /**
      * @param context
      * @returns {Observable<T>|IteratorResult<T>|*}
      */
     execute(context) {
-        //do nothing
-        context.response.writeHead(204);
-        return Rx.Observable.return();
+        const self = this;
+        return Rx.Observable.fromNodeCallback(function(callback) {
+            /**
+             * @type ServerResponse
+             * */
+            const response = context.response;
+            if (_.isNil(self.data)) {
+                response.writeHead(204);
+                return callback();
+            }
+            response.writeHead(200, { 'Content-Type': self.contentType });
+            response.write(self.data,self.contentEncoding, function(err) {
+                return callback(err);
+            });
+        })();
     }
 
 }
@@ -144,6 +155,28 @@ export class HttpJavascriptResult extends HttpAnyResult {
             this.data = data;
         this.contentType = 'text/javascript;charset=utf-8';
         this.contentEncoding = 'utf8';
+    }
+
+    /**
+     * @param context
+     * @returns {Observable<T>|IteratorResult<T>|*}
+     */
+    execute(context) {
+        const self = this;
+        return Rx.Observable.fromNodeCallback(function(callback) {
+            /**
+             * @type ServerResponse
+             * */
+            const response = context.response;
+            if (_.isNil(self.data)) {
+                response.writeHead(204);
+                return callback();
+            }
+            response.writeHead(200, { 'Content-Type': self.contentType });
+            response.write(self.data,self.contentEncoding, function(err) {
+                return callback(err);
+            });
+        })();
     }
 }
 
@@ -717,22 +750,18 @@ export class HttpViewContext {
 
     /**
      * @param {string} url
-     * @param {Function} callback
-     * @returns {string}
+     * @returns {Observable}
      */
-    render(url, callback) {
-        callback = callback || function() {};
+    render(url) {
         //get response cookie, if any
         let requestCookie = this.context.response.getHeader('set-cookie');
         if (typeof this.context.request.headers.cookie !== 'undefined')
             requestCookie = this.context.request.headers.cookie;
-        this.context.application.executeRequest( { url: url, cookie: requestCookie }, function(err, result) {
-            if (err) {
-                callback(err);
-            }
-            else {
-                callback(null, result.body);
-            }
+        return this.context.getApplication().executeRequest({ url: url, cookie: requestCookie }).flatMap((result)=> {
+            if ((result.statusCode>=200) && (result.statusCode<300))
+                return Rx.Observable.return(result.body);
+            else
+                return Rx.Observable.throw(new HttpError(result.statusCode));
         });
     }
 

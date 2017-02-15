@@ -10,8 +10,17 @@
 'use strict';
 
 import domino from 'domino';
+import fs from 'fs';
+import {_} from 'lodash';
+import path from 'path';
 import {HttpApplicationService} from "../interfaces";
 import {AngularServerModuleDefaults} from './directives';
+import {HttpError} from "@themost/common/errors";
+import {TraceUtils, Args} from "@themost/common/utils";
+
+
+const bootstrapMethod = Symbol('bootstrap');
+
 /**
  * Represents Angular JS Server module
  * @class
@@ -32,9 +41,93 @@ export class AngularServerModule extends HttpApplicationService {
         this.filters = { };
         this.controllers = { };
         this.services = { };
+        this.modules = { };
         this.angular = ng.angular;
         this.jQuery = ng.jQuery;
         AngularServerModuleDefaults.applyDirectives(this);
+        this[bootstrapMethod] = (angular)=> {
+            return angular.module('server',[]);
+        };
+    }
+
+    /**
+     * Bootstraps angular server module.
+     * @param {Function} fn
+     * @returns {module}
+     */
+    bootstrap(fn) {
+        this[bootstrapMethod] = fn;
+    }
+
+    /**
+     * Bootstraps angular server module by loading and executing the given module
+     * @param {string} file
+     * @example
+     *   'use strict';
+     *   import {HttpApplication} from './../modules/@themost/web/index';
+     *   import {AngularServerModule} from "../modules/@themost/web/lib/angular/module";
+     *   //instantiate application
+     *   let app = new HttpApplication();
+     *   //set execution path
+     *   app.setExecutionPath('./test-app')
+     *   //use angular server module
+     *   .useService(AngularServerModule)
+     *   .getService(AngularServerModule)
+     *   //and set bootstrap module
+     *   .useBootstrapModule(app.mapExecutionPath('./modules/server-app'));
+     * @example
+     * //#server-app.js
+     *   'use strict';
+     *   export function bootstrap(angular) {
+     *       //initialize extensions module
+     *       const extensions = angular.module('server-extensions',[]);
+     *       //add a simple directive
+     *       extensions.directive('helloText', function() {
+     *               return {
+     *                   restrict:'EA',
+     *                   link: function(scope, element) {
+     *                       element.text('Hello User!!');
+     *                   }
+     *              }
+     *           });
+     *           //and return server module by adding server-extensions dependency
+     *           return angular.module('server',['server-extensions']);
+     *   }
+     *
+     *
+     */
+    useBootstrapModule(file) {
+        const self = this;
+        Args.notString(file,'Module');
+
+        const removeModule = (moduleName) => {
+            let solvedName = require.resolve(moduleName),
+                nodeModule = require.cache[solvedName];
+            if (nodeModule) {
+                for (let i = 0; i < nodeModule.children.length; i++) {
+                    let child = nodeModule.children[i];
+                    removeModule(child.filename);
+                }
+                delete require.cache[solvedName];
+            }
+        };
+
+        this[bootstrapMethod] = (angular) => {
+            const module = require(file);
+            const keys = _.keys(module);
+            if (keys.length==0) {
+                throw new Error('Module export is missing or is inaccesible.');
+            }
+            const bootstrapFunc = module[keys[0]];
+            if (typeof bootstrapFunc !== 'function') {
+                throw new Error('Module export invalid. Expected function.');
+            }
+            let app = bootstrapFunc.call(self, angular);
+            if (process.env.NODE_ENV==='development')
+                removeModule(file);
+            return app;
+        };
+        return this;
     }
 
     /**
@@ -157,7 +250,7 @@ if (typeof ng.angular === 'undefined' || ng.angular=== null) {
  * @constructor
  * @private
  */
-function HttpInternalProvider($context, $qs) {
+function HttpInternalProvider($context, $async, $q) {
 
     function $http(requestConfig) {
         const config = {
@@ -165,30 +258,35 @@ function HttpInternalProvider($context, $qs) {
             cookie: $context.request.headers.cookie
         };
         angular.extend(config, requestConfig);
-        const deferred = $qs.defer(), promise = deferred.promise;
-        promise.success = function(fn) {
-            promise.then(function(response) {
-                fn(response.data, response.status, response.headers, config);
-            });
-            return promise;
-        };
-        promise.error = function(fn) {
-            promise.then(null, function(response) {
-                fn(response.data, response.status, response.headers, config);
-            });
-            return promise;
-        };
+        const deferred = $q.defer(), promise = deferred.promise;
 
-        $context.getApplication().executeRequest(config).subscribe((response)=> {
-            response.status = response.statusCode;
-            response.data = response.body;
-            deferred.resolve(response);
-        }, (err)=> {
-            if (err) {
-                deferred.reject({ data: err.message, status:500, headers:{} });
-            }
+        $async(function(resolve, reject) {
+
+            promise.success = function(fn) {
+                promise.then(function(response) {
+                    fn(response.data, response.status, response.headers, config);
+                    resolve();
+                });
+                return promise;
+            };
+            promise.error = function(fn) {
+                promise.then(null, function(response) {
+                    fn(response.data, response.status, response.headers, config);
+                    reject(new HttpError(response.status))
+                });
+                return promise;
+            };
+
+            $context.getApplication().executeRequest(config).subscribe((response)=> {
+                response.status = response.statusCode;
+                response.data = response.body;
+                deferred.resolve(response);
+            }, (err)=> {
+                if (err) {
+                    deferred.reject({ data: err.message, status:500, headers:{} });
+                }
+            });
         });
-
         return promise;
 
     }
@@ -254,60 +352,38 @@ export class DirectiveHandler {
             const document = angularServer.createDocument(view.body);
             //create server module
             const angular = document.parentWindow.angular;
-            const app = angular.module('server',[]), promises = [];
 
+            const app = angularServer[bootstrapMethod](angular);
+
+            const promises = [];
             app.config(function($sceDelegateProvider) {
                 $sceDelegateProvider.resourceUrlWhitelist([
                     '/templates/server/*.html'
                 ]);
             });
-
             app.service('$context', function() {
                 return context;
-            }).service('$qs', function($q) {
-                return {
-                    /**
-                     * @ngdoc method
-                     * @name $qs#defer
-                     * @kind function
-                     * @returns {Deferred}
-                     */
-                    defer :function() {
-                        const deferred = $q.defer();
-                        promises.push(deferred.promise);
-                        return deferred;
-                    },
-                    /**
-                     * @ngdoc method
-                     * @name $qs#when
-                     * @kind function
-                     * @param {*} value
-                     * @returns {Promise}
-                     */
-                    when:  $q.when,
-                    /**
-                     * @ngdoc method
-                     * @name $qs#all
-                     * @kind function
-                     * @param {Array.<Promise>|Object.<Promise>} promises
-                     * @returns {Promise}
-                     */
-                    all: $q.all,
-                    /**
-                     * @ngdoc method
-                     * @name $q#reject
-                     * @kind function
-                     * @param {*} reason
-                     * @returns {Promise}
-                     */
-                    reject: $q.reject
-                }
-            }).service('$angular', function() {
-                return angular;
+            }).service('$async', function($q) {
+                /**
+                 * @param {Function} fn
+                 */
+                return function $async(fn) {
+                    const deferred = $q.defer();
+                    promises.push(deferred.promise);
+                    try {
+                        fn.call(document.parentWindow,()=>{
+                            deferred.resolve();
+                        }, (err)=> {
+                            deferred.reject(err);
+                        });
+                    }
+                    catch(err) {
+                        deferred.reject(err);
+                    }
+
+                };
             });
-
             app.service('$http', HttpInternalProvider);
-
             //copy application directives
             Object.keys(angularServer.directives).forEach(function(name) {
                 app.directive(name, angularServer.directives[name]);
@@ -324,7 +400,6 @@ export class DirectiveHandler {
             Object.keys(angularServer.controllers).forEach(function(name) {
                 app.controller(name, angularServer.controllers[name]);
             });
-
             //get application element
             const appElement = angular.element(document).find('*[server-app=\'server\']').get(0);
             if (appElement) {
@@ -342,7 +417,7 @@ export class DirectiveHandler {
                 });
             }
             else {
-                callback();
+                return callback();
             }
         }
         catch (e) {

@@ -199,7 +199,6 @@ var HttpJsonResult = exports.HttpJsonResult = function (_HttpAnyResult3) {
         _this3.contentEncoding = 'utf8';
         return _this3;
     }
-
     /**
      * @param context
      * @returns {Observable<T>|IteratorResult<T>|*}
@@ -209,9 +208,21 @@ var HttpJsonResult = exports.HttpJsonResult = function (_HttpAnyResult3) {
     _createClass(HttpJsonResult, [{
         key: 'execute',
         value: function execute(context) {
-            //do nothing
-            context.response.writeHead(204);
-            return Rx.Observable.return();
+            var self = this;
+            return Rx.Observable.fromNodeCallback(function (callback) {
+                /**
+                 * @type ServerResponse
+                 * */
+                var response = context.response;
+                if (_.isNil(self.data)) {
+                    response.writeHead(204);
+                    return callback();
+                }
+                response.writeHead(200, { 'Content-Type': self.contentType });
+                response.write(self.data, self.contentEncoding, function (err) {
+                    return callback(err);
+                });
+            })();
         }
     }]);
 
@@ -242,6 +253,33 @@ var HttpJavascriptResult = exports.HttpJavascriptResult = function (_HttpAnyResu
         _this4.contentEncoding = 'utf8';
         return _this4;
     }
+
+    /**
+     * @param context
+     * @returns {Observable<T>|IteratorResult<T>|*}
+     */
+
+
+    _createClass(HttpJavascriptResult, [{
+        key: 'execute',
+        value: function execute(context) {
+            var self = this;
+            return Rx.Observable.fromNodeCallback(function (callback) {
+                /**
+                 * @type ServerResponse
+                 * */
+                var response = context.response;
+                if (_.isNil(self.data)) {
+                    response.writeHead(204);
+                    return callback();
+                }
+                response.writeHead(200, { 'Content-Type': self.contentType });
+                response.write(self.data, self.contentEncoding, function (err) {
+                    return callback(err);
+                });
+            })();
+        }
+    }]);
 
     return HttpJavascriptResult;
 }(HttpAnyResult);
@@ -911,24 +949,18 @@ var HttpViewContext = exports.HttpViewContext = function () {
 
     /**
      * @param {string} url
-     * @param {Function} callback
-     * @returns {string}
+     * @returns {Observable}
      */
 
 
     _createClass(HttpViewContext, [{
         key: 'render',
-        value: function render(url, callback) {
-            callback = callback || function () {};
+        value: function render(url) {
             //get response cookie, if any
             var requestCookie = this.context.response.getHeader('set-cookie');
             if (typeof this.context.request.headers.cookie !== 'undefined') requestCookie = this.context.request.headers.cookie;
-            this.context.application.executeRequest({ url: url, cookie: requestCookie }, function (err, result) {
-                if (err) {
-                    callback(err);
-                } else {
-                    callback(null, result.body);
-                }
+            return this.context.getApplication().executeRequest({ url: url, cookie: requestCookie }).flatMap(function (result) {
+                if (result.statusCode >= 200 && result.statusCode < 300) return Rx.Observable.return(result.body);else return Rx.Observable.throw(new HttpError(result.statusCode));
             });
         }
     }, {

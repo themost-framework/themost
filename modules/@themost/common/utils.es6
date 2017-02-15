@@ -27,7 +27,7 @@ const FloatRegex =/^[+-]?\d+(\.\d+)?$/g;
 
 
 const logger = new winston.Logger({
-    level: (process.NODE_ENV === 'development') ? 'debug' : 'info',
+    level: (process.env.NODE_ENV === 'development') ? 'debug' : 'info',
     transports: [
         new (winston.transports.Console)({
             timestamp: function() {
