@@ -1,0 +1,27 @@
+{
+  "name": "@themost/data",
+  "version": "2.0.0-alpha",
+  "description": "MOST Web Framework 2.0 - ORM module",
+  "module": "common.js",
+  "peerDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kbarbounakis/themost.git"
+  },
+  "author": "Kyriakos Barbounakis <k.barbounakis@gmail.com>",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/kbarbounakis/themost/issues"
+  },
+  "homepage": "https://github.com/kbarbounakis/themost#readme",
+  "dependencies": {
+    "lodash": "^4.17.4",
+    "async": "0.2.10",
+    "moment": "2.8.4",
+    "@themost/query": "2.0.0-alpha",
+    "@themost/common": "2.0.0-alpha",
+    "node-cache": "^1.1.0",
+    "q": "~1.1.1",
+    "sprintf": "^0.1.5"
+  }
+}

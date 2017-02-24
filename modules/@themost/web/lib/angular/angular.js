@@ -1917,7 +1917,7 @@ function setupModuleLoader(window) {
     ngClassOddDirective,
     ngCspDirective,
     ngCloakDirective,
-    ejsControllerDirective,
+    serverControllerDirective,
     ngFormDirective,
     ngHideDirective,
     ngIfDirective,
@@ -2040,7 +2040,7 @@ function publishExternalAPI(angular){
         $$sanitizeUri: $$SanitizeUriProvider
       });
       $provide.provider('$compile', $CompileProvider).directive({
-          ejsController: ejsControllerDirective,
+          ejsController: serverControllerDirective,
           ejsBindHtml: ngBindHtmlDirective
       });
           /*.directive({
@@ -2059,7 +2059,7 @@ function publishExternalAPI(angular){
             ngClassEven: ngClassEvenDirective,
             ngClassOdd: ngClassOddDirective,
             ngCloak: ngCloakDirective,
-            ejsController: ejsControllerDirective,
+            ejsController: serverControllerDirective,
             ngForm: ngFormDirective,
             ngHide: ngHideDirective,
             ngIf: ngIfDirective,
@@ -18986,7 +18986,7 @@ var ngCloakDirective = ngDirective({
  *</example>
 
  */
-var ejsControllerDirective = [function() {
+var serverControllerDirective = [function() {
   return {
     scope: true,
     controller: '@',

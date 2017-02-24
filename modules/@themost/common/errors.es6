@@ -186,3 +186,131 @@ export class HttpServerError extends HttpError {
         super(500, message , innerMessage);
     }
 }
+
+
+/**
+ * @classdesc Extends Error object for throwing exceptions on data operations
+ * @class
+ * @property {string} code - A string that represents an error code e.g. EDATA
+ * @property {string} message -  The error message.
+ * @property {string} innerMessage - The error inner message.
+ * @property {number} status - A number that represents an error status. This error status may be used for throwing the approriate HTTP error.
+ * @augments Error
+ */
+export class DataError extends Error {
+    /* @constructor
+     * @param {string=} code - A string that represents an error code
+     * @param {string=} message - The error message
+     * @param {string=} innerMessage - The error inner message
+     * @param {string=} model - The target model
+     * @param {string=} field - The target field
+     */
+    constructor(code, message, innerMessage, model, field) {
+        super();
+        this.code  = code || 'EDATA';
+        if (model)
+            this.model = model;
+        if (field)
+            this.field = field;
+        this.message = message || 'A general data error occured.';
+        if (innerMessage)
+            this.innerMessage = innerMessage;
+    }
+}
+
+/**
+ * @classdesc Extends Error object for throwing not null exceptions.
+ * @class
+ * @property {string} code - A string that represents an error code. The default error code is ENULL.
+ * @property {string} message -  The error message.
+ * @property {string} innerMessage - The error inner message.
+ * @property {number} status - A number that represents an error status. This error status may be used for throwing the approriate HTTP error. The default status is 409 (Conflict)
+ * @property {string} model - The target model name
+ * @property {string} field - The target field name
+ * @augments DataError
+ */
+export class NotNullError extends DataError {
+    /**
+     * @constructor
+     * @param {string=} message - The error message
+     * @param {string=} innerMessage - The error inner message
+     * @param {string=} model - The target model
+     * @param {string=} field - The target field
+     */
+    constructor(message, innerMessage, model, field) {
+        super('ENULL', message || 'A value is required', innerMessage, model, field);
+        this.status = 409;
+    }
+}
+
+/**
+ * @classdesc Extends Error object for throwing not found exceptions.
+ * @class
+ * @property {string} code - A string that represents an error code. The default error code is EFOUND.
+ * @property {string} message -  The error message.
+ * @property {string} innerMessage - The error inner message.
+ * @property {number} status - A number that represents an error status. This error status may be used for throwing the approriate HTTP error. The default status is 404 (Conflict)
+ * @property {string} model - The target model name
+ * @augments DataError
+ */
+export class DataNotFoundError extends DataError {
+    /**
+     * @constructor
+     * @param {string=} message - The error message
+     * @param {string=} innerMessage - The error inner message
+     * @param {string=} model - The target model
+     */
+    constructor(message, innerMessage, model) {
+        super('EFOUND', message || 'The requested data was not found.', innerMessage, model);
+        this.status = 404;
+    }
+}
+
+/**
+ * @classdesc Extends Error object for throwing unique constraint exceptions.
+ * @class
+ * @property {string} code - A string that represents an error code. The default error code is ENULL.
+ * @property {string} message -  The error message.
+ * @property {string} innerMessage - The error inner message.
+ * @property {number} status - A number that represents an error status. This error status may be used for throwing the approriate HTTP error. The default status is 409 (Conflict)
+ * @property {string} model - The target model name
+ * @property {string} constraint - The target constraint name
+ * @augments DataError
+ */
+export class UniqueConstraintError extends DataError {
+    /* @constructor
+     * @param {string=} message - The error message
+     * @param {string=} innerMessage - The error inner message
+     * @param {string=} model - The target model
+     * @param {string=} constraint - The target constraint
+     */
+    constructor(message, innerMessage, model, constraint) {
+        super('EUNQ', message || 'A unique constraint violated', innerMessage, model);
+        if (constraint)
+            this.constraint = constraint;
+        this.status = 409;
+    }
+}
+
+/**
+ * @classdesc Represents an access denied data exception.
+ * @class
+ *
+ * @param {string=} message - The error message
+ * @param {string=} innerMessage - The error inner message
+ * @property {string} code - A string that represents an error code. The error code is EACCESS.
+ * @property {number} status - A number that represents an error status. The error status is 401.
+ * @property {string} message -  The error message.
+ * @property {string} innerMessage - The error inner message.
+ * @augments DataError
+ */
+export class AccessDeniedError extends DataError {
+    /* @constructor
+     * @param {string=} message - The error message
+     * @param {string=} innerMessage - The error inner message
+     */
+    constructor(message, innerMessage) {
+        super('EACCESS', ('Access Denied' || message) , innerMessage);
+        this.status = 401;
+    }
+}

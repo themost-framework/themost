@@ -25,6 +25,31 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+function _extendableBuiltin5(cls) {
+    function ExtendableBuiltin() {
+        var instance = Reflect.construct(cls, Array.from(arguments));
+        Object.setPrototypeOf(instance, Object.getPrototypeOf(this));
+        return instance;
+    }
+
+    ExtendableBuiltin.prototype = Object.create(cls.prototype, {
+        constructor: {
+            value: cls,
+            enumerable: false,
+            writable: true,
+            configurable: true
+        }
+    });
+
+    if (Object.setPrototypeOf) {
+        Object.setPrototypeOf(ExtendableBuiltin, cls);
+    } else {
+        ExtendableBuiltin.__proto__ = cls;
+    }
+
+    return ExtendableBuiltin;
+}
+
 function _extendableBuiltin3(cls) {
     function ExtendableBuiltin() {
         var instance = Reflect.construct(cls, Array.from(arguments));
@@ -330,4 +355,177 @@ var HttpServerError = exports.HttpServerError = function (_HttpError6) {
 
     return HttpServerError;
 }(HttpError);
+
+/**
+ * @classdesc Extends Error object for throwing exceptions on data operations
+ * @class
+ * @property {string} code - A string that represents an error code e.g. EDATA
+ * @property {string} message -  The error message.
+ * @property {string} innerMessage - The error inner message.
+ * @property {number} status - A number that represents an error status. This error status may be used for throwing the approriate HTTP error.
+ * @augments Error
+ */
+
+
+var DataError = exports.DataError = function (_extendableBuiltin6) {
+    _inherits(DataError, _extendableBuiltin6);
+
+    /* @constructor
+     * @param {string=} code - A string that represents an error code
+     * @param {string=} message - The error message
+     * @param {string=} innerMessage - The error inner message
+     * @param {string=} model - The target model
+     * @param {string=} field - The target field
+     */
+    function DataError(code, message, innerMessage, model, field) {
+        _classCallCheck(this, DataError);
+
+        var _this11 = _possibleConstructorReturn(this, (DataError.__proto__ || Object.getPrototypeOf(DataError)).call(this));
+
+        _this11.code = code || 'EDATA';
+        if (model) _this11.model = model;
+        if (field) _this11.field = field;
+        _this11.message = message || 'A general data error occured.';
+        if (innerMessage) _this11.innerMessage = innerMessage;
+        return _this11;
+    }
+
+    return DataError;
+}(_extendableBuiltin5(Error));
+
+/**
+ * @classdesc Extends Error object for throwing not null exceptions.
+ * @class
+ * @property {string} code - A string that represents an error code. The default error code is ENULL.
+ * @property {string} message -  The error message.
+ * @property {string} innerMessage - The error inner message.
+ * @property {number} status - A number that represents an error status. This error status may be used for throwing the approriate HTTP error. The default status is 409 (Conflict)
+ * @property {string} model - The target model name
+ * @property {string} field - The target field name
+ * @augments DataError
+ */
+
+
+var NotNullError = exports.NotNullError = function (_DataError) {
+    _inherits(NotNullError, _DataError);
+
+    /**
+     * @constructor
+     * @param {string=} message - The error message
+     * @param {string=} innerMessage - The error inner message
+     * @param {string=} model - The target model
+     * @param {string=} field - The target field
+     */
+    function NotNullError(message, innerMessage, model, field) {
+        _classCallCheck(this, NotNullError);
+
+        var _this12 = _possibleConstructorReturn(this, (NotNullError.__proto__ || Object.getPrototypeOf(NotNullError)).call(this, 'ENULL', message || 'A value is required', innerMessage, model, field));
+
+        _this12.status = 409;
+        return _this12;
+    }
+
+    return NotNullError;
+}(DataError);
+
+/**
+ * @classdesc Extends Error object for throwing not found exceptions.
+ * @class
+ * @property {string} code - A string that represents an error code. The default error code is EFOUND.
+ * @property {string} message -  The error message.
+ * @property {string} innerMessage - The error inner message.
+ * @property {number} status - A number that represents an error status. This error status may be used for throwing the approriate HTTP error. The default status is 404 (Conflict)
+ * @property {string} model - The target model name
+ * @augments DataError
+ */
+
+
+var DataNotFoundError = exports.DataNotFoundError = function (_DataError2) {
+    _inherits(DataNotFoundError, _DataError2);
+
+    /**
+     * @constructor
+     * @param {string=} message - The error message
+     * @param {string=} innerMessage - The error inner message
+     * @param {string=} model - The target model
+     */
+    function DataNotFoundError(message, innerMessage, model) {
+        _classCallCheck(this, DataNotFoundError);
+
+        var _this13 = _possibleConstructorReturn(this, (DataNotFoundError.__proto__ || Object.getPrototypeOf(DataNotFoundError)).call(this, 'EFOUND', message || 'The requested data was not found.', innerMessage, model));
+
+        _this13.status = 404;
+        return _this13;
+    }
+
+    return DataNotFoundError;
+}(DataError);
+
+/**
+ * @classdesc Extends Error object for throwing unique constraint exceptions.
+ * @class
+ * @property {string} code - A string that represents an error code. The default error code is ENULL.
+ * @property {string} message -  The error message.
+ * @property {string} innerMessage - The error inner message.
+ * @property {number} status - A number that represents an error status. This error status may be used for throwing the approriate HTTP error. The default status is 409 (Conflict)
+ * @property {string} model - The target model name
+ * @property {string} constraint - The target constraint name
+ * @augments DataError
+ */
+
+
+var UniqueConstraintError = exports.UniqueConstraintError = function (_DataError3) {
+    _inherits(UniqueConstraintError, _DataError3);
+
+    /* @constructor
+     * @param {string=} message - The error message
+     * @param {string=} innerMessage - The error inner message
+     * @param {string=} model - The target model
+     * @param {string=} constraint - The target constraint
+     */
+    function UniqueConstraintError(message, innerMessage, model, constraint) {
+        _classCallCheck(this, UniqueConstraintError);
+
+        var _this14 = _possibleConstructorReturn(this, (UniqueConstraintError.__proto__ || Object.getPrototypeOf(UniqueConstraintError)).call(this, 'EUNQ', message || 'A unique constraint violated', innerMessage, model));
+
+        if (constraint) _this14.constraint = constraint;
+        _this14.status = 409;
+        return _this14;
+    }
+
+    return UniqueConstraintError;
+}(DataError);
+
+/**
+ * @classdesc Represents an access denied data exception.
+ * @class
+ *
+ * @param {string=} message - The error message
+ * @param {string=} innerMessage - The error inner message
+ * @property {string} code - A string that represents an error code. The error code is EACCESS.
+ * @property {number} status - A number that represents an error status. The error status is 401.
+ * @property {string} message -  The error message.
+ * @property {string} innerMessage - The error inner message.
+ * @augments DataError
+ */
+
+
+var AccessDeniedError = exports.AccessDeniedError = function (_DataError4) {
+    _inherits(AccessDeniedError, _DataError4);
+
+    /* @constructor
+     * @param {string=} message - The error message
+     * @param {string=} innerMessage - The error inner message
+     */
+    function AccessDeniedError(message, innerMessage) {
+        _classCallCheck(this, AccessDeniedError);
+
+        var _this15 = _possibleConstructorReturn(this, (AccessDeniedError.__proto__ || Object.getPrototypeOf(AccessDeniedError)).call(this, 'EACCESS', 'Access Denied' || message, innerMessage));
+
+        _this15.status = 401;
+        return _this15;
+    }
+
+    return AccessDeniedError;
+}(DataError);
 //# sourceMappingURL=errors.js.map

@@ -74,6 +74,7 @@ var HttpErrorConsumer = _consumers.HttpErrorConsumer;
 var _static = require('./static');
 
 var StaticContentConsumer = _static.StaticContentConsumer;
+var MapStaticContentConsumer = _static.MapStaticContentConsumer;
 
 var _context = require('./context');
 
@@ -864,9 +865,9 @@ var HttpApplication = exports.HttpApplication = function () {
          */
 
     }, {
-        key: 'whenStaticContent',
-        value: function whenStaticContent(whenDir, rootDir) {
-            return this.any(new StaticContentConsumer(rootDir, whenDir));
+        key: 'mapStaticContent',
+        value: function mapStaticContent(whenDir, rootDir) {
+            return this.any(new MapStaticContentConsumer(whenDir, rootDir));
         }
 
         /**

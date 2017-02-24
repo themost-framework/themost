@@ -18,7 +18,7 @@ import {HttpNextResult,HttpResult,HttpAnyResult} from './results';
 import {AuthConsumer, BasicAuthConsumer, EncryptionStrategy, DefaultEncyptionStrategy, AuthStrategy} from './auth';
 import {RestrictAccessConsumer,RestrictAccessService} from './restrict_access';
 import {HttpConsumer,HttpRouteConsumer,HttpErrorConsumer} from './consumers';
-import {StaticContentConsumer} from './static';
+import {StaticContentConsumer, MapStaticContentConsumer} from './static';
 import {HttpContext} from './context';
 import {RoutingStrategy,DefaultRoutingStrategy,RouteConsumer} from './route';
 import {LocalizationStrategy,DefaultLocalizationStrategy} from './localization';
@@ -694,8 +694,8 @@ export class HttpApplication {
      * @param {string=} rootDir
      * @returns {HttpApplication}
      */
-    whenStaticContent(whenDir, rootDir) {
-        return this.any(new StaticContentConsumer(rootDir, whenDir));
+    mapStaticContent(whenDir, rootDir) {
+        return this.any(new MapStaticContentConsumer(whenDir, rootDir));
     }
 
     /**

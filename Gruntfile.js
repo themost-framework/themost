@@ -23,6 +23,24 @@ module.exports = function(grunt) {
                     "ext": ".js"
                 }]
             },
+            query: {
+                files: [{
+                    "expand": true,
+                    "cwd":"modules/@themost/query",
+                    "src": ["**/*.es6","!node_modules/**/*.es6"],
+                    "dest": "modules/@themost/query",
+                    "ext": ".js"
+                }]
+            },
+            data: {
+                files: [{
+                    "expand": true,
+                    "cwd":"modules/@themost/data",
+                    "src": ["**/*.es6","!node_modules/**/*.es6"],
+                    "dest": "modules/@themost/data",
+                    "ext": ".js"
+                }]
+            },
             web: {
                 files: [{
                     "expand": true,
@@ -46,6 +64,20 @@ module.exports = function(grunt) {
             common: {
                 files: ["modules/@themost/common/**/*.es6","!modules/@themost/common/node_modules/**/*.es6"],
                 tasks: ["newer:babel:common"],
+                options: {
+                    spawn: false,
+                },
+            },
+            query: {
+                files: ["modules/@themost/query/**/*.es6","!modules/@themost/query/node_modules/**/*.es6"],
+                tasks: ["newer:babel:query"],
+                options: {
+                    spawn: false,
+                },
+            },
+            data: {
+                files: ["modules/@themost/data/**/*.es6","!modules/@themost/data/node_modules/**/*.es6"],
+                tasks: ["newer:babel:data"],
                 options: {
                     spawn: false,
                 },

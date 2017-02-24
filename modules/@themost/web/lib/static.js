@@ -12,7 +12,7 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.StaticContentConsumer = undefined;
+exports.MapStaticContentConsumer = exports.StaticContentConsumer = undefined;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
@@ -79,13 +79,12 @@ var StaticHandler = function () {
     /**
      *
      * @param {string=} rootDir
-     * @param {string=} whenDir
      */
-    function StaticHandler(rootDir, whenDir) {
+    function StaticHandler(rootDir) {
         _classCallCheck(this, StaticHandler);
 
         this.rootDir = rootDir || './app';
-        this.whenDir = whenDir || '/';
+        this.whenDir = '/';
     }
 
     /**
@@ -282,10 +281,9 @@ var StaticContentConsumer = exports.StaticContentConsumer = function (_HttpConsu
 
     /**
      * @param {string=} rootDir
-     * @param {string=} whenDir
      * @constructor
      */
-    function StaticContentConsumer(rootDir, whenDir) {
+    function StaticContentConsumer(rootDir) {
         _classCallCheck(this, StaticContentConsumer);
 
         return _possibleConstructorReturn(this, (StaticContentConsumer.__proto__ || Object.getPrototypeOf(StaticContentConsumer)).call(this, function () {
@@ -295,7 +293,7 @@ var StaticContentConsumer = exports.StaticContentConsumer = function (_HttpConsu
             var context = this;
             try {
                 var _ret4 = function () {
-                    var handler = new StaticHandler(rootDir, whenDir);
+                    var handler = new StaticHandler(rootDir);
                     return {
                         v: Rx.Observable.fromNodeCallback(handler.mapRequest, handler)(context).flatMap(function (res) {
                             if (res) {
@@ -314,5 +312,45 @@ var StaticContentConsumer = exports.StaticContentConsumer = function (_HttpConsu
     }
 
     return StaticContentConsumer;
+}(HttpConsumer);
+
+var MapStaticContentConsumer = exports.MapStaticContentConsumer = function (_HttpConsumer2) {
+    _inherits(MapStaticContentConsumer, _HttpConsumer2);
+
+    /**
+     * @param {string=} whenDir
+     * @param {string=} rootDir
+     * @constructor
+     */
+    function MapStaticContentConsumer(whenDir, rootDir) {
+        _classCallCheck(this, MapStaticContentConsumer);
+
+        return _possibleConstructorReturn(this, (MapStaticContentConsumer.__proto__ || Object.getPrototypeOf(MapStaticContentConsumer)).call(this, function () {
+            /**
+             * @type {HttpContext}
+             */
+            var context = this;
+            try {
+                var _ret5 = function () {
+                    var handler = new StaticHandler(rootDir);
+                    handler.whenDir = whenDir;
+                    return {
+                        v: Rx.Observable.fromNodeCallback(handler.mapRequest, handler)(context).flatMap(function (res) {
+                            if (res) {
+                                return Rx.Observable.fromNodeCallback(handler.processRequest, handler)(context);
+                            }
+                            return HttpNextResult.create().toObservable();
+                        })
+                    };
+                }();
+
+                if ((typeof _ret5 === 'undefined' ? 'undefined' : _typeof(_ret5)) === "object") return _ret5.v;
+            } catch (err) {
+                return Rx.Observable.throw(err);
+            }
+        }));
+    }
+
+    return MapStaticContentConsumer;
 }(HttpConsumer);
 //# sourceMappingURL=static.js.map

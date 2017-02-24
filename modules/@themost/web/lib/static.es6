@@ -29,11 +29,10 @@ class StaticHandler {
     /**
      *
      * @param {string=} rootDir
-     * @param {string=} whenDir
      */
-    constructor(rootDir, whenDir) {
+    constructor(rootDir) {
         this.rootDir = rootDir || './app';
-        this.whenDir = whenDir || '/';
+        this.whenDir =  '/';
     }
 
     /**
@@ -205,17 +204,46 @@ class StaticHandler {
 export class StaticContentConsumer extends HttpConsumer {
     /**
      * @param {string=} rootDir
-     * @param {string=} whenDir
      * @constructor
      */
-    constructor(rootDir, whenDir) {
+    constructor(rootDir) {
         super(function() {
             /**
              * @type {HttpContext}
              */
             const context = this;
             try {
-                let handler = new StaticHandler(rootDir, whenDir);
+                let handler = new StaticHandler(rootDir);
+                return Rx.Observable.fromNodeCallback(handler.mapRequest,handler)(context)
+                    .flatMap((res) => {
+                        if (res) {
+                            return Rx.Observable.fromNodeCallback(handler.processRequest,handler)(context);
+                        }
+                        return HttpNextResult.create().toObservable();
+                    });
+            }
+            catch(err) {
+                return Rx.Observable.throw(err);
+            }
+        });
+    }
+}
+
+export class MapStaticContentConsumer extends HttpConsumer {
+    /**
+     * @param {string=} whenDir
+     * @param {string=} rootDir
+     * @constructor
+     */
+    constructor(whenDir, rootDir) {
+        super(function() {
+            /**
+             * @type {HttpContext}
+             */
+            const context = this;
+            try {
+                let handler = new StaticHandler(rootDir);
+                handler.whenDir = whenDir;
                 return Rx.Observable.fromNodeCallback(handler.mapRequest,handler)(context)
                     .flatMap((res) => {
                         if (res) {

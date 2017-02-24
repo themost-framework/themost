@@ -16,8 +16,8 @@
   },
   "homepage": "https://github.com/kbarbounakis/themost#readme",
   "dependencies": {
+    "async": "0.2.10",
     "lodash": "^4.17.4",
-    "rx": "^4.1.0",
     "winston": "^2.3.1"
   }
 }

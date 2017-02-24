@@ -9,19 +9,89 @@
  */
 'use strict';
 
-import events from 'events';
+import {_} from 'events';
+
+const listenersProperty = Symbol('listeners');
 
 /**
  * @classdesc SequentialEventEmitter class is an extension of node.js EventEmitter class where listeners are executing in series.
  * @class
- * @augments EventEmitter
  */
-export class SequentialEventEmitter extends events.EventEmitter {
+export class SequentialEventEmitter {
     /**
      * @constructor
      */
     constructor() {
-        super();
+        this[listenersProperty] = new Map();
+    }
+
+    /**
+     * Adds the listener function to the end of the listeners array for the specified event
+     * @param {string} event
+     * @param {Function} callback
+     * @returns {SequentialEventEmitter}
+     */
+    addListener(event, callback) {
+        this[listenersProperty].has(event) || this[listenersProperty].set(event, []);
+        this[listenersProperty].get(event).push(callback);
+        return this;
+    }
+
+    /**
+     * Adds the listener function to the end of the listeners array for the specified event
+     * @param {string} event
+     * @param {Function} callback
+     * @returns {SequentialEventEmitter}
+     */
+    on(event, callback) {
+        return this.addListener(event, callback);
+    }
+
+    /**
+     * Removes the specified listener from the listeners array
+     * @param {string} type
+     * @param {Function} callback
+     * @returns {SequentialEventEmitter}
+     */
+    removeListener(type, callback) {
+        let listeners = this[listenersProperty].get(type),
+            index;
+        if (listeners && listeners.length) {
+            index = _.reduce(listeners, (i, listener, index) => {
+                return (_.isFunction(listener) && listener === callback) ?
+                    i = index :
+                    i;
+            }, -1);
+
+            if (index > -1) {
+                listeners.splice(index, 1);
+                this[listenersProperty].set(type, listeners);
+                return this;
+            }
+        }
+        return this;
+    }
+
+    /**
+     * Returns an array of listeners which are listening to the specified event
+     * @param {string} type
+     */
+    listeners(type) {
+        let listeners = this[listenersProperty].get(type);
+        if (_.isArray(listeners)) {
+            return listeners;
+        }
+        return [];
+    }
+
+    /**
+     * Returns the number of listeners which are listening to the specified event
+     * @param {string} event
+     */
+    listenerCount(event) {
+        let listeners = this[listenersProperty].get(event);
+        if (_.isArray(listeners)) { return listeners.length; }
+        return 0;
     }
 
     /**
@@ -37,7 +107,7 @@ export class SequentialEventEmitter extends events.EventEmitter {
         //ensure callback
         callback = callback || function() {};
         //get listeners
-        const listeners = self.listeners(event);
+        const listeners = self[listenersProperty].get(event);
         //validate listeners
         if (listeners.length==0) {
             //exit emitter
@@ -52,8 +122,8 @@ export class SequentialEventEmitter extends events.EventEmitter {
 
     once(type, listener) {
         const self = this;
-        if (typeof listener !== 'function')
-            throw TypeError('listener must be a function');
+        if (!_.isFunction(listener))
+            throw TypeError('Listener must be a function');
         let fired = false;
         function g() {
             self.removeListener(type, g);
