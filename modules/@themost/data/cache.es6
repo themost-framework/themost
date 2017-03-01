@@ -138,9 +138,8 @@ export class DataCache extends SequentialEventEmitter {
      * @returns {Observable}
      */
     get(key) {
-        const self = this;
-        return Rx.Observable.bindNodeCallback((key,callback) => {
-            self.init((err) => {
+        return Rx.Observable.bindNodeCallback((function(key,callback) {
+            this.init((err) => {
                 if (err) {
                     return callback(err);
                 }
@@ -154,7 +153,7 @@ export class DataCache extends SequentialEventEmitter {
                     return callback();
                 });
             });
-        })(key);
+        }).bind(this))(key);
     }
 
     /**

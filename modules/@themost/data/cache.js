@@ -188,9 +188,8 @@ var DataCache = exports.DataCache = function (_SequentialEventEmitt) {
     }, {
         key: 'get',
         value: function get(key) {
-            var self = this;
             return Rx.Observable.bindNodeCallback(function (key, callback) {
-                self.init(function (err) {
+                this.init(function (err) {
                     if (err) {
                         return callback(err);
                     }
@@ -204,7 +203,7 @@ var DataCache = exports.DataCache = function (_SequentialEventEmitt) {
                         return callback();
                     });
                 });
-            })(key);
+            }.bind(this))(key);
         }
 
         /**
