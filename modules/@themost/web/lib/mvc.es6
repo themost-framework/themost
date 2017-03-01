@@ -10,7 +10,7 @@
 'use strict';
 
 import {_} from 'lodash';
-import Rx from 'rx';
+import Rx from 'rxjs';
 import fs from 'fs';
 import util from 'util';
 import path from 'path';
@@ -46,7 +46,7 @@ export class HttpContentResult extends HttpAnyResult {
      */
     execute(context) {
         const self = this;
-        return Rx.Observable.fromNodeCallback(function(callback) {
+        return Rx.Observable.bindNodeCallback(function(callback) {
             /**
              * @type ServerResponse
              * */
@@ -79,7 +79,7 @@ export class HttpEmptyResult extends HttpAnyResult {
     execute(context) {
         //do nothing
         context.response.writeHead(204);
-        return Rx.Observable.return();
+        return Rx.Observable.of();
     }
 }
 
@@ -121,7 +121,7 @@ export class HttpJsonResult extends HttpAnyResult {
      */
     execute(context) {
         const self = this;
-        return Rx.Observable.fromNodeCallback(function(callback) {
+        return Rx.Observable.bindNodeCallback(function(callback) {
             /**
              * @type ServerResponse
              * */
@@ -163,7 +163,7 @@ export class HttpJavascriptResult extends HttpAnyResult {
      */
     execute(context) {
         const self = this;
-        return Rx.Observable.fromNodeCallback(function(callback) {
+        return Rx.Observable.bindNodeCallback(function(callback) {
             /**
              * @type ServerResponse
              * */
@@ -228,7 +228,7 @@ export class HttpRedirectResult extends HttpAnyResult {
          * */
         const response = context.response;
         response.writeHead(302, { 'Location': this.url });
-        return Rx.Observable.return();
+        return Rx.Observable.of();
     }
 }
 
@@ -759,9 +759,9 @@ export class HttpViewContext {
             requestCookie = this.context.request.headers.cookie;
         return this.context.getApplication().executeRequest({ url: url, cookie: requestCookie }).flatMap((result)=> {
             if ((result.statusCode>=200) && (result.statusCode<300))
-                return Rx.Observable.return(result.body);
+                return Rx.Observable.of(result.body);
             else
-                return Rx.Observable.throw(new HttpError(result.statusCode));
+                return Rx.Observable['throw'](new HttpError(result.statusCode));
         });
     }
 

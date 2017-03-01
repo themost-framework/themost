@@ -1,18 +1,27 @@
 /**
- * @ignore
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
+ *                     Anthi Oikonomou anthioikonomou@gmail.com
+ *
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
  */
-var _ = require('lodash'),
-    qry = require('most-query'),
-    Q = require('q');
 
-var mappingExtensions = {
+import {_} from 'lodash';
+import Q from 'q';
+import {QueryExpression,QueryField,QueryEntity} from '@themost/query/query';
+import {HasOneToManyAssociation,HasManyToOneAssociation, HasManyToManyAssociation,HasTagAssociation} from './associations';
+
+
+export class MappingExtensions {
 
     /**
      * @param {DataAssociationMapping|*} mapping
      * @returns {*}
      */
-    extend: function(mapping) {
-        var thisQueryable, childModel_, parentModel_;
+    static extend(mapping) {
+        let thisQueryable, childModel_, parentModel_;
         return {
             /**
              * @param {DataQueryable} dataQueryable
@@ -48,13 +57,13 @@ var mappingExtensions = {
              */
             getParents_v1: function(items) {
 
-                var thisArg = this;
-                var deferred = Q.defer();
+                const thisArg = this;
+                const deferred = Q.defer();
                 process.nextTick(function() {
                     if (_.isNil(items)) {
                         return deferred.resolve();
                     }
-                    var arr = _.isArray(items) ? items : [items];
+                    const arr = _.isArray(items) ? items : [items];
                     if (arr.length == 0) {
                         return deferred.resolve();
                     }
@@ -65,20 +74,19 @@ var mappingExtensions = {
                         return deferred.resolve();
                     }
                     //get array of key values (for childs)
-                    var values = arr.filter(function(x) {
+                    let values = arr.filter(function(x) {
                         return (typeof x[mapping.childField]!=='undefined')
                             && (x[mapping.childField]!=null); })
                             .map(function(x) { return x[mapping.childField]
                             });
                     //query junction model
-                    var HasParentJunction = require('./has-parent-junction').HasParentJunction;
-                    var junction = new HasParentJunction(thisQueryable.model.convert({ }), mapping);
+                    const junction = new HasManyToOneAssociation(thisQueryable.model.convert({ }), mapping);
                     junction.getBaseModel().where('valueId').in(values).flatten().silent().all(function(err, junctions) {
                         if (err) { return deferred.reject(err); }
                         //get array of parent key values
                         values = _.intersection(junctions.map(function(x) { return x['parentId'] }));
                         //get parent model
-                        var parentModel = thisArg.getParentModel();
+                        const parentModel = thisArg.getParentModel();
                         //query parent with parent key values
                         parentModel.filter(mapping.options, function(err, q) {
                             if (err) {
@@ -103,9 +111,9 @@ var mappingExtensions = {
                                 //otherwise loop result array
                                 arr.forEach(function(x) {
                                     //get child (key value)
-                                    var valueId = x[mapping.childField];
+                                    const valueId = x[mapping.childField];
                                     //get parent(s)
-                                    var p = junctions.filter(function(y) { return (y.valueId==valueId); }).map(function(r) { return r['parentId']; });
+                                    const p = junctions.filter(function(y) { return (y.valueId==valueId); }).map(function(r) { return r['parentId']; });
                                     //filter data and set property value (a filtered array of parent objects)
                                     x[mapping.refersTo] = parents.filter(function(z) { return p.indexOf(z[mapping.parentField])>=0; });
                                 });
@@ -123,13 +131,13 @@ var mappingExtensions = {
              * @returns {Promise|*}
              */
             getParents : function(items) {
-                var thisArg = this;
-                var deferred = Q.defer();
+                const thisArg = this;
+                const deferred = Q.defer();
                 process.nextTick(function() {
                     if (_.isNil(items)) {
                         return deferred.resolve();
                     }
-                    var arr = _.isArray(items) ? items : [items];
+                    const arr = _.isArray(items) ? items : [items];
                     if (arr.length == 0) {
                         return deferred.resolve();
                     }
@@ -139,29 +147,28 @@ var mappingExtensions = {
                     if ((mapping.childModel !== thisQueryable.model.name) || (mapping.associationType!=='junction')) {
                         return deferred.resolve();
                     }
-                    var HasParentJunction = require('./has-parent-junction').HasParentJunction;
-                    var junction = new HasParentJunction(thisQueryable.model.convert({ }), mapping);
+                    const junction = new HasManyToOneAssociation(thisQueryable.model.convert({ }), mapping);
                     return junction.migrate(function(err) {
                         if (err) { return deferred.reject(err); }
-                        var parentModel = thisArg.getParentModel();
+                        const parentModel = thisArg.getParentModel();
                         parentModel.filter(mapping.options, function(err, q) {
                             if (err) { return deferred.reject(err); }
                             //get junction sub-query
-                            var junctionQuery = qry.query(junction.getBaseModel().name).select(["parentId", "valueId"])
+                            const junctionQuery = QueryExpression.create(junction.getBaseModel().name).select(["parentId", "valueId"])
                                 .join(thisQueryable.query.as("j0"))
-                                .with(qry.where(qry.entity(junction.getBaseModel().name).select("valueId"))
-                                    .equal(qry.entity("j0").select(mapping.childField)));
+                                .with(QueryExpression.create().where(QueryEntity.create(junction.getBaseModel().name).select("valueId"))
+                                    .equal(QueryEntity.create("j0").select(mapping.childField)));
                             //append join statement with sub-query
                             q.query.join(junctionQuery.as("g0"))
-                                .with(qry.where(qry.entity(parentModel.viewAdapter).select(mapping.parentField))
-                                    .equal(qry.entity("g0").select("parentId")));
+                                .with(QueryExpression.create().where(QueryEntity.create(parentModel.viewAdapter).select(mapping.parentField))
+                                    .equal(QueryEntity.create("g0").select("parentId")));
                             if (!q.query.hasFields()) {
                                 q.select();
                             }
                             //inherit silent mode
                             if (thisQueryable.$silent)  { q.silent(); }
                             //append child key field
-                            q.alsoSelect(qry.fields.select("valueId").from("g0").as("ref__"));
+                            q.alsoSelect(QueryField.create("valueId").from("g0").as("ref__"));
                             return q.getItems().then(function (parents) {
                                 _.forEach(arr, function(x) {
                                     x[mapping.refersTo] = _.filter(parents, function(y) {
@@ -186,13 +193,13 @@ var mappingExtensions = {
              * @returns {Promise|*}
              */
             getChilds_v1: function(items) {
-                var thisArg = this;
-                var deferred = Q.defer();
+                const thisArg = this;
+                const deferred = Q.defer();
                 process.nextTick(function() {
                     if (_.isNil(items)) {
                         return deferred.resolve();
                     }
-                    var arr = _.isArray(items) ? items : [items];
+                    const arr = _.isArray(items) ? items : [items];
                     if (arr.length == 0) {
                         return deferred.resolve();
                     }
@@ -202,14 +209,13 @@ var mappingExtensions = {
                     if ((mapping.parentModel !== thisQueryable.model.name) || (mapping.associationType!=='junction')) {
                         return deferred.resolve();
                     }
-                    var values = arr.filter(function(x) {
+                    const values = arr.filter(function(x) {
                         return (typeof x[mapping.parentField]!=='undefined') && (x[mapping.parentField]!=null);
                     }).map(function(x) {
                         return x[mapping.parentField];
                     });
                     if (_.isNil(mapping.childModel)) {
-                        var DataObjectTag = require('./data-object-tag').DataObjectTag;
-                        junction = new DataObjectTag(thisQueryable.model.convert({ }), mapping);
+                        junction = new HasTagAssociation(thisQueryable.model.convert({ }), mapping);
                         return junction.getBaseModel().where("object").in(values).flatten().silent().select("object", "value").all().then(function(items) {
                             arr.forEach(function(x) {
                                 x[mapping.refersTo] = items.filter(function(y) {
@@ -224,14 +230,13 @@ var mappingExtensions = {
                         });
                     }
                     //create a dummy object
-                    var DataObjectJunction = require('./data-object-junction').DataObjectJunction;
-                    var junction = new DataObjectJunction(thisQueryable.model.convert({ }), mapping);
+                    var junction = new HasManyToManyAssociation(thisQueryable.model.convert({ }), mapping);
                     //query junction model
                     return junction.getBaseModel().where('parentId').in(values).silent().flatten().getItems().then(function(junctions) {
                         //get array of child key values
-                        var values = junctions.map(function(x) { return x['valueId'] });
+                        const values = junctions.map(function(x) { return x['valueId'] });
                         //get child model
-                        var childModel = thisArg.getChildModel();
+                        const childModel = thisArg.getChildModel();
                         childModel.filter(mapping.options, function(err, q) {
                             if (err) {
                                 return deferred.reject(err);
@@ -261,9 +266,9 @@ var mappingExtensions = {
                                 //otherwise loop result array
                                 arr.forEach(function(x) {
                                     //get parent (key value)
-                                    var parentId = x[mapping.parentField];
+                                    const parentId = x[mapping.parentField];
                                     //get parent(s)
-                                    var p = junctions.filter(function(y) { return (y.parentId==parentId); }).map(function(r) { return r['valueId']; });
+                                    const p = junctions.filter(function(y) { return (y.parentId==parentId); }).map(function(r) { return r['valueId']; });
                                     //filter data and set property value (a filtered array of parent objects)
                                     x[mapping.refersTo] = childs.filter(function(z) { return p.indexOf(z[mapping.childField])>=0; });
                                 });
@@ -283,13 +288,13 @@ var mappingExtensions = {
              * @returns {Promise|*}
              */
             getChilds: function(items) {
-                var thisArg = this;
-                var deferred = Q.defer();
+                const thisArg = this;
+                const deferred = Q.defer();
                 process.nextTick(function() {
                     if (_.isNil(items)) {
                         return deferred.resolve();
                     }
-                    var arr = _.isArray(items) ? items : [items];
+                    const arr = _.isArray(items) ? items : [items];
                     if (arr.length == 0) {
                         return deferred.resolve();
                     }
@@ -299,30 +304,29 @@ var mappingExtensions = {
                     if ((mapping.parentModel !== thisQueryable.model.name) || (mapping.associationType!=='junction')) {
                         return deferred.resolve();
                     }
-                    var DataObjectJunction = require('./data-object-junction').DataObjectJunction;
-                    var junction = new DataObjectJunction(thisQueryable.model.convert({ }), mapping);
+                    const junction = new HasManyToManyAssociation(thisQueryable.model.convert({ }), mapping);
                     return junction.migrate(function(err) {
                         if (err) { return deferred.reject(err); }
-                        var childModel = thisArg.getChildModel();
+                        const childModel = thisArg.getChildModel();
                         childModel.filter(mapping.options, function(err, q) {
                             if (err) { return deferred.reject(err); }
                             if (!q.query.hasFields()) {
                                 q.select();
                             }
                             //get junction sub-query
-                            var junctionQuery = qry.query(junction.getBaseModel().name).select(["parentId", "valueId"])
+                            const junctionQuery = QueryExpression.create(junction.getBaseModel().name).select(["parentId", "valueId"])
                                 .join(thisQueryable.query.as("j0"))
-                                .with(qry.where(qry.entity(junction.getBaseModel().name).select("parentId"))
-                                    .equal(qry.entity("j0").select(mapping.parentField)));
+                                .with(QueryExpression.create().where(QueryEntity.create(junction.getBaseModel().name).select("parentId"))
+                                    .equal(QueryEntity.create("j0").select(mapping.parentField)));
                             //append join statement with sub-query
                             q.query.join(junctionQuery.as("g0"))
-                                .with(qry.where(qry.entity(childModel.viewAdapter).select(mapping.childField))
-                                    .equal(qry.entity("g0").select("valueId")));
+                                .with(QueryExpression.create().where(QueryEntity.create(childModel.viewAdapter).select(mapping.childField))
+                                    .equal(QueryEntity.create("g0").select("valueId")));
 
                             //inherit silent mode
                             if (thisQueryable.$silent)  { q.silent(); }
                             //append item reference
-                            q.alsoSelect(qry.fields.select("parentId").from("g0").as("ref__"));
+                            q.alsoSelect(QueryField.create("parentId").from("g0").as("ref__"));
                             return q.getItems().then(function (childs) {
                                 _.forEach(arr, function(x) {
                                     x[mapping.refersTo] = _.filter(childs, function(y) {
@@ -347,13 +351,13 @@ var mappingExtensions = {
              * @returns {Promise|*}
              */
             getAssociatedParents: function(items) {
-                var thisArg = this;
-                var deferred = Q.defer();
+                const thisArg = this;
+                const deferred = Q.defer();
                 process.nextTick(function() {
                     if (_.isNil(items)) {
                         return deferred.resolve();
                     }
-                    var arr = _.isArray(items) ? items : [items];
+                    const arr = _.isArray(items) ? items : [items];
                     if (arr.length == 0) {
                         return deferred.resolve();
                     }
@@ -375,15 +379,15 @@ var mappingExtensions = {
                             q.query
                                .distinct()
                                .join(thisQueryable.query.as('j0'))
-                               .with(qry.where(qry.entity(thisArg.getParentModel().viewAdapter).select(mapping.parentField))
-                                   .equal(qry.entity("j0").select(mapping.childField)));
+                               .with(QueryExpression.create().where(QueryEntity.create(thisArg.getParentModel().viewAdapter).select(mapping.parentField))
+                                   .equal(QueryEntity.create("j0").select(mapping.childField)));
                             //inherit silent mode
                             if (thisQueryable.$silent)  { q.silent(); }
                             q.silent().getAllItems().then(function(parents) {
-                                var childField = thisQueryable.model.field(mapping.childField);
-                                var keyField = childField.property || childField.name;
-                                var iterator = function(x) {
-                                    var key = x[keyField];
+                                const childField = thisQueryable.model.field(mapping.childField);
+                                const keyField = childField.property || childField.name;
+                                const iterator = function(x) {
+                                    const key = x[keyField];
                                     x[keyField] = _.find(parents, function(x) {
                                        return x[mapping.parentField] === key;
                                     });
@@ -403,13 +407,13 @@ var mappingExtensions = {
              * @returns {Promise|*}
              */
             getAssociatedParents_v1: function(items) {
-                var thisArg = this;
-                var deferred = Q.defer();
+                const thisArg = this;
+                const deferred = Q.defer();
                 process.nextTick(function() {
                     if (_.isNil(items)) {
                         return deferred.resolve();
                     }
-                    var arr = _.isArray(items) ? items : [items];
+                    const arr = _.isArray(items) ? items : [items];
                     if (arr.length == 0) {
                         return deferred.resolve();
                     }
@@ -421,12 +425,12 @@ var mappingExtensions = {
                     }
                     thisArg.getParentModel().migrate(function(err) {
                         if (err) { return deferred.reject(err); }
-                        var childField = thisQueryable.model.field(mapping.childField);
-                        var keyField = childField.property || childField.name;
+                        const childField = thisQueryable.model.field(mapping.childField);
+                        const keyField = childField.property || childField.name;
                         if (_.isNil(childField)) {
                             return deferred.reject("The specified field cannot be found on child model");
                         }
-                        var values = _.intersection(_.map(_.filter(arr, function(x) {
+                        const values = _.intersection(_.map(_.filter(arr, function(x) {
                             return x.hasOwnProperty(keyField);
                             }), function (x) { return x[keyField];}));
                         if (values.length==0) {
@@ -448,19 +452,22 @@ var mappingExtensions = {
                             q.where(mapping.parentField).in(values);
                             //set silent (?)
                             q.silent().getAllItems().then(function(parents) {
-                                var key=null,
-                                    selector = function(x) {
-                                        return x[mapping.parentField]==key;
-                                    },
-                                    iterator = function(x) {
-                                        key = x[keyField];
-                                        if (childField.property && childField.property!==childField.name) {
-                                            x[childField.property] = parents.filter(selector)[0];
-                                            delete x[childField.name];
-                                        }
-                                        else
-                                            x[childField.name] = parents.filter(selector)[0];
-                                    };
+                                let key=null;
+
+                                const selector = function(x) {
+                                    return x[mapping.parentField]==key;
+                                };
+
+                                const iterator = function(x) {
+                                    key = x[keyField];
+                                    if (childField.property && childField.property!==childField.name) {
+                                        x[childField.property] = parents.filter(selector)[0];
+                                        delete x[childField.name];
+                                    }
+                                    else
+                                        x[childField.name] = parents.filter(selector)[0];
+                                };
+
                                 if (_.isArray(arr)) {
                                     arr.forEach(iterator);
                                 }
@@ -478,13 +485,13 @@ var mappingExtensions = {
              * @returns {Promise|*}
              */
             getAssociatedChilds_v1: function(items) {
-                var thisArg = this;
-                var deferred = Q.defer();
+                const thisArg = this;
+                const deferred = Q.defer();
                 process.nextTick(function() {
                     if (_.isNil(items)) {
                         return deferred.resolve();
                     }
-                    var arr = _.isArray(items) ? items : [items];
+                    const arr = _.isArray(items) ? items : [items];
                     if (arr.length == 0) {
                         return deferred.resolve();
                     }
@@ -496,12 +503,12 @@ var mappingExtensions = {
                     }
                     thisArg.getChildModel().migrate(function(err) {
                         if (err) { return deferred.reject(err); }
-                        var parentField = thisQueryable.model.field(mapping.parentField);
+                        const parentField = thisQueryable.model.field(mapping.parentField);
                         if (_.isNil(parentField)) {
                             return deferred.reject("The specified field cannot be found on parent model");
                         }
-                        var keyField = parentField.property || parentField.name;
-                        var values = _.intersection(_.map(_.filter(arr, function(x) {
+                        const keyField = parentField.property || parentField.name;
+                        const values = _.intersection(_.map(_.filter(arr, function(x) {
                             return x.hasOwnProperty(keyField);
                         }), function (x) { return x[keyField];}));
                         if (values.length==0) {
@@ -512,11 +519,11 @@ var mappingExtensions = {
                             if (err) {
                                 return deferred.reject(err);
                             }
-                            var childField = thisArg.getChildModel().field(mapping.childField);
+                            const childField = thisArg.getChildModel().field(mapping.childField);
                             if (_.isNil(childField)) {
                                 return deferred.reject("The specified field cannot be found on child model");
                             }
-                            var foreignKeyField = childField.property || childField.name;
+                            const foreignKeyField = childField.property || childField.name;
                             //Important Backward compatibility issue (<1.8.0)
                             //Description: if $levels parameter is not defined then set the default value to 0.
                             if (typeof q.$levels === 'undefined') {
@@ -555,13 +562,13 @@ var mappingExtensions = {
              * @returns {Promise|*}
              */
             getAssociatedChilds: function(items) {
-                var thisArg = this;
-                var deferred = Q.defer();
+                const thisArg = this;
+                const deferred = Q.defer();
                 process.nextTick(function() {
                     if (_.isNil(items)) {
                         return deferred.resolve();
                     }
-                    var arr = _.isArray(items) ? items : [items];
+                    const arr = _.isArray(items) ? items : [items];
                     if (arr.length == 0) {
                         return deferred.resolve();
                     }
@@ -573,12 +580,12 @@ var mappingExtensions = {
                     }
                     thisArg.getChildModel().migrate(function(err) {
                         if (err) { return deferred.reject(err); }
-                        var parentField = thisArg.getParentModel().field(mapping.parentField);
+                        const parentField = thisArg.getParentModel().field(mapping.parentField);
                         if (_.isNil(parentField)) {
                             return deferred.reject("The specified field cannot be found on parent model");
                         }
-                        var keyField = parentField.property || parentField.name;
-                        var values = _.intersection(_.map(_.filter(arr, function(x) {
+                        const keyField = parentField.property || parentField.name;
+                        const values = _.intersection(_.map(_.filter(arr, function(x) {
                             return x.hasOwnProperty(keyField);
                         }), function (x) { return x[keyField];}));
                         if (values.length==0) {
@@ -589,11 +596,11 @@ var mappingExtensions = {
                             if (err) {
                                 return deferred.reject(err);
                             }
-                            var childField = thisArg.getChildModel().field(mapping.childField);
+                            const childField = thisArg.getChildModel().field(mapping.childField);
                             if (_.isNil(childField)) {
                                 return deferred.reject("The specified field cannot be found on child model");
                             }
-                            var foreignKeyField = childField.property || childField.name;
+                            const foreignKeyField = childField.property || childField.name;
                             //Important Backward compatibility issue (<1.8.0)
                             //Description: if $levels parameter is not defined then set the default value to 0.
                             if (typeof q.$levels === 'undefined') {
@@ -606,8 +613,8 @@ var mappingExtensions = {
                             if (thisQueryable.$silent)  { q.silent(); }
                             //join parents
                             q.query.join(thisQueryable.query.as("j0"))
-                                .with(qry.where(qry.entity(thisArg.getChildModel().viewAdapter).select(mapping.childField))
-                                    .equal(qry.entity("j0").select(mapping.parentField)));
+                                .with(QueryExpression.create().where(QueryEntity.create(thisArg.getChildModel().viewAdapter).select(mapping.childField))
+                                    .equal(QueryEntity.create("j0").select(mapping.parentField)));
                             q.prepare();
                             //final execute query
                             return q.getItems().then(function(childs) {
@@ -631,5 +638,3 @@ var mappingExtensions = {
         };
     }
 };
-
-module.exports = mappingExtensions;

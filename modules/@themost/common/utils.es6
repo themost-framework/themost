@@ -8,7 +8,6 @@
  * found in the LICENSE file at https://themost.io/license
  */
 'use strict';
-import crypto from 'crypto';
 import winston from 'winston';
 import {_} from 'lodash';
 
@@ -225,10 +224,29 @@ export class TextUtils {
      * @returns {string|undefined}
      */
     static toMD5(value) {
+
         if (typeof value === 'undefined' || value == null) {
             return;
         }
-        const md5 = crypto.createHash('md5');
+        //browser implementation
+        let md5, md5module;
+        if (typeof window !== 'undefined') {
+            md5module = 'blueimp-md5';
+            md5 = require(md5module);
+            if (typeof value === 'string') {
+                return md5(value);
+            }
+            else if (value instanceof Date) {
+                return md5(value.toUTCString());
+            }
+            else {
+                return md5(JSON.stringify(value));
+            }
+        }
+        //node.js implementation
+        md5module = 'crypto';
+        const crypto = require(md5module);
+        md5 = crypto.createHash('md5');
         if (typeof value === 'string') {
             md5.update(value);
         }
@@ -248,6 +266,12 @@ export class TextUtils {
      * @returns {string|undefined}
      */
     static toSHA1(value) {
+
+        if (typeof window !== 'undefined') {
+            throw new Error('This method is not implemented for this environment')
+        }
+
+        const crypto = require('crypto');
         if (typeof value === 'undefined' || value == null) {
             return;
         }
@@ -271,6 +295,12 @@ export class TextUtils {
      * @returns {string|undefined}
      */
     static toSHA256(value) {
+
+        if (typeof window !== 'undefined') {
+            throw new Error('This method is not implemented for this environment')
+        }
+
+        const crypto = require('crypto');
         if (typeof value === 'undefined' || value == null) {
             return;
         }
@@ -333,6 +363,9 @@ export class TraceUtils {
         if (args.length==0) { return; }
         if (data instanceof Error) {
             return TraceUtils.error.apply(this, args);
+        }
+        if (_.isObject(data)) {
+            return logger.info.call(logger, JSON.stringify(data,null, 2));
         }
         return logger.info.apply(logger, args);
     }

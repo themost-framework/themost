@@ -24,9 +24,9 @@ var _util = require('util');
 
 var util = _interopRequireDefault(_util).default;
 
-var _rx = require('rx');
+var _rxjs = require('rxjs');
 
-var Rx = _interopRequireDefault(_rx).default;
+var Rx = _interopRequireDefault(_rxjs).default;
 
 var _lodash = require('lodash');
 
@@ -265,7 +265,7 @@ var HttpDataController = (_dec = httpGet(), _dec2 = httpAction('new'), _dec3 = h
         value: function getNewItem() {
             var _this2 = this;
 
-            return Rx.Observable.fromNodeCallback(function (callback) {
+            return Rx.Observable.bindNodeCallback(function (callback) {
                 callback(null, {});
             })();
 
@@ -303,7 +303,7 @@ var HttpDataController = (_dec = httpGet(), _dec2 = httpAction('new'), _dec3 = h
         key: 'postNewItem',
         value: function postNewItem(data) {
             var self = this;
-            return Rx.Observable.fromNodeCallback(function (callback) {
+            return Rx.Observable.bindNodeCallback(function (callback) {
                 if (_.isArray(data)) {
                     return callback(new HttpBadRequestError());
                 }
@@ -333,7 +333,7 @@ var HttpDataController = (_dec = httpGet(), _dec2 = httpAction('new'), _dec3 = h
         value: function getSchema() {
             var self = this,
                 context = self.context;
-            return Rx.Observable.fromNodeCallback(function (callback) {
+            return Rx.Observable.bindNodeCallback(function (callback) {
                 if (self.model) {
                     (function () {
                         //prepare client model
@@ -417,7 +417,7 @@ var HttpDataController = (_dec = httpGet(), _dec2 = httpAction('new'), _dec3 = h
         key: 'postItem',
         value: function postItem(id) {
             var self = this;
-            return Rx.Observable.fromNodeCallback(function (callback) {
+            return Rx.Observable.bindNodeCallback(function (callback) {
                 var target = self.model.convert(data, true);
                 if (target) {
                     self.model.save(target, function (err) {
@@ -570,7 +570,7 @@ var HttpDataController = (_dec = httpGet(), _dec2 = httpAction('new'), _dec3 = h
         value: function getItems() {
             var self = this,
                 context = self.context;
-            return Rx.Observable.fromNodeCallback(function (callback) {
+            return Rx.Observable.bindNodeCallback(function (callback) {
 
                 var top = parseInt(context.params.attr('$top')),
                     take = top > 0 ? top : top == -1 ? top : 25,
@@ -650,7 +650,7 @@ var HttpDataController = (_dec = httpGet(), _dec2 = httpAction('new'), _dec3 = h
         key: 'postItems',
         value: function postItems(data) {
             var self = this;
-            return Rx.Observable.fromNodeCallback(function (callback) {
+            return Rx.Observable.bindNodeCallback(function (callback) {
                 var target = void 0;
                 try {
                     target = self.model.convert(data, true);
@@ -678,7 +678,7 @@ var HttpDataController = (_dec = httpGet(), _dec2 = httpAction('new'), _dec3 = h
         key: 'deleteItems',
         value: function deleteItems(data) {
             var self = this;
-            return Rx.Observable.fromNodeCallback(function (callback) {
+            return Rx.Observable.bindNodeCallback(function (callback) {
                 //get data
                 var target = void 0;
                 try {
@@ -774,7 +774,7 @@ var HttpDataController = (_dec = httpGet(), _dec2 = httpAction('new'), _dec3 = h
         key: 'getAssociatedItems',
         value: function getAssociatedItems(parent, model) {
             var self = this;
-            return Rx.Observable.fromNodeCallback(function (callback) {
+            return Rx.Observable.bindNodeCallback(function (callback) {
                 if (_.isNil(parent) || _.isNil(model)) {
                     return callback(new HttpBadRequestError());
                 }

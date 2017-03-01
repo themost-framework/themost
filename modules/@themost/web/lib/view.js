@@ -61,9 +61,9 @@ var _mostXml = require('most-xml');
 
 var xml = _interopRequireDefault(_mostXml).default;
 
-var _rx = require('rx');
+var _rxjs = require('rxjs');
 
-var Rx = _interopRequireDefault(_rx).default;
+var Rx = _interopRequireDefault(_rxjs).default;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -504,33 +504,33 @@ var ViewConsumer = exports.ViewConsumer = function (_HttpConsumer) {
                     var handler = new ViewHandler();
                     //execute mapRequest
                     return {
-                        v: Rx.Observable.fromNodeCallback(handler.mapRequest, handler)(context).flatMap(function () {
+                        v: Rx.Observable.bindNodeCallback(handler.mapRequest, handler)(context).flatMap(function () {
                             //if request has been mapped
                             if (context.request.currentHandler instanceof ViewHandler) {
                                 //execute post map request
-                                return Rx.Observable.fromNodeCallback(handler.postMapRequest, handler)(context);
+                                return Rx.Observable.bindNodeCallback(handler.postMapRequest, handler)(context);
                             }
                             //otherwise return next result
-                            return Rx.Observable.return(new HttpNextResult());
+                            return Rx.Observable.of(new HttpNextResult());
                         }).flatMap(function () {
                             //if current handler is an instance of ViewHandler
                             if (context.request.currentHandler instanceof ViewHandler) {
                                 //process request
-                                return Rx.Observable.fromNodeCallback(handler.processRequest, handler)(context).flatMap(function (res) {
+                                return Rx.Observable.bindNodeCallback(handler.processRequest, handler)(context).flatMap(function (res) {
                                     if (res instanceof HttpEndResult) {
                                         return res.toObservable();
                                     }
-                                    return Rx.Observable.return(res);
+                                    return Rx.Observable.of(res);
                                 });
                             }
-                            return Rx.Observable.return(new HttpNextResult());
+                            return Rx.Observable.of(new HttpNextResult());
                         })
                     };
                 }();
 
                 if ((typeof _ret4 === 'undefined' ? 'undefined' : _typeof(_ret4)) === "object") return _ret4.v;
             } catch (err) {
-                return Rx.Observable.throw(err);
+                return Rx.Observable['throw'](err);
             }
         }));
     }

@@ -101,9 +101,9 @@ var _data = require('./data');
 var DataConfigurationStrategy = _data.DataConfigurationStrategy;
 var DefaultDataConfigurationStrategy = _data.DefaultDataConfigurationStrategy;
 
-var _rx = require('rx');
+var _rxjs = require('rxjs');
 
-var Rx = _rx.Rx;
+var Rx = _interopRequireDefault(_rxjs).default;
 
 var _path = require('path');
 
@@ -169,7 +169,7 @@ function startInternal(options) {
         var server_ = http.createServer(function (request, response) {
             var context = self.createContext(request, response);
             //begin request processing
-            Rx.Observable.fromNodeCallback(processRequestInternal)(context).subscribe(function () {
+            Rx.Observable.bindNodeCallback(processRequestInternal)(context).subscribe(function () {
                 context.finalize(function () {
                     if (context.response) {
                         context.response.end();
@@ -177,7 +177,7 @@ function startInternal(options) {
                 });
             }, function (err) {
                 //process error
-                Rx.Observable.fromNodeCallback(processErrorInternal)(context, err).subscribe(function (res) {
+                Rx.Observable.bindNodeCallback(processErrorInternal)(context, err).subscribe(function (res) {
                     context.finalize(function () {
                         if (context.response) {
                             context.response.end();
@@ -934,7 +934,7 @@ var HttpApplication = exports.HttpApplication = function () {
          */
         value: function execute(fn) {
             var self = this;
-            return Rx.Observable.fromNodeCallback(function (callback) {
+            return Rx.Observable.bindNodeCallback(function (callback) {
                 //create context
                 var request = createRequestInternal.call(self),
                     response = createResponseInternal.call(self, request);
@@ -957,7 +957,7 @@ var HttpApplication = exports.HttpApplication = function () {
         key: 'executeUnattended',
         value: function executeUnattended(fn) {
             var self = this;
-            return Rx.Observable.fromNodeCallback(function (callback) {
+            return Rx.Observable.bindNodeCallback(function (callback) {
                 //create context
                 var request = createRequestInternal.call(self),
                     response = createResponseInternal.call(self, request);
@@ -988,7 +988,7 @@ var HttpApplication = exports.HttpApplication = function () {
         key: 'executeExternalRequest',
         value: function executeExternalRequest(options, data) {
 
-            return Rx.Observable.fromNodeCallback(function (callback) {
+            return Rx.Observable.bindNodeCallback(function (callback) {
                 //make request
                 var https = require('https'),
                     opts = typeof options === 'string' ? url.parse(options) : options,
@@ -1027,7 +1027,7 @@ var HttpApplication = exports.HttpApplication = function () {
     }, {
         key: 'executeRequest',
         value: function executeRequest(options) {
-            return Rx.Observable.fromNodeCallback(function (callback) {
+            return Rx.Observable.bindNodeCallback(function (callback) {
                 var _this = this;
 
                 var requestOptions = {};

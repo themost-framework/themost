@@ -12,7 +12,7 @@ import {HttpApplicationService} from "./interfaces";
 import {AbstractClassError, AbstractMethodError} from "@themost/common/errors";
 import {Args} from "@themost/common/utils";
 import {_} from 'lodash';
-import Rx from 'rx';
+import Rx from 'rxjs';
 import accepts from 'accepts';
 import xml from 'most-xml';
 import path from 'path';
@@ -210,7 +210,7 @@ export class JsonOutputFormatter extends OutputFormatter {
      * @returns {Observable}
      */
     execute(context, data) {
-        return Rx.Observable.fromNodeCallback((callback) => {
+        return Rx.Observable.bindNodeCallback((callback) => {
             if (_.isNil(data)) {
                 //return 204 (no content)
                 context.response.writeHead(204);
@@ -272,7 +272,7 @@ export class XmlOutputFormatter extends OutputFormatter {
      * @returns {Observable}
      */
     execute(context, data) {
-        return Rx.Observable.fromNodeCallback((callback) => {
+        return Rx.Observable.bindNodeCallback((callback) => {
             if (_.isNil(data)) {
                 //return 204 (no content)
                 context.response.writeHead(204);
@@ -329,7 +329,7 @@ export class HtmlOutputFormatter extends OutputFormatter {
      * @returns {Observable}
      */
     execute(context, data) {
-        return Rx.Observable.fromNodeCallback((callback) => {
+        return Rx.Observable.bindNodeCallback((callback) => {
             if (_.isNil(data)) {
                 //return 204 (no content)
                 context.response.writeHead(204);

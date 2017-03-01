@@ -13,7 +13,7 @@ import crypto from 'crypto';
 import moment from 'moment';
 import {Args,TraceUtils,LangUtils,RandomUtils} from '@themost/common/utils';
 import {HttpConsumer} from './consumers';
-import Rx from 'rx';
+import Rx from 'rxjs';
 import {HttpNextResult} from './results';
 import {HttpApplicationService} from "./interfaces";
 import {AbstractClassError, AbstractMethodError, HttpForbiddenError, HttpUnauthorizedError} from "@themost/common/errors";
@@ -72,13 +72,13 @@ export class AuthConsumer extends HttpConsumer {
             const context = this;
             try {
                 let handler = new AuthHandler();
-                return Rx.Observable.fromNodeCallback(handler.authenticateRequest)(context)
+                return Rx.Observable.bindNodeCallback(handler.authenticateRequest)(context)
                     .flatMap(()=> {
                         return HttpNextResult.create().toObservable();
                     });
             }
             catch(err) {
-                return Rx.Observable.throw(err);
+                return Rx.Observable['throw'](err);
             }
         });
     }
@@ -162,13 +162,13 @@ export class BasicAuthConsumer extends HttpConsumer {
             const context = this;
             try {
                 let handler = new BasicAuthHandler();
-                return Rx.Observable.fromNodeCallback(handler.authenticateRequest)(context)
+                return Rx.Observable.bindNodeCallback(handler.authenticateRequest)(context)
                     .flatMap(()=> {
                         return HttpNextResult.create().toObservable();
                     });
             }
             catch(err) {
-                return Rx.Observable.throw(err);
+                return Rx.Observable['throw'](err);
             }
         });
     }
@@ -321,7 +321,7 @@ export class DefaultAuthStrategy extends HttpApplicationService {
      */
     login(thisContext, userName, userPassword) {
         const self = this;
-        return Rx.Observable.fromNodeCallback(function(context, userName, password, callback) {
+        return Rx.Observable.bindNodeCallback(function(context, userName, password, callback) {
             try {
                 context.model('user').where('name').equal(userName).select('id','enabled').silent().first(function(err, result) {
                     if (err) {
@@ -373,7 +373,7 @@ export class DefaultAuthStrategy extends HttpApplicationService {
      */
     logout(thisContext) {
         const self = this;
-        return Rx.Observable.fromNodeCallback(function(callback) {
+        return Rx.Observable.bindNodeCallback(function(callback) {
             //set auth cookie
             self.setAuthCookie(thisContext,'anonymous');
             return callback();

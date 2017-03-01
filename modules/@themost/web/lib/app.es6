@@ -24,7 +24,7 @@ import {RoutingStrategy,DefaultRoutingStrategy,RouteConsumer} from './route';
 import {LocalizationStrategy,DefaultLocalizationStrategy} from './localization';
 import {CacheStrategy,DefaultCacheStrategy} from './cache';
 import {DataConfigurationStrategy,DefaultDataConfigurationStrategy} from './data';
-import {Rx} from 'rx';
+import Rx from 'rxjs';
 import path from 'path';
 import http from 'http';
 import https from 'https';
@@ -64,14 +64,14 @@ function startInternal(options) {
         const server_ = http.createServer(function (request, response) {
             const context = self.createContext(request, response);
             //begin request processing
-            Rx.Observable.fromNodeCallback(processRequestInternal)(context)
+            Rx.Observable.bindNodeCallback(processRequestInternal)(context)
                 .subscribe(()=> {
                     context.finalize(function() {
                         if (context.response) { context.response.end(); }
                     });
             }, (err) => {
                 //process error
-                Rx.Observable.fromNodeCallback(processErrorInternal)(context, err)
+                Rx.Observable.bindNodeCallback(processErrorInternal)(context, err)
                     .subscribe((res) => {
                         context.finalize(function() {
                             if (context.response) { context.response.end(); }
@@ -755,7 +755,7 @@ export class HttpApplication {
      */
     execute(fn) {
         const self = this;
-        return Rx.Observable.fromNodeCallback(function(callback) {
+        return Rx.Observable.bindNodeCallback(function(callback) {
             //create context
             const request = createRequestInternal.call(self),
                 response = createResponseInternal.call(self,request);
@@ -775,7 +775,7 @@ export class HttpApplication {
      */
     executeUnattended(fn) {
         const self = this;
-        return Rx.Observable.fromNodeCallback(function(callback) {
+        return Rx.Observable.bindNodeCallback(function(callback) {
             //create context
             const request = createRequestInternal.call(self),
                 response = createResponseInternal.call(self,request);
@@ -803,7 +803,7 @@ export class HttpApplication {
      */
     executeExternalRequest(options, data) {
 
-        return Rx.Observable.fromNodeCallback(function(callback) {
+        return Rx.Observable.bindNodeCallback(function(callback) {
             //make request
             const https = require('https'),
                 opts = (typeof options==='string') ? url.parse(options) : options,
@@ -846,7 +846,7 @@ export class HttpApplication {
      * @returns {Observable}
      */
     executeRequest(options) {
-        return Rx.Observable.fromNodeCallback(function(callback) {
+        return Rx.Observable.bindNodeCallback(function(callback) {
             const requestOptions = { };
             if (typeof options === 'string') {
                 _.assign(requestOptions, { url:options });

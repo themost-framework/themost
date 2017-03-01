@@ -39,9 +39,9 @@ var _consumers = require('./consumers');
 
 var HttpConsumer = _consumers.HttpConsumer;
 
-var _rx = require('rx');
+var _rxjs = require('rxjs');
 
-var Rx = _interopRequireDefault(_rx).default;
+var Rx = _interopRequireDefault(_rxjs).default;
 
 var _results = require('./results');
 
@@ -130,11 +130,11 @@ var AuthConsumer = exports.AuthConsumer = function (_HttpConsumer) {
             var context = this;
             try {
                 var handler = new AuthHandler();
-                return Rx.Observable.fromNodeCallback(handler.authenticateRequest)(context).flatMap(function () {
+                return Rx.Observable.bindNodeCallback(handler.authenticateRequest)(context).flatMap(function () {
                     return HttpNextResult.create().toObservable();
                 });
             } catch (err) {
-                return Rx.Observable.throw(err);
+                return Rx.Observable['throw'](err);
             }
         }));
     }
@@ -236,11 +236,11 @@ var BasicAuthConsumer = exports.BasicAuthConsumer = function (_HttpConsumer2) {
             var context = this;
             try {
                 var handler = new BasicAuthHandler();
-                return Rx.Observable.fromNodeCallback(handler.authenticateRequest)(context).flatMap(function () {
+                return Rx.Observable.bindNodeCallback(handler.authenticateRequest)(context).flatMap(function () {
                     return HttpNextResult.create().toObservable();
                 });
             } catch (err) {
-                return Rx.Observable.throw(err);
+                return Rx.Observable['throw'](err);
             }
         }));
     }
@@ -436,7 +436,7 @@ var DefaultAuthStrategy = exports.DefaultAuthStrategy = function (_HttpApplicati
         key: 'login',
         value: function login(thisContext, userName, userPassword) {
             var self = this;
-            return Rx.Observable.fromNodeCallback(function (context, userName, password, callback) {
+            return Rx.Observable.bindNodeCallback(function (context, userName, password, callback) {
                 try {
                     context.model('user').where('name').equal(userName).select('id', 'enabled').silent().first(function (err, result) {
                         if (err) {
@@ -484,7 +484,7 @@ var DefaultAuthStrategy = exports.DefaultAuthStrategy = function (_HttpApplicati
         key: 'logout',
         value: function logout(thisContext) {
             var self = this;
-            return Rx.Observable.fromNodeCallback(function (callback) {
+            return Rx.Observable.bindNodeCallback(function (callback) {
                 //set auth cookie
                 self.setAuthCookie(thisContext, 'anonymous');
                 return callback();

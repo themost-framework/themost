@@ -9,7 +9,7 @@
  */
 'use strict';
 import {_} from 'lodash';
-import Rx from 'rx';
+import Rx from 'rxjs';
 import NodeCache from 'node-cache';
 import {HttpApplicationService} from './interfaces';
 import {AbstractClassError,AbstractMethodError} from '@themost/common/errors';
@@ -115,7 +115,7 @@ export class DefaultCacheStrategy extends CacheStrategy  {
      * @returns {Observable}
      */
     remove(key) {
-        return Rx.Observable.fromNodeCallback(this[rawCacheProperty].set, this[rawCacheProperty])(key);
+        return Rx.Observable.bindNodeCallback(this[rawCacheProperty].set, this[rawCacheProperty])(key);
     }
 
     /**
@@ -124,7 +124,7 @@ export class DefaultCacheStrategy extends CacheStrategy  {
     */
     clear() {
         this[rawCacheProperty].flushAll();
-        return Rx.Observable.return();
+        return Rx.Observable.of();
     }
 
     /**
@@ -136,7 +136,7 @@ export class DefaultCacheStrategy extends CacheStrategy  {
      */
     add(key, value, absoluteExpiration) {
 
-        return Rx.Observable.fromNodeCallback(this[rawCacheProperty].set, this[rawCacheProperty])(key, value, absoluteExpiration);
+        return Rx.Observable.bindNodeCallback(this[rawCacheProperty].set, this[rawCacheProperty])(key, value, absoluteExpiration);
 
     }
 
@@ -156,14 +156,14 @@ export class DefaultCacheStrategy extends CacheStrategy  {
                Args.check(source instanceof Observable, 'Invalid argument. Expected a valid observable.');
                return source.flatMap((res) => {
                    if (_.isNil(res)) {
-                       return Rx.Observable.return();
+                       return Rx.Observable.of();
                    }
                    return self.add(key,res,absoluteExpiration).flatMap(() => {
-                       return Rx.Observable.return(res);
+                       return Rx.Observable.of(res);
                    });
                });
            }
-            return Rx.Observable.return(res);
+            return Rx.Observable.of(res);
         });
     }
 
@@ -173,9 +173,9 @@ export class DefaultCacheStrategy extends CacheStrategy  {
      * @returns {Observable}
      */
     get(key) {
-        return Rx.Observable.fromNodeCallback(this[rawCacheProperty].get, this[rawCacheProperty])(key)
+        return Rx.Observable.bindNodeCallback(this[rawCacheProperty].get, this[rawCacheProperty])(key)
             .flatMap((res) => {
-                return Rx.Observable.return(res[key]);
+                return Rx.Observable.of(res[key]);
             });
 
     }

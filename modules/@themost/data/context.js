@@ -19,11 +19,9 @@ var _utils = require('@themost/common/utils');
 
 var TraceUtils = _utils.TraceUtils;
 
-var _dataConfiguration = require('data-configuration');
+var _config = require('./config');
 
-var cfg = _interopRequireDefault(_dataConfiguration).default;
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var DataConfiguration = _config.DataConfiguration;
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -146,7 +144,7 @@ var DefaultDataContext = exports.DefaultDataContext = function (_DataContext) {
     _createClass(DefaultDataContext, [{
         key: 'getConfiguration',
         value: function getConfiguration() {
-            return cfg.current;
+            return DataConfiguration.getCurrent();
         }
 
         /**
@@ -162,7 +160,7 @@ var DefaultDataContext = exports.DefaultDataContext = function (_DataContext) {
             if (name == null || name === undefined) return null;
             var obj = self.getConfiguration().model(name);
             if (_.isNil(obj)) return null;
-            var DataModel = require('./data-model').DataModel,
+            var DataModel = require('./model').DataModel,
                 model = new DataModel(obj);
             //set model context
             model.context = self;
@@ -181,6 +179,27 @@ var DefaultDataContext = exports.DefaultDataContext = function (_DataContext) {
             cb = cb || function () {};
             this.finalize_();
             cb.call(this);
+        }
+
+        /**
+         *
+         * @param {Function} func
+         * @param {Function} callback
+         */
+
+    }], [{
+        key: 'execute',
+        value: function execute(func, callback) {
+            func = func || function () {};
+            var ctx = new DefaultDataContext();
+            func.call(null, ctx, function (err) {
+                ctx.finalize(function () {
+                    if (err) {
+                        return callback(err);
+                    }
+                    return callback();
+                });
+            });
         }
     }]);
 
@@ -265,7 +284,7 @@ var NamedDataContext = function (_DataContext2) {
          * @returns {DataConfiguration}
          */
         _this2.getConfiguration = function () {
-            return cfg.getNamedConfiguration(name_);
+            return DataConfiguration.getCurrent();
         };
 
         delete self.db;
@@ -297,7 +316,7 @@ var NamedDataContext = function (_DataContext2) {
             if (name == null || name === undefined) return null;
             var obj = self.getConfiguration().model(name);
             if (_.isNil(obj)) return null;
-            var DataModel = require('./data-model').DataModel;
+            var DataModel = require('./model').DataModel;
             var model = new DataModel(obj);
             //set model context
             model.context = self;

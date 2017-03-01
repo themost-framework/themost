@@ -45,9 +45,9 @@ var _consumers = require('./consumers');
 
 var HttpConsumer = _consumers.HttpConsumer;
 
-var _rx = require('rx');
+var _rxjs = require('rxjs');
 
-var Rx = _interopRequireDefault(_rx).default;
+var Rx = _interopRequireDefault(_rxjs).default;
 
 var _results = require('./results');
 
@@ -368,11 +368,11 @@ var RouteConsumer = exports.RouteConsumer = function (_HttpConsumer) {
             var context = this;
             try {
                 var handler = new RouteHandler();
-                return Rx.Observable.fromNodeCallback(handler.mapRequest)(context).flatMap(function () {
+                return Rx.Observable.bindNodeCallback(handler.mapRequest)(context).flatMap(function () {
                     return HttpNextResult.create().toObservable();
                 });
             } catch (err) {
-                return Rx.Observable.throw(err);
+                return Rx.Observable['throw'](err);
             }
         }));
     }

@@ -564,14 +564,17 @@ export class DataModelMigration {
  * @property {string} associationType - Gets or sets the type of this association (junction|association). The default value is 'association'.
  * @property {string[]} select - Gets or sets an array of fields to select from associated model. If this property is empty then all associated model fields will be selected.
  * @property {*} options - Gets or sets a set of default options which are going to be used while expanding results based on this data association.
- * @param {*=} obj - An object that contains relation mapping attributes
- * @constructor
  */
-function DataAssociationMapping(obj) {
-    this.cascade = 'none';
-    this.associationType = 'association';
-    //this.select = [];
-    if (typeof obj === 'object') { _.assign(this, obj); }
+export class DataAssociationMapping {
+    /**
+     * @constructor
+     * @param {*} obj
+     */
+    constructor(obj) {
+        this.cascade = 'none';
+        this.associationType = 'association';
+        if (typeof obj === 'object') { _.assign(this, obj); }
+    }
 }
 
 

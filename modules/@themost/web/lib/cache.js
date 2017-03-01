@@ -20,9 +20,9 @@ var _lodash = require('lodash');
 
 var _ = _lodash._;
 
-var _rx = require('rx');
+var _rxjs = require('rxjs');
 
-var Rx = _interopRequireDefault(_rx).default;
+var Rx = _interopRequireDefault(_rxjs).default;
 
 var _nodeCache = require('node-cache');
 
@@ -184,7 +184,7 @@ var DefaultCacheStrategy = exports.DefaultCacheStrategy = function (_CacheStrate
     _createClass(DefaultCacheStrategy, [{
         key: 'remove',
         value: function remove(key) {
-            return Rx.Observable.fromNodeCallback(this[rawCacheProperty].set, this[rawCacheProperty])(key);
+            return Rx.Observable.bindNodeCallback(this[rawCacheProperty].set, this[rawCacheProperty])(key);
         }
 
         /**
@@ -196,7 +196,7 @@ var DefaultCacheStrategy = exports.DefaultCacheStrategy = function (_CacheStrate
         key: 'clear',
         value: function clear() {
             this[rawCacheProperty].flushAll();
-            return Rx.Observable.return();
+            return Rx.Observable.of();
         }
 
         /**
@@ -211,7 +211,7 @@ var DefaultCacheStrategy = exports.DefaultCacheStrategy = function (_CacheStrate
         key: 'add',
         value: function add(key, value, absoluteExpiration) {
 
-            return Rx.Observable.fromNodeCallback(this[rawCacheProperty].set, this[rawCacheProperty])(key, value, absoluteExpiration);
+            return Rx.Observable.bindNodeCallback(this[rawCacheProperty].set, this[rawCacheProperty])(key, value, absoluteExpiration);
         }
 
         /**
@@ -233,14 +233,14 @@ var DefaultCacheStrategy = exports.DefaultCacheStrategy = function (_CacheStrate
                     Args.check(source instanceof Observable, 'Invalid argument. Expected a valid observable.');
                     return source.flatMap(function (res) {
                         if (_.isNil(res)) {
-                            return Rx.Observable.return();
+                            return Rx.Observable.of();
                         }
                         return self.add(key, res, absoluteExpiration).flatMap(function () {
-                            return Rx.Observable.return(res);
+                            return Rx.Observable.of(res);
                         });
                     });
                 }
-                return Rx.Observable.return(res);
+                return Rx.Observable.of(res);
             });
         }
 
@@ -253,8 +253,8 @@ var DefaultCacheStrategy = exports.DefaultCacheStrategy = function (_CacheStrate
     }, {
         key: 'get',
         value: function get(key) {
-            return Rx.Observable.fromNodeCallback(this[rawCacheProperty].get, this[rawCacheProperty])(key).flatMap(function (res) {
-                return Rx.Observable.return(res[key]);
+            return Rx.Observable.bindNodeCallback(this[rawCacheProperty].get, this[rawCacheProperty])(key).flatMap(function (res) {
+                return Rx.Observable.of(res[key]);
             });
         }
     }]);

@@ -16,7 +16,7 @@ import url from 'url';
 import path from 'path';
 import crypto from 'crypto';
 import {HttpConsumer} from './consumers';
-import Rx from 'rx';
+import Rx from 'rxjs';
 import {HttpNextResult, HttpEndResult} from './results';
 
 /**
@@ -214,16 +214,16 @@ export class StaticContentConsumer extends HttpConsumer {
             const context = this;
             try {
                 let handler = new StaticHandler(rootDir);
-                return Rx.Observable.fromNodeCallback(handler.mapRequest,handler)(context)
+                return Rx.Observable.bindNodeCallback(handler.mapRequest,handler)(context)
                     .flatMap((res) => {
                         if (res) {
-                            return Rx.Observable.fromNodeCallback(handler.processRequest,handler)(context);
+                            return Rx.Observable.bindNodeCallback(handler.processRequest,handler)(context);
                         }
                         return HttpNextResult.create().toObservable();
                     });
             }
             catch(err) {
-                return Rx.Observable.throw(err);
+                return Rx.Observable['throw'](err);
             }
         });
     }
@@ -244,16 +244,16 @@ export class MapStaticContentConsumer extends HttpConsumer {
             try {
                 let handler = new StaticHandler(rootDir);
                 handler.whenDir = whenDir;
-                return Rx.Observable.fromNodeCallback(handler.mapRequest,handler)(context)
+                return Rx.Observable.bindNodeCallback(handler.mapRequest,handler)(context)
                     .flatMap((res) => {
                         if (res) {
-                            return Rx.Observable.fromNodeCallback(handler.processRequest,handler)(context);
+                            return Rx.Observable.bindNodeCallback(handler.processRequest,handler)(context);
                         }
                         return HttpNextResult.create().toObservable();
                     });
             }
             catch(err) {
-                return Rx.Observable.throw(err);
+                return Rx.Observable['throw'](err);
             }
         });
     }

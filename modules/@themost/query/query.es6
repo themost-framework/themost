@@ -9,6 +9,7 @@
  */
 'use strict';
 import sprintf from 'sprintf';
+import async from 'async';
 import {_} from 'lodash';
 
 function _empty(obj) {
@@ -145,8 +146,9 @@ export class QueryExpression {
 
     /**
      * Creates a new query expression
-     * @param {string|*} entity
+     * @param {*=} entity
      * @param {Array=} fields
+     * @returns {QueryExpression}
      */
     static create(entity, fields) {
         const q = new QueryExpression();
@@ -506,7 +508,7 @@ export class QueryExpression {
      */
     from(entity) {
 
-        if (entity==null)
+        if (_.isNil(entity))
             return this;
         let name;
         if (entity instanceof QueryEntity) {
@@ -1459,6 +1461,238 @@ export class QueryValue {
 
 }
 
+export class QueryFieldUtils {
+    /**
+     * @param name {string}
+     * @returns {QueryField}
+     */
+    static select(name) {
+        return new QueryField(name);
+    }
+
+    /**
+     * @param name {string}
+     * @returns {QueryField}
+     */
+    static count(name) {
+        const f = new QueryField();
+        return f.count(name);
+    }
+
+    /**
+     * @param name {string}
+     * @returns {QueryField}
+     */
+    static min(name) {
+        const f = new QueryField();
+        return f.min(name);
+    }
+
+    /**
+     * @param name {string}
+     * @returns {QueryField}
+     */
+    static max(name) {
+        const f = new QueryField();
+        return f.max(name);
+    }
+
+    /**
+     * @param name {string}
+     * @returns {QueryField}
+     */
+    static average(name) {
+        const f = new QueryField();
+        return f.average(name);
+    }
+
+    /**
+     * @param name {string}
+     * @returns {QueryField}
+     */
+    static avg(name) {
+        return QueryFieldUtils.average(name);
+    }
+
+    /**
+     * @param name {string}
+     * @returns {QueryField}
+     */
+    static sum(name) {
+        const f = new QueryField();
+        return f.sum(name);
+    }
+    /**
+     * @param {string} name
+     * @returns {QueryField}
+     */
+    static floor(name) {
+        const f = { };
+        f[name] = { $floor:[ QueryFieldUtils.select(name) ] };
+        return _.assign(new QueryField(), f);
+    }
+    /**
+     * @param {string} name
+     * @returns {QueryField}
+     */
+    static ceil(name) {
+        const f = { };
+        f[name] = { $ceiling:[ QueryFieldUtils.select(name) ] };
+        return _.assign(new QueryField(), f);
+    }
+    /**
+     * @param {string} name
+     * @param {number=} divider
+     * @returns {QueryField}
+     */
+    static modulo(name, divider) {
+        const f = { };
+        f[name] = { $mod:[ QueryFieldUtils.select(name), divider ] };
+        return _.assign(new QueryField(), f);
+    }
+    /**
+     * @param {string} name
+     * @param {number=} x
+     * @returns {QueryField}
+     */
+    static add(name, x) {
+        const f = { };
+        f[name] = { $add:[ QueryFieldUtils.select(name), x ] };
+        return _.assign(new QueryField(), f);
+    }
+    /**
+     * @param {string} name
+     * @param {number=} x
+     * @returns {QueryField}
+     */
+    static subtract(name, x) {
+        const f = { };
+        f[name] = { $subtract:[ QueryFieldUtils.select(name), x ] };
+        return _.assign(new QueryField(), f);
+    }
+    /**
+     * @param {string} name
+     * @param {number=} divider
+     * @returns {QueryField}
+     */
+    static divide(name, divider) {
+        const f = { };
+        f[name] = { $divide:[ QueryFieldUtils.select(name), divider ] };
+        return _.assign(new QueryField(), f);
+    }
+    /**
+     * @param {string} name
+     * @param {number=} divider
+     * @returns {QueryField}
+     */
+    static multiply(name, multiplier) {
+        const f = { };
+        f[name] = { $multiply:[ QueryFieldUtils.select(name), multiplier ] };
+        return _.assign(new QueryField(), f);
+    }
+    /**
+     * @param {string} name
+     * @param {number=} n
+     * @returns {QueryField}
+     */
+    static round(name, n) {
+        const f = { };
+        if (typeof n !== 'number') { n=2; }
+        f[name] = { $round:[ QueryFieldUtils.select(name), n ] };
+        return _.assign(new QueryField(), f);
+    }
+
+    /**
+     * @param {string} name
+     * @returns {QueryField}
+     */
+    static month(name) {
+        const f = { };
+        f[name] = { $month:[ QueryFieldUtils.select(name) ] };
+        return _.assign(new QueryField(), f);
+    }
+
+    /**
+     * @param {string} name
+     * @returns {QueryField}
+     */
+    static year(name) {
+        const f = { };
+        f[name] = { $year:[ QueryFieldUtils.select(name) ] };
+        return _.assign(new QueryField(), f);
+    }
+
+    /**
+     * @param {string} name
+     * @returns {QueryField}
+     */
+    static day(name) {
+        const f = { };
+        f[name] = { $day:[ QueryFieldUtils.select(name) ] };
+        return _.assign(new QueryField(), f);
+    }
+
+    /**
+     * @param {string} name
+     * @returns {QueryField}
+     */
+    static hour(name) {
+        const f = { };
+        f[name] = { $hour:[ QueryFieldUtils.select(name) ] };
+        return _.assign(new QueryField(), f);
+    }
+
+    /**
+     * @param {string} name
+     * @returns {QueryField}
+     */
+    static minute(name) {
+        const f = { };
+        f[name] = { $minute:[ QueryFieldUtils.select(name) ] };
+        return _.assign(new QueryField(), f);
+    }
+
+    /**
+     * @param {string} name
+     * @returns {QueryField}
+     */
+    static second(name) {
+        const f = { };
+        f[name] = { $second:[ QueryFieldUtils.select(name) ] };
+        return _.assign(new QueryField(), f);
+    }
+
+    /**
+     * @param {string} name
+     * @returns {QueryField}
+     */
+    static date(name) {
+        const f = { };
+        f[name] = { $date:[ QueryFieldUtils.select(name) ] };
+        return _.assign(new QueryField(), f);
+    }
+
+    /**
+     * @param {string} name
+     * @returns {QueryField}
+     */
+    static length(name) {
+        const f = { };
+        f[name] = { $length:[ QueryFieldUtils.select(name) ] };
+        return _.assign(new QueryField(), f);
+    }
+
+    /**
+     * @param {string} name
+     * @returns {QueryField}
+     */
+    static trim(name) {
+        const f = { };
+        f[name] = { $trim:[ QueryFieldUtils.select(name) ] };
+        return _.assign(new QueryField(), f);
+    }
+}
+
 /**
  * @class
  */
@@ -1478,15 +1712,16 @@ export class QueryField {
 
     /**
      * Creates a query field of the given entity
-     * @param {string} entity
-     * @param {string} name
+     * @param {string=} fieldName
+     * @param {string=} fromEntity
      * @returns {QueryField}
      */
-    static create(entity, name) {
-        if (!_.isString(entity)) { throw new TypeError('Field entity must be a valid string'); }
-        if (!_.isString(name)) { throw new TypeError('Field name must be a valid string'); }
-        const f = new QueryField(name);
-        return f.from(entity);
+    static create(fieldName, fromEntity) {
+        const f = new QueryField(fieldName);
+        if (_.isNil(fromEntity)) {
+            return f;
+        }
+        return f.from(fromEntity);
     }
 
     /**
@@ -1660,6 +1895,13 @@ export class QueryField {
         return null;
     }
 
+    /**
+     * @returns {string}
+     */
+    getName() {
+        return this.name();
+    }
+
     nameOf() {
 
         if ((typeof this === 'string') || (this instanceof String)) {
@@ -1683,58 +1925,7 @@ export class QueryField {
         return this.$name;
     }
 
-    /**
-     * @param name {string}
-     * @returns {QueryField}
-     */
-    static select(name) {
-        return new QueryField(name);
-    }
 
-    /**
-     * @param name {string}
-     * @returns {QueryField}
-     */
-    static count(name) {
-        const f = new QueryField();
-        return f.count(name);
-    }
-
-    /**
-     * @param name {string}
-     * @returns {QueryField}
-     */
-    static min(name) {
-        const f = new QueryField();
-        return f.min(name);
-    }
-
-    /**
-     * @param name {string}
-     * @returns {QueryField}
-     */
-    static max(name) {
-        const f = new QueryField();
-        return f.max(name);
-    }
-
-    /**
-     * @param name {string}
-     * @returns {QueryField}
-     */
-    static average(name) {
-        const f = new QueryField();
-        return f.average(name);
-    }
-
-    /**
-     * @param name {string}
-     * @returns {QueryField}
-     */
-    static sum(name) {
-        const f = new QueryField();
-        return f.sum(name);
-    }
 }
 
 QueryField.fieldNameExpression = /^[A-Za-z_0-9]+$/;

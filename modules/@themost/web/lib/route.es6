@@ -15,7 +15,7 @@ import {_} from 'lodash';
 import url from 'url';
 import {HttpApplicationService} from './interfaces';
 import {HttpConsumer} from './consumers';
-import Rx from 'rx';
+import Rx from 'rxjs';
 import {HttpNextResult} from './results';
 
 /**
@@ -265,13 +265,13 @@ export class RouteConsumer extends HttpConsumer {
             const context = this;
             try {
                 let handler = new RouteHandler();
-                return Rx.Observable.fromNodeCallback(handler.mapRequest)(context)
+                return Rx.Observable.bindNodeCallback(handler.mapRequest)(context)
                     .flatMap(()=> {
                         return HttpNextResult.create().toObservable();
                     });
             }
             catch(err) {
-                return Rx.Observable.throw(err);
+                return Rx.Observable['throw'](err);
             }
         });
     }

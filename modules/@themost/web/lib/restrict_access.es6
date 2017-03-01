@@ -14,9 +14,8 @@ import {HttpApplicationService} from './interfaces';
 import {HttpNextResult} from './results';
 import {HttpConsumer} from './consumers';
 import {_} from 'lodash';
-import {Rx} from 'rx';
+import Rx from 'rxjs';
 import url from 'url';
-
 /**
  * @class
  * @property {string} description - Gets or sets a string that represents the description of this object
@@ -32,6 +31,10 @@ class LocationSetting {
 
 const applicationProperty = Symbol('application');
 
+
+/**
+ * @class
+ */
 export class RestrictAccessService extends HttpApplicationService{
     /**
      * @param {HttpApplication} app
@@ -47,7 +50,7 @@ export class RestrictAccessService extends HttpApplicationService{
     isNotRestricted(requestURL) {
        try {
            if (_.isNil(requestURL)) {
-               return Rx.Observable.return(true);
+               return Rx.Observable.of(true);
            }
            const uri = url.parse(requestURL);
            const conf = this.getApplication().getConfiguration();
@@ -66,21 +69,21 @@ export class RestrictAccessService extends HttpApplicationService{
                    if (/\*$/.test(location.path)) {
                        //wildcard search /something/*
                        if ((uri.pathname.indexOf(location.path.replace(/\*$/,''))==0) && (location.allow=='*')) {
-                           return Rx.Observable.return(true);
+                           return Rx.Observable.of(true);
                        }
                    }
                    else {
                        if ((uri.pathname===location.path) && (location.allow=='*')) {
-                           return Rx.Observable.return(true);
+                           return Rx.Observable.of(true);
                        }
                    }
                }
-               return Rx.Observable.return(false);
+               return Rx.Observable.of(false);
            }
-           return Rx.Observable.return(true);
+           return Rx.Observable.of(true);
        }
        catch(err) {
-           return Rx.Observable.throw(err);
+           return Rx.Observable['throw'](err);
        }
     }
     /**
@@ -89,7 +92,7 @@ export class RestrictAccessService extends HttpApplicationService{
      */
     isRestricted(requestURL) {
         return this.isNotRestricted(requestURL).flatMap((res)=> {
-           return Rx.Observable.return(!res);
+           return Rx.Observable.of(!res);
         });
     }
 }
@@ -145,13 +148,13 @@ export class RestrictAccessConsumer extends HttpConsumer {
             const context = this;
             try {
                 let handler = new RestrictHandler();
-                return Rx.Observable.fromNodeCallback(handler.authorizeRequest)(context)
+                return Rx.Observable.bindNodeCallback(handler.authorizeRequest)(context)
                     .flatMap(()=> {
                         return HttpNextResult.create().toObservable();
                     });
             }
             catch(err) {
-                return Rx.Observable.throw(err);
+                return Rx.Observable['throw'](err);
             }
         });
     }

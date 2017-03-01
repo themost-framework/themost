@@ -18,7 +18,7 @@ import util from 'util';
 import fs from 'fs';
 import path from 'path';
 import xml from 'most-xml';
-import Rx from 'rx';
+import Rx from 'rxjs';
 
 
 if (typeof _.dasherize != 'function') {
@@ -433,31 +433,31 @@ export class ViewConsumer extends HttpConsumer {
             try {
                 let handler = new ViewHandler();
                 //execute mapRequest
-                return Rx.Observable.fromNodeCallback(handler.mapRequest, handler)(context)
+                return Rx.Observable.bindNodeCallback(handler.mapRequest, handler)(context)
                     .flatMap(()=> {
                         //if request has been mapped
                         if (context.request.currentHandler instanceof ViewHandler) {
                             //execute post map request
-                            return Rx.Observable.fromNodeCallback(handler.postMapRequest, handler)(context);
+                            return Rx.Observable.bindNodeCallback(handler.postMapRequest, handler)(context);
                         }
                         //otherwise return next result
-                        return Rx.Observable.return(new HttpNextResult());
+                        return Rx.Observable.of(new HttpNextResult());
                     }).flatMap(()=> {
                         //if current handler is an instance of ViewHandler
                         if (context.request.currentHandler instanceof ViewHandler) {
                             //process request
-                            return Rx.Observable.fromNodeCallback(handler.processRequest, handler)(context).flatMap((res)=> {
+                            return Rx.Observable.bindNodeCallback(handler.processRequest, handler)(context).flatMap((res)=> {
                                 if (res instanceof HttpEndResult) {
                                     return res.toObservable();
                                 }
-                                return Rx.Observable.return(res);
+                                return Rx.Observable.of(res);
                             });
                         }
-                        return Rx.Observable.return(new HttpNextResult());
+                        return Rx.Observable.of(new HttpNextResult());
                     });
             }
             catch(err) {
-                return Rx.Observable.throw(err);
+                return Rx.Observable['throw'](err);
             }
         });
     }

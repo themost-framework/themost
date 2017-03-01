@@ -1,5 +1,5 @@
 'use strict';
-import Rx from 'rx';
+import Rx from 'rxjs';
 import {Args} from '@themost/common/utils';
 import {_} from 'lodash';
 import {FormatterStrategy} from "./formatters";
@@ -20,7 +20,7 @@ export class HttpResult {
     }
 
     toObservable() {
-        return Rx.Observable.return(this);
+        return Rx.Observable.of(this);
     }
 
 }
@@ -56,7 +56,7 @@ export class HttpAnyResult extends HttpResult {
      * */
     execute(context) {
         const self = this;
-        return Rx.Observable.fromNodeCallback(function(callback) {
+        return Rx.Observable.bindNodeCallback(function(callback) {
             try {
                 /**
                  * @type {FormatterStrategy}

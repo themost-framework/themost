@@ -41,9 +41,9 @@ var _lodash = require('lodash');
 
 var _ = _lodash._;
 
-var _rx = require('rx');
+var _rxjs = require('rxjs');
 
-var Rx = _rx.Rx;
+var Rx = _interopRequireDefault(_rxjs).default;
 
 var _url = require('url');
 
@@ -72,6 +72,10 @@ var LocationSetting = function LocationSetting() {
 
 var applicationProperty = Symbol('application');
 
+/**
+ * @class
+ */
+
 var RestrictAccessService = exports.RestrictAccessService = function (_HttpApplicationServi) {
     _inherits(RestrictAccessService, _HttpApplicationServi);
 
@@ -95,7 +99,7 @@ var RestrictAccessService = exports.RestrictAccessService = function (_HttpAppli
         value: function isNotRestricted(requestURL) {
             try {
                 if (_.isNil(requestURL)) {
-                    return Rx.Observable.return(true);
+                    return Rx.Observable.of(true);
                 }
                 var uri = url.parse(requestURL);
                 var conf = this.getApplication().getConfiguration();
@@ -112,19 +116,19 @@ var RestrictAccessService = exports.RestrictAccessService = function (_HttpAppli
                         if (/\*$/.test(location.path)) {
                             //wildcard search /something/*
                             if (uri.pathname.indexOf(location.path.replace(/\*$/, '')) == 0 && location.allow == '*') {
-                                return Rx.Observable.return(true);
+                                return Rx.Observable.of(true);
                             }
                         } else {
                             if (uri.pathname === location.path && location.allow == '*') {
-                                return Rx.Observable.return(true);
+                                return Rx.Observable.of(true);
                             }
                         }
                     }
-                    return Rx.Observable.return(false);
+                    return Rx.Observable.of(false);
                 }
-                return Rx.Observable.return(true);
+                return Rx.Observable.of(true);
             } catch (err) {
-                return Rx.Observable.throw(err);
+                return Rx.Observable['throw'](err);
             }
         }
         /**
@@ -136,7 +140,7 @@ var RestrictAccessService = exports.RestrictAccessService = function (_HttpAppli
         key: 'isRestricted',
         value: function isRestricted(requestURL) {
             return this.isNotRestricted(requestURL).flatMap(function (res) {
-                return Rx.Observable.return(!res);
+                return Rx.Observable.of(!res);
             });
         }
     }]);
@@ -210,11 +214,11 @@ var RestrictAccessConsumer = exports.RestrictAccessConsumer = function (_HttpCon
             var context = this;
             try {
                 var handler = new RestrictHandler();
-                return Rx.Observable.fromNodeCallback(handler.authorizeRequest)(context).flatMap(function () {
+                return Rx.Observable.bindNodeCallback(handler.authorizeRequest)(context).flatMap(function () {
                     return HttpNextResult.create().toObservable();
                 });
             } catch (err) {
-                return Rx.Observable.throw(err);
+                return Rx.Observable['throw'](err);
             }
         }));
     }

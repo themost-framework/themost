@@ -16,9 +16,15 @@ exports.SequentialEventEmitter = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _events = require('events');
+var _lodash = require('lodash');
 
-var _ = _events._;
+var _ = _lodash._;
+
+var _async = require('async');
+
+var async = _interopRequireDefault(_async).default;
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -39,15 +45,20 @@ var SequentialEventEmitter = exports.SequentialEventEmitter = function () {
         this[listenersProperty] = new Map();
     }
 
-    /**
-     * Adds the listener function to the end of the listeners array for the specified event
-     * @param {string} event
-     * @param {Function} callback
-     * @returns {SequentialEventEmitter}
-     */
-
-
     _createClass(SequentialEventEmitter, [{
+        key: 'removeAllListeners',
+        value: function removeAllListeners() {
+            this[listenersProperty].clear();
+        }
+
+        /**
+         * Adds the listener function to the end of the listeners array for the specified event
+         * @param {string} event
+         * @param {Function} callback
+         * @returns {SequentialEventEmitter}
+         */
+
+    }, {
         key: 'addListener',
         value: function addListener(event, callback) {
             this[listenersProperty].has(event) || this[listenersProperty].set(event, []);
@@ -103,6 +114,9 @@ var SequentialEventEmitter = exports.SequentialEventEmitter = function () {
         key: 'listeners',
         value: function listeners(type) {
             var listeners = this[listenersProperty].get(type);
+            if (typeof listeners === 'undefined') {
+                return [];
+            }
             if (_.isArray(listeners)) {
                 return listeners;
             }
@@ -141,11 +155,13 @@ var SequentialEventEmitter = exports.SequentialEventEmitter = function () {
             callback = callback || function () {};
             //get listeners
             var listeners = self[listenersProperty].get(event);
+            if (typeof listeners === 'undefined') {
+                return callback.call(self);
+            }
             //validate listeners
             if (listeners.length == 0) {
                 //exit emitter
-                callback.call(self, null);
-                return;
+                return callback.call(self);
             }
             //apply each series
             async.applyEachSeries(listeners, args, function (err) {

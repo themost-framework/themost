@@ -7,9 +7,9 @@ exports.HttpErrorResult = exports.HttpEndResult = exports.HttpNextResult = expor
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _rx = require('rx');
+var _rxjs = require('rxjs');
 
-var Rx = _interopRequireDefault(_rx).default;
+var Rx = _interopRequireDefault(_rxjs).default;
 
 var _utils = require('@themost/common/utils');
 
@@ -54,7 +54,7 @@ var HttpResult = exports.HttpResult = function () {
     _createClass(HttpResult, [{
         key: 'toObservable',
         value: function toObservable() {
-            return Rx.Observable.return(this);
+            return Rx.Observable.of(this);
         }
     }]);
 
@@ -102,7 +102,7 @@ var HttpAnyResult = exports.HttpAnyResult = function (_HttpResult) {
          * */
         value: function execute(context) {
             var self = this;
-            return Rx.Observable.fromNodeCallback(function (callback) {
+            return Rx.Observable.bindNodeCallback(function (callback) {
                 try {
                     /**
                      * @type {FormatterStrategy}

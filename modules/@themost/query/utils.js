@@ -12,7 +12,7 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.SqlUtils = undefined;
+exports.QueryUtils = exports.SqlUtils = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -243,5 +243,71 @@ var SqlUtils = exports.SqlUtils = function () {
     }]);
 
     return SqlUtils;
+}();
+
+var QueryUtils = exports.QueryUtils = function () {
+    function QueryUtils() {
+        _classCallCheck(this, QueryUtils);
+    }
+
+    _createClass(QueryUtils, null, [{
+        key: 'query',
+
+        /**
+         * Initializes a select query expression by specifying the entity name
+         * @param {string|*} entity - The name of the entity
+         */
+        value: function query(entity) {
+            return QueryExpression.create(entity);
+        }
+        /**
+         * Initializes a select query expression
+         * @param {*...} fields
+         */
+
+    }, {
+        key: 'select',
+        value: function select(fields) {
+            var q = new QueryExpression();
+            return q.select.apply(q, fields);
+        }
+        /**
+         * Initializes an insert query expression
+         * @param {*} obj - The object to insert
+         */
+
+    }, {
+        key: 'insert',
+        value: function insert(obj) {
+            var q = new QueryExpression();
+            return q.insert(obj);
+        }
+
+        /**
+         * Initializes an update query expression
+         * @param {string|*} entity - The name of the entity
+         */
+
+    }, {
+        key: 'update',
+        value: function update(entity) {
+            var q = new QueryExpression();
+            return q.update(entity);
+        }
+
+        /**
+         * Initializes a delete query expression
+         * @param {string} entity - The name of the entity
+         */
+
+    }, {
+        key: 'delete',
+        value: function _delete(entity) {
+            var q = new QueryExpression();
+            return q.delete(entity);
+        }
+    }]);
+
+    return QueryUtils;
 }();
 //# sourceMappingURL=utils.js.map

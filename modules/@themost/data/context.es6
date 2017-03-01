@@ -11,7 +11,8 @@
 import {DataContext} from './types';
 import {_} from 'lodash';
 import {TraceUtils} from '@themost/common/utils';
-import cfg from 'data-configuration';
+import {DataConfiguration} from './config';
+
 
 /**
  * @classdesc Represents the default data context of MOST Data Applications.
@@ -112,7 +113,7 @@ export class DefaultDataContext extends DataContext {
      * @returns {DataConfiguration}
      */
     getConfiguration() {
-        return cfg.current;
+        return DataConfiguration.getCurrent();
     }
 
     /**
@@ -127,7 +128,7 @@ export class DefaultDataContext extends DataContext {
         const obj = self.getConfiguration().model(name);
         if (_.isNil(obj))
             return null;
-        const DataModel = require('./data-model').DataModel, model = new DataModel(obj);
+        const DataModel = require('./model').DataModel, model = new DataModel(obj);
         //set model context
         model.context = self;
         //return model
@@ -143,6 +144,23 @@ export class DefaultDataContext extends DataContext {
         this.finalize_();
         cb.call(this);
     }
+
+    /**
+     *
+     * @param {Function} func
+     * @param {Function} callback
+     */
+    static execute(func, callback) {
+        func = func || function() {};
+        const ctx = new DefaultDataContext();
+        func.call(null, ctx, function(err) {
+            ctx.finalize(function() {
+               if (err) { return callback(err); }
+               return callback();
+            });
+        });
+    }
+
 }
 
 /**
@@ -218,7 +236,7 @@ class NamedDataContext extends DataContext {
          * @returns {DataConfiguration}
          */
         this.getConfiguration = function() {
-            return cfg.getNamedConfiguration(name_);
+            return DataConfiguration.getCurrent();
         };
 
         delete self.db;
@@ -247,7 +265,7 @@ class NamedDataContext extends DataContext {
         const obj = self.getConfiguration().model(name);
         if (_.isNil(obj))
             return null;
-        const DataModel = require('./data-model').DataModel;
+        const DataModel = require('./model').DataModel;
         const model = new DataModel(obj);
         //set model context
         model.context = self;

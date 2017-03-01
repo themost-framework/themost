@@ -8,27 +8,30 @@
  * found in the LICENSE file at https://themost.io/license
  */
 
-import {TraceUtils} from '../../modules/@themost/common/index';
+import {TraceUtils} from '../../modules/@themost/common/utils';
 import util from 'util';
 import {assert} from 'chai';
-import Rx from 'rx';
+import Rx from 'rxjs';
 import fs from 'fs';
 
+/**
+ * @static
+ * @name throw
+ * @param {*} data
+ * @returns {Observable}
+ * @memberOf {Observable}
+ */
 
 describe('Common Tests', () => {
 
-    it('should use trace utils', function(done) {
-        TraceUtils.info('test message %s.', 'my string');
-        TraceUtils.error(new Error('Operation was cancelled by the user'));
-        return done();
-    });
-
     it('should use observables', function(done) {
-
-        const fn = function() {
-            return Rx.Observable.fromCallback(fs.exists)('~/Downloads/index.html')
+    const fn = function() {
+            return Rx.Observable.bindCallback(fs.exists)('~/Downloads/index.html')
                 .flatMap( exists => {
-                    return exists ? Rx.Observable.return('File exists') : Rx.Observable.return('File does not exist');
+                    if (!exists) {
+                        throw new ReferenceError('File does not exist');
+                    }
+                    return Rx.Observable.of('File exists');
                 });
         };
         let source = fn();

@@ -52,9 +52,9 @@ var _consumers = require('./consumers');
 
 var HttpConsumer = _consumers.HttpConsumer;
 
-var _rx = require('rx');
+var _rxjs = require('rxjs');
 
-var Rx = _interopRequireDefault(_rx).default;
+var Rx = _interopRequireDefault(_rxjs).default;
 
 var _results = require('./results');
 
@@ -295,9 +295,9 @@ var StaticContentConsumer = exports.StaticContentConsumer = function (_HttpConsu
                 var _ret4 = function () {
                     var handler = new StaticHandler(rootDir);
                     return {
-                        v: Rx.Observable.fromNodeCallback(handler.mapRequest, handler)(context).flatMap(function (res) {
+                        v: Rx.Observable.bindNodeCallback(handler.mapRequest, handler)(context).flatMap(function (res) {
                             if (res) {
-                                return Rx.Observable.fromNodeCallback(handler.processRequest, handler)(context);
+                                return Rx.Observable.bindNodeCallback(handler.processRequest, handler)(context);
                             }
                             return HttpNextResult.create().toObservable();
                         })
@@ -306,7 +306,7 @@ var StaticContentConsumer = exports.StaticContentConsumer = function (_HttpConsu
 
                 if ((typeof _ret4 === 'undefined' ? 'undefined' : _typeof(_ret4)) === "object") return _ret4.v;
             } catch (err) {
-                return Rx.Observable.throw(err);
+                return Rx.Observable['throw'](err);
             }
         }));
     }
@@ -335,9 +335,9 @@ var MapStaticContentConsumer = exports.MapStaticContentConsumer = function (_Htt
                     var handler = new StaticHandler(rootDir);
                     handler.whenDir = whenDir;
                     return {
-                        v: Rx.Observable.fromNodeCallback(handler.mapRequest, handler)(context).flatMap(function (res) {
+                        v: Rx.Observable.bindNodeCallback(handler.mapRequest, handler)(context).flatMap(function (res) {
                             if (res) {
-                                return Rx.Observable.fromNodeCallback(handler.processRequest, handler)(context);
+                                return Rx.Observable.bindNodeCallback(handler.processRequest, handler)(context);
                             }
                             return HttpNextResult.create().toObservable();
                         })
@@ -346,7 +346,7 @@ var MapStaticContentConsumer = exports.MapStaticContentConsumer = function (_Htt
 
                 if ((typeof _ret5 === 'undefined' ? 'undefined' : _typeof(_ret5)) === "object") return _ret5.v;
             } catch (err) {
-                return Rx.Observable.throw(err);
+                return Rx.Observable['throw'](err);
             }
         }));
     }

@@ -12,7 +12,7 @@ import formidable from 'formidable';
 import {_} from 'lodash';
 import {LangUtils} from '@themost/common/utils';
 import {HttpConsumer} from './consumers';
-import Rx from 'rx';
+import Rx from 'rxjs';
 import {HttpNextResult} from './results';
 
 if (process.version>="v6.0.0") {
@@ -83,13 +83,13 @@ export class MultipartContentConsumer extends HttpConsumer {
             const context = this;
             try {
                 const handler = new MultipartHandler();
-                return Rx.Observable.fromNodeCallback(handler.beginRequest)(context)
+                return Rx.Observable.bindNodeCallback(handler.beginRequest)(context)
                     .flatMap(()=> {
                         return HttpNextResult.create().toObservable();
                     });
             }
             catch(err) {
-                return Rx.Observable.throw(err);
+                return Rx.Observable['throw'](err);
             }
         });
     }

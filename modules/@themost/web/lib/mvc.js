@@ -22,9 +22,9 @@ var _lodash = require('lodash');
 
 var _ = _lodash._;
 
-var _rx = require('rx');
+var _rxjs = require('rxjs');
 
-var Rx = _interopRequireDefault(_rx).default;
+var Rx = _interopRequireDefault(_rxjs).default;
 
 var _fs = require('fs');
 
@@ -107,7 +107,7 @@ var HttpContentResult = exports.HttpContentResult = function (_HttpAnyResult) {
         key: 'execute',
         value: function execute(context) {
             var self = this;
-            return Rx.Observable.fromNodeCallback(function (callback) {
+            return Rx.Observable.bindNodeCallback(function (callback) {
                 /**
                  * @type ServerResponse
                  * */
@@ -154,7 +154,7 @@ var HttpEmptyResult = exports.HttpEmptyResult = function (_HttpAnyResult2) {
         value: function execute(context) {
             //do nothing
             context.response.writeHead(204);
-            return Rx.Observable.return();
+            return Rx.Observable.of();
         }
     }]);
 
@@ -209,7 +209,7 @@ var HttpJsonResult = exports.HttpJsonResult = function (_HttpAnyResult3) {
         key: 'execute',
         value: function execute(context) {
             var self = this;
-            return Rx.Observable.fromNodeCallback(function (callback) {
+            return Rx.Observable.bindNodeCallback(function (callback) {
                 /**
                  * @type ServerResponse
                  * */
@@ -264,7 +264,7 @@ var HttpJavascriptResult = exports.HttpJavascriptResult = function (_HttpAnyResu
         key: 'execute',
         value: function execute(context) {
             var self = this;
-            return Rx.Observable.fromNodeCallback(function (callback) {
+            return Rx.Observable.bindNodeCallback(function (callback) {
                 /**
                  * @type ServerResponse
                  * */
@@ -350,7 +350,7 @@ var HttpRedirectResult = exports.HttpRedirectResult = function (_HttpAnyResult6)
              * */
             var response = context.response;
             response.writeHead(302, { 'Location': this.url });
-            return Rx.Observable.return();
+            return Rx.Observable.of();
         }
     }]);
 
@@ -960,7 +960,7 @@ var HttpViewContext = exports.HttpViewContext = function () {
             var requestCookie = this.context.response.getHeader('set-cookie');
             if (typeof this.context.request.headers.cookie !== 'undefined') requestCookie = this.context.request.headers.cookie;
             return this.context.getApplication().executeRequest({ url: url, cookie: requestCookie }).flatMap(function (result) {
-                if (result.statusCode >= 200 && result.statusCode < 300) return Rx.Observable.return(result.body);else return Rx.Observable.throw(new HttpError(result.statusCode));
+                if (result.statusCode >= 200 && result.statusCode < 300) return Rx.Observable.of(result.body);else return Rx.Observable['throw'](new HttpError(result.statusCode));
             });
         }
     }, {

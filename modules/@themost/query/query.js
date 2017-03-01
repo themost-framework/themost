@@ -12,7 +12,7 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.OpenDataQuery = exports.QueryField = exports.QueryValue = exports.QueryEntity = exports.QueryExpression = undefined;
+exports.OpenDataQuery = exports.QueryField = exports.QueryFieldUtils = exports.QueryValue = exports.QueryEntity = exports.QueryExpression = undefined;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
@@ -21,6 +21,10 @@ var _createClass = function () { function defineProperties(target, props) { for 
 var _sprintf = require('sprintf');
 
 var sprintf = _interopRequireDefault(_sprintf).default;
+
+var _async = require('async');
+
+var async = _interopRequireDefault(_async).default;
 
 var _lodash = require('lodash');
 
@@ -184,8 +188,9 @@ var QueryExpression = exports.QueryExpression = function () {
 
     /**
      * Creates a new query expression
-     * @param {string|*} entity
+     * @param {*=} entity
      * @param {Array=} fields
+     * @returns {QueryExpression}
      */
 
 
@@ -547,7 +552,7 @@ var QueryExpression = exports.QueryExpression = function () {
         key: 'from',
         value: function from(entity) {
 
-            if (entity == null) return this;
+            if (_.isNil(entity)) return this;
             var name = void 0;
             if (entity instanceof QueryEntity) {
                 name = entity.$as || entity.name;
@@ -1656,6 +1661,319 @@ var QueryValue = exports.QueryValue = function () {
     return QueryValue;
 }();
 
+var QueryFieldUtils = exports.QueryFieldUtils = function () {
+    function QueryFieldUtils() {
+        _classCallCheck(this, QueryFieldUtils);
+    }
+
+    _createClass(QueryFieldUtils, null, [{
+        key: 'select',
+
+        /**
+         * @param name {string}
+         * @returns {QueryField}
+         */
+        value: function select(name) {
+            return new QueryField(name);
+        }
+
+        /**
+         * @param name {string}
+         * @returns {QueryField}
+         */
+
+    }, {
+        key: 'count',
+        value: function count(name) {
+            var f = new QueryField();
+            return f.count(name);
+        }
+
+        /**
+         * @param name {string}
+         * @returns {QueryField}
+         */
+
+    }, {
+        key: 'min',
+        value: function min(name) {
+            var f = new QueryField();
+            return f.min(name);
+        }
+
+        /**
+         * @param name {string}
+         * @returns {QueryField}
+         */
+
+    }, {
+        key: 'max',
+        value: function max(name) {
+            var f = new QueryField();
+            return f.max(name);
+        }
+
+        /**
+         * @param name {string}
+         * @returns {QueryField}
+         */
+
+    }, {
+        key: 'average',
+        value: function average(name) {
+            var f = new QueryField();
+            return f.average(name);
+        }
+
+        /**
+         * @param name {string}
+         * @returns {QueryField}
+         */
+
+    }, {
+        key: 'avg',
+        value: function avg(name) {
+            return QueryFieldUtils.average(name);
+        }
+
+        /**
+         * @param name {string}
+         * @returns {QueryField}
+         */
+
+    }, {
+        key: 'sum',
+        value: function sum(name) {
+            var f = new QueryField();
+            return f.sum(name);
+        }
+        /**
+         * @param {string} name
+         * @returns {QueryField}
+         */
+
+    }, {
+        key: 'floor',
+        value: function floor(name) {
+            var f = {};
+            f[name] = { $floor: [QueryFieldUtils.select(name)] };
+            return _.assign(new QueryField(), f);
+        }
+        /**
+         * @param {string} name
+         * @returns {QueryField}
+         */
+
+    }, {
+        key: 'ceil',
+        value: function ceil(name) {
+            var f = {};
+            f[name] = { $ceiling: [QueryFieldUtils.select(name)] };
+            return _.assign(new QueryField(), f);
+        }
+        /**
+         * @param {string} name
+         * @param {number=} divider
+         * @returns {QueryField}
+         */
+
+    }, {
+        key: 'modulo',
+        value: function modulo(name, divider) {
+            var f = {};
+            f[name] = { $mod: [QueryFieldUtils.select(name), divider] };
+            return _.assign(new QueryField(), f);
+        }
+        /**
+         * @param {string} name
+         * @param {number=} x
+         * @returns {QueryField}
+         */
+
+    }, {
+        key: 'add',
+        value: function add(name, x) {
+            var f = {};
+            f[name] = { $add: [QueryFieldUtils.select(name), x] };
+            return _.assign(new QueryField(), f);
+        }
+        /**
+         * @param {string} name
+         * @param {number=} x
+         * @returns {QueryField}
+         */
+
+    }, {
+        key: 'subtract',
+        value: function subtract(name, x) {
+            var f = {};
+            f[name] = { $subtract: [QueryFieldUtils.select(name), x] };
+            return _.assign(new QueryField(), f);
+        }
+        /**
+         * @param {string} name
+         * @param {number=} divider
+         * @returns {QueryField}
+         */
+
+    }, {
+        key: 'divide',
+        value: function divide(name, divider) {
+            var f = {};
+            f[name] = { $divide: [QueryFieldUtils.select(name), divider] };
+            return _.assign(new QueryField(), f);
+        }
+        /**
+         * @param {string} name
+         * @param {number=} divider
+         * @returns {QueryField}
+         */
+
+    }, {
+        key: 'multiply',
+        value: function multiply(name, multiplier) {
+            var f = {};
+            f[name] = { $multiply: [QueryFieldUtils.select(name), multiplier] };
+            return _.assign(new QueryField(), f);
+        }
+        /**
+         * @param {string} name
+         * @param {number=} n
+         * @returns {QueryField}
+         */
+
+    }, {
+        key: 'round',
+        value: function round(name, n) {
+            var f = {};
+            if (typeof n !== 'number') {
+                n = 2;
+            }
+            f[name] = { $round: [QueryFieldUtils.select(name), n] };
+            return _.assign(new QueryField(), f);
+        }
+
+        /**
+         * @param {string} name
+         * @returns {QueryField}
+         */
+
+    }, {
+        key: 'month',
+        value: function month(name) {
+            var f = {};
+            f[name] = { $month: [QueryFieldUtils.select(name)] };
+            return _.assign(new QueryField(), f);
+        }
+
+        /**
+         * @param {string} name
+         * @returns {QueryField}
+         */
+
+    }, {
+        key: 'year',
+        value: function year(name) {
+            var f = {};
+            f[name] = { $year: [QueryFieldUtils.select(name)] };
+            return _.assign(new QueryField(), f);
+        }
+
+        /**
+         * @param {string} name
+         * @returns {QueryField}
+         */
+
+    }, {
+        key: 'day',
+        value: function day(name) {
+            var f = {};
+            f[name] = { $day: [QueryFieldUtils.select(name)] };
+            return _.assign(new QueryField(), f);
+        }
+
+        /**
+         * @param {string} name
+         * @returns {QueryField}
+         */
+
+    }, {
+        key: 'hour',
+        value: function hour(name) {
+            var f = {};
+            f[name] = { $hour: [QueryFieldUtils.select(name)] };
+            return _.assign(new QueryField(), f);
+        }
+
+        /**
+         * @param {string} name
+         * @returns {QueryField}
+         */
+
+    }, {
+        key: 'minute',
+        value: function minute(name) {
+            var f = {};
+            f[name] = { $minute: [QueryFieldUtils.select(name)] };
+            return _.assign(new QueryField(), f);
+        }
+
+        /**
+         * @param {string} name
+         * @returns {QueryField}
+         */
+
+    }, {
+        key: 'second',
+        value: function second(name) {
+            var f = {};
+            f[name] = { $second: [QueryFieldUtils.select(name)] };
+            return _.assign(new QueryField(), f);
+        }
+
+        /**
+         * @param {string} name
+         * @returns {QueryField}
+         */
+
+    }, {
+        key: 'date',
+        value: function date(name) {
+            var f = {};
+            f[name] = { $date: [QueryFieldUtils.select(name)] };
+            return _.assign(new QueryField(), f);
+        }
+
+        /**
+         * @param {string} name
+         * @returns {QueryField}
+         */
+
+    }, {
+        key: 'length',
+        value: function length(name) {
+            var f = {};
+            f[name] = { $length: [QueryFieldUtils.select(name)] };
+            return _.assign(new QueryField(), f);
+        }
+
+        /**
+         * @param {string} name
+         * @returns {QueryField}
+         */
+
+    }, {
+        key: 'trim',
+        value: function trim(name) {
+            var f = {};
+            f[name] = { $trim: [QueryFieldUtils.select(name)] };
+            return _.assign(new QueryField(), f);
+        }
+    }]);
+
+    return QueryFieldUtils;
+}();
+
 /**
  * @class
  */
@@ -1678,8 +1996,8 @@ var QueryField = exports.QueryField = function () {
 
     /**
      * Creates a query field of the given entity
-     * @param {string} entity
-     * @param {string} name
+     * @param {string=} fieldName
+     * @param {string=} fromEntity
      * @returns {QueryField}
      */
 
@@ -1847,6 +2165,16 @@ var QueryField = exports.QueryField = function () {
             }
             return null;
         }
+
+        /**
+         * @returns {string}
+         */
+
+    }, {
+        key: 'getName',
+        value: function getName() {
+            return this.name();
+        }
     }, {
         key: 'nameOf',
         value: function nameOf() {
@@ -1868,88 +2196,14 @@ var QueryField = exports.QueryField = function () {
         value: function valueOf() {
             return this.$name;
         }
-
-        /**
-         * @param name {string}
-         * @returns {QueryField}
-         */
-
     }], [{
         key: 'create',
-        value: function create(entity, name) {
-            if (!_.isString(entity)) {
-                throw new TypeError('Field entity must be a valid string');
+        value: function create(fieldName, fromEntity) {
+            var f = new QueryField(fieldName);
+            if (_.isNil(fromEntity)) {
+                return f;
             }
-            if (!_.isString(name)) {
-                throw new TypeError('Field name must be a valid string');
-            }
-            var f = new QueryField(name);
-            return f.from(entity);
-        }
-    }, {
-        key: 'select',
-        value: function select(name) {
-            return new QueryField(name);
-        }
-
-        /**
-         * @param name {string}
-         * @returns {QueryField}
-         */
-
-    }, {
-        key: 'count',
-        value: function count(name) {
-            var f = new QueryField();
-            return f.count(name);
-        }
-
-        /**
-         * @param name {string}
-         * @returns {QueryField}
-         */
-
-    }, {
-        key: 'min',
-        value: function min(name) {
-            var f = new QueryField();
-            return f.min(name);
-        }
-
-        /**
-         * @param name {string}
-         * @returns {QueryField}
-         */
-
-    }, {
-        key: 'max',
-        value: function max(name) {
-            var f = new QueryField();
-            return f.max(name);
-        }
-
-        /**
-         * @param name {string}
-         * @returns {QueryField}
-         */
-
-    }, {
-        key: 'average',
-        value: function average(name) {
-            var f = new QueryField();
-            return f.average(name);
-        }
-
-        /**
-         * @param name {string}
-         * @returns {QueryField}
-         */
-
-    }, {
-        key: 'sum',
-        value: function sum(name) {
-            var f = new QueryField();
-            return f.sum(name);
+            return f.from(fromEntity);
         }
     }]);
 

@@ -22,9 +22,9 @@ var _consumers = require('./consumers');
 
 var HttpConsumer = _consumers.HttpConsumer;
 
-var _rx = require('rx');
+var _rxjs = require('rxjs');
 
-var Rx = _interopRequireDefault(_rx).default;
+var Rx = _interopRequireDefault(_rxjs).default;
 
 var _bodyParser = require('body-parser');
 
@@ -108,6 +108,11 @@ var JsonHandler = function () {
     return JsonHandler;
 }();
 
+/**
+ * @class
+ */
+
+
 var JsonContentConsumer = exports.JsonContentConsumer = function (_HttpConsumer) {
     _inherits(JsonContentConsumer, _HttpConsumer);
 
@@ -121,11 +126,11 @@ var JsonContentConsumer = exports.JsonContentConsumer = function (_HttpConsumer)
             var context = this;
             try {
                 var handler = new JsonHandler();
-                return Rx.Observable.fromNodeCallback(handler.beginRequest)(context).flatMap(function () {
+                return Rx.Observable.bindNodeCallback(handler.beginRequest)(context).flatMap(function () {
                     return HttpNextResult.create().toObservable();
                 });
             } catch (err) {
-                return Rx.Observable.throw(err);
+                return Rx.Observable['throw'](err);
             }
         }));
     }

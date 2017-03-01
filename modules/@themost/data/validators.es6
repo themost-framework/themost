@@ -9,7 +9,7 @@
  */
 import {_} from 'lodash';
 import sprintf from 'sprintf';
-import conf from './data-configuration'
+import {DataConfiguration} from './config'
 
 /**
  * @class
@@ -50,7 +50,8 @@ function zeroPad_(number, length) {
  * @class
  * @property {string} message - Gets or sets a string which represents a custom validator message.
  * @augments DataValidator
- * @classdesc Validates a variable against the regular expression provided
+ * @classdesc
+ * Validates a variable against the regular expression provided
  *
  <p>PatternValidator is used by <a href="DataValidatorListener.html">DataValidatorListener</a> for validating data objects.</p>
  <p>
@@ -692,10 +693,7 @@ export class DataTypeValidator extends DataValidator {
     constructor(type) {
         super();
         if (typeof type === 'string')
-            /**
-             * @type {{name:string,properties:*,label:string,supertypes:Array,type:string}|*}
-             */
-            this.dataType = conf.current.dataTypes[type];
+            this.dataType = DataConfiguration.current.dataTypes[type];
         else
             this.dataType = type;
         DataTypeValidator.super_.call(this);

@@ -9,7 +9,7 @@
  */
 'use strict';
 import {HttpConsumer} from './consumers';
-import Rx from 'rx';
+import Rx from 'rxjs';
 import bodyParser from 'body-parser';
 import {HttpNextResult} from './results';
 
@@ -74,6 +74,9 @@ class JsonHandler {
 }
 
 
+/**
+ * @class
+ */
 export class JsonContentConsumer extends HttpConsumer {
     constructor() {
         super(function() {
@@ -83,13 +86,13 @@ export class JsonContentConsumer extends HttpConsumer {
             const context = this;
             try {
                 let handler = new JsonHandler();
-                return Rx.Observable.fromNodeCallback(handler.beginRequest)(context)
+                return Rx.Observable.bindNodeCallback(handler.beginRequest)(context)
                     .flatMap(()=> {
                     return HttpNextResult.create().toObservable();
                 });
             }
             catch(err) {
-                return Rx.Observable.throw(err);
+                return Rx.Observable['throw'](err);
             }
         });
     }

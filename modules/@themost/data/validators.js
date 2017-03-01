@@ -15,9 +15,9 @@ var _sprintf = require('sprintf');
 
 var sprintf = _interopRequireDefault(_sprintf).default;
 
-var _dataConfiguration = require('./data-configuration');
+var _config = require('./config');
 
-var conf = _interopRequireDefault(_dataConfiguration).default;
+var DataConfiguration = _config.DataConfiguration;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -74,7 +74,8 @@ function zeroPad_(number, length) {
  * @class
  * @property {string} message - Gets or sets a string which represents a custom validator message.
  * @augments DataValidator
- * @classdesc Validates a variable against the regular expression provided
+ * @classdesc
+ * Validates a variable against the regular expression provided
  *
  <p>PatternValidator is used by <a href="DataValidatorListener.html">DataValidatorListener</a> for validating data objects.</p>
  <p>
@@ -811,11 +812,7 @@ var DataTypeValidator = exports.DataTypeValidator = function (_DataValidator7) {
 
         var _this7 = _possibleConstructorReturn(this, (DataTypeValidator.__proto__ || Object.getPrototypeOf(DataTypeValidator)).call(this));
 
-        if (typeof type === 'string')
-            /**
-             * @type {{name:string,properties:*,label:string,supertypes:Array,type:string}|*}
-             */
-            _this7.dataType = conf.current.dataTypes[type];else _this7.dataType = type;
+        if (typeof type === 'string') _this7.dataType = DataConfiguration.current.dataTypes[type];else _this7.dataType = type;
         DataTypeValidator.super_.call(_this7);
         return _this7;
     }
@@ -1254,4 +1251,4 @@ var RequiredValidator = exports.RequiredValidator = function (_DataValidator8) {
 
     return RequiredValidator;
 }(DataValidator);
-//# sourceMappingURL=data-validator.js.map
+//# sourceMappingURL=validators.js.map

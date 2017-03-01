@@ -16,10 +16,6 @@ exports.LangUtils = exports.RandomUtils = exports.TraceUtils = exports.TextUtils
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _crypto = require('crypto');
-
-var crypto = _interopRequireDefault(_crypto).default;
-
 var _winston = require('winston');
 
 var winston = _interopRequireDefault(_winston).default;
@@ -290,10 +286,28 @@ var TextUtils = exports.TextUtils = function () {
          * @returns {string|undefined}
          */
         value: function toMD5(value) {
+
             if (typeof value === 'undefined' || value == null) {
                 return;
             }
-            var md5 = crypto.createHash('md5');
+            //browser implementation
+            var md5 = void 0,
+                md5module = void 0;
+            if (typeof window !== 'undefined') {
+                md5module = 'blueimp-md5';
+                md5 = require(md5module);
+                if (typeof value === 'string') {
+                    return md5(value);
+                } else if (value instanceof Date) {
+                    return md5(value.toUTCString());
+                } else {
+                    return md5(JSON.stringify(value));
+                }
+            }
+            //node.js implementation
+            md5module = 'crypto';
+            var crypto = require(md5module);
+            md5 = crypto.createHash('md5');
             if (typeof value === 'string') {
                 md5.update(value);
             } else if (value instanceof Date) {
@@ -314,6 +328,12 @@ var TextUtils = exports.TextUtils = function () {
     }, {
         key: 'toSHA1',
         value: function toSHA1(value) {
+
+            if (typeof window !== 'undefined') {
+                throw new Error('This method is not implemented for this environment');
+            }
+
+            var crypto = require('crypto');
             if (typeof value === 'undefined' || value == null) {
                 return;
             }
@@ -338,6 +358,12 @@ var TextUtils = exports.TextUtils = function () {
     }, {
         key: 'toSHA256',
         value: function toSHA256(value) {
+
+            if (typeof window !== 'undefined') {
+                throw new Error('This method is not implemented for this environment');
+            }
+
+            var crypto = require('crypto');
             if (typeof value === 'undefined' || value == null) {
                 return;
             }
@@ -411,6 +437,9 @@ var TraceUtils = exports.TraceUtils = function () {
             }
             if (data instanceof Error) {
                 return TraceUtils.error.apply(this, args);
+            }
+            if (_.isObject(data)) {
+                return logger.info.call(logger, JSON.stringify(data, null, 2));
             }
             return logger.info.apply(logger, args);
         }

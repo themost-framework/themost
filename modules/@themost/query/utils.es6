@@ -207,3 +207,50 @@ export class SqlUtils {
     }
 
 }
+
+
+export class QueryUtils {
+    /**
+     * Initializes a select query expression by specifying the entity name
+     * @param {string|*} entity - The name of the entity
+     */
+    static query(entity) {
+        return QueryExpression.create(entity);
+    }
+    /**
+     * Initializes a select query expression
+     * @param {*...} fields
+     */
+    static select(fields) {
+        const q = new QueryExpression();
+        return q.select.apply(q,fields);
+    }
+    /**
+     * Initializes an insert query expression
+     * @param {*} obj - The object to insert
+     */
+    static insert(obj) {
+        const q = new QueryExpression();
+        return q.insert(obj);
+    }
+
+    /**
+     * Initializes an update query expression
+     * @param {string|*} entity - The name of the entity
+     */
+    static update(entity) {
+        const q = new QueryExpression();
+        return q.update(entity);
+    }
+
+    /**
+     * Initializes a delete query expression
+     * @param {string} entity - The name of the entity
+     */
+    static delete(entity) {
+        const q = new QueryExpression();
+        return q.delete(entity);
+    }
+
+
+}

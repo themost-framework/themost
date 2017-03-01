@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.ParserUtils = exports.DataContextEmitter = exports.DataResultSet = exports.DataModelPrivilege = exports.DataModelEventListener = exports.DataField = exports.DataModelMigration = exports.DataEventListener = exports.DataContext = exports.DataEventArgs = exports.DataAdapter = undefined;
+exports.ParserUtils = exports.DataContextEmitter = exports.DataResultSet = exports.DataModelPrivilege = exports.DataModelEventListener = exports.DataField = exports.DataAssociationMapping = exports.DataModelMigration = exports.DataEventListener = exports.DataContext = exports.DataEventArgs = exports.DataAdapter = undefined;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
@@ -661,19 +661,23 @@ var DataModelMigration = exports.DataModelMigration = function DataModelMigratio
  * @property {string} associationType - Gets or sets the type of this association (junction|association). The default value is 'association'.
  * @property {string[]} select - Gets or sets an array of fields to select from associated model. If this property is empty then all associated model fields will be selected.
  * @property {*} options - Gets or sets a set of default options which are going to be used while expanding results based on this data association.
- * @param {*=} obj - An object that contains relation mapping attributes
- * @constructor
  */
 
 
-function DataAssociationMapping(obj) {
+var DataAssociationMapping =
+/**
+ * @constructor
+ * @param {*} obj
+ */
+exports.DataAssociationMapping = function DataAssociationMapping(obj) {
+    _classCallCheck(this, DataAssociationMapping);
+
     this.cascade = 'none';
     this.associationType = 'association';
-    //this.select = [];
     if ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === 'object') {
         _.assign(this, obj);
     }
-}
+};
 
 /**
  * @class
@@ -703,6 +707,7 @@ function DataAssociationMapping(obj) {
  * @property {boolean} virtual - Gets or sets a boolean that indicates whether this field is a view only field or not.
  * @property {boolean} indexed - Gets or sets a boolean which indicates whether this field will be indexed for searching items. The default value is false.
   */
+
 
 var DataField = exports.DataField = function DataField() {
     _classCallCheck(this, DataField);

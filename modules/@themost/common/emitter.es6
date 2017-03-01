@@ -9,7 +9,8 @@
  */
 'use strict';
 
-import {_} from 'events';
+import {_} from 'lodash';
+import async from 'async';
 
 const listenersProperty = Symbol('listeners');
 
@@ -23,6 +24,10 @@ export class SequentialEventEmitter {
      */
     constructor() {
         this[listenersProperty] = new Map();
+    }
+
+    removeAllListeners() {
+        this[listenersProperty].clear();
     }
 
     /**
@@ -78,6 +83,9 @@ export class SequentialEventEmitter {
      */
     listeners(type) {
         let listeners = this[listenersProperty].get(type);
+        if (typeof listeners === 'undefined') {
+            return [];
+        }
         if (_.isArray(listeners)) {
             return listeners;
         }
@@ -108,11 +116,13 @@ export class SequentialEventEmitter {
         callback = callback || function() {};
         //get listeners
         const listeners = self[listenersProperty].get(event);
+        if (typeof listeners === 'undefined') {
+            return callback.call(self);
+        }
         //validate listeners
         if (listeners.length==0) {
             //exit emitter
-            callback.call(self, null);
-            return;
+            return callback.call(self);
         }
         //apply each series
         async.applyEachSeries(listeners, args, function(err) {

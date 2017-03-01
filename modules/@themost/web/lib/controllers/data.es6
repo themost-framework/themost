@@ -10,7 +10,7 @@
 'use strict';
 
 import util from 'util';
-import Rx from 'rx';
+import Rx from 'rxjs';
 import {_} from 'lodash';
 import xml from 'most-xml';
 import {HttpController} from './../mvc';
@@ -177,7 +177,7 @@ export default class HttpDataController extends HttpController {
     @httpAction('new')
     getNewItem() {
 
-        return Rx.Observable.fromNodeCallback(function(callback) {
+        return Rx.Observable.bindNodeCallback(function(callback) {
             callback(null, {});
         })();
 
@@ -215,7 +215,7 @@ export default class HttpDataController extends HttpController {
     @httpAction('new')
     postNewItem(data) {
         const self = this;
-        return Rx.Observable.fromNodeCallback(function(callback) {
+        return Rx.Observable.bindNodeCallback(function(callback) {
             if (_.isArray(data)) {
                 return callback(new HttpBadRequestError());
             }
@@ -246,7 +246,7 @@ export default class HttpDataController extends HttpController {
     @httpAction('schema')
     getSchema() {
         const self = this, context = self.context;
-        return Rx.Observable.fromNodeCallback(function(callback) {
+        return Rx.Observable.bindNodeCallback(function(callback) {
             if (self.model) {
                 //prepare client model
                 const clone = JSON.parse(JSON.stringify(self.model));
@@ -328,7 +328,7 @@ export default class HttpDataController extends HttpController {
     @httpAction('edit')
     postItem(id) {
         const self = this;
-        return Rx.Observable.fromNodeCallback(function(callback) {
+        return Rx.Observable.bindNodeCallback(function(callback) {
             const target = self.model.convert(data, true);
             if (target) {
                 self.model.save(target, function(err)
@@ -474,7 +474,7 @@ export default class HttpDataController extends HttpController {
     @httpAction('index')
     getItems() {
         const self = this, context = self.context;
-        return Rx.Observable.fromNodeCallback(function(callback) {
+        return Rx.Observable.bindNodeCallback(function(callback) {
 
             const top = parseInt(context.params.attr('$top')),
                 take = top > 0 ? top : (top == -1 ? top : 25),
@@ -556,7 +556,7 @@ export default class HttpDataController extends HttpController {
     @httpAction('index')
     postItems(data) {
         const self = this;
-        return Rx.Observable.fromNodeCallback(function(callback) {
+        return Rx.Observable.bindNodeCallback(function(callback) {
             let target;
             try {
                 target = self.model.convert(data, true);
@@ -589,7 +589,7 @@ export default class HttpDataController extends HttpController {
     @httpAction('index')
     deleteItems(data) {
         const self = this;
-        return Rx.Observable.fromNodeCallback(function(callback) {
+        return Rx.Observable.bindNodeCallback(function(callback) {
             //get data
             let target;
             try {
@@ -688,7 +688,7 @@ export default class HttpDataController extends HttpController {
     @httpAction('association')
     getAssociatedItems(parent, model) {
         const self = this;
-        return Rx.Observable.fromNodeCallback(function(callback) {
+        return Rx.Observable.bindNodeCallback(function(callback) {
             if (_.isNil(parent) || _.isNil(model)) {
                 return callback(new HttpBadRequestError());
             }
