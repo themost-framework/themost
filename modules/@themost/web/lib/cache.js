@@ -16,6 +16,8 @@ exports.DefaultCacheStrategy = exports.CacheStrategy = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+require('source-map-support/register');
+
 var _lodash = require('lodash');
 
 var _ = _lodash._;
@@ -184,7 +186,7 @@ var DefaultCacheStrategy = exports.DefaultCacheStrategy = function (_CacheStrate
     _createClass(DefaultCacheStrategy, [{
         key: 'remove',
         value: function remove(key) {
-            return Rx.Observable.bindNodeCallback(this[rawCacheProperty].set, this[rawCacheProperty])(key);
+            return Rx.Observable.bindNodeCallback(this[rawCacheProperty].set.bind(this[rawCacheProperty]))(key);
         }
 
         /**
@@ -253,7 +255,7 @@ var DefaultCacheStrategy = exports.DefaultCacheStrategy = function (_CacheStrate
     }, {
         key: 'get',
         value: function get(key) {
-            return Rx.Observable.bindNodeCallback(this[rawCacheProperty].get, this[rawCacheProperty])(key).flatMap(function (res) {
+            return Rx.Observable.bindNodeCallback(this[rawCacheProperty].get.bind(this[rawCacheProperty]))(key).flatMap(function (res) {
                 return Rx.Observable.of(res[key]);
             });
         }

@@ -7,7 +7,8 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-
+'use strict';
+import 'source-map-support/register';
 import {ParserUtils} from './types';
 import sprintf from 'sprintf';
 import async from 'async';
@@ -288,7 +289,7 @@ export class CalculatedValueListener {
                return cb(new Error ('fn: syntax is deprecated.'));
             }
             else {
-                functionContext.eval(expr, function(err, result) {
+                functionContext.evaluate(expr, function(err, result) {
                     if (err) {
                         cb(err);
                     }
@@ -589,7 +590,7 @@ export class DefaultValueListener {
                 }
                 else  {
 
-                    functionContext.eval(expr, function(err, result) {
+                    functionContext.evaluate(expr, function(err, result) {
                         if (err) {
                             cb(err);
                         }

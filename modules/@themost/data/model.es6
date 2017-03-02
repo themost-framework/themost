@@ -7,6 +7,8 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+'use strict';
+import 'source-map-support/register';
 import {_} from 'lodash';
 import Q from 'q';
 import sprintf from 'sprintf';
@@ -15,7 +17,7 @@ import {OpenDataParser} from '@themost/query/odata';
 import {QueryExpression} from '@themost/query/query';
 import {SequentialEventEmitter} from '@themost/common/emitter';
 import {DataError} from '@themost/common/errors';
-import {TraceUtils} from '@themost/common/utils';
+import {TraceUtils,PathUtils} from '@themost/common/utils';
 import {DataAssociationMapping,DataModelMigration,ParserUtils} from './types';
 import {RequiredValidator,MaxLengthValidator,DataTypeValidator} from "./validators";
 import {CalculatedValueListener,NotNullConstraintListener,DefaultValueListener,
@@ -27,10 +29,7 @@ import {DataStateValidatorListener} from './listeners';
 import {DataQueryable,DataAttributeResolver} from './queryable';
 import {DataModelView} from './view';
 import {DataFilterResolver} from './filter-resolver';
-/**
- * @private
- */
-const path = require("path");
+
 
 /**
  * @memberOf DataModel
@@ -1889,7 +1888,7 @@ function registerListeners_() {
                 * Load event listener from the defined type
                 * @type DataEventListener
                 */
-               const m = listener.type.indexOf('/')==0 ? require(path.join(process.cwd(), listener.type)) : require(listener.type);
+               const m = listener.type.indexOf('/')==0 ? require(PathUtils.join(process.cwd(), listener.type)) : require(listener.type);
                //if listener exports beforeSave function then register this as before.save event listener
                if (typeof m.beforeSave == 'function')
                    this.on('before.save', m.beforeSave);
@@ -1988,7 +1987,7 @@ function getDataObjectClass_() {
         else {
             //try to find class file with data model's name in lower case
             // e.g. OrderDetail -> orderdetail-model.js (backward compatibility naming convention)
-            let classPath = path.join(process.cwd(),'app','models',self.name.toLowerCase().concat('-model.js'));
+            let classPath = PathUtils.join(process.cwd(),'app','models',self.name.toLowerCase().concat('-model.js'));
             try {
                 DataObjectClass = require(classPath);
             }
@@ -1997,7 +1996,7 @@ function getDataObjectClass_() {
                     try {
                         //if the specified class file was not found try to dasherize model name
                         // e.g. OrderDetail -> order-detail-model.js
-                        classPath = path.join(process.cwd(),'app','models',_.dasherize(self.name).concat('-model.js'));
+                        classPath = PathUtils.join(process.cwd(),'app','models',_.dasherize(self.name).concat('-model.js'));
                         DataObjectClass = require(classPath);
                     }
                     catch(e) {
@@ -2662,7 +2661,7 @@ function validate_(obj, state, callback) {
             let validatorModule;
             try {
                 if (/^\./ig.test(attr.validation['validator'])) {
-                    const modulePath = path.resolve(process.cwd(), attr.validation['validator']);
+                    const modulePath = PathUtils.join(process.cwd(), attr.validation['validator']);
                     validatorModule = require(modulePath);
                 }
                 else {

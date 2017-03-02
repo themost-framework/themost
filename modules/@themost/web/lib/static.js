@@ -18,6 +18,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+require('source-map-support/register');
+
 var _errors = require('@themost/common/errors');
 
 var HttpServerError = _errors.HttpServerError;
@@ -295,9 +297,9 @@ var StaticContentConsumer = exports.StaticContentConsumer = function (_HttpConsu
                 var _ret4 = function () {
                     var handler = new StaticHandler(rootDir);
                     return {
-                        v: Rx.Observable.bindNodeCallback(handler.mapRequest, handler)(context).flatMap(function (res) {
+                        v: Rx.Observable.bindNodeCallback(handler.mapRequest.bind(handler))(context).flatMap(function (res) {
                             if (res) {
-                                return Rx.Observable.bindNodeCallback(handler.processRequest, handler)(context);
+                                return Rx.Observable.bindNodeCallback(handler.processRequest.bind(handler))(context);
                             }
                             return HttpNextResult.create().toObservable();
                         })
@@ -335,9 +337,9 @@ var MapStaticContentConsumer = exports.MapStaticContentConsumer = function (_Htt
                     var handler = new StaticHandler(rootDir);
                     handler.whenDir = whenDir;
                     return {
-                        v: Rx.Observable.bindNodeCallback(handler.mapRequest, handler)(context).flatMap(function (res) {
+                        v: Rx.Observable.bindNodeCallback(handler.mapRequest.bind(handler))(context).flatMap(function (res) {
                             if (res) {
-                                return Rx.Observable.bindNodeCallback(handler.processRequest, handler)(context);
+                                return Rx.Observable.bindNodeCallback(handler.processRequest.bind(handler))(context);
                             }
                             return HttpNextResult.create().toObservable();
                         })

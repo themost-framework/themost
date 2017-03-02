@@ -18,6 +18,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+require('source-map-support/register');
+
 var _url = require('url');
 
 var url = _interopRequireDefault(_url).default;
@@ -169,7 +171,7 @@ function startInternal(options) {
         var server_ = http.createServer(function (request, response) {
             var context = self.createContext(request, response);
             //begin request processing
-            Rx.Observable.bindNodeCallback(processRequestInternal)(context).subscribe(function () {
+            Rx.Observable.bindNodeCallback(processRequestInternal.bind(self))(context).subscribe(function () {
                 context.finalize(function () {
                     if (context.response) {
                         context.response.end();
@@ -1027,6 +1029,7 @@ var HttpApplication = exports.HttpApplication = function () {
     }, {
         key: 'executeRequest',
         value: function executeRequest(options) {
+            var self = this;
             return Rx.Observable.bindNodeCallback(function (callback) {
                 var _this = this;
 
@@ -1058,7 +1061,7 @@ var HttpApplication = exports.HttpApplication = function () {
                         var requestContext = _this.createContext(request, response);
                         //and finally process context
                         return {
-                            v: processRequestInternal.call(_this, requestContext, function (err) {
+                            v: processRequestInternal.call(self, requestContext, function (err) {
                                 if (err) {
                                     return callback(err);
                                 } else {

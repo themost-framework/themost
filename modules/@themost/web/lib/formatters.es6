@@ -8,6 +8,7 @@
  * found in the LICENSE file at https://themost.io/license
  */
 'use strict';
+import 'source-map-support/register';
 import {HttpApplicationService} from "./interfaces";
 import {AbstractClassError, AbstractMethodError} from "@themost/common/errors";
 import {Args} from "@themost/common/utils";

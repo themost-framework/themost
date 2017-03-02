@@ -8,6 +8,7 @@
  * found in the LICENSE file at https://themost.io/license
  */
 'use strict';
+import 'source-map-support/register';
 import {HttpViewContext} from './../mvc';
 import {HttpNotFoundError} from '@themost/common/errors';
 import {LangUtils} from '@themost/common/utils';

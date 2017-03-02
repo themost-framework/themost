@@ -8,7 +8,7 @@
  * found in the LICENSE file at https://themost.io/license
  */
 'use strict';
-
+import 'source-map-support/register';
 export * from './lib/common';
 export * from './lib/cache';
 export * from './lib/data';

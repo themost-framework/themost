@@ -8,8 +8,8 @@
  * found in the LICENSE file at https://themost.io/license
  */
 'use strict';
-
-import cfg from 'most-data/data-configuration';
+import 'source-map-support/register';
+import {DataConfiguration} from '@themost/data/config';
 import {HttpApplicationService} from "./interfaces";
 import {Args} from "@themost/common/utils";
 import {AbstractClassError, AbstractMethodError} from "@themost/common/errors";
@@ -54,7 +54,7 @@ export class DefaultDataConfigurationStrategy extends DataConfigurationStrategy 
      */
     getConfiguration() {
         if (typeof this[configurationProperty] === 'undefined')
-            this[configurationProperty] = new cfg.DataConfiguration(this.getApplication().getConfigurationPath());
+            this[configurationProperty] = new DataConfiguration(this.getApplication().getConfigurationPath());
         return this[configurationProperty];
     }
 

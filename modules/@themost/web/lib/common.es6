@@ -8,6 +8,7 @@
  * found in the LICENSE file at https://themost.io/license
  */
 'use strict';
+import 'source-map-support/register';
 
 /**
  * @classdesc ApplicationOptions class describes the startup options of a MOST Web Framework application.

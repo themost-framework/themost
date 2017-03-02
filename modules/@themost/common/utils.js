@@ -12,9 +12,11 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.LangUtils = exports.RandomUtils = exports.TraceUtils = exports.TextUtils = exports.NumberUtils = exports.Args = undefined;
+exports.PathUtils = exports.LangUtils = exports.RandomUtils = exports.TraceUtils = exports.TextUtils = exports.NumberUtils = exports.Args = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+require('source-map-support/register');
 
 var _winston = require('winston');
 
@@ -831,4 +833,51 @@ function UnknownPropertyDescriptor(obj, name) {
             return name;
         } });
 }
+
+var PathUtils = exports.PathUtils = function () {
+    function PathUtils() {
+        _classCallCheck(this, PathUtils);
+    }
+
+    _createClass(PathUtils, null, [{
+        key: 'join',
+
+        /**
+         *
+         * @param {...string} part
+         * @returns {string}
+         */
+        value: function join() {
+            for (var _len = arguments.length, part = Array(_len), _key = 0; _key < _len; _key++) {
+                part[_key] = arguments[_key];
+            }
+
+            // Split the inputs into a list of path commands.
+            var parts = [],
+                i = void 0,
+                l = void 0;
+            for (i = 0, l = arguments.length; i < l; i++) {
+                parts = parts.concat(arguments[i].split("/"));
+            }
+            // Interpret the path commands to get the new resolved path.
+            var newParts = [];
+            for (i = 0, l = parts.length; i < l; i++) {
+                var _part = parts[i];
+                // Remove leading and trailing slashes
+                // Also remove "." segments
+                if (!_part || _part === ".") continue;
+                // Interpret ".." to pop the last segment
+                if (_part === "..") newParts.pop();
+                // Push new path segments.
+                else newParts.push(_part);
+            }
+            // Preserve the initial slash if there was one.
+            if (parts[0] === "") newParts.unshift("");
+            // Turn back into a single string path.
+            return newParts.join("/") || (newParts.length ? "/" : ".");
+        }
+    }]);
+
+    return PathUtils;
+}();
 //# sourceMappingURL=utils.js.map

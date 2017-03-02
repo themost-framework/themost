@@ -8,7 +8,7 @@
  * found in the LICENSE file at https://themost.io/license
  */
 'use strict';
-
+import 'source-map-support/register';
 import util from 'util';
 import Rx from 'rxjs';
 import {_} from 'lodash';
@@ -18,6 +18,7 @@ import {httpGet,httpAction} from './../decorators';
 import {HttpError,HttpMethodNotAllowedError,HttpBadRequestError,HttpNotFoundError,HttpServerError} from '@themost/common/errors';
 import {TraceUtils} from '@themost/common/utils';
 import {httpPut, httpPost, httpDelete} from "../decorators";
+import {DataExpandResolver} from '@themost/data/expand-resolver';
 
 
 /**
@@ -454,8 +455,7 @@ export default class HttpDataController extends HttpController {
                             });
                         }
                         if (expand) {
-                            const resolver = require("most-data/data-expand-resolver");
-                            const matches = resolver.testExpandExpression(expand);
+                            const matches = DataExpandResolver.testExpandExpression(expand);
                             if (matches && matches.length>0) {
                                 q.expand.apply(q, matches);
                             }

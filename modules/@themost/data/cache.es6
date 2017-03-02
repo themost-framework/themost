@@ -8,7 +8,7 @@
  * found in the LICENSE file at https://themost.io/license
  */
 'use strict';
-
+import 'source-map-support/register';
 import {SequentialEventEmitter} from '@themost/common/emitter';
 import {_} from 'lodash';
 import Rx from 'rxjs';
@@ -139,7 +139,8 @@ export class DataCache extends SequentialEventEmitter {
      */
     get(key) {
         return Rx.Observable.bindNodeCallback((function(key,callback) {
-            this.init((err) => {
+            const self = this;
+            self.init((err) => {
                 if (err) {
                     return callback(err);
                 }

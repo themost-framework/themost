@@ -12,6 +12,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.DataModel = undefined;
 
 var _types = require('./types');
 
@@ -105,4 +106,6 @@ Object.keys(_object).forEach(function (key) {
     }
   });
 });
+
+require('source-map-support/register');
 //# sourceMappingURL=index.js.map

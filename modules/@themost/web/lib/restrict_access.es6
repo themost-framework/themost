@@ -8,6 +8,7 @@
  * found in the LICENSE file at https://themost.io/license
  */
 'use strict';
+import 'source-map-support/register';
 import {HttpUnauthorizedError,HttpBadRequestError} from '@themost/common/errors';
 import {TraceUtils} from '@themost/common/utils';
 import {HttpApplicationService} from './interfaces';

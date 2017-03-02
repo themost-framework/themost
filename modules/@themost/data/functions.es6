@@ -7,7 +7,8 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-
+'use strict';
+import 'source-map-support/register';
 import {ParserUtils} from './types';
 import sprintf from 'sprintf';
 import moment from 'moment';
@@ -45,7 +46,7 @@ export class FunctionContext {
         this.target = target;
     }
 
-    eval(expr, callback) {
+    evaluate(expr, callback) {
         callback = callback || function() {};
         if (typeof expr !=='string') {
             callback(null);

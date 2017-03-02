@@ -1,3 +1,12 @@
+/**
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
+ *                     Anthi Oikonomou anthioikonomou@gmail.com
+ *
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
+ */
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -8,6 +17,8 @@ exports.DataModel = undefined;
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+require('source-map-support/register');
 
 var _lodash = require('lodash');
 
@@ -44,6 +55,7 @@ var DataError = _errors.DataError;
 var _utils = require('@themost/common/utils');
 
 var TraceUtils = _utils.TraceUtils;
+var PathUtils = _utils.PathUtils;
 
 var _types = require('./types');
 
@@ -92,21 +104,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } } /**
-                                                                                                                                                           * @license
-                                                                                                                                                           * MOST Web Framework 2.0 Codename Blueshift
-                                                                                                                                                           * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
-                                                                                                                                                           *                     Anthi Oikonomou anthioikonomou@gmail.com
-                                                                                                                                                           *
-                                                                                                                                                           * Use of this source code is governed by an BSD-3-Clause license that can be
-                                                                                                                                                           * found in the LICENSE file at https://themost.io/license
-                                                                                                                                                           */
-
-
-/**
- * @private
- */
-var path = require("path");
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 /**
  * @memberOf DataModel
@@ -2141,7 +2139,7 @@ function registerListeners_() {
                  * Load event listener from the defined type
                  * @type DataEventListener
                  */
-                var m = listener.type.indexOf('/') == 0 ? require(path.join(process.cwd(), listener.type)) : require(listener.type);
+                var m = listener.type.indexOf('/') == 0 ? require(PathUtils.join(process.cwd(), listener.type)) : require(listener.type);
                 //if listener exports beforeSave function then register this as before.save event listener
                 if (typeof m.beforeSave == 'function') this.on('before.save', m.beforeSave);
                 //if listener exports afterSave then register this as after.save event listener
@@ -2228,7 +2226,7 @@ function getDataObjectClass_() {
         } else {
             //try to find class file with data model's name in lower case
             // e.g. OrderDetail -> orderdetail-model.js (backward compatibility naming convention)
-            var classPath = path.join(process.cwd(), 'app', 'models', self.name.toLowerCase().concat('-model.js'));
+            var classPath = PathUtils.join(process.cwd(), 'app', 'models', self.name.toLowerCase().concat('-model.js'));
             try {
                 DataObjectClass = require(classPath);
             } catch (e) {
@@ -2236,7 +2234,7 @@ function getDataObjectClass_() {
                     try {
                         //if the specified class file was not found try to dasherize model name
                         // e.g. OrderDetail -> order-detail-model.js
-                        classPath = path.join(process.cwd(), 'app', 'models', _.dasherize(self.name).concat('-model.js'));
+                        classPath = PathUtils.join(process.cwd(), 'app', 'models', _.dasherize(self.name).concat('-model.js'));
                         DataObjectClass = require(classPath);
                     } catch (e) {
                         if (e.code === 'MODULE_NOT_FOUND') {
@@ -2874,7 +2872,7 @@ function validate_(obj, state, callback) {
             var validatorModule = void 0;
             try {
                 if (/^\./ig.test(attr.validation['validator'])) {
-                    var modulePath = path.resolve(process.cwd(), attr.validation['validator']);
+                    var modulePath = PathUtils.join(process.cwd(), attr.validation['validator']);
                     validatorModule = require(modulePath);
                 } else {
                     validatorModule = require(attr.validation['validator']);

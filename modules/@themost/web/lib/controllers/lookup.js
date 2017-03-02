@@ -14,6 +14,8 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = undefined;
 
+require('source-map-support/register');
+
 var _data = require('./data');
 
 var HttpDataController = _data.HttpDataController;

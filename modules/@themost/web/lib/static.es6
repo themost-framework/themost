@@ -8,6 +8,7 @@
  * found in the LICENSE file at https://themost.io/license
  */
 'use strict';
+import 'source-map-support/register';
 import {HttpServerError,HttpNotFoundError,HttpForbiddenError} from '@themost/common/errors';
 import {TraceUtils} from '@themost/common/utils';
 import {_} from 'lodash';
@@ -214,10 +215,10 @@ export class StaticContentConsumer extends HttpConsumer {
             const context = this;
             try {
                 let handler = new StaticHandler(rootDir);
-                return Rx.Observable.bindNodeCallback(handler.mapRequest,handler)(context)
+                return Rx.Observable.bindNodeCallback(handler.mapRequest.bind(handler))(context)
                     .flatMap((res) => {
                         if (res) {
-                            return Rx.Observable.bindNodeCallback(handler.processRequest,handler)(context);
+                            return Rx.Observable.bindNodeCallback(handler.processRequest.bind(handler))(context);
                         }
                         return HttpNextResult.create().toObservable();
                     });
@@ -244,10 +245,10 @@ export class MapStaticContentConsumer extends HttpConsumer {
             try {
                 let handler = new StaticHandler(rootDir);
                 handler.whenDir = whenDir;
-                return Rx.Observable.bindNodeCallback(handler.mapRequest,handler)(context)
+                return Rx.Observable.bindNodeCallback(handler.mapRequest.bind(handler))(context)
                     .flatMap((res) => {
                         if (res) {
-                            return Rx.Observable.bindNodeCallback(handler.processRequest,handler)(context);
+                            return Rx.Observable.bindNodeCallback(handler.processRequest.bind(handler))(context);
                         }
                         return HttpNextResult.create().toObservable();
                     });

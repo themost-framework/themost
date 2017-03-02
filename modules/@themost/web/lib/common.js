@@ -9,6 +9,15 @@
  */
 'use strict';
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.HttpApplicationConfig = exports.HttpApplicationOptions = undefined;
+
+require('source-map-support/register');
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 /**
  * @classdesc ApplicationOptions class describes the startup options of a MOST Web Framework application.
  * @class
@@ -29,13 +38,6 @@
  var app = new HttpApplication();
  app.start();
  */
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
 var HttpApplicationOptions = exports.HttpApplicationOptions = function HttpApplicationOptions() {
   _classCallCheck(this, HttpApplicationOptions);
 

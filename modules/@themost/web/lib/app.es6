@@ -8,6 +8,7 @@
  * found in the LICENSE file at https://themost.io/license
  */
 'use strict';
+import 'source-map-support/register';
 import url from 'url';
 import {_} from 'lodash';
 import async from 'async';
@@ -64,7 +65,7 @@ function startInternal(options) {
         const server_ = http.createServer(function (request, response) {
             const context = self.createContext(request, response);
             //begin request processing
-            Rx.Observable.bindNodeCallback(processRequestInternal)(context)
+            Rx.Observable.bindNodeCallback(processRequestInternal.bind(self))(context)
                 .subscribe(()=> {
                     context.finalize(function() {
                         if (context.response) { context.response.end(); }
@@ -846,6 +847,7 @@ export class HttpApplication {
      * @returns {Observable}
      */
     executeRequest(options) {
+        const self = this;
         return Rx.Observable.bindNodeCallback(function(callback) {
             const requestOptions = { };
             if (typeof options === 'string') {
@@ -876,7 +878,7 @@ export class HttpApplication {
                 //create context
                 const requestContext = this.createContext(request, response);
                 //and finally process context
-                return processRequestInternal.call(this, requestContext, function(err) {
+                return processRequestInternal.call(self, requestContext, function(err) {
                     if (err) {
                         return callback(err);
                     }

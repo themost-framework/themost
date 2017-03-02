@@ -8,6 +8,7 @@
  * found in the LICENSE file at https://themost.io/license
  */
 'use strict';
+import 'source-map-support/register';
 import {_} from 'lodash';
 import Rx from 'rxjs';
 import NodeCache from 'node-cache';
@@ -115,7 +116,7 @@ export class DefaultCacheStrategy extends CacheStrategy  {
      * @returns {Observable}
      */
     remove(key) {
-        return Rx.Observable.bindNodeCallback(this[rawCacheProperty].set, this[rawCacheProperty])(key);
+        return Rx.Observable.bindNodeCallback(this[rawCacheProperty].set.bind(this[rawCacheProperty]))(key);
     }
 
     /**
@@ -173,7 +174,7 @@ export class DefaultCacheStrategy extends CacheStrategy  {
      * @returns {Observable}
      */
     get(key) {
-        return Rx.Observable.bindNodeCallback(this[rawCacheProperty].get, this[rawCacheProperty])(key)
+        return Rx.Observable.bindNodeCallback(this[rawCacheProperty].get.bind(this[rawCacheProperty]))(key)
             .flatMap((res) => {
                 return Rx.Observable.of(res[key]);
             });

@@ -18,6 +18,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+require('source-map-support/register');
+
 var _errors = require('@themost/common/errors');
 
 var HttpError = _errors.HttpError;
@@ -430,7 +432,7 @@ var ViewHandler = function () {
                                         });
                                     })();
                                 } else {
-                                    var ControllerCtor = context.getApplication().getConfiguration().controllers[controllerName] || require('./controllers/base').default;
+                                    var ControllerCtor = context.getApplication().getConfiguration().controllers[controllerName] || require('./controllers/base');
                                     callback(null, ControllerCtor);
                                 }
                             } else {
@@ -504,11 +506,11 @@ var ViewConsumer = exports.ViewConsumer = function (_HttpConsumer) {
                     var handler = new ViewHandler();
                     //execute mapRequest
                     return {
-                        v: Rx.Observable.bindNodeCallback(handler.mapRequest, handler)(context).flatMap(function () {
+                        v: Rx.Observable.bindNodeCallback(handler.mapRequest.bind(handler))(context).flatMap(function () {
                             //if request has been mapped
                             if (context.request.currentHandler instanceof ViewHandler) {
                                 //execute post map request
-                                return Rx.Observable.bindNodeCallback(handler.postMapRequest, handler)(context);
+                                return Rx.Observable.bindNodeCallback(handler.postMapRequest.bind(handler))(context);
                             }
                             //otherwise return next result
                             return Rx.Observable.of(new HttpNextResult());
@@ -516,7 +518,7 @@ var ViewConsumer = exports.ViewConsumer = function (_HttpConsumer) {
                             //if current handler is an instance of ViewHandler
                             if (context.request.currentHandler instanceof ViewHandler) {
                                 //process request
-                                return Rx.Observable.bindNodeCallback(handler.processRequest, handler)(context).flatMap(function (res) {
+                                return Rx.Observable.bindNodeCallback(handler.processRequest.bind(handler))(context).flatMap(function (res) {
                                     if (res instanceof HttpEndResult) {
                                         return res.toObservable();
                                     }

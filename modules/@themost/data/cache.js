@@ -16,6 +16,8 @@ exports.NoDataCache = exports.DataCache = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+require('source-map-support/register');
+
 var _emitter = require('@themost/common/emitter');
 
 var SequentialEventEmitter = _emitter.SequentialEventEmitter;
@@ -189,7 +191,8 @@ var DataCache = exports.DataCache = function (_SequentialEventEmitt) {
         key: 'get',
         value: function get(key) {
             return Rx.Observable.bindNodeCallback(function (key, callback) {
-                this.init(function (err) {
+                var self = this;
+                self.init(function (err) {
                     if (err) {
                         return callback(err);
                     }

@@ -8,6 +8,7 @@
  * found in the LICENSE file at https://themost.io/license
  */
 'use strict';
+import 'source-map-support/register';
 import {HttpError,HttpNotFoundError} from '@themost/common/errors';
 import {TraceUtils, LangUtils} from '@themost/common/utils';
 import {HttpNextResult, HttpEndResult} from './results';
@@ -86,7 +87,7 @@ class ViewHandler {
                             });
                         }
                         else {
-                            const ControllerCtor = context.getApplication().getConfiguration().controllers[controllerName] || require('./controllers/base').default;
+                            const ControllerCtor = context.getApplication().getConfiguration().controllers[controllerName] || require('./controllers/base');
                             callback(null, ControllerCtor);
                         }
                     }
@@ -433,12 +434,12 @@ export class ViewConsumer extends HttpConsumer {
             try {
                 let handler = new ViewHandler();
                 //execute mapRequest
-                return Rx.Observable.bindNodeCallback(handler.mapRequest, handler)(context)
+                return Rx.Observable.bindNodeCallback(handler.mapRequest.bind(handler))(context)
                     .flatMap(()=> {
                         //if request has been mapped
                         if (context.request.currentHandler instanceof ViewHandler) {
                             //execute post map request
-                            return Rx.Observable.bindNodeCallback(handler.postMapRequest, handler)(context);
+                            return Rx.Observable.bindNodeCallback(handler.postMapRequest.bind(handler))(context);
                         }
                         //otherwise return next result
                         return Rx.Observable.of(new HttpNextResult());
@@ -446,7 +447,7 @@ export class ViewConsumer extends HttpConsumer {
                         //if current handler is an instance of ViewHandler
                         if (context.request.currentHandler instanceof ViewHandler) {
                             //process request
-                            return Rx.Observable.bindNodeCallback(handler.processRequest, handler)(context).flatMap((res)=> {
+                            return Rx.Observable.bindNodeCallback(handler.processRequest.bind(handler))(context).flatMap((res)=> {
                                 if (res instanceof HttpEndResult) {
                                     return res.toObservable();
                                 }

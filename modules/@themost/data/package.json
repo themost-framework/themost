@@ -23,6 +23,7 @@
     "node-cache": "^1.1.0",
     "q": "~1.1.1",
     "sprintf": "^0.1.5",
-    "rxjs": "^5.0.1"
+    "rxjs": "^5.0.1",
+    "source-map-support": "^0.4.11"
   }
 }

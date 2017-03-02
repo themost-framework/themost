@@ -8,7 +8,9 @@
  * found in the LICENSE file at https://themost.io/license
  */
 'use strict';
+import 'source-map-support/register';
 import {_} from 'lodash';
+import {DataPermissionEventListener} from '@themost/data/permission';
 
 function toBoolean(value) {
     if (typeof value === 'function') {
@@ -138,7 +140,6 @@ export class AngularServerModuleDefaults {
                     return {
                         pre: function preLink(scope, element) {
                             return $async(function(resolve, reject) {
-                                const DataPermissionEventListener = require('most-data').classes.DataPermissionEventListener;
                                 try {
                                     const targetModel = $context.model(scope.model);
                                     if (_.isNil(scope.state)) {
@@ -154,7 +155,8 @@ export class AngularServerModuleDefaults {
                                             else
                                                 scope.state = scope.mask;
                                     }
-                                    const p = new DataPermissionEventListener(), e = { model: targetModel, state: scope.state, throwError:false };
+                                    const p = new DataPermissionEventListener(),
+                                        e = { model: targetModel, state: scope.state, throwError:false };
                                     p.validate(e, function(err) {
                                         if (e.result) {
                                             const result = $compile(element.contents())(scope);

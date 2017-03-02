@@ -1,9 +1,3 @@
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.extend = extend;
 /**
  * @license
  * MOST Web Framework 2.0 Codename Blueshift
@@ -13,6 +7,14 @@ exports.extend = extend;
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.extend = extend;
+
+require('source-map-support/register');
 
 /**
  * @param {*} $

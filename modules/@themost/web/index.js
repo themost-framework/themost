@@ -156,4 +156,6 @@ Object.keys(_localization).forEach(function (key) {
     }
   });
 });
+
+require('source-map-support/register');
 //# sourceMappingURL=index.js.map

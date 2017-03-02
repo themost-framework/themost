@@ -8,6 +8,7 @@
  * found in the LICENSE file at https://themost.io/license
  */
 'use strict';
+import 'source-map-support/register';
 import {HttpConsumer} from './consumers';
 import Rx from 'rxjs';
 import bodyParser from 'body-parser';

@@ -8,6 +8,7 @@
  * found in the LICENSE file at https://themost.io/license
  */
 'use strict';
+import 'source-map-support/register';
 import winston from 'winston';
 import {_} from 'lodash';
 
@@ -700,4 +701,35 @@ LangUtils.FloatRegex =/^[+-]?\d+(\.\d+)?$/g;
 function UnknownPropertyDescriptor(obj, name) {
     Object.defineProperty(this, 'value', { configurable:false, enumerable:true, get: function() { return obj[name]; }, set: function(value) { obj[name]=value; } });
     Object.defineProperty(this, 'name', { configurable:false, enumerable:true, get: function() { return name; } });
+}
+
+export class PathUtils {
+    /**
+     *
+     * @param {...string} part
+     * @returns {string}
+     */
+    static join(...part) {
+            // Split the inputs into a list of path commands.
+            let parts = [], i, l;
+            for (i = 0, l = arguments.length; i < l; i++) {
+                parts = parts.concat(arguments[i].split("/"));
+            }
+            // Interpret the path commands to get the new resolved path.
+            let newParts = [];
+            for (i = 0, l = parts.length; i < l; i++) {
+                let part = parts[i];
+                // Remove leading and trailing slashes
+                // Also remove "." segments
+                if (!part || part === ".") continue;
+                // Interpret ".." to pop the last segment
+                if (part === "..") newParts.pop();
+                // Push new path segments.
+                else newParts.push(part);
+            }
+            // Preserve the initial slash if there was one.
+            if (parts[0] === "") newParts.unshift("");
+            // Turn back into a single string path.
+            return newParts.join("/") || (newParts.length ? "/" : ".");
+        }
 }

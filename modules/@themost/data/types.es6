@@ -7,6 +7,8 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+'use strict';
+import 'source-map-support/register';
 import {SequentialEventEmitter} from '@themost/common/emitter';
 import {_} from 'lodash';
 

@@ -7,15 +7,14 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+'use strict';
+import 'source-map-support/register';
 import {_} from 'lodash';
 import sprintf from 'sprintf';
-import {TraceUtils} from "@themost/common/utils";
+import {TraceUtils,PathUtils} from "@themost/common/utils";
+import {Args} from "@themost/common/utils";
+import {AbstractClassError, AbstractMethodError} from "@themost/common/errors";
 
-/**
- * @ignore
- */
-const path = require("path"),
-    fs = require("fs");
 
 /**
  * @ignore
@@ -33,6 +32,36 @@ export class DataConfigurationAuth {
     }
 }
 
+const configurationProperty = Symbol('configuration');
+
+/**
+ * @class
+ */
+export class ConfigurationStrategy {
+    /**
+     *
+     * @param {DataConfiguration} config
+     */
+    constructor(config) {
+        Args.check(new.target !== DataConfiguration, new AbstractClassError());
+        Args.notNull(config, 'Configuration');
+        this[configurationProperty] = config;
+    }
+
+    /**
+     *
+     * @returns {DataConfiguration}
+     */
+    getConfiguration() {
+        return this[configurationProperty];
+    }
+
+}
+
+const strategiesProperty = Symbol('strategies');
+const configPathProperty = Symbol('configurationPath');
+const dataTypesProperty = Symbol('dataTypes');
+
 /**
  * @classdesc Holds the configuration of data modeling infrastructure
  * @class
@@ -46,115 +75,37 @@ export class DataConfiguration {
      */
     constructor(configPath) {
 
-        configPath = configPath || path.join(process.cwd(),'config');
-
-        /**
-         * Model caching object (e.g. cfg.models.Migration, cfg.models.User etc)
-         * @type {*}
-         * @ignore
-         */
-        this.models = {
-            "Migration":{
-                "name":"Migration", "title":"Data Model Migrations", "id": 14,
-                "source":"migrations", "view":"migrations", "hidden": true, "sealed":true,
-                "fields":[
-                    { "name":"id", "type":"Counter", "primary":true },
-                    { "name":"appliesTo", "type":"Text", "size":180, "nullable":false },
-                    { "name":"model", "type":"Text", "size":120 },
-                    { "name":"description", "type":"Text", "size":512},
-                    { "name":"version", "type":"Text", "size":40, "nullable":false }
-                ],
-                "constraints":[
-                    { "type":"unique", "fields":[ "appliesTo", "version" ] }
-                ]
-            }
-        };
-
-        /**
-         * @type {*}
-         * @private
-         */
-        let dataTypes = null;
-        /**
-         * Gets or sets an array of items that indicates all the data types that is going to be used in data modeling.
-         * @type {*}
-         */
-        Object.defineProperty(this, 'dataTypes', {
-            get: function()
-            {
-                if (dataTypes)
-                    return dataTypes;
-                //get data types from configuration file
-                try {
-                    dataTypes = require(path.join(configPath, 'dataTypes.json'));
-                    if (_.isNil(dataTypes)) {
-                        TraceUtils.log('Data: Application data types are empty. The default data types will be loaded instead.');
-                        dataTypes = require('./resources/dataTypes.json');
-                    }
-                    else {
-                        //append default data types which are not defined in application data types
-                        const defaultDataTypes = require('./resources/dataTypes.json');
-                        //enumerate default data types and replace or append application specific data types
-                        for (const key in defaultDataTypes) {
-                            if (dataTypes.hasOwnProperty(key)) {
-                                if (dataTypes[key].version) {
-                                    if (dataTypes[key].version <= defaultDataTypes[key].version) {
-                                        //replace data type due to lower version
-                                        dataTypes[key] = defaultDataTypes[key];
-                                    }
-                                }
-                                else {
-                                    //replace data type due to invalid version
-                                    dataTypes[key] = defaultDataTypes[key];
-                                }
-                            }
-                            else {
-                                //append data type
-                                dataTypes[key] = defaultDataTypes[key];
-                            }
-                        }
-                    }
-                }
-                catch(e) {
-                    if (e.code === 'MODULE_NOT_FOUND') {
-                        TraceUtils.log('Data: Application specific data types are missing. The default data types will be loaded instead.');
-                    }
-                    else {
-                        TraceUtils.log('Data: An error occured while loading application data types.');
-                        throw e;
-                    }
-                    dataTypes = require('./resources/dataTypes.json');
-                }
-                return dataTypes;
-            }
-        });
+        this[strategiesProperty] = { };
+        this[configPathProperty] = configPath || PathUtils.join(process.cwd(),'config');
+        this[dataTypesProperty] = require('./resources/dataTypes.json');
+        this.useStrategy(SchemaLoaderStrategy, DefaultSchemaLoaderStrategy);
 
         //get application adapter types, if any
         let config;
         try {
             const env = process.env['NODE_ENV'] || 'production';
-            config = require(path.join(configPath, 'app.' + env + '.json'));
+            config = require(PathUtils.join(this[configPathProperty], 'app.' + env + '.json'));
         }
-        catch (e) {
-            if (e.code === 'MODULE_NOT_FOUND') {
+        catch (err) {
+            if (err.code === 'MODULE_NOT_FOUND') {
                 TraceUtils.log('Data: The environment specific configuration cannot be found or is inaccesible.');
                 try {
-                    config = require(path.join(configPath, 'app.json'));
+                    config = require(PathUtils.join(this[configPathProperty], 'app.json'));
                 }
-                catch(e) {
-                    if (e.code === 'MODULE_NOT_FOUND') {
+                catch(err) {
+                    if (err.code === 'MODULE_NOT_FOUND') {
                         TraceUtils.log('Data: The default application configuration cannot be found or is inaccesible.');
                     }
                     else {
-                        TraceUtils.log('Data: An error occured while trying to open default application configuration.');
-                        TraceUtils.log(e);
+                        TraceUtils.error('Data: An error occured while trying to open default application configuration.');
+                        TraceUtils.error(err);
                     }
                     config = { adapters:[], adapterTypes:[]  };
                 }
             }
             else {
-                TraceUtils.log('Data: An error occured while trying to open application configuration.');
-                TraceUtils.log(e);
+                TraceUtils.error('Data: An error occured while trying to open application configuration.');
+                TraceUtils.error(err);
                 config = { adapters:[], adapterTypes:[]  };
             }
         }
@@ -196,14 +147,14 @@ export class DataConfiguration {
                             }
                             else {
                                 //adapter type does not export a createInstance(options) function
-                                console.log(sprintf.sprintf("The specified data adapter type (%s) does not have the appropriate constructor. Adapter type cannot be loaded.", x.invariantName));
+                                TraceUtils.log(sprintf.sprintf("The specified data adapter type (%s) does not have the appropriate constructor. Adapter type cannot be loaded.", x.invariantName));
                             }
                         }
-                        catch(e) {
+                        catch(err) {
                             //catch error
-                            console.log(e);
+                            TraceUtils.error(err);
                             //and log a specific error for this adapter type
-                            console.log(sprintf.sprintf("The specified data adapter type (%s) cannot be instantiated. Adapter type cannot be loaded.", x.invariantName));
+                            TraceUtils.log(sprintf.sprintf("The specified data adapter type (%s) cannot be instantiated. Adapter type cannot be loaded.", x.invariantName));
                         }
                         if (valid) {
                             //register adapter
@@ -215,7 +166,7 @@ export class DataConfiguration {
                         }
                     }
                     else {
-                        console.log(sprintf.sprintf("The specified data adapter type (%s) does not have a type defined. Adapter type cannot be loaded.", x.invariantName));
+                        TraceUtils.log(sprintf.sprintf("The specified data adapter type (%s) does not have a type defined. Adapter type cannot be loaded.", x.invariantName));
                     }
                 });
             }
@@ -241,8 +192,9 @@ export class DataConfiguration {
                     auth = config.settings.auth || {};
                     return auth;
                 }
-                catch(e) {
-                    console.log('An error occured while trying to load auth configuration');
+                catch(err) {
+                    TraceUtils.error('An error occured while trying to load auth configuration');
+                    TraceUtils.error(err);
                     auth = {};
                     return auth;
                 }
@@ -262,33 +214,60 @@ export class DataConfiguration {
                 throw er;
             }
         };
-        
-        let path_ = path.join(configPath,'models');
 
+    }
+
+    /**
+     * Returns the collection of defined data types (e.g. Integer, Float, Language etc)
+     * @returns {*}
+     */
+    get dataTypes() {
+        return this[dataTypesProperty];
+    }
+    /**
+     * Gets a boolean which indicates whether the specified data type is defined in data types collection or not.
+     * @param name
+     * @returns {boolean}
+     */
+    hasDataType(name) {
+        if (_.isNil(name)) {
+            return false;
+        }
+        if (typeof name !== 'string') {
+            return false;
+        }
+        return this.dataTypes.hasOwnProperty(name);
+    }
+
+    /**
+     * Gets the root configuration path
+     * @returns {string}
+     */
+    getConfigurationPath() {
+        return this[configPathProperty];
+    }
+
+    /**
+     * Gets a native object which represents the definition of the model with the given name.
+     * @param {string} name
+     * @returns {DataModel|undefined}
+     */
+    getModelDefinition(name) {
         /**
-         * Gets a string which represents the path where schemas exist. The default location is the config/models folder. 
-         * @returns {string}
+         * @type {SchemaLoaderStrategy}
          */
-        this.getModelPath = function() {
-            return path_;
-        };
-        /**
-         * Sets a string which represents the path where schemas exist.
-         * @param p
-         * @returns {DataConfiguration}
-         */
-        this.setModelPath = function(p) {
-            path_ = p;   
-            return this;
-        };
-        /**
-         * Sets a data model definition in application storage.
-         * Use this method in order to override default model loading process.
-         * @param {*} data - A generic object which represents a model definition
-         * @returns {DataConfiguration}
-         * @example
-         var most = require("most-data");
-         most.cfg.getCurrent().setModelDefinition({
+        const schemaLoader = this.getStrategy(SchemaLoaderStrategy);
+        return schemaLoader.getModelDefinition(name);
+    };
+
+    /**
+     * Sets a data model definition in application storage.
+     * Use this method in order to override default model loading process.
+     * @param {*} data - A generic object which represents a model definition
+     * @returns {DataConfiguration}
+     * @example
+     var most = require("most-data");
+     most.cfg.getCurrent().setModelDefinition({
             "name":"UserColor",
             "version":"1.1",
             "title":"User Colors",
@@ -305,48 +284,45 @@ export class DataConfiguration {
                 { "mask":15, "type":"self","filter":"id eq me()" }
                 ]
         });
-         */
-        this.setModelDefinition = function(data) {
-            if (_.isNil(data)) {
-                throw new Error("Invalid model definition. Expected object.")
-            }
-            if (typeof data === 'object') {
-                if (typeof data.name === 'undefined' || data.name === null) {
-                    throw new Error("Invalid model definition. Expected model name.")
-                }
-                this.models[data.name] = data;
-            }
-          return this;
-        };
+     */
+    setModelDefinition(data) {
         /**
-         * Gets a native object which represents the definition of the model with the given name.
-         * @param {string} name
-         * @returns {DataModel|undefined}
+         * @type {SchemaLoaderStrategy}
          */
-        this.getModelDefinition = function(name) {
-            if (_.isNil(name)) {
-                return;
-            }
-            if (typeof name === 'string') {
-                return this.model(name);
-            }
-        };
+        const schemaLoader = this.getStrategy(SchemaLoaderStrategy);
+        schemaLoader.setModelDefinition(data);
+        return this;
+    };
 
-        /**
-         * Gets a boolean which indicates whether the specified data type is defined in data types collection or not.
-         * @param name
-         * @returns {boolean}
-         */
-        this.hasDataType = function(name) {
-            if (_.isNil(name)) {
-                return false;
-            }
-            if (typeof name !== 'string') {
-                return false;
-            }
-            return this.dataTypes.hasOwnProperty(name);
-        }
+    /**
+     * Register a configuration strategy
+     * @param {Function} configStrategyCtor
+     * @param {Function} strategyCtor
+     * @returns DataConfiguration
+     */
+    useStrategy(configStrategyCtor, strategyCtor) {
+        Args.notFunction(configStrategyCtor,"Configuration strategy constructor");
+        Args.notFunction(strategyCtor,"Strategy constructor");
+        this[strategiesProperty][`${configStrategyCtor.name}`] = new strategyCtor(this);
+        return this;
+    }
 
+    /**
+     * Gets a configuration strategy
+     * @param {Function} configStrategyCtor
+     */
+    getStrategy(configStrategyCtor) {
+        Args.notFunction(configStrategyCtor,"Configuration strategy constructor");
+        return this[strategiesProperty][`${configStrategyCtor.name}`];
+    }
+
+    /**
+     * Gets a configuration strategy
+     * @param {Function} configStrategyCtor
+     */
+    hasStrategy(configStrategyCtor) {
+        Args.notFunction(configStrategyCtor,"Configuration strategy constructor");
+        return typeof this[strategiesProperty][`${configStrategyCtor.name}`] !== 'undefined';
     }
 
     /**
@@ -354,53 +330,7 @@ export class DataConfiguration {
      * @param name {string}
      */
     model(name) {
-        const self = this;
-        let i;
-        if (typeof name !== 'string')
-            return null;
-        //first of all try to find if model definition is already in cache
-        if (typeof this.models[name] !== 'undefined')
-        //and return it
-            return this.models[name];
-        //otherwise try to find model with case insensitivity
-        const keys = Object.keys(this.models), mr = new RegExp('^' + name + '$','i');
-        for (i = 0; i < keys.length; i++) {
-            mr.lastIndex=0;
-            if (mr.test(keys[i]))
-                return this.models[keys[i]];
-        }
-        //otherwise open definition file
-        const modelPath = this.getModelPath();
-        if (!fs.existsSync(modelPath)) {
-            //models folder does not exist
-            //so set model to null
-            this.models[name]=null;
-            //and return
-            return null;
-        }
-        //read files from models directory
-        let files;
-        //store file list in a private variable
-        if (typeof this._files === 'undefined') { this._files = fs.readdirSync(modelPath); }
-        //and finally get this list of file
-        files = this._files;
-        if (files.length==0)
-            return null;
-        const r = new RegExp('^' + name.concat('.json') + '$','i');
-        for (i = 0; i < files.length; i++) {
-            r.lastIndex=0;
-            if (r.test(files[i])) {
-                //build model file path
-                const finalPath = path.join(modelPath, files[i]);
-                //get model
-                const result = require(finalPath), finalName = result.name;
-                //cache model definition
-                self.models[finalName] = result;
-                //and finally return this definition
-                return result;
-            }
-        }
-        return null;
+        return this.getModelDefinition(name);
     }
     /**
      * Gets the current data configuration
@@ -417,15 +347,177 @@ export class DataConfiguration {
     static setCurrent(configuration) {
         if (configuration instanceof DataConfiguration) {
             DataConfiguration.current = configuration;
+            if (!configuration.hasStrategy(SchemaLoaderStrategy)) {
+                configuration.useStrategy(SchemaLoaderStrategy, DefaultSchemaLoaderStrategy);
+            }
             return DataConfiguration.current;
         }
         throw new TypeError('Invalid argument. Expected an instance of DataConfiguration class.');
     }
 
 }
+
+
+const modelsProperty = Symbol('models');
+
+export class SchemaLoaderStrategy extends ConfigurationStrategy {
+    /**
+     *
+     * @param {DataConfiguration} config
+     */
+    constructor(config) {
+        super(config);
+        this[modelsProperty] = new Map();
+        this.setModelDefinition({
+            "name":"Migration", "title":"Data Model Migrations", "id": 14,
+            "source":"migrations", "view":"migrations", "hidden": true, "sealed":true,
+            "fields":[
+                { "name":"id", "type":"Counter", "primary":true },
+                { "name":"appliesTo", "type":"Text", "size":180, "nullable":false },
+                { "name":"model", "type":"Text", "size":120 },
+                { "name":"description", "type":"Text", "size":512},
+                { "name":"version", "type":"Text", "size":40, "nullable":false }
+            ],
+            "constraints":[
+                { "type":"unique", "fields":[ "appliesTo", "version" ] }
+            ]
+        });
+    }
+
+    /**
+     *
+     * @param {string} name
+     * @returns {*}
+     */
+    getModelDefinition(name) {
+        Args.notString(name,'Model name');
+        let result = this[modelsProperty].get(name);
+        if (typeof result !== 'undefined') {
+            return result;
+        }
+        //case insensitive search
+        const iterator = this[modelsProperty].keys();
+        let keyIt = iterator.next();
+        while(!keyIt.done) {
+            if ((typeof keyIt.value === 'string') && (keyIt.value.toLowerCase() === name.toLowerCase())) {
+                return this[modelsProperty].get(keyIt.value);
+            }
+            keyIt = iterator.next();
+        }
+    }
+
+    /**
+     *
+     * @param {*} data
+     * @returns {SchemaLoaderStrategy}
+     */
+    setModelDefinition(data) {
+        Args.notNull(data,'Model definition');
+        Args.notString(data.name,'Model name');
+        this[modelsProperty].set(data.name,data);
+        return this;
+    }
+
+}
+
+const filesProperty = Symbol('files');
+const modelPathProperty = Symbol('modelPath');
+
+export class DefaultSchemaLoaderStrategy extends SchemaLoaderStrategy {
+    /**
+     *
+     * @param {DataConfiguration} config
+     */
+    constructor(config) {
+        super(config);
+        this[modelPathProperty] = PathUtils.join(config.getConfigurationPath(), 'models');
+    }
+
+    /**
+     * Gets a string which represents the directory which contains model definitions.
+     * @returns {*}
+     */
+    getModelPath() {
+        return this[modelPathProperty];
+    }
+
+    /**
+     * Sets the directory of model definitions.
+     * @param {string} p
+     * @returns {DefaultSchemaLoaderStrategy}
+     */
+    setModelPath(p) {
+        this[modelPathProperty] = p;
+        return this;
+    }
+
+    /**
+     *
+     * @param {string} name
+     * @returns {*}
+     */
+    getModelDefinition(name) {
+        const self = this,
+            getModelDefinitionSuper = super.getModelDefinition;
+        let i;
+        if (typeof name !== 'string')
+            return;
+        //exclude registered data types
+        if (this.getConfiguration().hasDataType(name)) {
+            return;
+        }
+        let modelDefinition = getModelDefinitionSuper.bind(this)(name);
+        //first of all try to find if model definition is already in cache
+        if (_.isObject(modelDefinition)) {
+            //and return it//and return it
+            return modelDefinition;
+        }
+        //otherwise open definition file
+        const modelPath = this.getModelPath();
+        //read files from models directory
+        //store file list in a private variable
+        if (typeof this[filesProperty] === 'undefined') {
+            const nativeFsModule = 'fs';
+            const fs = require(nativeFsModule);
+            if (typeof fs.readdirSync === 'function') {
+                this[filesProperty] = fs.readdirSync(modelPath);
+            }
+            else {
+                //try load model definition
+                try {
+                    modelDefinition = require(PathUtils.join(modelPath, name.concat('json')));
+                    this.setModelDefinition(modelDefinition);
+                }
+                catch(err) {
+                    //do nothing (log error)
+                    TraceUtils.error('An error occurred while loading definition for model %s.', name);
+                    TraceUtils.error(err);
+                }
+            }
+        }
+        //and finally get this list of file
+        const files = this[filesProperty];
+        if (files.length==0)
+            return;
+        const r = new RegExp('^' + name.concat('.json') + '$','i');
+        for (i = 0; i < files.length; i++) {
+            r.lastIndex=0;
+            if (r.test(files[i])) {
+                //build model file path
+                const finalPath = PathUtils.join(modelPath, files[i]);
+                //get model
+                const result = require(finalPath), finalName = result.name;
+                //set definition
+                this.setModelDefinition(result);
+                //and finally return this definition
+                return result;
+            }
+        }
+    }
+}
+
 /**
  * Gets the current configuration
  * @type {DataConfiguration}
  */
 DataConfiguration.current = new DataConfiguration();
-

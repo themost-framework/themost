@@ -8,6 +8,7 @@
  * found in the LICENSE file at https://themost.io/license
  */
 'use strict';
+import 'source-map-support/register';
 import {_} from 'lodash';
 import url from 'url';
 import path from 'path';
@@ -15,7 +16,7 @@ import {HttpViewContext} from './mvc';
 import {Args,TraceUtils} from '@themost/common/utils';
 import {HttpBadRequestError} from '@themost/common/errors';
 import {LocalizationStrategy} from './localization';
-import {DefaultDataContext} from 'most-data/data-context'
+import {DefaultDataContext} from '@themost/data/context'
 import {DataConfigurationStrategy} from "./data";
 
 function parseCookies(request) {

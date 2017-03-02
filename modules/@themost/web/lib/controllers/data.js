@@ -20,6 +20,8 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _dec, _dec2, _dec3, _dec4, _dec5, _dec6, _dec7, _dec8, _dec9, _dec10, _dec11, _dec12, _dec13, _dec14, _dec15, _dec16, _dec17, _dec18, _dec19, _dec20, _dec21, _dec22, _dec23, _dec24, _dec25, _dec26, _dec27, _dec28, _desc, _value, _class;
 
+require('source-map-support/register');
+
 var _util = require('util');
 
 var util = _interopRequireDefault(_util).default;
@@ -62,6 +64,10 @@ var _decorators2 = require('../decorators');
 var httpPut = _decorators2.httpPut;
 var httpPost = _decorators2.httpPost;
 var httpDelete = _decorators2.httpDelete;
+
+var _expandResolver = require('@themost/data/expand-resolver');
+
+var DataExpandResolver = _expandResolver.DataExpandResolver;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -551,8 +557,7 @@ var HttpDataController = (_dec = httpGet(), _dec2 = httpAction('new'), _dec3 = h
                             });
                         }
                         if (expand) {
-                            var resolver = require("most-data/data-expand-resolver");
-                            var matches = resolver.testExpandExpression(expand);
+                            var matches = DataExpandResolver.testExpandExpression(expand);
                             if (matches && matches.length > 0) {
                                 q.expand.apply(q, matches);
                             }
