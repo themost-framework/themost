@@ -695,7 +695,7 @@ export class DataTypeValidator extends DataValidator {
     constructor(type) {
         super();
         if (typeof type === 'string')
-            this.dataType = DataConfiguration.current.dataTypes[type];
+            this.dataType = DataConfiguration.getCurrent().dataTypes[type];
         else
             this.dataType = type;
         DataTypeValidator.super_.call(this);

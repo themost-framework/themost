@@ -29,6 +29,7 @@ import {DataStateValidatorListener} from './listeners';
 import {DataQueryable,DataAttributeResolver} from './queryable';
 import {DataModelView} from './view';
 import {DataFilterResolver} from './filter-resolver';
+import {ModelClassLoaderStrategy, ListenerLoaderStrategy} from "./config";
 
 
 /**
@@ -973,7 +974,7 @@ export class DataModel extends SequentialEventEmitter {
          * @augments DataObject
          * @ignore
          */
-        const DataObjectClass = getDataObjectClass_.call(self);
+        const DataObjectClass = self.context.getConfiguration().getStrategy(ModelClassLoaderStrategy).resolve(self);
         let src;
         if (_.isArray(obj)) {
             const arr = [];
@@ -1826,45 +1827,39 @@ export class DataModel extends SequentialEventEmitter {
  */
 function registerListeners_() {
 
-   //change: 2015-01-19
-   //description: change default max listeners (10) to 32 in order to avoid node.js message
-   // for reaching the maximum number of listeners
-   //author: k.barbounakis@gmail.com
-   if (typeof this.setMaxListeners === 'function') {
-       this.setMaxListeners(32);
-   }
-
+    /**
+     *
+     * @type {DataModel|*}
+     */
+    const self = this;
    //register system event listeners
-   this.removeAllListeners('before.save');
-   this.removeAllListeners('after.save');
-   this.removeAllListeners('before.remove');
-   this.removeAllListeners('after.remove');
-   this.removeAllListeners('before.execute');
-   this.removeAllListeners('after.execute');
-   this.removeAllListeners('after.upgrade');
+    self.removeAllListeners('before.save');
+    self.removeAllListeners('after.save');
+    self.removeAllListeners('before.remove');
+    self.removeAllListeners('after.remove');
+    self.removeAllListeners('before.execute');
+    self.removeAllListeners('after.execute');
+    self.removeAllListeners('after.upgrade');
 
    //0. Permission Event Listener
    const perms = require('./permission');
    //1. State validator listener
-   this.on('before.save', DataStateValidatorListener.prototype.beforeSave);
-   this.on('before.remove', DataStateValidatorListener.prototype.beforeRemove);
+    self.on('before.save', DataStateValidatorListener.prototype.beforeSave);
+    self.on('before.remove', DataStateValidatorListener.prototype.beforeRemove);
    //2. Default values Listener
-   this.on('before.save', DefaultValueListener.prototype.beforeSave);
+    self.on('before.save', DefaultValueListener.prototype.beforeSave);
    //3. Calculated values listener
-   this.on('before.save', CalculatedValueListener.prototype.beforeSave);
+    self.on('before.save', CalculatedValueListener.prototype.beforeSave);
 
    //register before execute caching
-   if (this.caching=='always' || this.caching=='conditional') {
-       this.on('before.execute', DataCachingListener.prototype.beforeExecute);
-   }
-   //register after execute caching
-   if (this.caching=='always' || this.caching=='conditional') {
-       this.on('after.execute', DataCachingListener.prototype.afterExecute);
+   if (self.caching=='always' || self.caching=='conditional') {
+       self.on('before.execute', DataCachingListener.prototype.beforeExecute);
+       self.on('after.execute', DataCachingListener.prototype.afterExecute);
    }
 
    //migration listeners
-   this.on('after.upgrade',DataModelCreateViewListener.prototype.afterUpgrade);
-   this.on('after.upgrade',DataModelSeedListener.prototype.afterUpgrade);
+    self.on('after.upgrade',DataModelCreateViewListener.prototype.afterUpgrade);
+    self.on('after.upgrade',DataModelSeedListener.prototype.afterUpgrade);
 
    /**
     * change:8-Jun 2015
@@ -1878,9 +1873,9 @@ function registerListeners_() {
    //    this.on('after.remove', DataModelLookupCachingListener.afterRemove);
    //}
    //register configuration listeners
-   if (this.eventListeners) {
-       for (let i = 0; i < this.eventListeners.length; i++) {
-           const listener = this.eventListeners[i];
+   if (self.eventListeners) {
+       for (let i = 0; i < self.eventListeners.length; i++) {
+           const listener = self.eventListeners[i];
            //get listener type (e.g. type: require('./custom-listener.js'))
            if (listener.type && !listener.disabled)
            {
@@ -1888,37 +1883,37 @@ function registerListeners_() {
                 * Load event listener from the defined type
                 * @type DataEventListener
                 */
-               const m = listener.type.indexOf('/')==0 ? require(PathUtils.join(process.cwd(), listener.type)) : require(listener.type);
+               const m = self.context.getConfiguration().getStrategy(ListenerLoaderStrategy).resolve(listener);
                //if listener exports beforeSave function then register this as before.save event listener
                if (typeof m.beforeSave == 'function')
-                   this.on('before.save', m.beforeSave);
+                   self.on('before.save', m.beforeSave);
                //if listener exports afterSave then register this as after.save event listener
                if (typeof m.afterSave == 'function')
-                   this.on('after.save', m.afterSave);
+                   self.on('after.save', m.afterSave);
                //if listener exports beforeRemove then register this as before.remove event listener
                if (typeof m.beforeRemove == 'function')
-                   this.on('before.remove', m.beforeRemove);
+                   self.on('before.remove', m.beforeRemove);
                //if listener exports afterRemove then register this as after.remove event listener
                if (typeof m.afterRemove == 'function')
-                   this.on('after.remove', m.afterRemove);
+                   self.on('after.remove', m.afterRemove);
                //if listener exports beforeExecute then register this as before.execute event listener
                if (typeof m.beforeExecute == 'function')
-                   this.on('before.execute', m.beforeExecute);
+                   self.on('before.execute', m.beforeExecute);
                //if listener exports afterExecute then register this as after.execute event listener
                if (typeof m.afterExecute == 'function')
-                   this.on('after.execute', m.afterExecute);
+                   self.on('after.execute', m.afterExecute);
                //if listener exports afterUpgrade then register this as after.upgrade event listener
                if (typeof m.afterUpgrade == 'function')
-                   this.on('after.upgrade', m.afterUpgrade);
+                   self.on('after.upgrade', m.afterUpgrade);
            }
        }
    }
    //before execute
-   this.on('before.execute', perms.DataPermissionEventListener.prototype.beforeExecute);
+    self.on('before.execute', perms.DataPermissionEventListener.prototype.beforeExecute);
    //before save (validate permissions)
-   this.on('before.save', perms.DataPermissionEventListener.prototype.beforeSave);
+    self.on('before.save', perms.DataPermissionEventListener.prototype.beforeSave);
    //before remove (validate permissions)
-   this.on('before.remove', perms.DataPermissionEventListener.prototype.beforeRemove);
+    self.on('before.remove', perms.DataPermissionEventListener.prototype.beforeRemove);
 }
 
 /**
@@ -1969,60 +1964,6 @@ function convertInternal_(obj) {
             }
         }
     });
-}
-/**
- * @memberOf DataModel
- * @returns {*}
- * @constructor
- * @private
- */
-function getDataObjectClass_() {
-    const self = this;
-    let DataObjectClass = self['DataObjectClass'];
-    if (typeof DataObjectClass === 'undefined')
-    {
-        if (typeof self.classPath === 'string') {
-            DataObjectClass = require(self.classPath);
-        }
-        else {
-            //try to find class file with data model's name in lower case
-            // e.g. OrderDetail -> orderdetail-model.js (backward compatibility naming convention)
-            let classPath = PathUtils.join(process.cwd(),'app','models',self.name.toLowerCase().concat('-model.js'));
-            try {
-                DataObjectClass = require(classPath);
-            }
-            catch(e) {
-                if (e.code === 'MODULE_NOT_FOUND') {
-                    try {
-                        //if the specified class file was not found try to dasherize model name
-                        // e.g. OrderDetail -> order-detail-model.js
-                        classPath = PathUtils.join(process.cwd(),'app','models',_.dasherize(self.name).concat('-model.js'));
-                        DataObjectClass = require(classPath);
-                    }
-                    catch(e) {
-                        if (e.code === 'MODULE_NOT_FOUND') {
-                            if (typeof self.inherits === 'undefined' || self.inherits == null) {
-                                //if , finally, we are unable to find class file, load default DataObject class
-                                DataObjectClass = require('./object').DataObject;
-                            }
-                            else {
-                                DataObjectClass = getDataObjectClass_.call(self.base());
-                            }
-                        }
-                        else {
-                            throw e;
-                        }
-                    }
-                }
-                else {
-                    throw e;
-                }
-            }
-        }
-        //cache DataObject class property
-        self.context.getConfiguration().models[self.name]['DataObjectClass'] = self['DataObjectClass'] = DataObjectClass;
-    }
-    return DataObjectClass;
 }
 
 /**
@@ -2661,7 +2602,7 @@ function validate_(obj, state, callback) {
             let validatorModule;
             try {
                 if (/^\./ig.test(attr.validation['validator'])) {
-                    const modulePath = PathUtils.join(process.cwd(), attr.validation['validator']);
+                    const modulePath = PathUtils.join(self.context.getConfiguration().getExecutionPath(), attr.validation['validator']);
                     validatorModule = require(modulePath);
                 }
                 else {

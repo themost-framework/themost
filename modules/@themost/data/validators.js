@@ -814,7 +814,7 @@ var DataTypeValidator = exports.DataTypeValidator = function (_DataValidator7) {
 
         var _this7 = _possibleConstructorReturn(this, (DataTypeValidator.__proto__ || Object.getPrototypeOf(DataTypeValidator)).call(this));
 
-        if (typeof type === 'string') _this7.dataType = DataConfiguration.current.dataTypes[type];else _this7.dataType = type;
+        if (typeof type === 'string') _this7.dataType = DataConfiguration.getCurrent().dataTypes[type];else _this7.dataType = type;
         DataTypeValidator.super_.call(_this7);
         return _this7;
     }

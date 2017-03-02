@@ -60,7 +60,9 @@ export class ConfigurationStrategy {
 
 const strategiesProperty = Symbol('strategies');
 const configPathProperty = Symbol('configurationPath');
+const executionPathProperty = Symbol('configurationPath');
 const dataTypesProperty = Symbol('dataTypes');
+const currentConfiguration = Symbol('current');
 
 /**
  * @classdesc Holds the configuration of data modeling infrastructure
@@ -77,8 +79,11 @@ export class DataConfiguration {
 
         this[strategiesProperty] = { };
         this[configPathProperty] = configPath || PathUtils.join(process.cwd(),'config');
+        this[executionPathProperty] = PathUtils.join(this[configPathProperty],'..');
         this[dataTypesProperty] = require('./resources/dataTypes.json');
         this.useStrategy(SchemaLoaderStrategy, DefaultSchemaLoaderStrategy);
+        this.useStrategy(ModelClassLoaderStrategy, DefaultModelClassLoaderStrategy);
+        this.useStrategy(ListenerLoaderStrategy, DefaultListenerLoaderStrategy);
 
         //get application adapter types, if any
         let config;
@@ -224,6 +229,22 @@ export class DataConfiguration {
     get dataTypes() {
         return this[dataTypesProperty];
     }
+
+    /**
+     * Sets the current execution path
+     * @param {string} p
+     */
+    setExecutionPath(p) {
+        this[executionPathProperty] = p;
+    }
+
+    /**
+     * @returns {string}
+     */
+    getExecutionPath() {
+        return this[executionPathProperty];
+    }
+
     /**
      * Gets a boolean which indicates whether the specified data type is defined in data types collection or not.
      * @param name
@@ -337,7 +358,10 @@ export class DataConfiguration {
      * @returns DataConfiguration - An instance of DataConfiguration class which represents the current data configuration
      */
     static getCurrent() {
-        return DataConfiguration.current;
+        if (_.isNil(DataConfiguration[currentConfiguration])) {
+            DataConfiguration[currentConfiguration] = new DataConfiguration();
+        }
+        return DataConfiguration[currentConfiguration];
     }
     /**
      * Sets the current data configuration
@@ -346,11 +370,17 @@ export class DataConfiguration {
      */
     static setCurrent(configuration) {
         if (configuration instanceof DataConfiguration) {
-            DataConfiguration.current = configuration;
             if (!configuration.hasStrategy(SchemaLoaderStrategy)) {
                 configuration.useStrategy(SchemaLoaderStrategy, DefaultSchemaLoaderStrategy);
             }
-            return DataConfiguration.current;
+            if (!configuration.hasStrategy(ModelClassLoaderStrategy)) {
+                configuration.useStrategy(ModelClassLoaderStrategy, DefaultModelClassLoaderStrategy);
+            }
+            if (!configuration.hasStrategy(ListenerLoaderStrategy)) {
+                configuration.useStrategy(ListenerLoaderStrategy, DefaultListenerLoaderStrategy);
+            }
+            DataConfiguration[currentConfiguration] = configuration;
+            return DataConfiguration[currentConfiguration];
         }
         throw new TypeError('Invalid argument. Expected an instance of DataConfiguration class.');
     }
@@ -516,8 +546,107 @@ export class DefaultSchemaLoaderStrategy extends SchemaLoaderStrategy {
     }
 }
 
-/**
- * Gets the current configuration
- * @type {DataConfiguration}
- */
-DataConfiguration.current = new DataConfiguration();
+export class ModelClassLoaderStrategy extends ConfigurationStrategy {
+    /**
+     *
+     * @param {DataConfiguration} config
+     */
+    constructor(config) {
+        super(config);
+    }
+}
+
+export class DefaultModelClassLoaderStrategy extends ConfigurationStrategy {
+    /**
+     *
+     * @param {DataConfiguration} config
+     */
+    constructor(config) {
+        super(config);
+    }
+
+    /**
+     * @param {DataModel} model
+     * @returns {Function}
+     */
+    resolve(model) {
+        Args.notNull(model, 'Model');
+        let DataObjectClass = this['DataObjectClass'];
+        if (_.isFunction(DataObjectClass)) {
+            return DataObjectClass;
+        }
+        //get model definition
+        const modelDefinition = this.getConfiguration().getStrategy(SchemaLoaderStrategy).getModelDefinition(model.name);
+        if (typeof model.classPath === 'string') {
+            modelDefinition['DataObjectClass'] = DataObjectClass = require(self.classPath);
+        }
+        else {
+            //try to find module by using capitalize naming convention
+            // e.g. OrderDetail -> OrderDetailModel.js
+            let classPath = PathUtils.join(this.getConfiguration().getExecutionPath(),'models',this.name.concat('Model.js'));
+            try {
+                modelDefinition['DataObjectClass'] = DataObjectClass = require(classPath);
+            }
+            catch(err) {
+                if (err.code === 'MODULE_NOT_FOUND') {
+                    try {
+                        //try to find module by using dasherize naming convention
+                        // e.g. OrderDetail -> order-detail-model.js
+                        classPath = PathUtils.join(rootPath,'models',_.dasherize(this.name).concat('-model.js'));
+                        modelDefinition['DataObjectClass'] = DataObjectClass = require(classPath);
+                    }
+                    catch(err) {
+                        if (err.code === 'MODULE_NOT_FOUND') {
+                            if (typeof this['inherits'] === 'undefined' || this['inherits'] == null) {
+                                //use default DataObject class
+                                modelDefinition['DataObjectClass'] = DataObjectClass = require('./object').DataObject;
+                            }
+                            else {
+                                modelDefinition['DataObjectClass'] = DataObjectClass = this.resolve(model.base());
+                            }
+                        }
+                        else {
+                            throw err;
+                        }
+                    }
+                }
+                else {
+                    throw err;
+                }
+            }
+        }
+        return DataObjectClass;
+    }
+
+}
+
+export class ListenerLoaderStrategy extends ConfigurationStrategy {
+    /**
+     *
+     * @param {DataConfiguration} config
+     */
+    constructor(config) {
+        super(config);
+    }
+}
+
+export class DefaultListenerLoaderStrategy extends ConfigurationStrategy {
+    /**
+     *
+     * @param {DataConfiguration} config
+     */
+    constructor(config) {
+        super(config);
+    }
+
+    /**
+     * @param {*} listener
+     * @returns {*}
+     */
+    resolve(listener) {
+        Args.notNull(model, 'Listener');
+        return require(PathUtils.join(this.getConfiguration().getExecutionPath(),'listeners',listener.type));
+    }
+
+}
+

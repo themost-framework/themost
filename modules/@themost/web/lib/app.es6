@@ -406,7 +406,7 @@ export class HttpApplication {
      * @returns {string}
      */
     getExecutionPath() {
-        return this[executionPathProperty]
+        return this[executionPathProperty];
     }
 
     /**

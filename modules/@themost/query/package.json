@@ -16,6 +16,7 @@
   "homepage": "https://github.com/kbarbounakis/themost#readme",
   "dependencies": {
     "lodash": "^4.17.4",
-    "sprintf": "^0.1.5"
+    "sprintf": "^0.1.5",
+    "source-map-support": "^0.4.11"
   }
 }
