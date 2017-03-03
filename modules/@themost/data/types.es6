@@ -323,7 +323,7 @@ export class DataContext extends SequentialEventEmitter {
 
     /**
      * Gets an instance of DataConfiguration class which is associated with this data context
-     * @returns {DataConfiguration}
+     * @returns {DataConfigurationStrategy}
      */
     getConfiguration() {
         return null;

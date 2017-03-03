@@ -17,7 +17,7 @@ import {Args,TraceUtils} from '@themost/common/utils';
 import {HttpBadRequestError} from '@themost/common/errors';
 import {LocalizationStrategy} from './localization';
 import {DefaultDataContext} from '@themost/data/context'
-import {DataConfigurationStrategy} from "./data";
+import {DataConfigurationStrategy} from "@themost/data/config";
 
 function parseCookies(request) {
     let list = {};
@@ -69,10 +69,10 @@ export class HttpContext extends DefaultDataContext {
     }
 
     /**
-     * @returns DataConfiguration
+     * @returns {DataConfigurationStrategy}
      */
     getConfiguration() {
-        return this.getApplication().getService(DataConfigurationStrategy).getConfiguration();
+        return this.getApplication().getConfiguration().getStrategy(DataConfigurationStrategy);
     }
 
     /**
@@ -280,10 +280,10 @@ export class HttpContext extends DefaultDataContext {
                             valid=false;
                         }
                         if (valid) {
-                            if (self.application.config.settings)
-                                if (self.application.config.settings.auth)
-                                    if (self.application.config.settings.auth['csrfExpiration'])
-                                        tokenExpiration = parseInt(self.application.config.settings.auth['csrfExpiration']);
+                            if (self.getApplication().getConfiguration().settings)
+                                if (self.getApplication().getConfiguration().settings.auth)
+                                    if (self.getApplication().getConfiguration().settings.auth['csrfExpiration'])
+                                        tokenExpiration = parseInt(self.getApplication().getConfiguration().auth['csrfExpiration']);
                             if (diff>tokenExpiration*60*1000)
                                 valid=false;
                         }
@@ -340,8 +340,7 @@ export class HttpContext extends DefaultDataContext {
         }
         //get unattended execution account
         const config = self.getApplication().getConfiguration();
-        config.settings.auth = config.settings.auth || {};
-        const account = config.settings.auth.unattendedExecutionAccount;
+        const account = config.getSourceAt('settings/auth/unattendedExecutionAccount');
         //get interactive user
         if (this.user) {
             interactiveUser = { name:this.user.name,authenticationType: this.user.authenticationType };

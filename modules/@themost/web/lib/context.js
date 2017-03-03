@@ -53,9 +53,9 @@ var _context = require('@themost/data/context');
 
 var DefaultDataContext = _context.DefaultDataContext;
 
-var _data = require('./data');
+var _config = require('@themost/data/config');
 
-var DataConfigurationStrategy = _data.DataConfigurationStrategy;
+var DataConfigurationStrategy = _config.DataConfigurationStrategy;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -120,14 +120,14 @@ var HttpContext = exports.HttpContext = function (_DefaultDataContext) {
     }
 
     /**
-     * @returns DataConfiguration
+     * @returns {DataConfigurationStrategy}
      */
 
 
     _createClass(HttpContext, [{
         key: 'getConfiguration',
         value: function getConfiguration() {
-            return this.getApplication().getService(DataConfigurationStrategy).getConfiguration();
+            return this.getApplication().getConfiguration().getStrategy(DataConfigurationStrategy);
         }
 
         /**
@@ -359,7 +359,7 @@ var HttpContext = exports.HttpContext = function (_DefaultDataContext) {
                             valid = false;
                         }
                         if (valid) {
-                            if (self.application.config.settings) if (self.application.config.settings.auth) if (self.application.config.settings.auth['csrfExpiration']) tokenExpiration = parseInt(self.application.config.settings.auth['csrfExpiration']);
+                            if (self.getApplication().getConfiguration().settings) if (self.getApplication().getConfiguration().settings.auth) if (self.getApplication().getConfiguration().settings.auth['csrfExpiration']) tokenExpiration = parseInt(self.getApplication().getConfiguration().auth['csrfExpiration']);
                             if (diff > tokenExpiration * 60 * 1000) valid = false;
                         }
                     }
@@ -417,8 +417,7 @@ var HttpContext = exports.HttpContext = function (_DefaultDataContext) {
             }
             //get unattended execution account
             var config = self.getApplication().getConfiguration();
-            config.settings.auth = config.settings.auth || {};
-            var account = config.settings.auth.unattendedExecutionAccount;
+            var account = config.getSourceAt('settings/auth/unattendedExecutionAccount');
             //get interactive user
             if (this.user) {
                 interactiveUser = { name: this.user.name, authenticationType: this.user.authenticationType };

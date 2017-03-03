@@ -37,18 +37,6 @@ Object.keys(_cache).forEach(function (key) {
   });
 });
 
-var _data = require('./lib/data');
-
-Object.keys(_data).forEach(function (key) {
-  if (key === "default") return;
-  Object.defineProperty(exports, key, {
-    enumerable: true,
-    get: function get() {
-      return _data[key];
-    }
-  });
-});
-
 var _app = require('./lib/app');
 
 Object.keys(_app).forEach(function (key) {

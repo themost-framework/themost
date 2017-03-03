@@ -32,7 +32,7 @@ var TraceUtils = _utils.TraceUtils;
 
 var _config = require('./config');
 
-var DataConfiguration = _config.DataConfiguration;
+var DataConfigurationStrategy = _config.DataConfigurationStrategy;
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -94,7 +94,7 @@ var DefaultDataContext = exports.DefaultDataContext = function (_DataContext) {
         self.getDb = function () {
             if (db_) return db_;
             //otherwise load database options from configuration
-            var adapter = self.getConfiguration().adapters.find(function (x) {
+            var adapter = _.find(self.getConfiguration().adapters, function (x) {
                 return x["default"];
             });
             if (typeof adapter === 'undefined' || adapter == null) {
@@ -104,7 +104,7 @@ var DefaultDataContext = exports.DefaultDataContext = function (_DataContext) {
             /**
              * @type {{createInstance:Function}|*}
              */
-            var adapterType = self.getConfiguration().adapterTypes[adapter.invariantName];
+            var adapterType = self.getConfiguration().getAdapterType(adapter.invariantName);
             //validate data adapter type
             var er = void 0;
             if (_.isNil(adapterType)) {
@@ -140,14 +140,14 @@ var DefaultDataContext = exports.DefaultDataContext = function (_DataContext) {
 
     /**
      * Gets an instance of DataConfiguration class which is associated with this data context
-     * @returns {DataConfiguration}
+     * @returns {DataConfigurationStrategy}
      */
 
 
     _createClass(DefaultDataContext, [{
         key: 'getConfiguration',
         value: function getConfiguration() {
-            return DataConfiguration.getCurrent();
+            return DataConfigurationStrategy.getCurrent();
         }
 
         /**
@@ -284,10 +284,10 @@ var NamedDataContext = function (_DataContext2) {
 
         /**
          * Gets an instance of DataConfiguration class which is associated with this data context
-         * @returns {DataConfiguration}
+         * @returns {DataConfigurationStrategy}
          */
         _this2.getConfiguration = function () {
-            return DataConfiguration.getCurrent();
+            return DataConfigurationStrategy.getCurrent();
         };
 
         delete self.db;

@@ -383,7 +383,7 @@ var DataContext = exports.DataContext = function (_SequentialEventEmitt) {
 
         /**
          * Gets an instance of DataConfiguration class which is associated with this data context
-         * @returns {DataConfiguration}
+         * @returns {DataConfigurationStrategy}
          */
 
     }, {

@@ -24,7 +24,7 @@ import {HttpContext} from './context';
 import {RoutingStrategy,DefaultRoutingStrategy,RouteConsumer} from './route';
 import {LocalizationStrategy,DefaultLocalizationStrategy} from './localization';
 import {CacheStrategy,DefaultCacheStrategy} from './cache';
-import {DataConfigurationStrategy,DefaultDataConfigurationStrategy} from './data';
+import {DataConfigurationStrategy} from '@themost/data/config';
 import Rx from 'rxjs';
 import path from 'path';
 import http from 'http';
@@ -33,6 +33,8 @@ import {HttpApplicationService} from "./interfaces";
 import {ViewConsumer} from "./view";
 import {FormatterStrategy, DefaultFormatterStrategy} from "./formatters";
 import {QuerystringConsumer} from "./querystring";
+import {ConfigurationBase} from "@themost/common/config";
+import {HttpConfiguration} from "./config";
 
 const HTTP_SERVER_DEFAULT_BIND = '127.0.0.1';
 const HTTP_SERVER_DEFAULT_PORT = 3000;
@@ -115,76 +117,6 @@ function startInternal(options) {
     }
 }
 
-/**
- * Initializes application
- * @private
- * @static
- * @return {HttpApplication}
- */
-function initInternal() {
-
-    /**
-     * @type {HttpApplication|*}
-     */
-    const self = this;
-    /**
-     * Gets or sets application configuration settings
-     */
-        //get node environment
-    const env = process.env['NODE_ENV'] || 'production';
-
-    let str;
-    //first of all try to load environment specific configuration
-    try {
-        TraceUtils.log('Init: Loading environment specific configuration file (app.%s.json)', env);
-        str = path.join(process.cwd(), 'config', 'app.' + env + '.json');
-        /**
-         * @type {HttpApplicationConfig}
-         */
-        self[configProperty] = require(str);
-        TraceUtils.log('Init: Environment specific configuration file (app.%s.json) was succesfully loaded.', env);
-    }
-    catch (err) {
-        if (err.code === 'MODULE_NOT_FOUND') {
-            TraceUtils.log('Init: Environment specific configuration file (app.%s.json) is missing.', env);
-            //try to load default configuration file
-            try {
-                TraceUtils.log('Init: Loading environment default configuration file (app.json)');
-                str = path.join(process.cwd(), 'config', 'app.json');
-                /**
-                 * @type {HttpApplicationConfig}
-                 */
-                self.config = require(str);
-                TraceUtils.log('Init: Default configuration file (app.json) was succesfully loaded.');
-            }
-            catch (err) {
-                if (err.code === 'MODULE_NOT_FOUND') {
-                    TraceUtils.log('Init: An error occured while loading default configuration (app.json). Configuration cannot be found or is inaccesible.');
-                    //load internal configuration file
-                    /**
-                     * @type {HttpApplicationConfig}
-                     */
-                    let conf = require('./resources/app.json');
-                    conf.settings = conf.settings || {};
-                    conf.settings.crypto = {
-                        "algorithm": "aes256",
-                        "key": RandomUtils.randomHex(32)
-                    };
-                    this[configProperty] = conf;
-                    TraceUtils.log('Init: Internal configuration file (app.json) was succesfully loaded.');
-                }
-                else {
-                    TraceUtils.log('Init: An error occured while loading default configuration (app.json)');
-                    throw err;
-                }
-            }
-        }
-        else {
-            TraceUtils.log('Init: An error occured while loading application specific configuration (app).', env);
-            throw err;
-        }
-    }
-}
 /**
  * Processes an HTTP request under current application
  * @private
@@ -378,27 +310,26 @@ const configPathProperty = Symbol('configPath');
  */
 export class HttpApplication {
     /**
+     * @param {string=} executionPath
      * @constructor
      */
-    constructor() {
+    constructor(executionPath) {
         this[consumersProperty] = [];
         this[errorConsumersProperty] = [];
         this[servicesProperty] = {};
-        this[executionPathProperty] = process.cwd();
-        this[configPathProperty] = path.join(process.cwd(),'config');
-        this.useStrategy(DataConfigurationStrategy, DefaultDataConfigurationStrategy);
+        this[executionPathProperty] = _.isNil(executionPath) ? process.cwd() : path.resolve(executionPath);
+        const config = new HttpConfiguration(path.join(this[executionPathProperty],'config'));
+        config.useStrategy(DataConfigurationStrategy, ()=> {
+           return new DataConfigurationStrategy(config);
+        });
+        this[configProperty] = config;
     }
-
     /**
-     * Sets the execution path of the current HTTP application
-     * @param {string} executionPath
-     * @return {HttpApplication}
+     * @param {string=} executionPath
+     * @returns HttpApplication
      */
-    setExecutionPath(executionPath) {
-        Args.notEmpty(executionPath,'Execution Path');
-        this[executionPathProperty] = path.resolve(process.cwd(), executionPath);
-        this[configPathProperty] = path.join(this[executionPathProperty],'config');
-        return this;
+    static create(executionPath) {
+        return new HttpApplication(executionPath);
     }
 
     /**
@@ -427,58 +358,22 @@ export class HttpApplication {
     }
 
     /**
-     * @returns {HttpApplicationConfig|*}
+     * @returns {HttpConfiguration}
      */
     getConfiguration() {
-        if (typeof this[configProperty] === 'undefined') {
-            //load configuration
-            try {
-                const env = process.env['NODE_ENV'] || 'production';
-                this[configProperty] = require(path.join(this[configPathProperty], 'app.' + env + '.json'));
-            }
-            catch(err) {
-                if (err.code === 'MODULE_NOT_FOUND') {
-                    TraceUtils.warn('Data: The environment specific configuration cannot be found or is inaccesible.');
-                    try {
-                        this[configProperty] = require(path.join(this[configPathProperty], 'app.json'));
-                    }
-                    catch(err) {
-                        if (err.code === 'MODULE_NOT_FOUND') {
-                            TraceUtils.warn('Data: The default application configuration cannot be found or is inaccesible.');
-                        }
-                        else {
-                            TraceUtils.error('Data: An error occured while trying to open default application configuration.');
-                            TraceUtils.error(err);
-                        }
-                        this[configProperty] = require('./resources/app.json');
-                    }
-                }
-                else {
-                    TraceUtils.error('Data: An error occured while trying to open application configuration.');
-                    TraceUtils.error(err);
-                    this[configProperty] = require('./resources/app.json');
-                }
-            }
-            try {
-                this[configProperty].routes = require(path.join(this[configPathProperty], 'routes.json'));
-            }
-            catch(err) {
-                if (err.code === 'MODULE_NOT_FOUND') {
-                    TraceUtils.warn('Data: Route configuration cannot be found or is inaccesible.');
-                    this[configProperty].routes = require('./resources/routes.json');
-                }
-                else {
-                    TraceUtils.error('Data: An error occured while trying to open route configuration.');
-                    TraceUtils.error(err);
-                    this[configProperty].routes = require('./resources/routes.json');
-                }
-            }
-        }
         return this[configProperty];
     }
 
+    /**
+     *
+     * @returns {HttpConfiguration}
+     */
+    getApplicationConfiguration() {
+        return this.getConfiguration().getStrategy(HttpConfiguration);
+    }
+
     getMimeType(extension) {
-        return _.find(this.getConfiguration().mimes,function(x) {
+        return _.find(this.getConfiguration().getSourceAt('mimes'),function(x) {
             return (x.extension===extension) || (x.extension==='.'+extension);
         });
     }
@@ -724,7 +619,6 @@ export class HttpApplication {
      * @return {HttpApplication}
      */
     start(options) {
-        initInternal.call(this);
         startInternal.call(this);
         return this;
     }

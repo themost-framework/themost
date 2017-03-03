@@ -12,7 +12,7 @@ import 'source-map-support/register';
 import {DataContext} from './types';
 import {_} from 'lodash';
 import {TraceUtils} from '@themost/common/utils';
-import {DataConfiguration} from './config';
+import {DataConfigurationStrategy} from './config';
 
 
 /**
@@ -66,7 +66,7 @@ export class DefaultDataContext extends DataContext {
             if (db_)
                 return db_;
             //otherwise load database options from configuration
-            const adapter = self.getConfiguration().adapters.find(function(x) {
+            const adapter = _.find(self.getConfiguration().adapters, function(x) {
                 return x["default"];
             });
             if (typeof adapter ==='undefined' || adapter==null) {
@@ -76,7 +76,7 @@ export class DefaultDataContext extends DataContext {
             /**
              * @type {{createInstance:Function}|*}
              */
-            const adapterType = self.getConfiguration().adapterTypes[adapter.invariantName];
+            const adapterType = self.getConfiguration().getAdapterType(adapter.invariantName);
             //validate data adapter type
             let er;
             if (_.isNil(adapterType)) {
@@ -111,10 +111,10 @@ export class DefaultDataContext extends DataContext {
 
     /**
      * Gets an instance of DataConfiguration class which is associated with this data context
-     * @returns {DataConfiguration}
+     * @returns {DataConfigurationStrategy}
      */
     getConfiguration() {
-        return DataConfiguration.getCurrent();
+        return DataConfigurationStrategy.getCurrent();
     }
 
     /**
@@ -234,10 +234,10 @@ class NamedDataContext extends DataContext {
 
         /**
          * Gets an instance of DataConfiguration class which is associated with this data context
-         * @returns {DataConfiguration}
+         * @returns {DataConfigurationStrategy}
          */
         this.getConfiguration = function() {
-            return DataConfiguration.getCurrent();
+            return DataConfigurationStrategy.getCurrent();
         };
 
         delete self.db;

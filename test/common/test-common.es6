@@ -26,8 +26,24 @@ import {PathUtils} from '../../modules/@themost/common/utils';
 
 describe('Common Tests', () => {
 
+    it('should use factory', function(done) {
+        function testFactoryProvider() {
+            "use strict";
+            return {
+                hello:() => {
+                    return 'Hello!'
+                }
+            }
+        }
+
+        var x = new testFactoryProvider();
+        util.log(x.hello());
+
+    });
+
     it('should use PathUtils.join', function(done) {
         "use strict";
+        TraceUtils.log('Hello %s!','Peter');
         assert.equal(PathUtils.join('config','models','/User.json'), 'config/models/User.json','Ivalid Path');
         assert.equal(PathUtils.join('config','models','../User.json'), 'config/User.json','Ivalid Path');
         return done();

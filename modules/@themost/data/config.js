@@ -12,7 +12,7 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.DefaultListenerLoaderStrategy = exports.ListenerLoaderStrategy = exports.DefaultModelClassLoaderStrategy = exports.ModelClassLoaderStrategy = exports.DefaultSchemaLoaderStrategy = exports.SchemaLoaderStrategy = exports.DataConfiguration = exports.ConfigurationStrategy = exports.DataConfigurationAuth = undefined;
+exports.DefaultModelClassLoaderStrategy = exports.ModelClassLoaderStrategy = exports.DefaultSchemaLoaderStrategy = exports.SchemaLoaderStrategy = exports.DataConfigurationStrategy = exports.AuthSettings = undefined;
 
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
@@ -24,22 +24,22 @@ var _lodash = require('lodash');
 
 var _ = _lodash._;
 
-var _sprintf = require('sprintf');
-
-var sprintf = _interopRequireDefault(_sprintf).default;
-
 var _utils = require('@themost/common/utils');
 
 var TraceUtils = _utils.TraceUtils;
 var PathUtils = _utils.PathUtils;
 var Args = _utils.Args;
+var RandomUtils = _utils.RandomUtils;
 
 var _errors = require('@themost/common/errors');
 
 var AbstractClassError = _errors.AbstractClassError;
 var AbstractMethodError = _errors.AbstractMethodError;
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _config = require('@themost/common/config');
+
+var ConfigurationStrategy = _config.ConfigurationStrategy;
+var ConfigurationBase = _config.ConfigurationBase;
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
@@ -57,50 +57,19 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  * @property {boolean} slidingExpiration
  * @property {string} loginPage
  */
-var DataConfigurationAuth = exports.DataConfigurationAuth = function DataConfigurationAuth() {
-    _classCallCheck(this, DataConfigurationAuth);
+var AuthSettings = exports.AuthSettings = function AuthSettings() {
+    _classCallCheck(this, AuthSettings);
+
+    this.name = '.MAUTH';
+    this.defaultUserGroup = 'Users';
+    this.unattendedExecutionAccount = RandomUtils.randomHex(16);
+    this.timeout = 480;
+    this.slidingExpiration = false;
+    this.loginPage = '/login';
 };
 
-var configurationProperty = Symbol('configuration');
-
-/**
- * @class
- */
-
-var ConfigurationStrategy = exports.ConfigurationStrategy = function () {
-    /**
-     *
-     * @param {DataConfiguration} config
-     */
-    function ConfigurationStrategy(config) {
-        _classCallCheck(this, ConfigurationStrategy);
-
-        Args.check(new.target !== DataConfiguration, new AbstractClassError());
-        Args.notNull(config, 'Configuration');
-        this[configurationProperty] = config;
-    }
-
-    /**
-     *
-     * @returns {DataConfiguration}
-     */
-
-
-    _createClass(ConfigurationStrategy, [{
-        key: 'getConfiguration',
-        value: function getConfiguration() {
-            return this[configurationProperty];
-        }
-    }]);
-
-    return ConfigurationStrategy;
-}();
-
-var strategiesProperty = Symbol('strategies');
-var configPathProperty = Symbol('configurationPath');
-var executionPathProperty = Symbol('configurationPath');
 var dataTypesProperty = Symbol('dataTypes');
-var currentConfiguration = Symbol('current');
+var adapterTypesProperty = Symbol('adapterTypes');
 
 /**
  * @classdesc Holds the configuration of data modeling infrastructure
@@ -109,184 +78,120 @@ var currentConfiguration = Symbol('current');
  *
  */
 
-var DataConfiguration = exports.DataConfiguration = function () {
+var DataConfigurationStrategy = exports.DataConfigurationStrategy = function (_ConfigurationStrateg) {
+    _inherits(DataConfigurationStrategy, _ConfigurationStrateg);
+
     /**
      * @constructor
-     * @param {string=} configPath - The root directory of configuration files.
+     * @param {ConfigurationBase} config
      */
-    function DataConfiguration(configPath) {
-        _classCallCheck(this, DataConfiguration);
+    function DataConfigurationStrategy(config) {
+        _classCallCheck(this, DataConfigurationStrategy);
 
-        this[strategiesProperty] = {};
-        this[configPathProperty] = configPath || PathUtils.join(process.cwd(), 'config');
-        this[executionPathProperty] = PathUtils.join(this[configPathProperty], '..');
-        this[dataTypesProperty] = require('./resources/dataTypes.json');
-        this.useStrategy(SchemaLoaderStrategy, DefaultSchemaLoaderStrategy);
-        this.useStrategy(ModelClassLoaderStrategy, DefaultModelClassLoaderStrategy);
-        this.useStrategy(ListenerLoaderStrategy, DefaultListenerLoaderStrategy);
+        var _this = _possibleConstructorReturn(this, (DataConfigurationStrategy.__proto__ || Object.getPrototypeOf(DataConfigurationStrategy)).call(this, config));
 
-        //get application adapter types, if any
-        var config = void 0;
-        try {
-            var env = process.env['NODE_ENV'] || 'production';
-            config = require(PathUtils.join(this[configPathProperty], 'app.' + env + '.json'));
-        } catch (err) {
-            if (err.code === 'MODULE_NOT_FOUND') {
-                TraceUtils.log('Data: The environment specific configuration cannot be found or is inaccesible.');
+        _this[dataTypesProperty] = require('./resources/dataTypes.json');
+
+        //register other strategies
+        if (!config.hasStrategy(SchemaLoaderStrategy)) {
+            config.useStrategy(SchemaLoaderStrategy, DefaultSchemaLoaderStrategy);
+        }
+        if (!config.hasStrategy(ModelClassLoaderStrategy)) {
+            config.useStrategy(ModelClassLoaderStrategy, DefaultModelClassLoaderStrategy);
+        }
+
+        if (!_this.getConfiguration().hasSourceAt('adapters')) {
+            _this.getConfiguration().setSourceAt('adapters', []);
+        }
+
+        if (!_this.getConfiguration().hasSourceAt('adapterTypes')) {
+            _this.getConfiguration().setSourceAt('adapterTypes', []);
+        }
+
+        if (!_this.getConfiguration().hasSourceAt('settings/auth')) {
+            _this.getConfiguration().setSourceAt('settings/auth', new AuthSettings());
+        }
+
+        var configAdapterTypes = _this.getConfiguration().getSourceAt('adapterTypes');
+        _this[adapterTypesProperty] = {};
+        //configure adapter types
+        _.forEach(configAdapterTypes, function (x) {
+            //first of all validate module
+            x.invariantName = x.invariantName || 'unknown';
+            x.name = x.name || 'Unknown Data Adapter';
+            var valid = false,
+                adapterModule = void 0;
+            if (x.type) {
                 try {
-                    config = require(PathUtils.join(this[configPathProperty], 'app.json'));
-                } catch (err) {
-                    if (err.code === 'MODULE_NOT_FOUND') {
-                        TraceUtils.log('Data: The default application configuration cannot be found or is inaccesible.');
+                    adapterModule = require(x.type);
+                    if (typeof adapterModule.createInstance === 'function') {
+                        valid = true;
                     } else {
-                        TraceUtils.error('Data: An error occured while trying to open default application configuration.');
-                        TraceUtils.error(err);
+                        //adapter type does not export a createInstance(options) function
+                        TraceUtils.log("The specified data adapter type (%s) does not have the appropriate constructor. Adapter type cannot be loaded.", x.invariantName);
                     }
-                    config = { adapters: [], adapterTypes: [] };
+                } catch (err) {
+                    //catch error
+                    TraceUtils.error(err);
+                    //and log a specific error for this adapter type
+                    TraceUtils.log("The specified data adapter type (%s) cannot be instantiated. Adapter type cannot be loaded.", x.invariantName);
+                }
+                if (valid) {
+                    //register adapter
+                    this[adapterTypesProperty][x.invariantName] = {
+                        invariantName: x.invariantName,
+                        name: x.name,
+                        createInstance: adapterModule.createInstance
+                    };
                 }
             } else {
-                TraceUtils.error('Data: An error occured while trying to open application configuration.');
-                TraceUtils.error(err);
-                config = { adapters: [], adapterTypes: [] };
-            }
-        }
-
-        /**
-         * @type {Array}
-         * @private
-         */
-        var adapters = void 0;
-        Object.defineProperty(this, 'adapters', {
-            get: function get() {
-                if (adapters) return adapters;
-                /**
-                 * get data types from configuration file
-                 * @property {Array} adapters
-                 * @type {*}
-                 */
-                adapters = config.adapters || [];
-                return adapters;
+                TraceUtils.log("The specified data adapter type (%s) does not have a type defined. Adapter type cannot be loaded.", x.invariantName);
             }
         });
-
-        var adapterTypes = {};
-
-        if (config.adapterTypes) {
-            if (_.isArray(config.adapterTypes)) {
-                config.adapterTypes.forEach(function (x) {
-                    //first of all validate module
-                    x.invariantName = x.invariantName || 'unknown';
-                    x.name = x.name || 'Unknown Data Adapter';
-                    var valid = false,
-                        adapterModule = void 0;
-                    if (x.type) {
-                        try {
-                            adapterModule = require(x.type);
-                            if (typeof adapterModule.createInstance === 'function') {
-                                valid = true;
-                            } else {
-                                //adapter type does not export a createInstance(options) function
-                                TraceUtils.log(sprintf.sprintf("The specified data adapter type (%s) does not have the appropriate constructor. Adapter type cannot be loaded.", x.invariantName));
-                            }
-                        } catch (err) {
-                            //catch error
-                            TraceUtils.error(err);
-                            //and log a specific error for this adapter type
-                            TraceUtils.log(sprintf.sprintf("The specified data adapter type (%s) cannot be instantiated. Adapter type cannot be loaded.", x.invariantName));
-                        }
-                        if (valid) {
-                            //register adapter
-                            adapterTypes[x.invariantName] = {
-                                invariantName: x.invariantName,
-                                name: x.name,
-                                createInstance: adapterModule.createInstance
-                            };
-                        }
-                    } else {
-                        TraceUtils.log(sprintf.sprintf("The specified data adapter type (%s) does not have a type defined. Adapter type cannot be loaded.", x.invariantName));
-                    }
-                });
-            }
-        }
-
-        Object.defineProperty(this, 'adapterTypes', {
-            get: function get() {
-                return adapterTypes;
-            }
-        });
-
-        var auth = void 0;
-        Object.defineProperty(this, 'auth', {
-            get: function get() {
-                try {
-                    if (auth) {
-                        return auth;
-                    }
-                    if (typeof config.settings === 'undefined' || config.settings == null) {
-                        auth = config.auth || {};
-                        return auth;
-                    }
-                    auth = config.settings.auth || {};
-                    return auth;
-                } catch (err) {
-                    TraceUtils.error('An error occured while trying to load auth configuration');
-                    TraceUtils.error(err);
-                    auth = {};
-                    return auth;
-                }
-            }
-        });
-
-        //ensure authentication settings
-        config.settings = config.settings || {};
-        config.settings.auth = config.settings.auth || {};
-        this.getAuthSettings = function () {
-            try {
-                return config.settings.auth;
-            } catch (e) {
-                var er = new Error('An error occured while trying to load auth configuration');
-                er.code = "ECONF";
-                throw er;
-            }
-        };
+        return _this;
     }
 
     /**
-     * Returns the collection of defined data types (e.g. Integer, Float, Language etc)
-     * @returns {*}
+     * @returns {AuthSettings}
      */
 
 
-    _createClass(DataConfiguration, [{
-        key: 'setExecutionPath',
-
-
-        /**
-         * Sets the current execution path
-         * @param {string} p
-         */
-        value: function setExecutionPath(p) {
-            this[executionPathProperty] = p;
+    _createClass(DataConfigurationStrategy, [{
+        key: 'getAuthSettings',
+        value: function getAuthSettings() {
+            this.getConfiguration().getSourceAt('settings/auth');
         }
 
         /**
-         * @returns {string}
+         * @returns {Array}
          */
 
     }, {
-        key: 'getExecutionPath',
-        value: function getExecutionPath() {
-            return this[executionPathProperty];
+        key: 'getAdapterType',
+
+
+        /**
+         * @param {string} invariantName
+         * @returns {*}
+         */
+        value: function getAdapterType(invariantName) {
+            return this[adapterTypesProperty][invariantName];
         }
+
+        /**
+         * Returns the collection of defined data types (e.g. Integer, Float, Language etc)
+         * @returns {*}
+         */
+
+    }, {
+        key: 'hasDataType',
+
 
         /**
          * Gets a boolean which indicates whether the specified data type is defined in data types collection or not.
          * @param name
          * @returns {boolean}
          */
-
-    }, {
-        key: 'hasDataType',
         value: function hasDataType(name) {
             if (_.isNil(name)) {
                 return false;
@@ -295,17 +200,6 @@ var DataConfiguration = exports.DataConfiguration = function () {
                 return false;
             }
             return this.dataTypes.hasOwnProperty(name);
-        }
-
-        /**
-         * Gets the root configuration path
-         * @returns {string}
-         */
-
-    }, {
-        key: 'getConfigurationPath',
-        value: function getConfigurationPath() {
-            return this[configPathProperty];
         }
 
         /**
@@ -320,7 +214,7 @@ var DataConfiguration = exports.DataConfiguration = function () {
             /**
              * @type {SchemaLoaderStrategy}
              */
-            var schemaLoader = this.getStrategy(SchemaLoaderStrategy);
+            var schemaLoader = this.getConfiguration().getStrategy(SchemaLoaderStrategy);
             return schemaLoader.getModelDefinition(name);
         }
     }, {
@@ -356,66 +250,41 @@ var DataConfiguration = exports.DataConfiguration = function () {
             /**
              * @type {SchemaLoaderStrategy}
              */
-            var schemaLoader = this.getStrategy(SchemaLoaderStrategy);
+            var schemaLoader = this.getConfiguration().getStrategy(SchemaLoaderStrategy);
             schemaLoader.setModelDefinition(data);
             return this;
         }
     }, {
-        key: 'useStrategy',
+        key: 'model',
 
-
-        /**
-         * Register a configuration strategy
-         * @param {Function} configStrategyCtor
-         * @param {Function} strategyCtor
-         * @returns DataConfiguration
-         */
-        value: function useStrategy(configStrategyCtor, strategyCtor) {
-            Args.notFunction(configStrategyCtor, "Configuration strategy constructor");
-            Args.notFunction(strategyCtor, "Strategy constructor");
-            this[strategiesProperty]['' + configStrategyCtor.name] = new strategyCtor(this);
-            return this;
-        }
-
-        /**
-         * Gets a configuration strategy
-         * @param {Function} configStrategyCtor
-         */
-
-    }, {
-        key: 'getStrategy',
-        value: function getStrategy(configStrategyCtor) {
-            Args.notFunction(configStrategyCtor, "Configuration strategy constructor");
-            return this[strategiesProperty]['' + configStrategyCtor.name];
-        }
-
-        /**
-         * Gets a configuration strategy
-         * @param {Function} configStrategyCtor
-         */
-
-    }, {
-        key: 'hasStrategy',
-        value: function hasStrategy(configStrategyCtor) {
-            Args.notFunction(configStrategyCtor, "Configuration strategy constructor");
-            return typeof this[strategiesProperty]['' + configStrategyCtor.name] !== 'undefined';
-        }
 
         /**
          * @returns {*}
          * @param name {string}
          */
-
-    }, {
-        key: 'model',
         value: function model(name) {
             return this.getModelDefinition(name);
         }
         /**
          * Gets the current data configuration
-         * @returns DataConfiguration - An instance of DataConfiguration class which represents the current data configuration
+         * @returns DataConfigurationStrategy - An instance of DataConfiguration class which represents the current data configuration
          */
 
+    }, {
+        key: 'adapters',
+        get: function get() {
+            this.getConfiguration().getSourceAt('adapters');
+        }
+
+        /**
+         * @returns {*}
+         */
+
+    }, {
+        key: 'adapterTypes',
+        get: function get() {
+            return this[adapterTypesProperty];
+        }
     }, {
         key: 'dataTypes',
         get: function get() {
@@ -424,44 +293,21 @@ var DataConfiguration = exports.DataConfiguration = function () {
     }], [{
         key: 'getCurrent',
         value: function getCurrent() {
-            if (_.isNil(DataConfiguration[currentConfiguration])) {
-                DataConfiguration[currentConfiguration] = new DataConfiguration();
+            var configuration = ConfigurationBase.getCurrent();
+            if (!configuration.hasStrategy(DataConfigurationStrategy)) {
+                configuration.useStrategy(DataConfigurationStrategy, DataConfigurationStrategy);
             }
-            return DataConfiguration[currentConfiguration];
-        }
-        /**
-         * Sets the current data configuration
-         * @param {DataConfiguration} configuration
-         * @returns DataConfiguration - An instance of DataConfiguration class which represents the current data configuration
-         */
-
-    }, {
-        key: 'setCurrent',
-        value: function setCurrent(configuration) {
-            if (configuration instanceof DataConfiguration) {
-                if (!configuration.hasStrategy(SchemaLoaderStrategy)) {
-                    configuration.useStrategy(SchemaLoaderStrategy, DefaultSchemaLoaderStrategy);
-                }
-                if (!configuration.hasStrategy(ModelClassLoaderStrategy)) {
-                    configuration.useStrategy(ModelClassLoaderStrategy, DefaultModelClassLoaderStrategy);
-                }
-                if (!configuration.hasStrategy(ListenerLoaderStrategy)) {
-                    configuration.useStrategy(ListenerLoaderStrategy, DefaultListenerLoaderStrategy);
-                }
-                DataConfiguration[currentConfiguration] = configuration;
-                return DataConfiguration[currentConfiguration];
-            }
-            throw new TypeError('Invalid argument. Expected an instance of DataConfiguration class.');
+            return configuration.getStrategy(DataConfigurationStrategy);
         }
     }]);
 
-    return DataConfiguration;
-}();
+    return DataConfigurationStrategy;
+}(ConfigurationStrategy);
 
 var modelsProperty = Symbol('models');
 
-var SchemaLoaderStrategy = exports.SchemaLoaderStrategy = function (_ConfigurationStrateg) {
-    _inherits(SchemaLoaderStrategy, _ConfigurationStrateg);
+var SchemaLoaderStrategy = exports.SchemaLoaderStrategy = function (_ConfigurationStrateg2) {
+    _inherits(SchemaLoaderStrategy, _ConfigurationStrateg2);
 
     /**
      *
@@ -470,16 +316,16 @@ var SchemaLoaderStrategy = exports.SchemaLoaderStrategy = function (_Configurati
     function SchemaLoaderStrategy(config) {
         _classCallCheck(this, SchemaLoaderStrategy);
 
-        var _this = _possibleConstructorReturn(this, (SchemaLoaderStrategy.__proto__ || Object.getPrototypeOf(SchemaLoaderStrategy)).call(this, config));
+        var _this2 = _possibleConstructorReturn(this, (SchemaLoaderStrategy.__proto__ || Object.getPrototypeOf(SchemaLoaderStrategy)).call(this, config));
 
-        _this[modelsProperty] = new Map();
-        _this.setModelDefinition({
+        _this2[modelsProperty] = new Map();
+        _this2.setModelDefinition({
             "name": "Migration", "title": "Data Model Migrations", "id": 14,
             "source": "migrations", "view": "migrations", "hidden": true, "sealed": true,
             "fields": [{ "name": "id", "type": "Counter", "primary": true }, { "name": "appliesTo", "type": "Text", "size": 180, "nullable": false }, { "name": "model", "type": "Text", "size": 120 }, { "name": "description", "type": "Text", "size": 512 }, { "name": "version", "type": "Text", "size": 40, "nullable": false }],
             "constraints": [{ "type": "unique", "fields": ["appliesTo", "version"] }]
         });
-        return _this;
+        return _this2;
     }
 
     /**
@@ -535,15 +381,15 @@ var DefaultSchemaLoaderStrategy = exports.DefaultSchemaLoaderStrategy = function
 
     /**
      *
-     * @param {DataConfiguration} config
+     * @param {ConfigurationBase} config
      */
     function DefaultSchemaLoaderStrategy(config) {
         _classCallCheck(this, DefaultSchemaLoaderStrategy);
 
-        var _this2 = _possibleConstructorReturn(this, (DefaultSchemaLoaderStrategy.__proto__ || Object.getPrototypeOf(DefaultSchemaLoaderStrategy)).call(this, config));
+        var _this3 = _possibleConstructorReturn(this, (DefaultSchemaLoaderStrategy.__proto__ || Object.getPrototypeOf(DefaultSchemaLoaderStrategy)).call(this, config));
 
-        _this2[modelPathProperty] = PathUtils.join(config.getConfigurationPath(), 'models');
-        return _this2;
+        _this3[modelPathProperty] = PathUtils.join(config.getConfigurationPath(), 'models');
+        return _this3;
     }
 
     /**
@@ -585,7 +431,7 @@ var DefaultSchemaLoaderStrategy = exports.DefaultSchemaLoaderStrategy = function
             var i = void 0;
             if (typeof name !== 'string') return;
             //exclude registered data types
-            if (this.getConfiguration().hasDataType(name)) {
+            if (this.getConfiguration().getStrategy(DataConfigurationStrategy).hasDataType(name)) {
                 return;
             }
             var modelDefinition = getModelDefinitionSuper.bind(this)(name);
@@ -639,8 +485,8 @@ var DefaultSchemaLoaderStrategy = exports.DefaultSchemaLoaderStrategy = function
     return DefaultSchemaLoaderStrategy;
 }(SchemaLoaderStrategy);
 
-var ModelClassLoaderStrategy = exports.ModelClassLoaderStrategy = function (_ConfigurationStrateg2) {
-    _inherits(ModelClassLoaderStrategy, _ConfigurationStrateg2);
+var ModelClassLoaderStrategy = exports.ModelClassLoaderStrategy = function (_ConfigurationStrateg3) {
+    _inherits(ModelClassLoaderStrategy, _ConfigurationStrateg3);
 
     /**
      *
@@ -655,8 +501,8 @@ var ModelClassLoaderStrategy = exports.ModelClassLoaderStrategy = function (_Con
     return ModelClassLoaderStrategy;
 }(ConfigurationStrategy);
 
-var DefaultModelClassLoaderStrategy = exports.DefaultModelClassLoaderStrategy = function (_ConfigurationStrateg3) {
-    _inherits(DefaultModelClassLoaderStrategy, _ConfigurationStrateg3);
+var DefaultModelClassLoaderStrategy = exports.DefaultModelClassLoaderStrategy = function (_ConfigurationStrateg4) {
+    _inherits(DefaultModelClassLoaderStrategy, _ConfigurationStrateg4);
 
     /**
      *
@@ -697,7 +543,7 @@ var DefaultModelClassLoaderStrategy = exports.DefaultModelClassLoaderStrategy = 
                         try {
                             //try to find module by using dasherize naming convention
                             // e.g. OrderDetail -> order-detail-model.js
-                            classPath = PathUtils.join(rootPath, 'models', _.dasherize(this.name).concat('-model.js'));
+                            classPath = PathUtils.join(this.getConfiguration().getExecutionPath(), 'models', _.dasherize(this.name).concat('-model.js'));
                             modelDefinition['DataObjectClass'] = DataObjectClass = require(classPath);
                         } catch (err) {
                             if (err.code === 'MODULE_NOT_FOUND') {
@@ -721,51 +567,5 @@ var DefaultModelClassLoaderStrategy = exports.DefaultModelClassLoaderStrategy = 
     }]);
 
     return DefaultModelClassLoaderStrategy;
-}(ConfigurationStrategy);
-
-var ListenerLoaderStrategy = exports.ListenerLoaderStrategy = function (_ConfigurationStrateg4) {
-    _inherits(ListenerLoaderStrategy, _ConfigurationStrateg4);
-
-    /**
-     *
-     * @param {DataConfiguration} config
-     */
-    function ListenerLoaderStrategy(config) {
-        _classCallCheck(this, ListenerLoaderStrategy);
-
-        return _possibleConstructorReturn(this, (ListenerLoaderStrategy.__proto__ || Object.getPrototypeOf(ListenerLoaderStrategy)).call(this, config));
-    }
-
-    return ListenerLoaderStrategy;
-}(ConfigurationStrategy);
-
-var DefaultListenerLoaderStrategy = exports.DefaultListenerLoaderStrategy = function (_ConfigurationStrateg5) {
-    _inherits(DefaultListenerLoaderStrategy, _ConfigurationStrateg5);
-
-    /**
-     *
-     * @param {DataConfiguration} config
-     */
-    function DefaultListenerLoaderStrategy(config) {
-        _classCallCheck(this, DefaultListenerLoaderStrategy);
-
-        return _possibleConstructorReturn(this, (DefaultListenerLoaderStrategy.__proto__ || Object.getPrototypeOf(DefaultListenerLoaderStrategy)).call(this, config));
-    }
-
-    /**
-     * @param {*} listener
-     * @returns {*}
-     */
-
-
-    _createClass(DefaultListenerLoaderStrategy, [{
-        key: 'resolve',
-        value: function resolve(listener) {
-            Args.notNull(model, 'Listener');
-            return require(PathUtils.join(this.getConfiguration().getExecutionPath(), 'listeners', listener.type));
-        }
-    }]);
-
-    return DefaultListenerLoaderStrategy;
 }(ConfigurationStrategy);
 //# sourceMappingURL=config.js.map

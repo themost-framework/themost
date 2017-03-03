@@ -13,6 +13,8 @@ import 'source-map-support/register';
  * @module
  */
 export * from './emitter';
+export * from './config';
 export * from './errors';
 export * from './html';
 export * from './utils';
+
