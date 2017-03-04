@@ -127,7 +127,7 @@ var ConfigurationBase = exports.ConfigurationBase = function () {
         /**
          * Returns the source configuration object based on the given path (e.g. settings.auth.cookieName or settings/auth/cookieName)
          * @param {string} p - A string which represents an object path
-         * @returns {Object}
+         * @returns {Object|Array}
          */
 
     }, {
@@ -145,7 +145,7 @@ var ConfigurationBase = exports.ConfigurationBase = function () {
     }, {
         key: 'hasSourceAt',
         value: function hasSourceAt(p) {
-            return _.isNil(_.at(this[configProperty], p.replace(/\//, '.'))[0]);
+            return _.isObject(_.at(this[configProperty], p.replace(/\//, '.'))[0]);
         }
 
         /**

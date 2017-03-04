@@ -78,6 +78,7 @@ export class DataConfigurationStrategy extends ConfigurationStrategy {
 
         const configAdapterTypes = this.getConfiguration().getSourceAt('adapterTypes');
         this[adapterTypesProperty] = {};
+        const self = this;
         //configure adapter types
         _.forEach(configAdapterTypes, function(x) {
             //first of all validate module
@@ -103,7 +104,7 @@ export class DataConfigurationStrategy extends ConfigurationStrategy {
                 }
                 if (valid) {
                     //register adapter
-                    this[adapterTypesProperty][x.invariantName] = {
+                    self[adapterTypesProperty][x.invariantName] = {
                         invariantName:x.invariantName,
                         name: x.name,
                         createInstance:adapterModule.createInstance
@@ -120,14 +121,14 @@ export class DataConfigurationStrategy extends ConfigurationStrategy {
      * @returns {AuthSettings}
      */
     getAuthSettings() {
-        this.getConfiguration().getSourceAt('settings/auth');
+        return this.getConfiguration().getSourceAt('settings/auth');
     }
 
     /**
      * @returns {Array}
      */
     get adapters() {
-        this.getConfiguration().getSourceAt('adapters');
+        return this.getConfiguration().getSourceAt('adapters');
     }
 
     /**
