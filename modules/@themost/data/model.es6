@@ -1445,9 +1445,9 @@ export class DataModel extends SequentialEventEmitter {
      * @param {string=} alias
      * @returns {DataQueryable|QueryField|*}
      */
-    fieldOf(attr, alias) {
+    resolveField(attr, alias) {
         const q = new DataQueryable(this);
-        return q.fieldOf(attr, alias);
+        return q.resolveField(attr, alias);
     }
 
     /**

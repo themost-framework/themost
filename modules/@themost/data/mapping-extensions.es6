@@ -155,7 +155,7 @@ export class MappingExtensions {
                         parentModel.filter(mapping.options, function(err, q) {
                             if (err) { return deferred.reject(err); }
                             //get junction sub-query
-                            const junctionQuery = QueryExpression.create(junction.getBaseModel().name).select(["parentId", "valueId"])
+                            const junctionQuery = QueryExpression.create(junction.getBaseModel().name).select("parentId", "valueId")
                                 .join(thisQueryable.query.as("j0"))
                                 .with(QueryExpression.create().where(QueryEntity.create(junction.getBaseModel().name).select("valueId"))
                                     .equal(QueryEntity.create("j0").select(mapping.childField)));
@@ -315,7 +315,7 @@ export class MappingExtensions {
                                 q.select();
                             }
                             //get junction sub-query
-                            const junctionQuery = QueryExpression.create(junction.getBaseModel().name).select(["parentId", "valueId"])
+                            const junctionQuery = QueryExpression.create(junction.getBaseModel().name).select("parentId", "valueId")
                                 .join(thisQueryable.query.as("j0"))
                                 .with(QueryExpression.create().where(QueryEntity.create(junction.getBaseModel().name).select("parentId"))
                                     .equal(QueryEntity.create("j0").select(mapping.parentField)));

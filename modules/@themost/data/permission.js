@@ -661,14 +661,14 @@ var DataPermissionEventListener = exports.DataPermissionEventListener = function
                                 //prepare no access query
                                 event.query.prepare();
                                 //add no record parameter
-                                event.query.where(event.model.fieldOf(event.model.primaryKey)).equal(null).prepare();
+                                event.query.where(event.model.resolveField(event.model.primaryKey)).equal(null).prepare();
                                 return callback();
                             } else if (expr) {
                                 return context.model("Permission").migrate(function (err) {
                                     if (err) {
                                         return callback(err);
                                     }
-                                    var q = QueryExpression.create(model.viewAdapter).select([model.primaryKey]).distinct();
+                                    var q = QueryExpression.create(model.viewAdapter).select(model.primaryKey).distinct();
                                     if (expand) {
                                         q.join(expand[0].$entity).with(expand[0].$with);
                                     }

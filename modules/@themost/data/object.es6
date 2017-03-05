@@ -396,7 +396,7 @@ export class DataObject extends SequentialEventEmitter {
                                     else
                                         q.and(attr).equal(value);
                                 }
-                                q.select([name]).first(function(err, result) {
+                                q.select(name).first(function(err, result) {
                                     if (err) { callback(err); return; }
                                     let value = null;
                                     if (result) {

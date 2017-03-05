@@ -1661,10 +1661,10 @@ var DataModel = exports.DataModel = function (_SequentialEventEmitt) {
          */
 
     }, {
-        key: 'fieldOf',
-        value: function fieldOf(attr, alias) {
+        key: 'resolveField',
+        value: function resolveField(attr, alias) {
             var q = new DataQueryable(this);
-            return q.fieldOf(attr, alias);
+            return q.resolveField(attr, alias);
         }
 
         /**

@@ -113,7 +113,7 @@ var DataAttributeResolver = exports.DataAttributeResolver = function () {
             if (DataAttributeResolver.prototype.testNestedAttribute(attribute)) {
                 result = DataAttributeResolver.prototype.selecteNestedAttribute.call(self, attribute, alias);
             } else {
-                result = self.fieldOf(attribute);
+                result = self.resolveField(attribute);
             }
             var sAlias = result.as();
             var name = result.name();
@@ -224,7 +224,7 @@ var DataAttributeResolver = exports.DataAttributeResolver = function () {
                      * store temp query expression
                      * @type QueryExpression
                      */
-                    res = QueryExpression.create(self.viewAdapter).select(['*']);
+                    res = QueryExpression.create(self.viewAdapter).select('*');
                     expr = QueryExpression.create().where(QueryField.create(mapping.childField).from(self._alias || self.viewAdapter)).equal(QueryField.create(mapping.parentField).from(mapping.childField));
                     entity = QueryEntity.create(parentModel.viewAdapter).as(mapping.childField).left();
                     res.join(entity).with(expr);
@@ -242,7 +242,7 @@ var DataAttributeResolver = exports.DataAttributeResolver = function () {
                     if (_.isNil(childModel)) {
                         throw new Error(sprintf.sprintf('Association child model (%s) cannot be found.', mapping.childModel));
                     }
-                    res = QueryExpression.create('Unknown').select(['*']);
+                    res = QueryExpression.create('Unknown').select('*');
                     expr = QueryExpression.create().where(QueryField.create(mapping.parentField).from(self.viewAdapter)).equal(QueryField.create(mapping.childField).from(arrMember[0]));
                     entity = QueryEntity.create(childModel.viewAdapter).as(arrMember[0]).left();
                     res.join(entity).with(expr);
@@ -452,7 +452,7 @@ var DataAttributeResolver = exports.DataAttributeResolver = function () {
                     if (typeof mapping.childModel === 'undefined') {
                         parentField = "object";valueField = "value";
                     }
-                    q = QueryExpression.create(self.viewAdapter).select(['*']);
+                    q = QueryExpression.create(self.viewAdapter).select('*');
                     //init an entity based on association adapter (e.g. GroupMembers as members)
                     entity = QueryEntity.create(mapping.associationAdapter).as(field.name);
                     //init join expression between association adapter and current data model
@@ -492,7 +492,7 @@ var DataAttributeResolver = exports.DataAttributeResolver = function () {
                         };
                     }
                 } else {
-                    q = QueryExpression.create(self.viewAdapter).select(['*']);
+                    q = QueryExpression.create(self.viewAdapter).select('*');
                     //the underlying model is the child model
                     //init an entity based on association adapter (e.g. GroupMembers as groups)
                     entity = QueryEntity.create(mapping.associationAdapter).as(field.name);
@@ -653,7 +653,7 @@ var DataQueryable = exports.DataQueryable = function () {
                 this.query.where(DataAttributeResolver.prototype.resolveNestedAttribute.call(this, attr));
                 return this;
             }
-            this.query.where(this.fieldOf(attr));
+            this.query.where(this.resolveField(attr));
             return this;
         }
 
@@ -740,7 +740,7 @@ var DataQueryable = exports.DataQueryable = function () {
             if (arr.length == 0) throw new Error(sprintf.sprintf("An internal error occured. The association between %s and %s cannot be found", this.model.name, model));
             var mapping = self.model.inferMapping(arr[0].name);
             var expr = QueryExpression.create();
-            expr.where(self.fieldOf(mapping.childField)).equal(joinModel.fieldOf(mapping.parentField));
+            expr.where(self.resolveField(mapping.childField)).equal(joinModel.resolveField(mapping.parentField));
             /**
              * @type DataAssociationMapping
              */
@@ -772,7 +772,7 @@ var DataQueryable = exports.DataQueryable = function () {
                 this.query.and(DataAttributeResolver.prototype.resolveNestedAttribute.call(this, attr));
                 return this;
             }
-            this.query.and(this.fieldOf(attr));
+            this.query.and(this.resolveField(attr));
             return this;
         }
 
@@ -798,7 +798,7 @@ var DataQueryable = exports.DataQueryable = function () {
                 this.query.or(DataAttributeResolver.prototype.resolveNestedAttribute.call(this, attr));
                 return this;
             }
-            this.query.or(this.fieldOf(attr));
+            this.query.or(this.resolveField(attr));
             return this;
         }
 
@@ -820,6 +820,10 @@ var DataQueryable = exports.DataQueryable = function () {
     }, {
         key: 'equal',
         value: function equal(obj) {
+            if (_.isArray(obj)) {
+                this.query.in(obj);
+                return this;
+            }
             this.query.equal(obj);
             return this;
         }
@@ -864,6 +868,9 @@ var DataQueryable = exports.DataQueryable = function () {
     }, {
         key: 'notEqual',
         value: function notEqual(obj) {
+            if (_.isArray(obj)) {
+                this.query;
+            }
             this.query.notEqual(obj);
             return this;
         }
@@ -1265,7 +1272,7 @@ var DataQueryable = exports.DataQueryable = function () {
                         self.expand(field.name);
                     } else {
                         arr = [];
-                        arr.push(self.fieldOf(field.name));
+                        arr.push(self.resolveField(field.name));
                     }
                 } else {
                     //get data view
@@ -1281,7 +1288,7 @@ var DataQueryable = exports.DataQueryable = function () {
                                 //if a field with the given name exists in target model
                                 if (field) {
                                     //check if this field has an association mapping
-                                    if (field.many || field.mapping && field.mapping.associationType === 'junction') self.expand(field.name);else arr.push(self.fieldOf(field.name));
+                                    if (field.many || field.mapping && field.mapping.associationType === 'junction') self.expand(field.name);else arr.push(self.resolveField(field.name));
                                 } else {
                                     var b = DataAttributeResolver.prototype.testAggregatedNestedAttribute.call(self, name);
                                     if (b) {
@@ -1299,12 +1306,12 @@ var DataQueryable = exports.DataQueryable = function () {
                                         } else {
                                             b = DataAttributeResolver.prototype.testAttribute.call(self, name);
                                             if (b) {
-                                                arr.push(self.fieldOf(b.name, x.property));
+                                                arr.push(self.resolveField(b.name, x.property));
                                             } else if (/\./g.test(name)) {
                                                 name = name.split('.')[0];
-                                                arr.push(self.fieldOf(name));
+                                                arr.push(self.resolveField(name));
                                             } else {
-                                                arr.push(self.fieldOf(name));
+                                                arr.push(self.resolveField(name));
                                             }
                                         }
                                     }
@@ -1338,7 +1345,7 @@ var DataQueryable = exports.DataQueryable = function () {
                         if (typeof x === 'string') {
                             field = self.model.field(x);
                             if (field) {
-                                if (field.many || field.mapping && field.mapping.associationType === 'junction') self.expand(field.name);else arr.push(self.fieldOf(field.name));
+                                if (field.many || field.mapping && field.mapping.associationType === 'junction') self.expand(field.name);else arr.push(self.resolveField(field.name));
                             }
                             //test nested attribute and simple attribute expression
                             else {
@@ -1403,7 +1410,7 @@ var DataQueryable = exports.DataQueryable = function () {
                     }
                     var $select = self.query.$select;
                     arr.forEach(function (x) {
-                        var field = self.fieldOf(x);
+                        var field = self.resolveField(x);
                         if (_.isArray($select[self.model.viewAdapter])) $select[self.model.viewAdapter].push(field);
                     });
                     return {
@@ -1414,13 +1421,6 @@ var DataQueryable = exports.DataQueryable = function () {
                 if ((typeof _ret3 === 'undefined' ? 'undefined' : _typeof(_ret3)) === "object") return _ret3.v;
             }
         }
-    }, {
-        key: 'dateOf',
-        value: function dateOf(attr) {
-            if (typeof attr === 'undefined' || attr === null) return attr;
-            if (typeof attr !== 'string') return attr;
-            return this.fieldOf('date(' + attr + ')');
-        }
 
         /**
          * @param attr {string|*}
@@ -1429,8 +1429,8 @@ var DataQueryable = exports.DataQueryable = function () {
          */
 
     }, {
-        key: 'fieldOf',
-        value: function fieldOf(attr, alias) {
+        key: 'resolveField',
+        value: function resolveField(attr, alias) {
 
             if (typeof attr === 'undefined' || attr === null) return attr;
             if (typeof attr !== 'string') return attr;
@@ -1526,7 +1526,7 @@ var DataQueryable = exports.DataQueryable = function () {
                 this.query.orderBy(DataAttributeResolver.prototype.orderByNestedAttribute.call(this, attr));
                 return this;
             }
-            this.query.orderBy(this.fieldOf(attr));
+            this.query.orderBy(this.resolveField(attr));
             return this;
         }
 
@@ -1568,7 +1568,7 @@ var DataQueryable = exports.DataQueryable = function () {
                         //nested group by
                         arr.push(DataAttributeResolver.prototype.orderByNestedAttribute.call(this, x));
                     } else {
-                        arr.push(this.fieldOf(x));
+                        arr.push(this.resolveField(x));
                     }
                 }
             } else {
@@ -1576,7 +1576,7 @@ var DataQueryable = exports.DataQueryable = function () {
                     //nested group by
                     arr.push(DataAttributeResolver.prototype.orderByNestedAttribute.call(this, arg));
                 } else {
-                    arr.push(this.fieldOf(arg));
+                    arr.push(this.resolveField(arg));
                 }
             }
             if (arr.length > 0) {
@@ -1598,7 +1598,7 @@ var DataQueryable = exports.DataQueryable = function () {
                 this.query.thenBy(DataAttributeResolver.prototype.orderByNestedAttribute.call(this, attr));
                 return this;
             }
-            this.query.thenBy(this.fieldOf(attr));
+            this.query.thenBy(this.resolveField(attr));
             return this;
         }
 
@@ -1615,7 +1615,7 @@ var DataQueryable = exports.DataQueryable = function () {
                 this.query.orderByDescending(DataAttributeResolver.prototype.orderByNestedAttribute.call(this, attr));
                 return this;
             }
-            this.query.orderByDescending(this.fieldOf(attr));
+            this.query.orderByDescending(this.resolveField(attr));
             return this;
         }
 
@@ -1632,7 +1632,7 @@ var DataQueryable = exports.DataQueryable = function () {
                 this.query.thenByDescending(DataAttributeResolver.prototype.orderByNestedAttribute.call(this, attr));
                 return this;
             }
-            this.query.thenByDescending(this.fieldOf(attr));
+            this.query.thenByDescending(this.resolveField(attr));
             return this;
         }
 
@@ -1872,87 +1872,6 @@ var DataQueryable = exports.DataQueryable = function () {
                 });
             });
             return d.promise;
-        }
-
-        /**
-         * @param {string} name
-         * @param {string=} alias
-         * @returns {*|QueryField}
-         */
-
-    }, {
-        key: 'countOf',
-        value: function countOf(name, alias) {
-            alias = alias || 'countOf'.concat(name);
-            var res = this.fieldOf(sprintf.sprintf('count(%s)', name));
-            if (typeof alias !== 'undefined' && alias != null) res.as(alias);
-            return res;
-        }
-
-        /**
-         * @param {string} name
-         * @param {string=} alias
-         * @returns {*|QueryField}
-         * @deprecated
-         * @ignore
-         */
-
-    }, {
-        key: 'maxOf',
-        value: function maxOf(name, alias) {
-            alias = alias || 'maxOf'.concat(name);
-            var res = this.fieldOf(sprintf.sprintf('max(%s)', name));
-            if (typeof alias !== 'undefined' && alias != null) res.as(alias);
-            return res;
-        }
-
-        /**
-         * @param {string} name
-         * @param {string=} alias
-         * @returns {*|QueryField}
-         * @deprecated
-         * @ignore
-         */
-
-    }, {
-        key: 'minOf',
-        value: function minOf(name, alias) {
-            alias = alias || 'minOf'.concat(name);
-            var res = this.fieldOf(sprintf.sprintf('min(%s)', name));
-            if (typeof alias !== 'undefined' && alias != null) res.as(alias);
-            return res;
-        }
-
-        /**
-         * @param {string} name
-         * @param {string=} alias
-         * @returns {*|QueryField}
-         * @deprecated
-         * @ignore
-         */
-
-    }, {
-        key: 'averageOf',
-        value: function averageOf(name, alias) {
-            alias = alias || 'avgOf'.concat(name);
-            var res = this.fieldOf(sprintf.sprintf('avg(%s)', name));
-            if (typeof alias !== 'undefined' && alias != null) res.as(alias);
-            return res;
-        }
-
-        /**
-         * @param {string} name
-         * @param {string=} alias
-         * @returns {*|QueryField}
-         */
-
-    }, {
-        key: 'sumOf',
-        value: function sumOf(name, alias) {
-            alias = alias || 'sumOf'.concat(name);
-            var res = this.fieldOf(sprintf.sprintf('sum(%s)', name));
-            if (typeof alias !== 'undefined' && alias != null) res.as(alias);
-            return res;
         }
 
         /**
@@ -2532,36 +2451,6 @@ var DataQueryable = exports.DataQueryable = function () {
         }
 
         /**
-         * Prepares an indexOf comparison
-         * @param {string} s The string to search for
-         * @returns {DataQueryable}
-         * @example
-         //retrieve a list of persons
-         context.model('Person')
-         .select('givenName')
-         .where('givenName').indexOf('a').equal(1)
-         .take(5).list().then(function(result) {
-                done(null, result);
-            }).catch(function(err) {
-                done(err);
-            });
-         @example //Results:
-         givenName
-         ---------
-         Daisy
-         Maxwell
-         Mackenzie
-         Zachary
-         Mason
-         */
-
-    }, {
-        key: 'indexOf',
-        value: function indexOf(s) {
-            this.query.indexOf(s);return this;
-        }
-
-        /**
          * Prepares a string concatenation expression
          * @param {string} s
          * @returns {DataQueryable}
@@ -2958,16 +2847,7 @@ var DataQueryable = exports.DataQueryable = function () {
     }, {
         key: 'getItem',
         value: function getItem() {
-            var self = this,
-                d = Q.defer();
-            process.nextTick(function () {
-                self.first().then(function (result) {
-                    return d.resolve(result);
-                }).catch(function (err) {
-                    return d.reject(err);
-                });
-            });
-            return d.promise;
+            return this.first();
         }
 
         /**
@@ -3095,9 +2975,9 @@ function select_(arg) {
         } else {
             a = DataAttributeResolver.prototype.testAttribute.call(self, arg);
             if (a) {
-                return self.fieldOf(a.name, a.property);
+                return self.resolveField(a.name, a.property);
             } else {
-                return self.fieldOf(arg);
+                return self.resolveField(arg);
             }
         }
     }
@@ -3210,7 +3090,7 @@ function countInternal(callback) {
     delete self.query.$order;
     delete self.query.$group;
     //append count expression
-    self.query.select([QueryField.create().count(field.name).from(self.model.viewAdapter)]);
+    self.query.select(QueryField.create().count(field.name).from(self.model.viewAdapter));
     //execute select
     execute_.call(self, function (err, result) {
         if (err) {
@@ -3234,7 +3114,7 @@ function maxInternal(attr, callback) {
     var self = this;
     delete self.query.$skip;
     var field = DataAttributeResolver.prototype.selectAggregatedAttribute.call(self, 'max', attr);
-    self.select([field]).flatten().value(function (err, result) {
+    self.select(field).flatten().value(function (err, result) {
         if (err) {
             return callback(err);
         }
@@ -3251,7 +3131,7 @@ function minInternal(attr, callback) {
     var self = this;
     delete self.query.$skip;
     var field = DataAttributeResolver.prototype.selectAggregatedAttribute.call(self, 'min', attr);
-    self.select([field]).flatten().value(function (err, result) {
+    self.select(field).flatten().value(function (err, result) {
         if (err) {
             return callback(err);
         }
@@ -3268,7 +3148,7 @@ function averageInternal_(attr, callback) {
     var self = this;
     delete self.query.$skip;
     var field = DataAttributeResolver.prototype.selectAggregatedAttribute.call(self, 'avg', attr);
-    self.select([field]).flatten().value(function (err, result) {
+    self.select(field).flatten().value(function (err, result) {
         if (err) {
             return callback(err);
         }
@@ -3289,7 +3169,7 @@ function executeCount_(callback) {
         delete clonedQuery.$skip;
         delete clonedQuery.$take;
         //add wildcard field
-        clonedQuery.select([QueryField.create().count('*')]);
+        clonedQuery.select(QueryField.create().count('*'));
         //execute count
         context.db.execute(clonedQuery, null, function (err, result) {
             if (err) {
