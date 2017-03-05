@@ -207,7 +207,7 @@ var MappingExtensions = exports.MappingExtensions = function () {
                                     return deferred.reject(err);
                                 }
                                 //get junction sub-query
-                                var junctionQuery = QueryExpression.create(junction.getBaseModel().name).select(["parentId", "valueId"]).join(thisQueryable.query.as("j0")).with(QueryExpression.create().where(QueryEntity.create(junction.getBaseModel().name).select("valueId")).equal(QueryEntity.create("j0").select(mapping.childField)));
+                                var junctionQuery = QueryExpression.create(junction.getBaseModel().name).select("parentId", "valueId").join(thisQueryable.query.as("j0")).with(QueryExpression.create().where(QueryEntity.create(junction.getBaseModel().name).select("valueId")).equal(QueryEntity.create("j0").select(mapping.childField)));
                                 //append join statement with sub-query
                                 q.query.join(junctionQuery.as("g0")).with(QueryExpression.create().where(QueryEntity.create(parentModel.viewAdapter).select(mapping.parentField)).equal(QueryEntity.create("g0").select("parentId")));
                                 if (!q.query.hasFields()) {
@@ -377,7 +377,7 @@ var MappingExtensions = exports.MappingExtensions = function () {
                                     q.select();
                                 }
                                 //get junction sub-query
-                                var junctionQuery = QueryExpression.create(junction.getBaseModel().name).select(["parentId", "valueId"]).join(thisQueryable.query.as("j0")).with(QueryExpression.create().where(QueryEntity.create(junction.getBaseModel().name).select("parentId")).equal(QueryEntity.create("j0").select(mapping.parentField)));
+                                var junctionQuery = QueryExpression.create(junction.getBaseModel().name).select("parentId", "valueId").join(thisQueryable.query.as("j0")).with(QueryExpression.create().where(QueryEntity.create(junction.getBaseModel().name).select("parentId")).equal(QueryEntity.create("j0").select(mapping.parentField)));
                                 //append join statement with sub-query
                                 q.query.join(junctionQuery.as("g0")).with(QueryExpression.create().where(QueryEntity.create(childModel.viewAdapter).select(mapping.childField)).equal(QueryEntity.create("g0").select("valueId")));
 

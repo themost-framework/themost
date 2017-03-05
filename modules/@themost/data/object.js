@@ -473,7 +473,7 @@ var DataObject = function (_SequentialEventEmitt) {
                                             var value = self[attr];
                                             if (q == null) q = model.where(attr).equal(value);else q.and(attr).equal(value);
                                         }
-                                        q.select([name]).first(function (err, result) {
+                                        q.select(name).first(function (err, result) {
                                             if (err) {
                                                 callback(err);return;
                                             }
