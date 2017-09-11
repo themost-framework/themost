@@ -1,150 +1,399 @@
 /**
- * @license
- * MOST Web Framework 2.0 Codename Blueshift
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- *                     Anthi Oikonomou anthioikonomou@gmail.com
+ * MOST Web Framework
+ * A JavaScript Web Framework
+ * http://themost.io
  *
- * Use of this source code is governed by an BSD-3-Clause license that can be
- * found in the LICENSE file at https://themost.io/license
+ * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com, Anthi Oikonomou anthioikonomou@gmail.com
+ *
+ * Released under the BSD3-Clause license
+ * Date: 2014-02-15
  */
-'use strict';
+/**
+ * @ignore
+ */
+var _ = require('lodash'),
+    odata = require('./odata'),
+    frmt = require('./formatter'),
+    closures = require('./closures'),
+    sqlutils = require('./sql-utils'),
+    qryq = require('./query'),
+    QueryExpression = qryq.QueryExpression,
+    QueryField = qryq.QueryField,
+    QueryEntity = qryq.QueryEntity,
+    OpenDataQuery = qryq.OpenDataQuery;
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.QueryUtils = undefined;
+/**
+ * @exports most-query
+ */
+var qry = { };
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+qry.classes = {
+    QueryExpression:QueryExpression,
+    QueryField:QueryField,
+    QueryEntity:QueryEntity,
+    SqlFormatter:frmt.SqlFormatter,
+    OpenDataQuery:OpenDataQuery
+};
+/**
+ * Escapes the given value to an equivalent string which is going to used in SQL expressions
+ * @param {*} val
+ * @returns {string}
+ */
+qry.escape = function(val) {
+    return sqlutils.escape(val);
+};
+/**
+ * @returns {QueryExpression}
+ * @param {string=} entity - The entity that is going to be used in this operation
+ */
+qry.query = function(entity) {
+    var q = new QueryExpression();
+    q.from(entity);
+    return q;
+};
 
-var _utils = require('./utils');
+/**
+ * Initializes a QueryExpression instance.
+ * @returns {QueryExpression}
+ * @param  {String|*} obj
+ */
+qry.where = function(obj) {
+    var q = new QueryExpression();
+    return q.where(obj);
+};
 
-Object.keys(_utils).forEach(function (key) {
-  if (key === "default") return;
-  Object.defineProperty(exports, key, {
-    enumerable: true,
-    get: function get() {
-      return _utils[key];
-    }
-  });
-});
+/**
+ * Initializes a select query expression from the specified entity
+ * @returns {QueryExpression}
+ * @param entity {string} - The entity that is going to be used in this operation
+ */
+qry.selectFrom = function(entity) {
 
-var _expressions = require('./expressions');
+    var q = new QueryExpression();
+    q.from(entity);
+    return q;
+};
 
-Object.keys(_expressions).forEach(function (key) {
-  if (key === "default") return;
-  Object.defineProperty(exports, key, {
-    enumerable: true,
-    get: function get() {
-      return _expressions[key];
-    }
-  });
-});
+/**
+ * Initializes a delete query expression from the specified entity
+ * @param entity {string}
+ * @returns {QueryExpression}
+ */
+qry.deleteFrom = function(entity) {
+    var q = new QueryExpression();
+    q.delete(entity);
+    return q;
+};
+/**
+ * @param {*} obj
+ * @returns {QueryExpression|*}
+ */
+qry.insert = function(obj) {
+    var q = new QueryExpression();
+    return q.insert(obj);
+};
 
-var _odata = require('./odata');
+/**
+ * @param {string} entity
+ * @returns {QueryExpression|*}
+ */
+qry.update = function(entity) {
+    var q = new QueryExpression();
+    return q.update(entity);
+};
+/**
+ * Formats the given value and returns an equivalent string which is going to be used in SQL expressions.
+ * @param {QueryExpression|*} query
+ * @param {string=} s
+ * @returns {string}
+ */
+qry.format = function(query, s) {
+    var formatter = new SqlFormatter();
+    return formatter.format(query, s);
+};
+/**
+ * Formats the given SQL expression string and replaces parameters with the given parameters, if any.
+ * e.g. * SELECT * FROM User where username=? with values: ['user1'] etc.
+ * @param {string} query
+ * @param {*=} values
+ * @returns {string}
+ */
+qry.prepare = function(query, values) {
+    if (typeof values === 'undefined' || values===null)
+        return query;
+    return sqlutils.format(query,values);
+};
+/**
+ * Creates an entity reference that is going to be used in query expressions.
+ * @param {string} entity The entity name
+ * @param {Array=} fields An array that represents the entity's field collection to be used.
+ * @returns {QueryEntity|*}
+ */
+qry.createEntity = function(entity, fields) {
+    var obj = new QueryEntity(entity);
+    obj[entity] = fields || [];
+    return obj;
+};
+/**
+ * Creates an entity reference that is going to be used in query expressions.
+ * @param {string} entity - The entity name
+ * @param {Array=} fields - An array that represents the entity's field collection to be used.
+ * @returns {QueryEntity|*}
+ */
+qry.entity = function(entity, fields) {
+    var obj = new QueryEntity(entity);
+    obj[entity] = fields || [];
+    return obj;
+};
+/**
+ * Creates a field reference that is going to be used in query expressions (like join statements etc).
+ * @param {string} entity - The entity name
+ * @param {string} name - The field name
+ */
+qry.createField = function(entity, name) {
+    var f = {};
+    f[entity] = [name];
+    return f;
+};
+/**
+ * Creates an field reference that is going to be used in query expressions (like join statements etc).
+ * @param value {*} The field name
+ */
+qry.createValue = function(value) {
+    return { $value:value };
+};
 
-Object.keys(_odata).forEach(function (key) {
-  if (key === "default") return;
-  Object.defineProperty(exports, key, {
-    enumerable: true,
-    get: function get() {
-      return _odata[key];
-    }
-  });
-});
-
-var _formatter = require('./formatter');
-
-Object.keys(_formatter).forEach(function (key) {
-  if (key === "default") return;
-  Object.defineProperty(exports, key, {
-    enumerable: true,
-    get: function get() {
-      return _formatter[key];
-    }
-  });
-});
-
-var _query = require('./query');
-
-Object.keys(_query).forEach(function (key) {
-  if (key === "default") return;
-  Object.defineProperty(exports, key, {
-    enumerable: true,
-    get: function get() {
-      return _query[key];
-    }
-  });
-});
-
-require('source-map-support/register');
-
-var QueryExpression = _query.QueryExpression;
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var QueryUtils = exports.QueryUtils = function () {
-  function QueryUtils() {
-    _classCallCheck(this, QueryUtils);
-  }
-
-  _createClass(QueryUtils, null, [{
-    key: 'query',
-
+qry.fields = {
     /**
-     * Initializes a select query expression by specifying the entity name
-     * @param {string|*} entity - The name of the entity
+     * @param {string} name
+     * @returns {QueryField}
      */
-    value: function query(entity) {
-      return QueryExpression.create(entity);
-    }
+    select: function(name) {
+        return new QueryField(name);
+    },
     /**
-     * Initializes a select query expression
-     * @param {*...} fields
+     * @param name {string}
+     * @returns {QueryField}
      */
-
-  }, {
-    key: 'select',
-    value: function select(fields) {
-      var q = new QueryExpression();
-      return q.select.apply(q, fields);
-    }
+    count:function(name) {
+        var f = new QueryField();
+        return f.count(name);
+    },
     /**
-     * Initializes an insert query expression
-     * @param {*} obj - The object to insert
+     * @param name {string}
+     * @returns {QueryField}
      */
-
-  }, {
-    key: 'insert',
-    value: function insert(obj) {
-      var q = new QueryExpression();
-      return q.insert(obj);
-    }
-
+    min:function(name) {
+        var f = new QueryField();
+        return f.min(name);
+    },
     /**
-     * Initializes an update query expression
-     * @param {string|*} entity - The name of the entity
+     * @param name {string}
+     * @returns {QueryField}
      */
-
-  }, {
-    key: 'update',
-    value: function update(entity) {
-      var q = new QueryExpression();
-      return q.update(entity);
-    }
-
+    floor:function(name) {
+        var f = { };
+        f[name] = { $floor:[ qry.fields.select(name) ] };
+        return _.assign(new QueryField(), f);
+    },
     /**
-     * Initializes a delete query expression
-     * @param {string} entity - The name of the entity
+     * @param name {string}
+     * @returns {QueryField}
      */
-
-  }, {
-    key: 'delete',
-    value: function _delete(entity) {
-      var q = new QueryExpression();
-      return q.delete(entity);
+    ceil:function(name) {
+        var f = { };
+        f[name] = { $ceiling:[ qry.fields.select(name) ] };
+        return _.assign(new QueryField(), f);
+    },
+    /**
+     * @param {string} name
+     * @param {number|*} divider
+     * @returns {QueryField}
+     */
+    modulo:function(name, divider) {
+        var f = { };
+        f[name] = { $mod:[ qry.fields.select(name), divider ] };
+        return _.assign(new QueryField(), f);
+    },
+    /**
+     * @param {string} name
+     * @param {number|*} x
+     * @returns {QueryField}
+     */
+    add:function(name, x) {
+        var f = { };
+        f[name] = { $add:[ qry.fields.select(name), x ] };
+        return _.assign(new QueryField(), f);
+    },
+    /**
+     * @param {string} name
+     * @param {number|*} x
+     * @returns {QueryField}
+     */
+    subtract:function(name, x) {
+        var f = { };
+        f[name] = { $subtract:[ qry.fields.select(name), x ] };
+        return _.assign(new QueryField(), f);
+    },
+    /**
+     * @param {string} name
+     * @param {number|*} divider
+     * @returns {QueryField}
+     */
+    divide:function(name, divider) {
+        var f = { };
+        f[name] = { $divide:[ qry.fields.select(name), divider ] };
+        return _.assign(new QueryField(), f);
+    },
+    /**
+     * @param {string} name
+     * @param {number|*} multiplier
+     * @returns {QueryField}
+     */
+    multiply:function(name, multiplier) {
+        var f = { };
+        f[name] = { $multiply:[ qry.fields.select(name), multiplier ] };
+        return _.assign(new QueryField(), f);
+    },
+    /**
+     * @param {string} name
+     * @param {number=} n
+     * @returns {QueryField}
+     */
+    round:function(name, n) {
+        var f = { };
+        f[name] = { $round:[ qry.fields.select(name), 2 ] };
+        return _.assign(new QueryField(), f);
+    },
+    /**
+     * @param name {string}
+     * @returns {QueryField}
+     */
+    month:function(name) {
+        var f = { };
+        f[name] = { $month:[ qry.fields.select(name) ] };
+        return _.assign(new QueryField(), f);
+    },
+    /**
+     * @param name {string}
+     * @returns {QueryField}
+     */
+    length:function(name) {
+        var f = { };
+        f[name] = { $length:[ qry.fields.select(name) ] };
+        return _.assign(new QueryField(), f);
+    },
+    /**
+     * @param name {string}
+     * @returns {QueryField}
+     */
+    trim:function(name) {
+        var f = { };
+        f[name] = { $trim:[ qry.fields.select(name) ] };
+        return _.assign(new QueryField(), f);
+    },
+    /**
+     * @param name {string}
+     * @returns {QueryField}
+     */
+    year:function(name) {
+        var f = { };
+        f[name] = { $year:[ qry.fields.select(name) ] };
+        return _.assign(new QueryField(), f);
+    },
+    /**
+     * @param name {string}
+     * @returns {QueryField}
+     */
+    day:function(name) {
+        var f = { };
+        f[name] = { $day:[ qry.fields.select(name) ] };
+        return _.assign(new QueryField(), f);
+    },
+    /**
+     * @param name {string}
+     * @returns {QueryField}
+     */
+    date:function(name) {
+        var f = { };
+        f[name] = { $date:[ qry.fields.select(name) ] };
+        return _.assign(new QueryField(), f);
+    },
+    /**
+     * @param name {string}
+     * @returns {QueryField}
+     */
+    hour:function(name) {
+        var f = { };
+        f[name] = { $hour:[ qry.fields.select(name) ] };
+        return _.assign(new QueryField(), f);
+    },
+    /**
+     * @param name {string}
+     * @returns {QueryField}
+     */
+    minute:function(name) {
+        var f = { };
+        f[name] = { $minute:[ qry.fields.select(name) ] };
+        return _.assign(new QueryField(), f);
+    },
+    /**
+     * @param name {string}
+     * @returns {QueryField}
+     */
+    second:function(name) {
+        var f = { };
+        f[name] = { $second:[ qry.fields.select(name) ] };
+        return _.assign(new QueryField(), f);
+    },
+    /**
+     * @param name {string}
+     * @returns {QueryField}
+     */
+    max:function(name) {
+        var f = new QueryField();
+        return f.max(name);
+    },
+    /**
+     * @param name {string}
+     * @returns {QueryField}
+     */
+    average:function(name) {
+        var f = new QueryField();
+        return f.average(name);
+    },
+    /**
+     * @param name {string}
+     * @returns {QueryField}
+     */
+    sum:function(name) {
+        var f = new QueryField();
+        return f.sum(name);
     }
-  }]);
+};
 
-  return QueryUtils;
-}();
-//# sourceMappingURL=index.js.map
+qry.openData = {
+    /**
+     * @param {String} str The open data filter expression
+     * @param {function} callback The callback function
+     * @returns {QueryExpression} The equivalent query expression
+     */
+    parse:function(str, callback) {
+        return odata.parse(str, callback);
+    },
+    /**
+     * Creates a new instance of OData parser
+     * @returns {OpenDataParser}
+     */
+    createParser: function() {
+        return odata.createParser();
+    }
+};
+
+qry.closures = closures;
+
+
+if (typeof exports !== 'undefined')
+{
+    module.exports = qry;
+}

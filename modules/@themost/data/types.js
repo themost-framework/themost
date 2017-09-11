@@ -1,38 +1,45 @@
 /**
- * @license
- * MOST Web Framework 2.0 Codename Blueshift
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- *                     Anthi Oikonomou anthioikonomou@gmail.com
+ * MOST Web Framework
+ * A JavaScript Web Framework
+ * http://themost.io
+ * Created by Kyriakos Barbounakis<k.barbounakis@gmail.com> on 2014-01-25.
  *
- * Use of this source code is governed by an BSD-3-Clause license that can be
- * found in the LICENSE file at https://themost.io/license
+ * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
+ Anthi Oikonomou anthioikonomou@gmail.com
+ All rights reserved.
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ * Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+ * Neither the name of MOST Web Framework nor the names of its
+ contributors may be used to endorse or promote products derived from
+ this software without specific prior written permission.
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-'use strict';
 
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.ParserUtils = exports.DataContextEmitter = exports.DataResultSet = exports.DataModelPrivilege = exports.DataModelEventListener = exports.DataField = exports.DataAssociationMapping = exports.DataModelMigration = exports.DataEventListener = exports.DataContext = exports.DataEventArgs = exports.DataAdapter = undefined;
+/**
+ * @ignore
+  */
+var events = require('events'),
+    sprintf = require('sprintf'),
+    _ = require('lodash'),
+    util = require('util'),
+    async = require('async'),
+    qry = require('most-query');
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-require('source-map-support/register');
-
-var _emitter = require('@themost/common/emitter');
-
-var SequentialEventEmitter = _emitter.SequentialEventEmitter;
-
-var _lodash = require('lodash');
-
-var _ = _lodash._;
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+var types = { };
 
 /**
  * @classdesc Represents an abstract data connector to a database
@@ -222,104 +229,144 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  * @property {*} rawConnection - Gets or sets the native database connection
  * @property {*} options - Gets or sets the database connection options
  */
-var DataAdapter = exports.DataAdapter = function () {
-    function DataAdapter(options) {
-        _classCallCheck(this, DataAdapter);
+function DataAdapter(options) {
 
-        this.rawConnection = null;
-        this.options = options;
+    this.rawConnection=null;
+    this.options = options;
+}
+
+/**
+ * Opens the underlying database connection
+ * @param {Function} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise.
+ */
+DataAdapter.prototype.open = function(callback) {
+    //
+};
+
+/**
+ * Closes the underlying database connection
+ * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise.
+ */
+DataAdapter.prototype.close = function(callback) {
+    //
+};
+
+/**
+ * Executes the given query against the underlying database.
+ * @param {string|*} query - A string or a query expression to execute.
+ * @param {*} values - An object which represents the named parameters that are going to used during query parsing
+ * @param {Function} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain the result.
+ */
+DataAdapter.prototype.execute = function(query, values, callback) {
+    //
+};
+/**
+ * Executes a batch query expression and returns the result.
+ * @param {DataModelBatch} batch - The batch query expression to execute
+ * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain the result.
+ * @deprecated This method is deprecated.
+ */
+DataAdapter.prototype.executeBatch = function(batch, callback) {
+    //
+};
+
+/**
+ * Produces a new identity value for the given entity and attribute.
+ * @param {string} entity - A string that represents the target entity name
+ * @param {string} attribute - A string that represents the target attribute name
+ * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain the result.
+ */
+DataAdapter.prototype.selectIdentity = function(entity, attribute , callback) {
+    //
+};
+
+/**
+ * Begins a transactional operation and executes the given function
+ * @param {Function} fn - The function to execute
+ * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain the result.
+ */
+DataAdapter.prototype.executeInTransaction = function(fn, callback) {
+    //
+};
+/**
+ * A helper method for creating a database view if the current data adapter supports views
+ * @param {string} name - A string that represents the name of the view to be created
+ * @param {QueryExpression|*} query - A query expression that represents the database view
+ * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise.
+ */
+DataAdapter.prototype.createView = function(name, query, callback) {
+    //
+};
+
+/**
+ * @classdesc EventEmitter2 class is an extension of node.js EventEmitter class where listeners are excuting in series.
+ * @class
+ * @augments EventEmitter
+ * @constructor
+ */
+function EventEmitter2() {
+    //
+}
+util.inherits(EventEmitter2, events.EventEmitter);
+/**
+ * Raises the specified event and executes event listeners in series.
+ * @param {String} event - The event that is going to be raised.
+ * @param {*} args - An object that contains the event arguments.
+ * @param {Function} callback - A callback function to be invoked after the execution.
+ */
+EventEmitter2.prototype.emit = function(event, args, callback)
+{
+    var self = this;
+    ////example: call super class function
+    //EventEmitter2.super_.emit.call(this);
+    //ensure callback
+    callback = callback || function() {};
+    //get listeners
+    if (typeof this.listeners !== 'function') {
+        console.log('undefined listeners');
     }
-
-    /**
-     * Opens the underlying database connection
-     * @param {Function} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise.
+    var listeners = this.listeners(event);
+    //validate listeners
+    if (listeners.length===0) {
+        //exit emitter
+        callback.call(self, null);
+        return;
+    }
+    /*
+     An EventEmitter2 listener must be a function with args and a callback e.g.
+     function(e, cb) {
+     //do some code
+     ...
+     //finalize event
+     cb(null);
+     //or
+     cb(err)
+     }
      */
+    //get event arguments
+    var e = args;
+    //apply each series
+    async.applyEachSeries(listeners, e, function(err) {
+        callback.call(self, err);
+    });
+};
 
-
-    _createClass(DataAdapter, [{
-        key: 'open',
-        value: function open(callback) {}
-        //
-
-
-        /**
-         * Closes the underlying database connection
-         * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise.
-         */
-
-    }, {
-        key: 'close',
-        value: function close(callback) {}
-        //
-
-
-        /**
-         * Executes the given query against the underlying database.
-         * @param {string|*} query - A string or a query expression to execute.
-         * @param {*} values - An object which represents the named parameters that are going to used during query parsing
-         * @param {Function} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain the result.
-         */
-
-    }, {
-        key: 'execute',
-        value: function execute(query, values, callback) {}
-        //
-
-
-        /**
-         * Executes a batch query expression and returns the result.
-         * @param {DataModelBatch} batch - The batch query expression to execute
-         * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain the result.
-         * @deprecated This method is deprecated.
-         */
-
-    }, {
-        key: 'executeBatch',
-        value: function executeBatch(batch, callback) {}
-        //
-
-
-        /**
-         * Produces a new identity value for the given entity and attribute.
-         * @param {string} entity - A string that represents the target entity name
-         * @param {string} attribute - A string that represents the target attribute name
-         * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain the result.
-         */
-
-    }, {
-        key: 'selectIdentity',
-        value: function selectIdentity(entity, attribute, callback) {}
-        //
-
-
-        /**
-         * Begins a transactional operation and executes the given function
-         * @param {Function} fn - The function to execute
-         * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain the result.
-         */
-
-    }, {
-        key: 'executeInTransaction',
-        value: function executeInTransaction(fn, callback) {}
-        //
-
-
-        /**
-         * A helper method for creating a database view if the current data adapter supports views
-         * @param {string} name - A string that represents the name of the view to be created
-         * @param {QueryExpression|*} query - A query expression that represents the database view
-         * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise.
-         */
-
-    }, {
-        key: 'createView',
-        value: function createView(name, query, callback) {
-            //
+EventEmitter2.prototype.once = function(type, listener) {
+    var self = this;
+    if (typeof listener !== 'function')
+        throw TypeError('listener must be a function');
+    var fired = false;
+    function g() {
+        self.removeListener(type, g);
+        if (!fired) {
+            fired = true;
+            listener.apply(this, arguments);
         }
-    }]);
-
-    return DataAdapter;
-}();
+    }
+    g.listener = listener;
+    this.on(type, g);
+    return this;
+};
 
 /**
  * @classdesc Represents the event arguments of a data model listener.
@@ -331,80 +378,55 @@ var DataAdapter = exports.DataAdapter = function () {
  * @property {DataQueryable|*} emitter - Represents the event emitter, normally a DataQueryable object instance.
  * @property {*} query - Represents the underlying query expression. This property may be null.
  */
-
-
-var DataEventArgs = exports.DataEventArgs = function DataEventArgs() {
+function DataEventArgs() {
     //
-
-    _classCallCheck(this, DataEventArgs);
-};
+}
 
 /**
  * @classdesc Represents the main data context.
  * @class
+ * @augments EventEmitter2
  * @constructor
  */
-
-
-var DataContext = exports.DataContext = function (_SequentialEventEmitt) {
-    _inherits(DataContext, _SequentialEventEmitt);
-
-    function DataContext() {
-        _classCallCheck(this, DataContext);
-
-        /**
-         * Gets the current database adapter
-         * @type {DataAdapter}
-         */
-        var _this = _possibleConstructorReturn(this, (DataContext.__proto__ || Object.getPrototypeOf(DataContext)).call(this));
-
-        _this.db = undefined;
-        Object.defineProperty(_this, 'db', {
-            get: function get() {
-                return null;
-            },
-            configurable: true,
-            enumerable: false });
-        return _this;
-    }
-
+function DataContext() {
     /**
-     * Gets a data model based on the given data context
-     * @param name {string} A string that represents the model to be loaded.
-     * @returns {DataModel}
+     * Gets the current database adapter
+     * @type {DataAdapter}
      */
-
-
-    _createClass(DataContext, [{
-        key: 'model',
-        value: function model(name) {
+    this.db = undefined;
+    Object.defineProperty(this, 'db', {
+        get : function() {
             return null;
-        }
+        },
+        configurable : true,
+        enumerable:false });
+}
 
-        /**
-         * Gets an instance of DataConfiguration class which is associated with this data context
-         * @returns {DataConfigurationStrategy}
-         */
+/**
+ * Gets a data model based on the given data context
+ * @param name {string} A string that represents the model to be loaded.
+ * @returns {DataModel}
+ */
+DataContext.prototype.model = function(name) {
+    return null;
+};
 
-    }, {
-        key: 'getConfiguration',
-        value: function getConfiguration() {
-            return null;
-        }
+/**
+ * Gets an instance of DataConfiguration class which is associated with this data context
+ * @returns {DataConfiguration}
+ */
+DataContext.prototype.getConfiguration = function() {
+    return null;
+};
 
-        /**
-         * @param cb {Function}
-         */
-
-    }, {
-        key: 'finalize',
-        value: function finalize(cb) {
-            //
-        }
-    }]);
-
-    return DataContext;
-}(SequentialEventEmitter);
+/**
+ * @param cb {Function}
+ */
+DataContext.prototype.finalize = function(cb) {
+    //
+};
+//set EventEmitter2 inheritance
+util.inherits(DataContext, EventEmitter2);
 
 /**
  * @classdesc Represents a data model's listener
@@ -412,119 +434,413 @@ var DataContext = exports.DataContext = function (_SequentialEventEmitt) {
  * @constructor
  * @abstract
   */
+function DataEventListener() {
+    //
+}
+/**
+ * Occurs before executing a data operation. The event arguments contain the query that is going to be executed.
+ * @param {DataEventArgs} e - An object that represents the event arguments passed to this operation.
+ * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+ */
+DataEventListener.prototype.beforeExecute = function(e, cb) {
+    return this;
+};
+/**
+ * Occurs after executing a data operation. The event arguments contain the executed query.
+ * @param {DataEventArgs} e - An object that represents the event arguments passed to this operation.
+ * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+ */
+DataEventListener.prototype.afterExecute = function(e, cb) {
+    return this;
+};
+/**
+ * Occurs before creating or updating a data object.
+ * @param {DataEventArgs} e - An object that represents the event arguments passed to this operation.
+ * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+ */
+DataEventListener.prototype.beforeSave = function(e, cb) {
+    return this;
+};
+/**
+ * Occurs after creating or updating a data object.
+ * @param {DataEventArgs} e - An object that represents the event arguments passed to this operation.
+ * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+ */
+DataEventListener.prototype.afterSave = function(e, cb) {
+    return this;
+};
+/**
+ * Occurs before removing a data object.
+ * @param {DataEventArgs} e - An object that represents the event arguments passed to this operation.
+ * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+ * @returns {DataEventListener}
+ */
+DataEventListener.prototype.beforeRemove = function(e, cb) {
+    return this;
+};
+/**
+ * Occurs after removing a data object.
+ * @param {DataEventArgs} e - An object that represents the event arguments passed to this operation.
+ * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+ */
+DataEventListener.prototype.afterRemove = function(e, cb) {
+    return this;
+};
 
-
-var DataEventListener = exports.DataEventListener = function () {
-    function DataEventListener() {
-        _classCallCheck(this, DataEventListener);
-    }
-
-    _createClass(DataEventListener, [{
-        key: 'beforeExecute',
-
-        /**
-         * Occurs before executing a data operation. The event arguments contain the query that is going to be executed.
-         * @param {DataEventArgs} e - An object that represents the event arguments passed to this operation.
-         * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
-         */
-        value: function beforeExecute(e, cb) {
-            return this;
-        }
-
-        /**
-         * Occurs after executing a data operation. The event arguments contain the executed query.
-         * @param {DataEventArgs} e - An object that represents the event arguments passed to this operation.
-         * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
-         */
-
-    }, {
-        key: 'afterExecute',
-        value: function afterExecute(e, cb) {
-            return this;
-        }
-
-        /**
-         * Occurs before creating or updating a data object.
-         * @param {DataEventArgs} e - An object that represents the event arguments passed to this operation.
-         * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
-         */
-
-    }, {
-        key: 'beforeSave',
-        value: function beforeSave(e, cb) {
-            return this;
-        }
-
-        /**
-         * Occurs after creating or updating a data object.
-         * @param {DataEventArgs} e - An object that represents the event arguments passed to this operation.
-         * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
-         */
-
-    }, {
-        key: 'afterSave',
-        value: function afterSave(e, cb) {
-            return this;
-        }
-
-        /**
-         * Occurs before removing a data object.
-         * @param {DataEventArgs} e - An object that represents the event arguments passed to this operation.
-         * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
-         * @returns {DataEventListener}
-         */
-
-    }, {
-        key: 'beforeRemove',
-        value: function beforeRemove(e, cb) {
-            return this;
-        }
-
-        /**
-         * Occurs after removing a data object.
-         * @param {DataEventArgs} e - An object that represents the event arguments passed to this operation.
-         * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
-         */
-
-    }, {
-        key: 'afterRemove',
-        value: function afterRemove(e, cb) {
-            return this;
-        }
-
-        /**
-         * Occurs after upgrading a data model.
-         * @param {DataEventArgs} e - An object that represents the event arguments passed to this operation.
-         * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
-         */
-
-    }, {
-        key: 'afterUpgrade',
-        value: function afterUpgrade(e, cb) {
-            return this;
-        }
-    }]);
-
-    return DataEventListener;
-}();
+/**
+ * Occurs after upgrading a data model.
+ * @param {DataEventArgs} e - An object that represents the event arguments passed to this operation.
+ * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+ */
+DataEventListener.prototype.afterUpgrade = function(e, cb) {
+    return this;
+};
 
 var DateTimeRegex = /^(\d{4})(?:-?W(\d+)(?:-?(\d+)D?)?|(?:-(\d+))?-(\d+))(?:[T ](\d+):(\d+)(?::(\d+)(?:\.(\d+))?)?)?(?:Z(-?\d*))?$/g;
 var BooleanTrueRegex = /^true$/ig;
 var BooleanFalseRegex = /^false$/ig;
 var NullRegex = /^null$/ig;
 var UndefinedRegex = /^undefined$/ig;
-var IntegerRegex = /^[-+]?\d+$/g;
-var FloatRegex = /^[+-]?\d+(\.\d+)?$/g;
+var IntegerRegex =/^[-+]?\d+$/g;
+var FloatRegex =/^[+-]?\d+(\.\d+)?$/g;
 
-/**
- * @classdesc Represents a model migration scheme against data adapters
- * @class
- * @constructor
+/*
+ * EXCEPTIONS
  */
 
-var DataModelMigration = exports.DataModelMigration = function DataModelMigration() {
-    _classCallCheck(this, DataModelMigration);
+/**
+ * @classdesc Extends Error object for throwing exceptions on data operations
+ * @class
+ * @param {string=} code - A string that represents an error code
+ * @param {string=} message - The error message
+ * @param {string=} innerMessage - The error inner message
+ * @param {string=} model - The target model
+ * @param {string=} field - The target field
+ * @param {*} additionalData - Additional data associated with this error
+ * @constructor
+ * @property {string} code - A string that represents an error code e.g. EDATA
+ * @property {string} message -  The error message.
+ * @property {string} innerMessage - The error inner message.
+ * @property {number} status - A number that represents an error status. This error status may be used for throwing the approriate HTTP error.
+ * @property {*} additionalData - Additional data associated with this error
+ * @augments Error
+ */
+function DataException(code, message, innerMessage, model, field, additionalData) {
+    this.code  = code || 'EDATA';
+    if (model)
+        this.model = model;
+    if (field)
+        this.field = field;
+    this.message = message || 'A general data error occured.';
+    if (innerMessage)
+        this.innerMessage = innerMessage;
+    this.additionalData = additionalData;
+}
+util.inherits(DataException, Error);
 
+/**
+ * @classdesc Extends Error object for throwing not null exceptions.
+ * @class
+ * @param {string=} message - The error message
+ * @param {string=} innerMessage - The error inner message
+ * @constructor
+ * @property {string} code - A string that represents an error code. The default error code is ENULL.
+ * @property {string} message -  The error message.
+ * @property {string} innerMessage - The error inner message.
+ * @property {number} status - A number that represents an error status. This error status may be used for throwing the approriate HTTP error. The default status is 409 (Conflict)
+ * @property {string} model - The target model name
+ * @property {string} field - The target field name
+ * @augments Error
+  */
+function NotNullException(message, innerMessage, model, field) {
+    NotNullException.super_.call(this, 'ENULL', message || 'A value is required', innerMessage, model, field);
+    this.status = 409;
+}
+util.inherits(NotNullException, DataException);
+
+/**
+ * @classdesc Extends Error object for throwing not found exceptions.
+ * @class
+ * @param {string=} message - The error message
+ * @param {string=} innerMessage - The error inner message
+ * @constructor
+ * @property {string} code - A string that represents an error code. The default error code is EFOUND.
+ * @property {string} message -  The error message.
+ * @property {string} innerMessage - The error inner message.
+ * @property {number} status - A number that represents an error status. This error status may be used for throwing the approriate HTTP error. The default status is 404 (Conflict)
+ * @property {string} model - The target model name
+ * @augments Error
+ */
+function DataNotFoundException(message, innerMessage, model) {
+    DataNotFoundException.super_.call(this, 'EFOUND', message || 'The requested data was not found.', innerMessage, model);
+    this.status = 404;
+}
+util.inherits(DataNotFoundException, DataException);
+
+/**
+ * @classdesc Extends Error object for throwing unique constraint exceptions.
+ * @class
+ * @param {string=} message - The error message
+ * @param {string=} innerMessage - The error inner message
+ * @constructor
+ * @property {string} code - A string that represents an error code. The default error code is ENULL.
+ * @property {string} message -  The error message.
+ * @property {string} innerMessage - The error inner message.
+ * @property {number} status - A number that represents an error status. This error status may be used for throwing the approriate HTTP error. The default status is 409 (Conflict)
+ * @property {string} model - The target model name
+ * @property {string} constraint - The target constraint name
+ * @augments Error
+ */
+function UniqueConstraintException(message, innerMessage, model, constraint) {
+    UniqueConstraintException.super_.call(this, 'EUNQ', message || 'A unique constraint violated', innerMessage, model);
+    if (constraint)
+        this.constraint = constraint;
+    this.status = 409;
+}
+util.inherits(UniqueConstraintException, DataException);
+
+/**
+ * @classdesc Represents an access denied data exception.
+ * @class
+ *
+ * @param {string=} message - The error message
+ * @param {string=} innerMessage - The error inner message
+ * @property {string} code - A string that represents an error code. The error code is EACCESS.
+ * @property {number} status - A number that represents an error status. The error status is 401.
+ * @property {string} message -  The error message.
+ * @property {string} innerMessage - The error inner message.
+ * @augments DataException
+ * @constructor
+ */
+function AccessDeniedException(message, innerMessage) {
+    AccessDeniedException.super_.call(this, 'EACCESS', ('Access Denied' || message) , innerMessage);
+    this.status = 401;
+}
+util.inherits(AccessDeniedException, DataException);
+
+/**
+ * @ignore
+ * @class
+ * @param name
+ * @constructor
+ */
+function DataQueryableField(name) {
+    if (typeof name !== 'string') {
+        throw new Error('Invalid argument type. Expected string.')
+    }
+    this.name = name;
+}
+
+/**
+ * @returns {DataQueryableField}
+ */
+DataQueryableField.prototype.as = function(s) {
+    if (_.isNil(s)) {
+        delete this.$as;
+        return this;
+    }
+    /**
+     * @private
+     * @type {string}
+     */
+    this.$as = s;
+    return this;
+};
+
+/**
+ * Returns the alias expression, if any.
+ * @returns {string}
+ * @private
+ */
+DataQueryableField.prototype._as = function() {
+    return (typeof this.$as !== 'undefined' && this.$as != null) ? ' as ' + this.$as : '';
+};
+
+DataQueryableField.prototype.toString = function() {
+    return this.name + this._as();
+};
+
+/**
+ * @returns {string}
+ */
+DataQueryableField.prototype.max = function() {
+    return sprintf.sprintf('max(%s)', this.name) + this._as();
+};
+
+/**
+ * @returns {string}
+ */
+DataQueryableField.prototype.min = function() {
+    return sprintf.sprintf('min(%s)', this.name) + this._as();
+};
+
+/**
+ * @returns {string}
+ */
+DataQueryableField.prototype.count = function() {
+    return sprintf.sprintf('count(%s)', this.name) + this._as();
+};
+
+/**
+ * @returns {string}
+ */
+DataQueryableField.prototype.average = function() {
+    return sprintf.sprintf('avg(%s)', this.name) + this._as();
+};
+
+/**
+ * @returns {string}
+ */
+DataQueryableField.prototype.length = function() {
+    return sprintf.sprintf('length(%s)', this.name) + this._as();
+};
+
+///**
+// * @param {String} s
+// * @returns {string}
+// */
+//DataQueryableField.prototype.indexOf = function(s) {
+//    return sprintf.sprintf('indexof(%s,%s)', this.name, qry.escape(s)) + this._as();
+//};
+
+/**
+ * @param {number} pos
+ * @param {number} length
+ * @returns {string}
+ */
+DataQueryableField.prototype.substr = function(pos, length) {
+    return sprintf.sprintf('substring(%s,%s,%s)',this.name, pos, length) + this._as();
+};
+
+/**
+ * @returns {string}
+ */
+DataQueryableField.prototype.floor = function() {
+    return sprintf.sprintf('floor(%s)',this.name) + this._as();
+};
+
+/**
+ * @returns {string}
+ */
+DataQueryableField.prototype.round = function() {
+    return sprintf.sprintf('round(%s)',this.name) + this._as();
+};
+
+/**
+ * @returns {string}
+ */
+DataQueryableField.prototype.getYear = function() {
+    return sprintf.sprintf('year(%s)',this.name) + this._as();
+};
+
+/**
+ * @returns {string}
+ */
+DataQueryableField.prototype.getDay = function() {
+    return sprintf.sprintf('day(%s)',this.name) + this._as();
+};
+
+/**
+ * @returns {string}
+ */
+DataQueryableField.prototype.getMonth = function() {
+    return sprintf.sprintf('month(%s)',this.name) + this._as();
+};
+
+/**
+ * @returns {string}
+ */
+DataQueryableField.prototype.getMinutes = function() {
+    return sprintf.sprintf('minute(%s)',this.name) + this._as();
+};
+
+/**
+ * @returns {string}
+ */
+DataQueryableField.prototype.getHours = function() {
+    return sprintf.sprintf('hour(%s)',this.name) + this._as();
+};
+
+/**
+ * @returns {string}
+ */
+DataQueryableField.prototype.getSeconds = function() {
+    return sprintf.sprintf('second(%s)',this.name) + this._as();
+};
+
+/**
+ * @returns {string}
+ */
+DataQueryableField.prototype.getDate = function() {
+    return sprintf.sprintf('date(%s)',this.name) + this._as();
+};
+
+///**
+// * @returns {string}
+// */
+//DataQueryableField.prototype.ceil = function() {
+//    return util('ceil(%s)',this.name);
+//};
+
+/**
+ * @returns {string}
+ */
+DataQueryableField.prototype.toLocaleLowerCase = function() {
+    return sprintf.sprintf('tolower(%s)',this.name) + this._as();
+};
+
+/**
+ * @returns {string}
+ */
+DataQueryableField.prototype.toLowerCase = function() {
+    return sprintf.sprintf('tolower(%s)',this.name) + this._as();
+};
+
+/**
+ * @returns {string}
+ */
+DataQueryableField.prototype.toLocaleUpperCase = function() {
+    return sprintf.sprintf('toupper(%s)',this.name) + this._as();
+};
+
+/**
+ * @returns {string}
+ */
+DataQueryableField.prototype.toUpperCase = function() {
+    return sprintf.sprintf('toupper(%s)',this.name) + this._as();
+};
+
+/**
+ * @returns {string}
+ */
+DataQueryableField.prototype.trim = function() {
+    return sprintf.sprintf('trim(%s)',this.name) + this._as();
+};
+
+/** native extensions **/
+if (typeof String.prototype.fieldOf === 'undefined')
+{
+    /**
+     * @returns {DataQueryableField}
+     * @private
+     */
+    var fnFieldOf = function() {
+        if (this == null) {
+            throw new TypeError('String.prototype.fieldOf called on null or undefined');
+        }
+        return new DataQueryableField(this.toString());
+    };
+    if (!String.prototype.fieldOf) { String.prototype.fieldOf = fnFieldOf; }
+}
+
+
+/**
+ * Represents a model migration scheme against data adapters
+ * @class
+ * @constructor
+ * @ignore
+ */
+function DataModelMigration() {
     /**
      * Gets an array that contains the definition of fields that are going to be added
      * @type {Array}
@@ -570,6 +886,60 @@ var DataModelMigration = exports.DataModelMigration = function DataModelMigratio
      * This property may be null.
      */
     this.model = null;
+}
+/**
+ * @ignore
+ * @deprecated
+ * @class
+ * @constructor
+ */
+function DataModelBatch() {
+    /**
+     * Gets or sets a string that represents the data table that is going to be used in this operation.
+     * This property cannot be null.
+     */
+    this.appliesTo = null;
+    /**
+     * Gets an array that contains the items to be added
+     */
+    this.add = [];
+    /**
+     * Gets an array that contains the items to be updated
+     */
+    this.change = [];
+    /**
+     * Gets an array that contains the items to be updated
+     */
+    this.remove = [];
+    /**
+     * Gets or sets the target model
+     * @type {DataModel}
+     */
+    this.model = null;
+}
+/**
+ * @param {*} obj
+ */
+DataModelBatch.prototype.prepare = function(obj) {
+    var self = this;
+    if (self.model==null)
+        throw new Error('The model of a batch operation cannot be empty at this context.');
+    var key = self.model.key();
+    if (!obj)
+        return;
+    var items = _.isArray(obj) ? obj : [obj];
+    array(items).each(function(x) {
+        if (x[key.name]!=null) {
+            //state is modified
+            self.change = self.change || [];
+            self.change.push(x);
+        }
+        else {
+            //state is added
+            self.add = self.add || [];
+            self.add.push(x);
+        }
+    });
 };
 
 /**
@@ -663,23 +1033,16 @@ var DataModelMigration = exports.DataModelMigration = function DataModelMigratio
  * @property {string} associationType - Gets or sets the type of this association (junction|association). The default value is 'association'.
  * @property {string[]} select - Gets or sets an array of fields to select from associated model. If this property is empty then all associated model fields will be selected.
  * @property {*} options - Gets or sets a set of default options which are going to be used while expanding results based on this data association.
- */
-
-
-var DataAssociationMapping =
-/**
+ * @param {*=} obj - An object that contains relation mapping attributes
  * @constructor
- * @param {*} obj
  */
-exports.DataAssociationMapping = function DataAssociationMapping(obj) {
-    _classCallCheck(this, DataAssociationMapping);
-
+function DataAssociationMapping(obj) {
     this.cascade = 'none';
     this.associationType = 'association';
-    if ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === 'object') {
-        _.assign(this, obj);
-    }
-};
+    //this.select = [];
+    if (typeof obj === 'object') { _.assign(this, obj); }
+}
+
 
 /**
  * @class
@@ -709,11 +1072,7 @@ exports.DataAssociationMapping = function DataAssociationMapping(obj) {
  * @property {boolean} virtual - Gets or sets a boolean that indicates whether this field is a view only field or not.
  * @property {boolean} indexed - Gets or sets a boolean which indicates whether this field will be indexed for searching items. The default value is false.
   */
-
-
-var DataField = exports.DataField = function DataField() {
-    _classCallCheck(this, DataField);
-
+function DataField() {
     this.nullable = true;
     this.primary = false;
     this.indexed = false;
@@ -721,6 +1080,10 @@ var DataField = exports.DataField = function DataField() {
     this.expandable = false;
     this.virtual = false;
     this.editable = true;
+}
+
+DataField.prototype.getName = function() {
+  return this.property || this.name;
 };
 
 /**
@@ -767,19 +1130,13 @@ var DataField = exports.DataField = function DataField() {
 };
  *
  */
+function DataModelEventListener() {
 
-
-var DataModelEventListener = exports.DataModelEventListener = function DataModelEventListener() {
-    //
-
-    _classCallCheck(this, DataModelEventListener);
-};
+}
 /**
  * An enumeration of tha available privilege types
  * @enum
  */
-
-
 var PrivilegeType = {
     /**
      * Self Privilege (self).
@@ -815,74 +1172,55 @@ var PrivilegeType = {
  * @property {string} account - Gets or sets a wildcard (*) expression for global privileges only.
  * The defined set of permissions are automatically assigned to all users (e.g. read permissions for all users)
  */
+function DataModelPrivilege() {
 
-var DataModelPrivilege = exports.DataModelPrivilege = function DataModelPrivilege() {
-    //
+}
 
-    _classCallCheck(this, DataModelPrivilege);
-};
+
 
 /**
- * @classdesc Represents a query result when this query uses paging parameters.
+ * Represents a query result when this query uses paging parameters.
  * @class
  * @property {number} total - The total number of records
  * @property {number} skip - The number of skipped records
  * @property {Array} records - An array of objects which represents the query results.
  * @constructor
   */
-
-
-var DataResultSet = exports.DataResultSet = function DataResultSet() {
-    _classCallCheck(this, DataResultSet);
-
+function DataResultSet() {
     this.total = 0;
     this.skip = 0;
     this.records = [];
-};
+}
 
 /**
  * @abstract
  * @constructor
  * @ignore
  */
-
-
-var DataContextEmitter = exports.DataContextEmitter = function () {
-    function DataContextEmitter() {
-        //
-
-        _classCallCheck(this, DataContextEmitter);
-    }
-
-    _createClass(DataContextEmitter, [{
-        key: 'ensureContext',
-        value: function ensureContext() {
-            return null;
-        }
-    }]);
-
-    return DataContextEmitter;
-}();
+function DataContextEmitter() {
+    //
+}
+DataContextEmitter.prototype.ensureContext = function() {
+    return null;
+};
 
 /**
  * An enumeration of the available data object states
  * @enum {number}
  */
-
-
 var DataObjectState = {
     /**
      * Insert State (1)
      */
-    Insert: 1,
+    Insert:1,
     /**
      * Update State (2)
      */
-    Update: 2,
+    Update:2,
     /**
      * Delete State (4)
      */
-    Delete: 4
+    Delete:4
 };
 
 /**
@@ -904,93 +1242,108 @@ var DataCachingType = {
     Conditional: 'conditional'
 };
 
-var ParserUtils = exports.ParserUtils = function () {
-    function ParserUtils() {
-        //
-
-        _classCallCheck(this, ParserUtils);
-    }
-
-    _createClass(ParserUtils, null, [{
-        key: 'parseInteger',
-        value: function parseInteger(val) {
-            if (_.isNil(val)) return 0;else if (typeof val === 'number') return val;else if (typeof val === 'string') {
-                if (val.match(IntegerRegex) || val.match(FloatRegex)) {
-                    return parseInt(val, 10);
-                } else if (val.match(BooleanTrueRegex)) return 1;else if (val.match(BooleanFalseRegex)) return 0;
-            } else if (typeof val === 'boolean') return val === true ? 1 : 0;else {
-                return parseInt(val) || 0;
+types.PrivilegeType = PrivilegeType;
+types.DataObjectState = DataObjectState;
+types.DataCachingType = DataCachingType;
+types.DataQueryableField = DataQueryableField;
+types.DataAdapter = DataAdapter;
+types.DataContext = DataContext;
+types.DataContextEmitter = DataContextEmitter;
+types.EventEmitter2 = EventEmitter2;
+types.DataEventArgs = DataEventArgs;
+types.DataEventListener = DataEventListener;
+types.DataModelMigration = DataModelMigration;
+types.DataAssociationMapping = DataAssociationMapping;
+types.DataModelBatch = DataModelBatch;
+types.DataException=DataException;
+types.NotNullException=NotNullException;
+types.UniqueConstraintException=UniqueConstraintException;
+types.AccessDeniedException=AccessDeniedException;
+types.DataNotFoundException=DataNotFoundException;
+types.DataField=DataField;
+types.DataResultSet=DataResultSet;
+types.DataModelEventListener=DataModelEventListener;
+types.DataModelPrivilege=DataModelPrivilege;
+types.parsers = {
+    parseInteger: function(val) {
+        if (_.isNil(val))
+            return 0;
+        else if (typeof val === 'number')
+            return val;
+        else if (typeof val === 'string') {
+            if (val.match(IntegerRegex) || val.match(FloatRegex)) {
+                return parseInt(val, 10);
             }
+            else if (val.match(BooleanTrueRegex))
+                return 1;
+            else if (val.match(BooleanFalseRegex))
+                return 0;
         }
-    }, {
-        key: 'parseCounter',
-        value: function parseCounter(val) {
-            return types.parsers.parseInteger(val);
+        else if (typeof val === 'boolean')
+            return val===true ? 1 : 0;
+        else {
+            return parseInt(val) || 0;
         }
-    }, {
-        key: 'parseFloat',
-        value: function (_parseFloat) {
-            function parseFloat(_x) {
-                return _parseFloat.apply(this, arguments);
-            }
-
-            parseFloat.toString = function () {
-                return _parseFloat.toString();
-            };
-
-            return parseFloat;
-        }(function (val) {
-            if (_.isNil(val)) return 0;else if (typeof val === 'number') return val;else if (typeof val === 'string') {
-                if (val.match(IntegerRegex) || val.match(FloatRegex)) {
-                    return parseFloat(val);
-                } else if (val.match(BooleanTrueRegex)) return 1;
-            } else if (typeof val === 'boolean') return val === true ? 1 : 0;else {
+    },
+    parseCounter: function(val) {
+        return types.parsers.parseInteger(val);
+    },
+    parseFloat: function(val) {
+        if (_.isNil(val))
+            return 0;
+        else if (typeof val === 'number')
+            return val;
+        else if (typeof val === 'string') {
+            if (val.match(IntegerRegex) || val.match(FloatRegex)) {
                 return parseFloat(val);
             }
-        })
-    }, {
-        key: 'parseNumber',
-        value: function parseNumber(val) {
-            return types.parsers.parseFloat(val);
+            else if (val.match(BooleanTrueRegex))
+                return 1;
         }
-    }, {
-        key: 'parseDateTime',
-        value: function parseDateTime(val) {
-            if (_.isNil(val)) return null;
-            if (val instanceof Date) return val;
-            if (typeof val === 'string') {
-                if (val.match(DateTimeRegex)) return new Date(Date.parse(val));
-            } else if (typeof val === 'number') {
-                return new Date(val);
-            }
+        else if (typeof val === 'boolean')
+            return val===true ? 1 : 0;
+        else {
+            return parseFloat(val);
+        }
+    },
+    parseNumber: function(val) {
+        return types.parsers.parseFloat(val);
+    },
+    parseDateTime: function(val) {
+        if (_.isNil(val))
             return null;
+        if (val instanceof Date)
+            return val;
+        if (typeof val === 'string') {
+            if (val.match(DateTimeRegex))
+                return new Date(Date.parse(val));
         }
-    }, {
-        key: 'parseDate',
-        value: function parseDate(val) {
-            var res = types.parsers.parseDateTime(val);
-            if (res instanceof Date) {
-                res.setHours(0, 0, 0, 0);
-                return res;
-            }
+        else if (typeof val === 'number') {
+            return new Date(val);
+        }
+        return null;
+    },
+    parseDate: function(val) {
+        var res = types.parsers.parseDateTime(val);
+        if (res instanceof Date) {
+            res.setHours(0,0,0,0);
             return res;
         }
-    }, {
-        key: 'parseBoolean',
-        value: function parseBoolean(val) {
-            return types.parsers.parseInteger(val) !== 0;
+        return res;
+    },
+    parseBoolean: function(val) {
+        return (types.parsers.parseInteger(val)!==0);
+    },
+    parseText: function(val) {
+        if (_.isNil(val))
+            return val;
+        else if (typeof val === 'string') {
+            return val;
         }
-    }, {
-        key: 'parseText',
-        value: function parseText(val) {
-            if (_.isNil(val)) return val;else if (typeof val === 'string') {
-                return val;
-            } else {
-                return val.toString();
-            }
+        else {
+            return val.toString();
         }
-    }]);
+    }
+};
 
-    return ParserUtils;
-}();
-//# sourceMappingURL=types.js.map
+module.exports = types;

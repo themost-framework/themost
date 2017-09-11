@@ -14,91 +14,29 @@ module.exports = function(grunt) {
     require('load-grunt-tasks')(grunt);
     grunt.initConfig({
         babel: {
-            common: {
-                files: [{
-                    "expand": true,
-                    "cwd":"modules/@themost/common",
-                    "src": ["**/*.es6","!node_modules/**/*.es6"],
-                    "dest": "modules/@themost/common",
-                    "ext": ".js"
-                }]
-            },
-            query: {
-                files: [{
-                    "expand": true,
-                    "cwd":"modules/@themost/query",
-                    "src": ["**/*.es6","!node_modules/**/*.es6"],
-                    "dest": "modules/@themost/query",
-                    "ext": ".js"
-                }]
-            },
-            data: {
-                files: [{
-                    "expand": true,
-                    "cwd":"modules/@themost/data",
-                    "src": ["**/*.es6","!node_modules/**/*.es6"],
-                    "dest": "modules/@themost/data",
-                    "ext": ".js"
-                }]
-            },
-            web: {
-                files: [{
-                    "expand": true,
-                    "cwd":"modules/@themost/web",
-                    "src": ["lib/**/*.es6","index.es6"],
-                    "dest": "modules/@themost/web",
-                    "ext": ".js"
-                }]
-            },
             test: {
                 files: [{
                     "expand": true,
                     "cwd":"",
-                    "src": ["test/**/*.es6", "test-app/**/*.es6"],
+                    "src": ["test/**/*.es6"],
                     "dest": "",
                     "ext": ".js"
                 }]
             }
         },
         watch: {
-            common: {
-                files: ["modules/@themost/common/**/*.es6","!modules/@themost/common/node_modules/**/*.es6"],
-                tasks: ["newer:babel:common"],
-                options: {
-                    spawn: false,
-                },
-            },
-            query: {
-                files: ["modules/@themost/query/**/*.es6","!modules/@themost/query/node_modules/**/*.es6"],
-                tasks: ["newer:babel:query"],
-                options: {
-                    spawn: false,
-                },
-            },
-            data: {
-                files: ["modules/@themost/data/**/*.es6","!modules/@themost/data/node_modules/**/*.es6"],
-                tasks: ["newer:babel:data"],
-                options: {
-                    spawn: false,
-                },
-            },
-            web: {
-                files: ["modules/@themost/web/lib/**/*.es6","modules/@themost/web/index.es6"],
-                tasks: ["newer:babel:web"],
-                options: {
-                    spawn: false,
-                },
-            },
             test: {
-                files: ["test/**/*.es6", "test-app/**/*.es6"],
+                files: ["test/**/*.es6"],
                 tasks: ["newer:babel:test"],
                 options: {
-                    spawn: false,
-                },
+                    spawn: false
+                }
             }
-        },
+        }
     });
     grunt.loadNpmTasks('grunt-newer');
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.registerTask('default', ['babel']);
+    grunt.registerTask('build', ['babel']);
+    grunt.registerTask('build:test', ['babel','watch']);
 };

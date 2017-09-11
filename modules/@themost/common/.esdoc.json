@@ -1,6 +1,0 @@
-{
-    "source": ".",
-    "includes": ["\\.(es6)$"],
-    "excludes": ["^node_modules/"],
-    "destination": "./doc"
-}

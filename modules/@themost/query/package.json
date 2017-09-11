@@ -15,8 +15,11 @@
   },
   "homepage": "https://github.com/kbarbounakis/themost#readme",
   "dependencies": {
+    "async": "^2.5.0",
+    "esprima": "~2.1.0",
+    "q": "^1.4.1",
     "lodash": "^4.17.4",
     "sprintf": "^0.1.5",
-    "source-map-support": "^0.4.11"
+      "@themost/common":"^2.0.0-alpha.1"
   }
 }
