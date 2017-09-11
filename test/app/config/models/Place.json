@@ -1,0 +1,45 @@
+{"name": "Place", "id": 484, "title": "Place", "hidden": false, "sealed": false, "abstract": false,
+    "version": "1.0", "inherits": "Thing", "fields": [
+    {
+        "name": "id",
+        "title": "Id",
+        "type": "Integer",
+        "nullable": false,
+        "primary": true
+    },
+    {
+        "name": "additionalType",
+        "readonly":true,
+        "value":"javascript:return this.model.name;"
+    },
+    {
+        "name": "containedIn",
+        "title": "Contained in",
+        "description": "The basic containment relation between places.",
+        "type": "Place"
+    },
+    {
+        "name": "geo",
+        "title": "Geo",
+        "description": "The geo coordinates of the place.",
+        "type": "GeoCoordinates",
+        "many":false
+    },
+    {
+        "name": "map",
+        "title": "Map",
+        "description": "A URL to a map of the place.",
+        "type": "URL"
+    },
+    {
+        "name": "photos",
+        "title": "Photos",
+        "description": "Photographs of this place.",
+        "type": "ImageObject",
+        "many":true
+    }
+],
+    "privileges":[
+        { "mask":1, "type":"global", "account":"*" },
+        { "mask":15, "type":"global" }
+    ]}

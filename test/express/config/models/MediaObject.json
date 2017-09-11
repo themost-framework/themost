@@ -1,0 +1,59 @@
+{"name": "MediaObject", "id": 368, "title": "Media Object", "hidden": false, "sealed": false, "abstract": false, "version": "1.0", "inherits": "CreativeWork", "fields": [
+    {
+        "name": "id",
+        "title": "Id",
+        "type": "Integer",
+        "nullable": false,
+        "primary": true
+    },
+    {
+        "name": "associatedArticle",
+        "title": "Associated Article",
+        "description": "A NewsArticle associated with the Media Object.",
+        "type": "Article"
+    },
+    {
+        "name": "bitrate",
+        "title": "Bitrate",
+        "description": "The bitrate of the media object.",
+        "type": "Text"
+    },
+    {
+        "name": "contentSize",
+        "title": "Content Size",
+        "description": "File size in (mega/kilo) bytes.",
+        "type": "Text"
+    },
+    {
+        "name": "contentUrl",
+        "title": "Content Url",
+        "description": "Actual bytes of the media object, for example the image file or video file. (previous spelling: contentURL)",
+        "type": "URL"
+    },
+    {
+        "name": "encodingFormat",
+        "title": "Encoding Format",
+        "description": "mp3, mpeg4, etc.",
+        "type": "Text"
+    },
+    {
+        "name": "expires",
+        "title": "Expires",
+        "description": "Date the content expires and is no longer useful or available. Useful for videos.",
+        "type": "Date"
+    },
+    {
+        "name": "requiresSubscription",
+        "title": "Requires Subscription",
+        "description": "Indicates if use of the media require a subscription  (either paid or free).",
+        "type": "Boolean"
+    },
+    {
+        "name": "uploadDate",
+        "title": "Upload Date",
+        "description": "Date when this media object was uploaded to this site.",
+        "type": "Date"
+    }
+],"privileges":[
+    { "mask":15, "type":"global" }
+]}

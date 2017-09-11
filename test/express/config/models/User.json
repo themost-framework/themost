@@ -1,0 +1,105 @@
+{
+	"name": "User", "id": 90, "title": "Application Users", "inherits": "Account", "hidden": false, "sealed": false, "abstract": false, "version": "1.4",
+	"fields": [
+		{
+			"name": "id", "title": "Id", "description": "The identifier of the item.",
+			"type": "Integer",
+			"nullable": false,
+			"primary": true
+		},
+        {
+            "name": "accountType",  "title": "Account Type", "description": "Contains a set of flags that define the type and scope of an account object.",
+            "type": "Integer",
+            "readonly":true,
+            "value":"javascript:return 0;"
+        },
+		{
+			"name": "lockoutTime", "title": "Lockout Time", "description": "The date and time that this account was locked out.",
+			"type": "DateTime",
+			"readonly": true
+		},
+		{
+			"name": "logonCount", "title": "Logon Count", "description": "The number of times the account has successfully logged on.",
+			"type": "Integer",
+			"value": "javascript:return 0;",
+			"readonly": true
+		},
+		{
+			"name": "enabled", "title": "Enabled", "description": "Indicates whether a user is enabled or not.",
+			"type": "Boolean",
+			"nullable": false,
+			"value": "javascript:return true;"
+		},
+		{
+			"name": "lastLogon", "title": "Last Logon", "description": "The last time and date the user logged on.",
+			"type": "DateTime",
+			"readonly": true
+		},
+		{
+			"name": "groups", "title": "User Groups", "description": "A collection of groups where user belongs.",
+			"type": "Group",
+			"expandable": true,
+			"mapping": {
+				"associationAdapter": "GroupMembers", "parentModel": "Group",
+				"parentField": "id", "childModel": "User", "childField": "id",
+				"associationType": "junction", "cascade": "delete",
+				"select": [
+					"id",
+					"name",
+					"alternateName"
+				]
+			}
+		},
+		{
+			"name": "additionalType",
+            "value":"javascript:return this.model.name;",
+            "readonly":true
+		},
+		{
+			"name": "accountType",
+			"value": "javascript:return 0;"
+		}
+	], "privileges":[
+	{ "mask":15, "type":"global", "account": "Administrators" },
+        { "mask":1, "type":"self", "filter":"id eq me()" },
+        { "mask":1, "type":"global", "account":"*" }
+    ],
+    "constraints":[
+        {
+            "description": "User name must be unique across different records.",
+            "type":"unique",
+            "fields": [ "name" ]
+        }
+    ],
+	"views": [
+		{
+			"name":"list", "title":"Users", "fields":[
+                { "name":"id", "hidden":true },
+                { "name":"description" },
+                { "name":"name" },
+                { "name":"enabled" , "format":"yesno" },
+                { "name":"dateCreated", "format":"moment : 'LLL'" },
+			    { "name":"dateModified", "format":"moment : 'LLL'" }
+		    ], "order":"dateModified desc"
+		}
+    ],
+    "eventListeners": [
+
+    ],
+    "seed":[
+        {
+            "name":"anonymous",
+            "description":"Anonymous User",
+            "groups":[
+                { "name":"Guests" }
+            ]
+        },
+		{
+			"name":"admin@example.com",
+			"description":"Site Administrator",
+			"groups":[
+				{ "name":"Administrators" }
+			]
+		}
+    ]
+}

@@ -938,7 +938,7 @@ HttpViewContext.HtmlViewHelper = function($view)
         return 'en';
     }
 };
-}
+};
 
 /**
  * @class

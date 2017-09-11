@@ -1,0 +1,51 @@
+{
+    "name": "UserChat",
+    "id": 7448285,
+    "title": "User Direct Chat",
+    "hidden": false,
+    "sealed": false,
+    "abstract": false,
+    "version": "1.0",
+    "fields": [
+        {
+            "name": "id",
+            "title": "Id",
+            "type": "Integer",
+            "nullable": false,
+            "primary": true
+        },
+        {
+            "name": "commentTitle",
+            "title": "Comment Title",
+            "description": "The title of the comment.",
+            "type": "Text"
+        },
+        {
+            "name": "commentText",
+            "title": "Comment Text",
+            "description": "The text of the comment.",
+            "type": "Text"
+        },
+        {
+            "name": "commentTime",
+            "title": "Comment Time",
+            "description": "The time at which the comment was made.",
+            "type": "DateTime"
+        },
+        {
+            "name": "replyTo",
+            "title": "Reply to",
+            "description": "The parent comment.",
+            "type": "UserChat"
+        },
+        {
+            "name": "commentBy",
+            "title": "Comment By",
+            "description": "Created by user.",
+            "type": "Integer",
+            "value":"javascript:return this.user();"
+        }
+    ],"privileges":[
+        { "mask":15, "type":"global" }
+    ]
+}

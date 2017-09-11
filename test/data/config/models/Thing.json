@@ -1,0 +1,92 @@
+{"name": "Thing", "id": 593, "title": "Thing", "hidden": false, "sealed": false, "abstract": false, "version": "1.0", "fields": [
+    {
+        "name": "id",
+        "title": "Id",
+        "type": "Counter",
+        "nullable": false,
+        "primary": true
+    },
+    {
+        "name": "additionalType",
+        "title": "Additional Type",
+        "description": "An additional type for the item, typically used for adding more specific types from external vocabularies in microdata syntax. This is a relationship between something and a class that the thing is in. In RDFa syntax, it is better to use the native RDFa syntax - the 'typeof' attribute - for multiple types. Schema.org tools may have only weaker understanding of extra types, in particular those defined externally.",
+        "type": "Text"
+    },
+    {
+        "name": "alternateName",
+        "title": "Alternate Name",
+        "description": "An alias for the item.",
+        "type": "Text"
+    },
+    {
+        "name": "description",
+        "title": "Description",
+        "description": "A short description of the item.",
+        "type": "Text"
+    },
+    {
+        "name": "image",
+        "title": "Image",
+        "description": "URL of an image of the item.",
+        "type": "URL"
+    },
+    {
+        "name": "name",
+        "title": "Name",
+        "description": "The name of the item.",
+        "type": "Text"
+    },
+    {
+        "name": "sameAs",
+        "title": "Same As",
+        "description": "URL of a reference Web page that unambiguously indicates the item's identity. E.g. the URL of the item's Wikipedia page, Freebase page, or official website.",
+        "type": "URL"
+    },
+    {
+        "name": "url",
+        "title": "URL",
+        "description": "URL of the item.",
+        "type": "URL"
+    },
+    {
+        "name": "workspace",
+        "title": "Workspace",
+        "description": "A workspace where this item belongs.",
+        "type": "Workspace"
+    },
+    {
+        "name": "dateCreated",
+        "title": "Date Created",
+        "description": "The date on which this item was created.",
+        "type": "Date",
+        "value":"javascript:return (new Date());",
+        "readonly":true
+    },
+    {
+        "name": "dateModified",
+        "title": "Date Modified",
+        "description": "The date on which this item was most recently modified.",
+        "type": "Date",
+        "readonly":true,
+        "value":"javascript:return (new Date());",
+        "calculation":"javascript:return (new Date());"
+    },
+    {
+        "name": "createdBy",
+        "title": "Created By",
+        "description": "Created by user.",
+        "type": "Integer",
+        "value":"javascript:return this.user();",
+        "readonly":true
+    },
+    {
+        "name": "modifiedBy",
+        "title": "Modified By",
+        "description": "Modified by user.",
+        "type": "Integer",
+        "calculation":"javascript:return this.user();",
+        "readonly":true
+    }
+],"privileges":[
+    { "mask":15, "type":"global" }
+]}

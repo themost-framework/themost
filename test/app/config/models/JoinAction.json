@@ -1,0 +1,32 @@
+{
+    "name": "JoinAction",
+    "id": 342,
+    "title": "Join Actions",
+    "hidden": false,
+    "sealed": false,
+    "abstract": false,
+    "version": "1.0",
+    "inherits": "InteractAction",
+    "fields": [
+        {
+            "name": "id",
+            "title": "Id",
+            "type": "Integer",
+            "nullable": false,
+            "primary": true
+        },
+        {
+            "name": "additionalType",
+            "readonly":true,
+            "value":"javascript:return this.model.name;"
+        },
+        {
+            "name": "event",
+            "title": "Event",
+            "description": "Upcoming or past event associated with this action.",
+            "type": "Event"
+        }
+    ], "privileges":[
+    { "mask":15, "type":"global" }
+]
+}

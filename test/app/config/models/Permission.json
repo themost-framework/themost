@@ -1,0 +1,35 @@
+{
+    "name": "Permission", "id": 94, "title": "Permission", "hidden": true, "sealed": false, "abstract": false, "version": "1.2",
+    "fields": [
+        { "name": "id", "title": "Id", "description":"The identifier of this item.", "type": "Counter", "nullable": false,"primary": true },
+        { "name": "privilege", "title": "Scope", "description":"The privilege where this permission refers", "type": "Text", "size": 80, "nullable": false },
+        { "name": "parentPrivilege", "title": "Scope", "description":"The parent privilege of this permission, if any", "type": "Text", "size": 80, "nullable": true },
+        { "name": "workspace", "title": "Workspace", "description":"The workspace where this permission belongs", "type": "Integer", "nullable": false,"value":"javascript:return 1;" },
+        { "name": "account", "title": "Account", "description":"The account which is related with this permission.", "type": "Account", "nullable": false },
+        { "name": "target", "title": "Target object", "description":"The target object.", "type": "Text", "size":128, "nullable": true,"value":"javascript:return '0';"  },
+        { "name": "mask", "title": "Mask", "description":"The permission mask.", "type": "Integer", "nullable": false },
+        { "name": "sealed", "title": "Mask", "description":"Indicates whether this permission is sealed and cannot be edited.", "type": "Boolean", "nullable": true },
+        { "name": "dateCreated", "title": "Date Created", "description":"The date and time when this item was created.", "type": "Date", "readonly":true, "nullable": true, "value":"javascript:return (new Date());" },
+        { "name": "dateModified", "title": "Date Modified", "description":"The date and time when this item was modified.", "type": "Date", "readonly":true, "nullable": true, "value":"javascript:return (new Date());", "calculation":"javascript:return (new Date());" },
+        { "name": "createdBy", "title": "Created By", "description":"The user who created this item.", "type": "User", "readonly":true, "nullable": true, "value":"javascript:return this.user();" },
+        { "name": "modifiedBy", "title": "Modified By", "description":"The user who modified this item.", "type": "User", "readonly":true, "nullable": true, "value":"javascript:return this.user();", "calculation":"javascript:return this.user();" }
+    ],
+    "constraints":[
+        {
+            "description": "An object permission must be unique.",
+            "type":"unique",
+            "fields": [ "privilege", "parentPrivilege", "workspace", "account", "target" ]
+        }
+    ],
+    "privileges": [
+        { "mask":15, "type":"global" }
+    ],
+    "seed":[
+        { "privilege":"Permission", "workspace":1, "account": { "name":"Administrators" }, "target":0, "mask":15 },
+        { "privilege":"User", "workspace":1, "account": { "name":"Administrators" }, "target":0, "mask":15 },
+        { "privilege":"Group", "workspace":1, "account": { "name":"Administrators" }, "target":0, "mask":15 },
+        { "privilege":"Thing", "workspace":1, "account": { "name":"Administrators" }, "target":0, "mask":15 },
+        { "privilege":"Account", "workspace":1, "account": { "name":"Administrators" }, "target":0, "mask":15 },
+        { "privilege":"Workspace", "workspace":1, "account": { "name":"Administrators" }, "target":0, "mask":15 }
+    ]
+}

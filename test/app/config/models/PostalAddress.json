@@ -1,0 +1,52 @@
+{ "name": "PostalAddress", "id": 9484843, "title": "Postal Addresses", "hidden": false, "sealed": false,
+    "abstract": false, "version": "1.0", "inherits": "ContactPoint", "fields": [
+    {
+        "name": "id",
+        "title": "Id",
+        "type": "Integer",
+        "nullable": false,
+        "primary": true
+    },{
+        "name": "additionalType",
+        "readonly":true,
+        "value":"javascript:return this.model.name;"
+    },
+    {
+        "name": "addressCountry",
+        "title": "Address Country",
+        "description": "The country. For example, USA. You can also provide the two-letter ISO 3166-1 alpha-2 country code.",
+        "type": "Text"
+    },
+    {
+        "name": "addressLocality",
+        "title": "Address Locality",
+        "description": "The locality. For example, Mountain View.",
+        "type": "Text"
+    },
+    {
+        "name": "addressRegion",
+        "title": "Address Region",
+        "description": "The region. For example, CA.",
+        "type": "Text"
+    },
+    {
+        "name": "postOfficeBoxNumber",
+        "title": "Post Office Box Number",
+        "description": "The post office box number for PO box addresses.",
+        "type": "Text"
+    },
+    {
+        "name": "postalCode",
+        "title": "Postal Code",
+        "description": "The postal code. For example, 94043.",
+        "type": "Text"
+    },
+    {
+        "name": "streetAddress",
+        "title": "Street Address",
+        "description": "The street address. For example, 1600 Amphitheatre Pkwy.",
+        "type": "Text"
+    }
+],"privileges":[
+    { "mask":15, "type":"global" }
+]}

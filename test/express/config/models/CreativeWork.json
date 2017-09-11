@@ -1,0 +1,134 @@
+{"name": "CreativeWork", "id": 218, "title": "Creative Work", "hidden": false, "sealed": false,
+    "abstract": false, "version": "1.0", "inherits": "Thing", "fields": [
+    {
+        "name": "id",
+        "title": "Id",
+        "type": "Integer",
+        "nullable": false,
+        "primary": true
+    },
+    {
+        "name": "alternativeHeadline",
+        "title": "Alternative Headline",
+        "description": "A secondary title of the CreativeWork.",
+        "type": "Text"
+    },
+    {
+        "name": "author",
+        "title": "Author",
+        "description": "The author of this content.",
+        "type": "Party"
+    },
+    {
+        "name": "citation",
+        "title": "Citation",
+        "description": "A citation or reference to another creative work, such as another publication, web page, scholarly article, etc. NOTE: Candidate for promotion to ScholarlyArticle.",
+        "type": "CreativeWork",
+        "many":true
+    },
+    {
+        "name": "contentLocation",
+        "title": "Content Location",
+        "description": "The location of the content.",
+        "type": "Place"
+    },
+    {
+        "name": "contentRating",
+        "title": "Content Rating",
+        "description": "Official rating of a piece of content—for example,'MPAA PG-13'.",
+        "type": "Text"
+    },
+    {
+        "name": "contributor",
+        "title": "Contributor",
+        "description": "A secondary contributor to the CreativeWork.",
+        "type": "Party"
+    },
+    {
+        "name": "copyrightHolder",
+        "title": "Copyright Holder",
+        "description": "The party holding the legal copyright to the CreativeWork.",
+        "type": "Party"
+    },
+    {
+        "name": "copyrightYear",
+        "title": "Copyright Year",
+        "description": "The year during which the claimed copyright for the CreativeWork was first asserted.",
+        "type": "Number"
+    },
+    {
+        "name": "datePublished",
+        "title": "Date Published",
+        "description": "Date of first broadcast/publication.",
+        "type": "Date"
+    },
+    {
+        "name": "discussionUrl",
+        "title": "Discussion Url",
+        "description": "A link to the page containing the comments of the CreativeWork.",
+        "type": "URL"
+    },
+    {
+        "name": "editor",
+        "title": "Editor",
+        "description": "Specifies the Person who edited the CreativeWork.",
+        "type": "Party"
+    },
+    {
+        "name": "genre",
+        "title": "Genre",
+        "description": "Genre of the creative work",
+        "type": "Text"
+    },
+    {
+        "name": "headline",
+        "title": "Headline",
+        "description": "Headline of the article",
+        "type": "Text"
+    },
+    {
+        "name": "inLanguage",
+        "title": "In Language",
+        "description": "The language of the content. please use one of the language codes from the <a href=\"http://tools.ietf.org/html/bcp47\">IETF BCP 47 standard.</a>",
+        "type": "Text"
+    },
+    {
+        "name": "keywords",
+        "title": "Keywords",
+        "description": "The keywords/tags used to describe this content.",
+        "type": "Text"
+    },
+    {
+        "name": "publisher",
+        "title": "Publisher",
+        "description": "The publisher of the creative work.",
+        "type": "Party"
+    },
+    {
+        "name": "sourceOrganization",
+        "title": "Source Organization",
+        "description": "The Organization on whose behalf the creator was working.",
+        "type": "Organization"
+    },
+    {
+        "name": "text",
+        "title": "Text",
+        "description": "The textual content of this CreativeWork.",
+        "type": "Text"
+    },
+    {
+        "name": "thumbnailUrl",
+        "title": "Thumbnail Url",
+        "description": "A thumbnail image relevant to the Thing.",
+        "type": "URL"
+    },
+    {
+        "name": "version",
+        "title": "Version",
+        "description": "The version of the CreativeWork embodied by a specified resource.",
+        "type": "Text",
+        "size":24
+    }
+],"privileges":[
+    { "mask":15, "type":"global" }
+]}

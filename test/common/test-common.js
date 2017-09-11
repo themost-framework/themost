@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * @license
  * MOST Web Framework 2.0 Codename Blueshift
@@ -8,7 +10,5 @@
  * found in the LICENSE file at https://themost.io/license
  */
 
-
-describe('Common Tests', () => {
-
-});
+describe('Common Tests', function () {});
+//# sourceMappingURL=test-common.js.map

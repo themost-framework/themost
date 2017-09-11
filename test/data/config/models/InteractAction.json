@@ -1,0 +1,6 @@
+{ "name":"InteractAction","id":334,"title":"Interact Action","hidden":false,"sealed":false,"abstract":false,
+    "version":"1.0","inherits":"Action",
+    "fields":[
+        { "name":"id","title":"Id","type":"Integer","nullable":false,"primary":true }
+    ]
+}

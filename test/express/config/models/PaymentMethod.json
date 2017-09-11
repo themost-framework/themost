@@ -1,0 +1,63 @@
+{
+    "name": "PaymentMethod",
+    "id": 1586247,
+    "title": "Payment Methods",
+    "description":"A payment method is a standardized procedure for transferring the monetary amount for a purchase. Payment methods are characterized by the legal and technical structures used, and by the organization or group carrying out the transaction. ",
+    "hidden": false,
+    "sealed": false,
+    "abstract": false,
+    "version": "1.2",
+    "fields": [{
+        "name": "id",
+        "title": "Id",
+        "type": "Integer",
+        "nullable": false,
+        "primary": true
+    }, {
+        "name": "name",
+        "title": "Name",
+        "description": "The name of the item.",
+        "type": "Text",
+        "nullable":false
+    },{
+        "name": "alternateName",
+        "title": "Alternate Name",
+        "description": "An alias for the item.",
+        "type": "Text",
+        "nullable":false
+    }, {
+        "name": "description",
+        "title": "Description",
+        "description": "A short description of the item.",
+        "type": "Text"
+    }, {
+        "name": "color",
+        "title": "Color",
+        "description": "A color associated with this item.",
+        "type": "Text"
+    }],
+    "privileges":[
+        { "mask":1, "type":"global", "account":"*" },
+        { "mask":15, "type":"global" }
+    ],
+    "privileges":[
+        { "mask":1, "type":"global", "account":"*" },
+        { "mask":15, "type":"global" }
+    ],
+    "seed":[ {
+            "id":1, "name":"By Invoice", "alternateName":"ByInvoice", "description":"Payment by bank transfer after delivery."
+        }, {
+            "id":2, "name":"By Bank Transfer In Advance", "alternateName":"ByBankTransferInAdvance", "description":"Payment by bank transfer in advance."
+        }, {
+            "id":3, "name":"Cash", "alternateName":"Cash", "description":"Payment by cash upon delivery or pickup"
+        }, {
+            "id":4, "name":"Check In Advance", "alternateName":"CheckInAdvance", "description":"Payment by sending a check in advance"
+        }, {
+            "id":5, "name":"Collect On Delivery", "alternateName":"CollectOnDelivery", "description":"Collect on delivery / Cash on delivery - A payment method where the recipient of goods pays at the time of delivery"
+        }, {
+            "id":6, "name":"Direct Debit", "alternateName":"DirectDebit", "description":"Payment by direct debit"
+        }, {
+            "id":7, "name":"PayPal", "alternateName":"PayPal", "description":"Payment via the PayPal payment service."
+        }
+    ]
+}

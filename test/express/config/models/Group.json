@@ -1,0 +1,91 @@
+{
+    "name": "Group", "id": 91, "title": "User Group", "inherits":"Account", "hidden": false, "sealed": false, "abstract": false, "version": "1.1",
+    "fields": [
+    {
+        "name": "id",
+        "title": "Id",
+        "description":"The identifier of the item.",
+        "type": "Integer",
+        "nullable": false,
+        "primary": true
+    },
+    {
+        "name": "additionalType",
+        "readonly":true,
+        "value":"javascript:return this.model.name;"
+    },
+    {
+        "name": "accountType",
+        "readonly":true,
+        "value":"javascript:return 1;"
+    },
+    {
+        "name": "members",
+        "title": "Group Members",
+        "description": "Contains the collection of group members (users or groups).",
+        "type": "Account",
+        "mapping": {
+            "associationAdapter": "GroupMembers", "parentModel": "Group",
+            "parentField": "id", "childModel": "User", "childField": "id",
+            "associationType": "junction", "cascade": "delete",
+            "select": [
+                "id",
+                "name",
+                "alternateName"
+            ]
+        }
+    },
+    {
+        "name": "tags",
+        "title": "Group Tags",
+        "description": "Contains a collection of tags for this object.",
+        "type": "Text",
+        "many":true
+    }
+], "constraints":[
+    {
+        "description": "Group name must be unique across different records.",
+        "type":"unique",
+        "fields": [ "name" ]
+    }
+], "views": [
+    {
+        "name":"list", "title":"Groups", "fields":[
+        { "name":"id", "hidden":true },
+        { "name":"description" },
+        { "name":"name" },
+        { "name":"dateCreated", "format":"moment : 'LLL'" },
+        { "name":"dateModified", "format":"moment : 'LLL'" }
+    ]
+    }
+], "privileges":[
+    { "mask":1, "type":"global", "account":"*" },
+    { "mask":15, "type":"global" }
+],"seed":[
+    {
+        "name":"Administrators",
+        "alternameName":"administrators",
+        "description":"Site Administrators"
+    },
+    {
+        "name":"Users",
+        "alternameName":"users",
+        "description":"Site Users"
+    },
+    {
+        "name":"Guests",
+        "alternameName":"guests",
+        "description":"Site Guests"
+    },
+    {
+        "name":"Contributors",
+        "alternameName":"contributors",
+        "description":"Site Contributors"
+    },
+    {
+        "name":"Designers",
+        "alternameName":"designers",
+        "description":"Site Designers"
+    }
+]
+}

@@ -1,0 +1,32 @@
+{
+    "name": "Account", "id": 92, "title": "Application Accounts", "inherits":"Thing", "hidden": false, "sealed": false, "abstract": false, "version": "1.1", "fields": [
+    {
+        "name": "id",
+        "title": "Id",
+        "description":"The identifier of the item.",
+        "type": "Integer",
+        "nullable": false,
+        "primary": true
+    },
+    {
+        "name": "name",
+        "nullable":false
+    },
+    {
+        "name": "accountType",
+        "title": "Account Type",
+        "description": "Contains a set of flags that define the type and scope of an account object.",
+        "type": "Integer",
+        "readonly":false
+    }
+], "privileges":[
+    { "mask":15, "type":"global" }
+],
+    "constraints":[
+        {
+            "description": "Account name must be unique across different records.",
+            "type":"unique",
+            "fields": [ "name" ]
+        }
+    ]
+}

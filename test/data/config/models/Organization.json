@@ -1,0 +1,59 @@
+{
+    "name": "Organization",
+    "id": 452,
+    "title": "Organization",
+    "hidden": false,
+    "sealed": false,
+    "abstract": false,
+    "version": "1.0",
+    "inherits": "Party",
+    "fields": [
+        {
+            "name": "id",
+            "title": "Id",
+            "type": "Integer",
+            "nullable": false,
+            "primary": true
+        },
+        {
+            "name": "additionalType",
+            "readonly":true,
+            "value":"javascript:return this.model.name;"
+        },
+        {
+            "name": "employees",
+            "title": "Employees",
+            "description": "People working for this organization. (legacy spelling; see singular form, employee)",
+            "type": "Person",
+            "many":true
+        },
+        {
+            "name": "founders",
+            "title": "Founders",
+            "description": "A person who founded this organization (legacy spelling; see singular form, founder).",
+            "type": "Person",
+            "many":true
+        },
+        {
+            "name": "foundingDate",
+            "title": "Founding Date",
+            "description": "The date that this organization was founded.",
+            "type": "Date"
+        },
+        {
+            "name": "legalName",
+            "title": "Legal Name",
+            "description": "The official name of the organization, e.g. the registered company name.",
+            "type": "Text"
+        },
+        {
+            "name": "members",
+            "title": "Members",
+            "description": "A collection of members of this organization.",
+            "type": "Organization",
+            "many":true
+        }
+    ],"privileges":[
+    { "mask":15, "type":"global" }
+]
+}

@@ -3,5 +3,3 @@
 node_modules
 modules/@themost/*/node_modules
 modules/@themost/*/doc
-test-app
-test

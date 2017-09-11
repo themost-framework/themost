@@ -1,0 +1,25 @@
+{
+    "name": "UnRegisterAction",
+    "id": 608,
+    "title": "UnRegister Actions",
+    "hidden": false,
+    "sealed": false,
+    "abstract": false,
+    "version": "1.0",
+    "inherits": "InteractAction",
+    "fields": [
+        {
+            "name": "id",
+            "title": "Id",
+            "type": "Integer",
+            "nullable": false,
+            "primary": true
+        },{
+            "name": "additionalType",
+            "readonly":true,
+            "value":"javascript:return this.model.name;"
+        }
+    ], "privileges":[
+    { "mask":15, "type":"global" }
+]
+}
