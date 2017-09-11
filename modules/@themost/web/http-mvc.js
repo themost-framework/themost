@@ -42,6 +42,13 @@ HttpResult.prototype.status = function(status) {
     return this;
 };
 
+HttpResult.prototype.toPromise = function() {
+    var self = this;
+    return Q.promise(function(resolve, reject) {
+        return resolve(self);
+    });
+};
+
 /**
  * Executes an HttpResult instance against an existing HttpContext.
  * @param {HttpContext} context
@@ -985,26 +992,22 @@ HtmlViewHelper.prototype.lang = function() {
     return 'en';
 };
 
-var mvc = { };
-
-mvc.HttpResult  = HttpResult;
-mvc.HttpContentResult  = HttpContentResult;
-mvc.HttpJsonResult =HttpJsonResult;
-mvc.HttpEmptyResult =HttpEmptyResult;
-mvc.HttpXmlResult =HttpXmlResult;
-mvc.HttpRedirectResult =HttpRedirectResult;
-mvc.HttpFileResult =HttpFileResult;
-mvc.HttpViewResult =HttpViewResult;
-mvc.HttpViewContext =HttpViewContext;
-mvc.HtmlViewHelper =HtmlViewHelper;
-mvc.HttpController =HttpController;
-mvc.HttpViewEngine = HttpViewEngine;
-mvc.HttpViewEngineReference = HttpViewEngineReference;
-
 
 if (typeof exports !== 'undefined')
 {
-    module.exports = mvc;
+    module.exports.HttpResult  = HttpResult;
+    module.exports.HttpContentResult  = HttpContentResult;
+    module.exports.HttpJsonResult = HttpJsonResult;
+    module.exports.HttpEmptyResult = HttpEmptyResult;
+    module.exports.HttpXmlResult = HttpXmlResult;
+    module.exports.HttpRedirectResult = HttpRedirectResult;
+    module.exports.HttpFileResult = HttpFileResult;
+    module.exports.HttpViewResult = HttpViewResult;
+    module.exports.HttpViewContext = HttpViewContext;
+    module.exports.HtmlViewHelper = HtmlViewHelper;
+    module.exports.HttpController = HttpController;
+    module.exports.HttpViewEngine = HttpViewEngine;
+    module.exports.HttpViewEngineReference = HttpViewEngineReference;
 }
 
 

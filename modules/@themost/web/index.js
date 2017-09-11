@@ -307,12 +307,12 @@ function HttpApplication(executionPath) {
     /**
      * sets the current execution path
      */
-    this[executionPathProperty] = _.isNil(executionPath) ? path.join(process.cwd(), 'app') : path.resolve(executionPath, 'app');
+    this[executionPathProperty] = _.isNil(executionPath) ? path.resolve(process.cwd()) : path.resolve(executionPath);
     /**
      * Gets the current application configuration path
      * @type {*}
      */
-    this[configPathProperty] = _.isNil(executionPath) ? path.join(process.cwd(), 'config') : path.resolve(executionPath, 'config');
+    this[configPathProperty] = path.resolve(this[executionPathProperty], 'config');
     /**
      * Gets or sets application configuration settings
      * @type {ApplicationConfig}

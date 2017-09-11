@@ -51,7 +51,7 @@ function HttpRoute(route) {
  */
 HttpRoute.prototype.isMatch = function (urlToMatch) {
     var self = this;
-    if (typeof self.route === 'undefined' || self.route==null) {
+    if (typeof self.route === 'undefined' || self.route===null) {
         throw new Error("Route may not be null");
     }
     self.routeData = self.routeData || { };

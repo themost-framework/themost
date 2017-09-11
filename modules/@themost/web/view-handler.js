@@ -26,6 +26,8 @@ var app = require('./index'),
     xml = require('most-xml'),
     path=require('path'),
     _ = require('lodash'),
+    HttpResult = require('./http-mvc').HttpResult,
+    HttpException = require('./common').HttpException,
     DataTypeValidator = require('@themost/data').validators.DataTypeValidator,
     MinLengthValidator = require('@themost/data').validators.MinLengthValidator,
     MaxLengthValidator = require('@themost/data').validators.MaxLengthValidator,
@@ -43,7 +45,14 @@ if (typeof _.dasherize !== 'function') {
             return _.trim(s).replace(/[_\s]+/g, '-').replace(/([A-Z])/g, '-$1').replace(/-+/g, '-').replace(/^-/,'').toLowerCase();
         return s;
     }
-    _.mixin({'dasherize' : _dasherize})
+    _.mixin({'dasherize' : _dasherize});
+}
+
+if (typeof _.isPromise !== 'function') {
+    function _isPromise(f) {
+        return (typeof f.then === 'function') && (typeof f.catch === 'function')
+    }
+    _.mixin({'isPromise' : _isPromise});
 }
 
 /**
@@ -483,12 +492,21 @@ ViewHandler.prototype.processRequest = function (context, callback) {
                 }
 
                 if (useHttpMethodNamingConvention) {
-                    return fn.apply(controller, params).then(function(result) {
-                        //execute http result
-                        return result.execute(context, callback);
-                    }).catch(function(err) {
-                        return callback.bind(context)(err);
-                    });
+                    var methodResult = fn.apply(controller, params);
+                    if (_.isPromise(methodResult)) {
+                        methodResult.then(function(result) {
+                            return result.execute(context, callback);
+                        }).catch(function(err) {
+                            return callback.bind(context)(err);
+                        });
+                    }
+                    else if (methodResult instanceof HttpResult) {
+                        return methodResult.execute(context, callback);
+                    }
+                    else {
+                        //method result not implemented
+                        return callback.bind(context)(new HttpException(501));
+                    }
                 }
                 /**
                  * @type HttpResult
