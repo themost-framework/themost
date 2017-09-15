@@ -18,10 +18,12 @@
     "async": "^2.5.0",
     "lodash": "^4.17.4",
     "moment": "^2.8.4",
+    "@themost/common": "2.0.0-alpha.1",
     "@themost/query": "2.0.0-alpha.1",
     "node-cache": "^1.1.0",
     "q": "^1.4.1",
     "sprintf": "^0.1.5",
-    "symbol": "^0.3.1"
+    "symbol": "^0.3.1",
+      "hashmap": "^2.3.0"
   }
 }

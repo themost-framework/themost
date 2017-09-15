@@ -103,6 +103,21 @@ function HttpError(status, message, innerMessage) {
 }
 LangUtils.inherits(HttpError, CodedError);
 
+HttpError.Errors = errors;
+
+/**
+ * Creates an HTTP error based on the given instance of Error class
+ * @param {Error} err
+ * @returns {HttpError}
+ */
+HttpError.create = function(err) {
+    if (_.isNil(err))
+        return new HttpError();
+    else {
+        return _.assign(new HttpError(err.status || 500, err.message), err);
+    }
+};
+
 /**
  * @classdesc Represents a 400 HTTP Bad Request error.
  * @class

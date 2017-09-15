@@ -47,12 +47,15 @@
     "domino": "1.0.18",
     "ejs": "0.8.5",
     "formidable": "1.0.14",
-    "most-xml": "~0.3.0"
+    "most-xml": "~0.3.0",
+    "pagedown": "^1.1.0",
+    "jade": "^1.11.0",
+    "pug": "^0.1.0",
+    "vash": "^0.11.2"
   },
   "devDependencies": {
     "chai": "^4.1.2",
     "mocha": "^3.5.1",
-
     "babel-cli": "^6.22.2",
     "babel-plugin-transform-async-to-generator": "^6.22.0",
     "babel-plugin-transform-builtin-extend": "^1.1.0",

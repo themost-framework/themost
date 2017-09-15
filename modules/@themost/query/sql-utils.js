@@ -1,20 +1,21 @@
 /**
- * Created by kbarbounakis on 4/3/15.
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2017, THEMOST LP All rights reserved
+ *
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
  */
-
-/**
- * SQL Escape global function
- */
+'use strict';
 /**
  * @param {string} tz
  */
-
 function convertTimezone(tz) {
-    if (tz == "Z") return 0;
+    if (tz === "Z") return 0;
 
     var m = tz.match(/([\+\-\s])(\d\d):?(\d\d)?/);
     if (m) {
-        return (m[1] == '-' ? -1 : 1) * (parseInt(m[2], 10) + ((m[3] ? parseInt(m[3], 10) : 0) / 60)) * 60;
+        return (m[1] === '-' ? -1 : 1) * (parseInt(m[2], 10) + ((m[3] ? parseInt(m[3], 10) : 0) / 60)) * 60;
     }
     return false;
 }
@@ -30,7 +31,7 @@ function zeroPad(number, length) {
 function dateToString(date, timeZone) {
     var dt = new Date(date);
 
-    if (timeZone != 'local') {
+    if (timeZone !== 'local') {
         var tz = convertTimezone(timeZone);
 
         dt.setTime(dt.getTime() + (dt.getTimezoneOffset() * 60000));
@@ -145,7 +146,7 @@ function escape(val, stringifyObjects, timeZone) {
 }
 
 function format(sql, values, stringifyObjects, timeZone) {
-    values = values == null ? [] : [].concat(values);
+    values = values === null ? [] : [].concat(values);
     var index = 0;
     return sql.replace(/\?\??/g, function(match) {
         if (index === values.length) {

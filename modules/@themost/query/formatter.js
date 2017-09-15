@@ -1,13 +1,12 @@
 /**
- * MOST Web Framework
- * A JavaScript Web Framework
- * http://themost.io
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2017, THEMOST LP All rights reserved
  *
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com, Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Released under the BSD3-Clause license
- * Date: 2014-07-16
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
  */
+'use strict';
 var sqlutils = require('./sql-utils');
 var sprintf = require('sprintf').sprintf;
 var _ = require('lodash');
@@ -15,25 +14,6 @@ var query = require('./query');
 var QueryExpression = query.QueryExpression;
 var QueryField = query.QueryField;
 var QueryEntity = query.QueryEntity;
-
-if (typeof Object.key !== 'function') {
-    /**
-     * Gets a string that represents the name of the very first property of an object. This operation may be used in anonymous object types.
-     * @param obj {*}
-     * @returns {string}
-     */
-    Object.key = function(obj) {
-        if (typeof obj === 'undefined' || obj === null)
-            return null;
-        for(var prop in obj) {
-            if (obj.hasOwnProperty(prop))
-                return prop;
-        }
-        return null;
-    }
-}
-
-
 
 /**
  * Initializes an SQL formatter class.
@@ -117,7 +97,7 @@ SqlFormatter.prototype.formatComparison = function(comparison)
 };
 
 SqlFormatter.prototype.isComparison = function(obj) {
-    var key = Object.key(obj);
+    var key = _.findKey(obj);
     return (/^\$(eq|ne|lt|lte|gt|gte|in|nin|text|regex)$/g.test(key));
 };
 
@@ -180,7 +160,7 @@ SqlFormatter.prototype.formatWhere = function(where)
     var self = this;
 
     //get expression (the first property of the object)
-    var keys = Object.keys(where), property = keys[0];
+    var keys = _.keys(where), property = keys[0];
     if (typeof property === 'undefined')
         return '';
     //get property value
@@ -210,7 +190,7 @@ SqlFormatter.prototype.formatWhere = function(where)
             }
             else if (typeof comparison === 'object' && comparison !== null) {
                 //get comparison operator
-                op = Object.keys(comparison)[0];
+                op = _.keys(comparison)[0];
             }
             else {
                 //set default comparison operator to equal
@@ -223,7 +203,7 @@ SqlFormatter.prototype.formatWhere = function(where)
                 case '$text':
                     return self.$text({ $name:property}, comparison.$text.$search);
                 case '$eq':
-                    if (typeof comparison.$eq === 'undefined' || comparison.$eq==null)
+                    if (typeof comparison.$eq === 'undefined' || comparison.$eq===null)
                         return sprintf('(%s IS NULL)', escapedProperty);
                     return sprintf('(%s=%s)', escapedProperty, self.escape(comparison.$eq));
                 case '$gt':
@@ -235,9 +215,9 @@ SqlFormatter.prototype.formatWhere = function(where)
                 case '$lte':
                     return sprintf('(%s<=%s)', escapedProperty, self.escape(comparison.$lte));
                 case '$ne':
-                    if (typeof comparison.$ne === 'undefined' || comparison.$ne==null)
+                    if (typeof comparison.$ne === 'undefined' || comparison.$ne===null)
                         return sprintf('(NOT %s IS NULL)', escapedProperty);
-                    if (comparison!=null)
+                    if (comparison!==null)
                         return sprintf('(NOT %s=%s)', escapedProperty, self.escape(comparison.$ne));
                     else
                         return sprintf('(NOT %s IS NULL)', escapedProperty);
@@ -645,9 +625,9 @@ SqlFormatter.prototype.formatSelect = function(obj)
     if (_.isNil(obj.$select))
         throw new Error('Select expression cannot be empty at this context.');
     //get entity name
-    var entity = Object.key(obj.$select);
+    var entity = _.findKey(obj.$select);
     var joins = [];
-    if (obj.$expand!=null)
+    if (obj.$expand!==null)
     {
         if (_.isArray(obj.$expand))
             joins=obj.$expand;
@@ -697,7 +677,7 @@ SqlFormatter.prototype.formatSelect = function(obj)
             }
             else {
                 //get join table name
-                var table = Object.key(x.$entity);
+                var table = _.findKey(x.$entity);
                 //get on statement (the join comparison)
                 var joinType = (x.$entity.$join || 'inner').toUpperCase();
                 sql = sql.concat(' '+ joinType + ' JOIN ').concat($this.escapeName(table));
@@ -717,10 +697,10 @@ SqlFormatter.prototype.formatSelect = function(obj)
                 //the default right table is the join entity
                     rightTable = table;
                 if (typeof left === 'object') {
-                    leftTable = Object.key(left);
+                    leftTable = _.findKey(left);
                 }
                 if (typeof right === 'object') {
-                    rightTable = Object.key(right);
+                    rightTable = _.findKey(right);
                 }
                 var leftFields = left[leftTable], rightFields = right[rightTable] ;
                 for (var i = 0; i < leftFields.length; i++)
@@ -808,7 +788,7 @@ SqlFormatter.prototype.formatField = function(obj)
         if (obj.hasOwnProperty('$value'))
             return this.escapeConstant(obj['$value']);
         //get table name
-        var tableName = Object.key(obj);
+        var tableName = _.findKey(obj);
         var fields = [];
         if (!_.isArray(obj[tableName])) {
             fields.push(obj[tableName])
@@ -882,7 +862,7 @@ SqlFormatter.prototype.formatInsert = function(obj)
     if (_.isNil(obj.$insert))
         throw new Error('Insert expression cannot be empty at this context.');
     //get entity name
-    var entity = Object.key(obj.$insert);
+    var entity = _.findKey(obj.$insert);
     //get entity fields
     var obj1 = obj.$insert[entity];
     var props = [];
@@ -909,7 +889,7 @@ SqlFormatter.prototype.formatUpdate = function(obj)
     if (!_.isObject(obj.$update))
         throw new Error('Update expression cannot be empty at this context.');
     //get entity name
-    var entity = Object.key(obj.$update);
+    var entity = _.findKey(obj.$update);
     //get entity fields
     var obj1 = obj.$update[entity];
     var props = [];
@@ -972,7 +952,7 @@ SqlFormatter.prototype.formatFieldEx = function(obj, format)
     if (!isQueryField_(obj))
         throw new Error('Invalid argument. An instance of QueryField class is expected.');
     //get property
-    var prop = Object.key(obj);
+    var prop = _.findKey(obj);
     if (prop==null)
         return null;
     var useAlias = (format=='%f');
@@ -988,7 +968,7 @@ SqlFormatter.prototype.formatFieldEx = function(obj, format)
         }
         //get aggregate expression
         var alias = prop;
-        prop = Object.key(expr);
+        prop = _.findKey(expr);
         var name = expr[prop], s;
         switch (prop) {
             case '$count':

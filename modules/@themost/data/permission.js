@@ -657,11 +657,10 @@ DataPermissionEventListener.prototype.beforeExecute = function(e, callback)
     {
         var unattendedExecutionAccount=authSettings.unattendedExecutionAccount;
         if ((typeof unattendedExecutionAccount !== 'undefined'
-            || unattendedExecutionAccount != null)
+            || unattendedExecutionAccount !== null)
             && (unattendedExecutionAccount===context.user.name))
         {
-            callback();
-            return;
+            return callback();
         }
     }
     if (e.query) {
@@ -681,7 +680,7 @@ DataPermissionEventListener.prototype.beforeExecute = function(e, callback)
         //get model privileges
         var modelPrivileges = model.privileges || [];
         //if model has no privileges defined
-        if (modelPrivileges.length==0) {
+        if (modelPrivileges.length===0) {
             //do nothing
             callback(null);
             //and exit
@@ -690,20 +689,18 @@ DataPermissionEventListener.prototype.beforeExecute = function(e, callback)
         //tuning up operation
         //validate request mask permissions against all users privilege { mask:<requestMask>,disabled:false,account:"*" }
         var allUsersPrivilege = modelPrivileges.find(function(x) {
-            return (((x.mask & requestMask)==requestMask) && !x.disabled && (x.account==='*'));
+            return (((x.mask & requestMask)===requestMask) && !x.disabled && (x.account==='*'));
         });
         if (typeof allUsersPrivilege !== 'undefined') {
             //do nothing
-            callback(null);
-            //and exit
-            return;
+            return callback();
         }
 
         effectiveAccounts(context, function(err, accounts) {
             if (err) { callback(err); return; }
             //get all enabled privileges
             var privileges = modelPrivileges.filter(function(x) {
-                return !x.disabled && ((x.mask & requestMask) == requestMask);
+                return !x.disabled && ((x.mask & requestMask) === requestMask);
             });
 
             var cancel = false, assigned = false, entity = qry.entity(model.viewAdapter), expand = null,
@@ -713,7 +710,7 @@ DataPermissionEventListener.prototype.beforeExecute = function(e, callback)
                     return cb();
                 }
                 try {
-                    if (item.type=='global') {
+                    if (item.type==='global') {
                         //check if a privilege is assigned by the model
                         if (item.account==='*') {
                             //get permission and exit

@@ -21,6 +21,25 @@ export default class RootController extends HttpController {
             message: 'Hello World'
         }).toPromise();
     }
+
+    @httpGet()
+    @httpAction('helloMarkdown')
+    getHelloMarkdown() {
+        return this.view().toPromise();
+    }
+
+    @httpGet()
+    @httpAction('helloJade')
+    getHelloJade() {
+        return this.view().toPromise();
+    }
+
+    @httpGet()
+    @httpAction('helloVash')
+    getHelloVash() {
+        return this.view({ "name": "Peter"}).toPromise();
+    }
+
 }
 
 

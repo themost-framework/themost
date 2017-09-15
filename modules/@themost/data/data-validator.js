@@ -35,7 +35,7 @@
 var _ = require('lodash'),
     sprintf = require('sprintf'),
     util = require('util'),
-        conf = require('./configuration');
+        conf = require('./config');
 
     /**
      * @module most-data/data-validator

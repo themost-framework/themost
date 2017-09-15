@@ -35,7 +35,8 @@ var util = require('util'),
     _ = require("lodash"),
     dataCommon = require('./common'),
     types = require('./types'),
-    cfg = require('./configuration');
+    cfg = require('./config');
+var DataConfigurationStrategy = require('./config').DataConfigurationStrategy;
 /**
  * @classdesc Represents the default data context of MOST Data Applications.
  * The default data context uses the adapter which is registered as the default adapter in application configuration.
@@ -132,10 +133,10 @@ util.inherits(DefaultDataContext, types.DataContext);
 
 /**
  * Gets an instance of DataConfiguration class which is associated with this data context
- * @returns {DataConfiguration}
+ * @returns {DataConfigurationStrategy|*}
  */
 DefaultDataContext.prototype.getConfiguration = function() {
-    return cfg.current;
+    return DataConfigurationStrategy.getCurrent();
 };
 
 /**

@@ -1,16 +1,12 @@
 /**
- * MOST Web Framework
- * A JavaScript Web Framework
- * http://themost.io
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2017, THEMOST LP All rights reserved
  *
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com, Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Released under the BSD3-Clause license
- * Date: 2014-10-09
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
  */
-/**
- * @private
- */
+'use strict';
 var domino = require("domino");
 /**
  * @class
@@ -84,11 +80,11 @@ var ng = {
         global.angular(window, window.document);
         /**
          * @param {string|*} s
-         * @returns {JQuery|HTMLElement|*}
+         * @returns {*}
          */
         window.document.element = function(s) {
             return this.parentWindow.$(s);
-        }
+        };
         return window.document;
     },
     /**

@@ -191,10 +191,10 @@ function HasParentJunction(obj, association) {
         get: function() {
             if (baseModel)
                 return baseModel;
-            var conf = self.parent.context.getConfiguration();
+            var conf = self.parent.context.getConfiguration(), modelDefinition = conf.getModelDefinition(self.mapping.associationAdapter);
             //search in cache (configuration.current.cache)
-            if (conf.models[self.mapping.associationAdapter]) {
-                baseModel = new DataModel(conf.models[self.mapping.associationAdapter]);
+            if (modelDefinition) {
+                baseModel = new DataModel(modelDefinition);
                 baseModel.context = self.parent.context;
                 return baseModel;
             }
@@ -206,7 +206,7 @@ function HasParentJunction(obj, association) {
             var adapter = self.mapping.associationAdapter;
             baseModel = self.parent.context.model(adapter);
             if (_.isNil(baseModel)) {
-                conf.models[adapter] = { name:adapter, title: adapter, sealed:false, hidden:true, type:"hidden", source:adapter, view:adapter, version:'1.0', fields:[
+                conf.setModelDefinition({ name:adapter, title: adapter, sealed:false, hidden:true, type:"hidden", source:adapter, view:adapter, version:'1.0', fields:[
                     { name: "id", type:"Counter", primary: true },
                     { name: 'parentId', indexed: true, nullable:false, type: (parentField.type==='Counter') ? 'Integer' : parentField.type },
                     { name: 'valueId', indexed: true, nullable:false, type: (childField.type==='Counter') ? 'Integer' : childField.type } ],
@@ -218,9 +218,9 @@ function HasParentJunction(obj, association) {
                         }
                     ], "privileges":[
                         { "mask":15, "type":"global" }
-                    ]};
+                    ]});
                 //initialize base model
-                baseModel = new DataModel(conf.models[adapter]);
+                baseModel = new DataModel(conf.getModelDefinition(adapter));
                 baseModel.context = self.parent.context;
             }
             return baseModel;

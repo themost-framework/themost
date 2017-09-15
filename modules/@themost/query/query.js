@@ -1,23 +1,36 @@
 /**
- * MOST Web Framework
- * A JavaScript Web Framework
- * http://themost.io
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2017, THEMOST LP All rights reserved
  *
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com, Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Released under the BSD3-Clause license
- * Date: 2014-07-16
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
  */
-/**
- * Created by kbarbounakis on 16/7/2014.
- */
+'use strict';
 
 /**
  * @ignore
  */
 var sprintf = require('sprintf').sprintf,
-    _ = require('lodash'),
-    natives = require('./natives');
+    Symbol = require('symbol'),
+    _ = require('lodash');
+
+var privatesProperty = Symbol('privates');
+
+if (typeof _.clear) {
+    /**
+     * @function clear
+     * @param {*} object
+     * @memberOf _
+     */
+    _.mixin({
+        'clear':function(obj) {
+            _.forEach(_.keys(obj), function(member) {
+               delete obj[member]; 
+            });
+        }
+    });
+}
 
 /**
  * @class QueryParameter
@@ -39,7 +52,7 @@ function QueryFieldAggregator() {
  * @param {*} comparison
  */
 QueryFieldAggregator.prototype.wrapWith = function(comparison) {
-    var name = Object.keys(this)[0];
+    var name = _.keys(this)[0];
     if (name) {
         if (_.isArray(this[name])) {
             //search for query parameter
@@ -62,7 +75,86 @@ QueryFieldAggregator.prototype.wrapWith = function(comparison) {
     throw new Error('Invalid aggregate expression. Aggregator is missing.');
 };
 
+function appendQueryExpression_(expr) {
+    if (!expr)
+        return;
+    if (!this.$where) {
+        this.$where = expr;
+    }
+    else {
+        var op = this[privatesProperty].expression;
+        if (op) {
+            //get current operator
+            var keys = _.keys(this.$where);
+            if (keys[0]===op) {
+                this.$where[op].push(expr);
+            }
+            else {
+                var newFilter = {};
+                newFilter[op] = [this.$where, expr];
+                this.$where = newFilter;
+            }
+        }
+    }
+    delete this[privatesProperty].field;
+    delete this[privatesProperty].expression;
+    delete this[privatesProperty].aggregate;
+}
 
+function property_(s)
+{
+    if (typeof s === 'undefined') { return this[privatesProperty].field; }
+    if (_.isNil(s)) { delete this[privatesProperty].field; }
+    this[privatesProperty].field = s;
+}
+
+function appendOpenDataExpression_() {
+
+    var self = this, exprs;
+    if (self[privatesProperty].left) {
+        var expr = null;
+
+        if (self[privatesProperty].op==='in') {
+            if (_.isArray(self[privatesProperty].right)) {
+                //expand values
+                exprs = [];
+                _.forEach(self[privatesProperty].right, function(x) {
+                    exprs.push(self[privatesProperty].left + ' eq ' + QueryExpression.escape(x));
+                });
+                if (exprs.length>0)
+                    expr = '(' + exprs.join(' or ') + ')';
+            }
+        }
+        else if (self[privatesProperty].op==='nin') {
+            if (_.isArray(self[privatesProperty].right)) {
+                //expand values
+                exprs = [];
+                _.forEach(self[privatesProperty].right, function(x) {
+                    exprs.push(self[privatesProperty].left + ' ne ' + QueryExpression.escape(x));
+                });
+                if (exprs.length>0)
+                    expr = '(' + exprs.join(' and ') + ')';
+            }
+        }
+        else
+            expr = self[privatesProperty].left + ' ' + self[privatesProperty].op + ' ' + QueryExpression.escape(self[privatesProperty].right);
+        if (expr) {
+            if (_.isNil(self.$filter))
+                self.$filter = expr;
+            else {
+                self[privatesProperty].lop = self[privatesProperty].lop || 'and';
+                self[privatesProperty]._lop = self[privatesProperty]._lop || self[privatesProperty].lop;
+                if (self[privatesProperty]._lop === self[privatesProperty].lop)
+                    self.$filter = self.$filter + ' ' + self[privatesProperty].lop + ' ' + expr;
+                else
+                    self.$filter = '(' + self.$filter + ') ' + self[privatesProperty].lop + ' ' + expr;
+                self[privatesProperty]._lop = self[privatesProperty].lop;
+            }
+        }
+    }
+    delete self[privatesProperty].lop;delete self[privatesProperty].left; delete self[privatesProperty].op; delete self[privatesProperty].right;
+    return this;
+}
 
 /**
  * @class QueryExpression
@@ -141,20 +233,10 @@ function QueryExpression()
     /**
      * @private
      */
-    this.privates = function() { };
+    this[privatesProperty] = {};
 
 }
-/**
- * @private
- * @param {string|*=} s
- * @returns {string|*}
- */
-QueryExpression.prototype.prop = function(s)
-{
-    if (typeof s === 'undefined') { return this.privates.__prop; }
-    if (_.isNil(s)) { delete this.privates.__prop; }
-    this.privates.__prop = s;
-};
+
 
 /**
  * Clones the current expression and returns a new QueryExpression object.
@@ -205,7 +287,7 @@ QueryExpression.prototype.fields = function() {
 
     if (_.isNil(this.$select))
         return [];
-    var entity = Object.key(this.$select);
+    var entity = _.findKey(this.$select);
     var joins = [];
     if (this.$expand!==null)
     {
@@ -241,7 +323,7 @@ QueryExpression.prototype.fields = function() {
             //todo::add fields if any
         }
         else {
-            var table = Object.key(x.$entity), tableFields = x.$entity[table] || [];
+            var table = _.findKey(x.$entity), tableFields = x.$entity[table] || [];
             _.forEach(tableFields, function(y) {
                 if (typeof x === 'string') {
                     //todo:add table alias (if (/^[A-Za-z]+$/.test(y))
@@ -297,7 +379,7 @@ QueryExpression.prototype.hasFields = function()
     var self = this;
     if (!_.isObject(self.$select))
         return false;
-    var entity = Object.key(self.$select);
+    var entity = _.findKey(self.$select);
     var joins = [];
     if (self.$expand!==null)
     {
@@ -315,7 +397,7 @@ QueryExpression.prototype.hasFields = function()
     //enumerate join fields
     _.forEach(joins, function(x)
     {
-        var table = Object.key(x.$entity);
+        var table = _.findKey(x.$entity);
         if (_.isArray(x.$entity[table])) {
             if (x.$entity[table].length>0)
                 result = true;
@@ -356,10 +438,10 @@ QueryExpression.prototype.where = function(name)
         throw new Error('Left operand cannot be empty. Expected string or object.');
     delete this.$where;
     if (typeof name === 'string') {
-        this.prop(name);
+        property_.bind(this)(name);
     }
     else if (typeof name === 'object') {
-        this.prop(QueryField.prototype.nameOf.call(name))
+        property_.bind(this)(QueryField.prototype.nameOf.call(name))
     }
     else {
         throw new Error('Invalid left operand. Expected string or object.');
@@ -424,7 +506,7 @@ QueryExpression.prototype.into = function(entity) {
         return this;
     if (_.isNil(this.$insert))
         return this;
-    var prop = Object.key(this.$insert);
+    var prop = _.findKey(this.$insert);
     if (_.isNil(prop))
         return this;
     if (prop===entity)
@@ -468,7 +550,7 @@ QueryExpression.prototype.set = function(obj)
     if (_.isArray(obj) || !_.isObject(obj))
         throw new Error('Invalid argument type. Update expression argument must be an object.');
     //get entity name (by property)
-    var prop = Object.key(this.$update);
+    var prop = _.findKey(this.$update);
     if (_.isNil(prop))
         throw new Error('Invalid operation. Update entity cannot be empty at this context.');
     //set object to update
@@ -496,17 +578,17 @@ QueryExpression.prototype.select = function(props)
     else
         fields = props;
     //if entity is already defined
-    if (this.privates.__entity)
+    if (this[privatesProperty].entity)
     {
         //initialize $select property
         this.$select = {};
         //and set array of fields
-        this.$select[this.privates.__entity] = fields;
+        this.$select[this[privatesProperty].entity] = fields;
     }
     else
     {
         //otherwise store array of fields in temporary property and wait
-        this.privates.__fields = fields;
+        this[privatesProperty].fields = fields;
     }
     //delete other properties (if any)
     delete this.$delete;
@@ -532,14 +614,14 @@ QueryExpression.prototype.from = function(entity) {
     else {
         name = entity.valueOf();
     }
-    if (this.privates.__fields) {
+    if (this[privatesProperty].fields) {
         //initialize $select property
         this.$select = {};
         //and set array of fields
-        this.$select[name] = this.privates.__fields;
+        this.$select[name] = this[privatesProperty].fields;
     }
     else {
-        this.privates.__entity = name;
+        this[privatesProperty].entity = name;
     }
     //delete other properties (if any)
     delete this.$delete;
@@ -576,7 +658,7 @@ QueryExpression.prototype.join = function(entity, props, alias) {
         if (typeof alias === 'string')
             obj.$as=alias;
     }
-    this.privates.__expand =  { $entity: obj };
+    this[privatesProperty].expand =  { $entity: obj };
     //and return this object
     return this;
 };
@@ -589,7 +671,7 @@ QueryExpression.prototype.with = function(obj) {
 
     if (_.isNil(obj))
         return this;
-    if (_.isNil(this.privates.__expand))
+    if (_.isNil(this[privatesProperty].expand))
         throw new Error('Join entity cannot be empty when adding a join expression. Use QueryExpression.join(entity, props) before.');
     if (obj instanceof QueryExpression)
     {
@@ -599,27 +681,27 @@ QueryExpression.prototype.with = function(obj) {
             where = expr.$prepared ? { $and: [expr.$prepared, expr.$where] } : expr.$where;
         else if (expr.$prepared)
             where = expr.$prepared;
-        this.privates.__expand.$with = where;
+        this[privatesProperty].expand.$with = where;
     }
     else {
-        this.privates.__expand.$with = obj;
+        this[privatesProperty].expand.$with = obj;
     }
     if (_.isNil(this.$expand)) {
-        this.$expand = this.privates.__expand;
+        this.$expand = this[privatesProperty].expand;
     }
     else {
         if (_.isArray(this.$expand)) {
-            this.$expand.push(this.privates.__expand);
+            this.$expand.push(this[privatesProperty].expand);
         }
         else {
             //get expand object
             var expand = this.$expand;
             //and create array of expand objects
-            this.$expand = [expand, this.privates.__expand];
+            this.$expand = [expand, this[privatesProperty].expand];
         }
     }
     //destroy temp object
-    this.privates.__expand = null;
+    this[privatesProperty].expand = null;
     //and return QueryExpression
     return this;
 };
@@ -706,35 +788,7 @@ QueryExpression.prototype.groupBy = function(name) {
         this.$group.push(name);
     return this;
 };
-/**
- * @param expr
- * @private
- */
-QueryExpression.prototype.__append = function(expr) {
-    if (!expr)
-        return;
-    if (!this.$where) {
-        this.$where = expr;
-    }
-    else {
-        var op = this.privates.__expr;
-        if (op) {
-            //get current operator
-            var keys = Object.keys(this.$where);
-            if (keys[0]===op) {
-                this.$where[op].push(expr);
-            }
-            else {
-                var newFilter = {};
-                newFilter[op] = [this.$where, expr];
-                this.$where = newFilter;
-            }
-        }
-    }
-    delete this.privates.__prop;
-    delete this.privates.__expr;
-    delete this.privates.__aggr;
-};
+
 /**
  * @param name {string|QueryField}
  * @returns {QueryExpression}
@@ -744,15 +798,15 @@ QueryExpression.prototype.or = function(name)
     if (_.isNil(name))
         throw new Error('Left operand cannot be empty. Expected string or object.');
     if (typeof name === 'string') {
-        this.prop(name);
+        property_.bind(this)(name);
     }
     else if (typeof name === 'object') {
-        this.prop(QueryField.prototype.nameOf.call(name))
+        property_.bind(this)(QueryField.prototype.nameOf.call(name))
     }
     else {
         throw new Error('Invalid left operand. Expected string or object.');
     }
-    this.privates.__expr = '$or';
+    this[privatesProperty].expression = '$or';
     return this;
 };
 /**
@@ -764,15 +818,15 @@ QueryExpression.prototype.and = function(name)
     if (_.isNil(name))
         throw new Error('Left operand cannot be empty. Expected string or object.');
     if (typeof name === 'string') {
-        this.prop(name);
+        property_.bind(this)(name);
     }
     else if (typeof name === 'object') {
-        this.prop(QueryField.prototype.nameOf.call(name))
+        property_.bind(this)(QueryField.prototype.nameOf.call(name))
     }
     else {
         throw new Error('Invalid left operand. Expected string or object.');
     }
-    this.privates.__expr = '$and';
+    this[privatesProperty].expression = '$and';
     return this;
 };
 /**
@@ -784,16 +838,16 @@ QueryExpression.prototype.and = function(name)
  */
 QueryExpression.prototype.equal = function(value)
 {
-    var p0 = this.prop();
+    var p0 = property_.bind(this)();
     if (p0) {
         var comparison = value;
         //apply aggregation if any
-        if (typeof this.__aggr === 'object') {
-            comparison = QueryFieldAggregator.prototype.wrapWith.call(this.__aggr, value);
-            delete this.__aggr;
+        if (typeof this[privatesProperty].aggregate === 'object') {
+            comparison = QueryFieldAggregator.prototype.wrapWith.call(this[privatesProperty].aggregate, value);
+            delete this[privatesProperty].aggregate;
         }
         var expr = QueryFieldComparer.prototype.compareWith.call(p0, comparison);
-        this.__append(expr);
+        appendQueryExpression_.bind(this)(expr);
     }
     return this;
 };
@@ -814,15 +868,15 @@ QueryExpression.prototype.eq = QueryExpression.prototype.equal;
  */
 QueryExpression.prototype.notEqual = function(value)
 {
-    var p0 = this.prop();
+    var p0 = property_.bind(this)();
     if (p0) {
         var comparison = { $ne:value };
-        if (typeof this.__aggr === 'object') {
-            comparison = QueryFieldAggregator.prototype.wrapWith.call(this.__aggr,{ $ne:value });
-            delete this.__aggr;
+        if (typeof this[privatesProperty].aggregate === 'object') {
+            comparison = QueryFieldAggregator.prototype.wrapWith.call(this[privatesProperty].aggregate,{ $ne:value });
+            delete this[privatesProperty].aggregate;
         }
         var expr = QueryFieldComparer.prototype.compareWith.call(p0, comparison);
-        this.__append(expr);
+        appendQueryExpression_.bind(this)(expr);
     }
     return this;
 };
@@ -836,15 +890,15 @@ QueryExpression.prototype.notEqual = function(value)
  */
 QueryExpression.prototype.in = function(values)
 {
-    var p0 = this.prop();
+    var p0 = property_.bind(this)();
     if (p0) {
         var comparison = { $in : values };
-        if (typeof this.__aggr === 'object') {
-            comparison = QueryFieldAggregator.prototype.wrapWith.call(this.__aggr, comparison);
-            delete this.__aggr;
+        if (typeof this[privatesProperty].aggregate === 'object') {
+            comparison = QueryFieldAggregator.prototype.wrapWith.call(this[privatesProperty].aggregate, comparison);
+            delete this[privatesProperty].aggregate;
         }
         var expr = QueryFieldComparer.prototype.compareWith.call(p0, comparison);
-        this.__append(expr);
+        appendQueryExpression_.bind(this)(expr);
     }
     return this;
 };
@@ -857,15 +911,15 @@ QueryExpression.prototype.in = function(values)
  */
 QueryExpression.prototype.notIn = function(values)
 {
-    var p0 = this.prop();
+    var p0 = property_.bind(this)();
     if (p0) {
         var comparison = { $nin : values };
-        if (typeof this.__aggr === 'object') {
-            comparison = QueryFieldAggregator.prototype.wrapWith.call(this.__aggr,{ $nin : values });
-            delete this.__aggr;
+        if (typeof this[privatesProperty].aggregate === 'object') {
+            comparison = QueryFieldAggregator.prototype.wrapWith.call(this[privatesProperty].aggregate,{ $nin : values });
+            delete this[privatesProperty].aggregate;
         }
         var expr = QueryFieldComparer.prototype.compareWith.call(p0, comparison);
-        this.__append(expr);
+        appendQueryExpression_.bind(this)(expr);
     }
     return this;
 };
@@ -876,15 +930,15 @@ QueryExpression.prototype.notIn = function(values)
  */
 QueryExpression.prototype.mod = function(value, result)
 {
-    var p0 = this.prop();
+    var p0 = property_.bind(this)();
     if (p0) {
         var comparison = { $mod : [ value, result] };
-        if (typeof this.__aggr === 'object') {
-            comparison = QueryFieldAggregator.prototype.wrapWith.call(this.__aggr, comparison);
-            delete this.__aggr;
+        if (typeof this[privatesProperty].aggregate === 'object') {
+            comparison = QueryFieldAggregator.prototype.wrapWith.call(this[privatesProperty].aggregate, comparison);
+            delete this[privatesProperty].aggregate;
         }
         var expr = QueryFieldComparer.prototype.compareWith.call(p0, comparison);
-        this.__append(expr);
+        appendQueryExpression_.bind(this)(expr);
     }
     return this;
 };
@@ -896,15 +950,15 @@ QueryExpression.prototype.mod = function(value, result)
  */
 QueryExpression.prototype.bit = function(value, result)
 {
-    var p0 = this.prop();
+    var p0 = property_.bind(this)();
     if (p0) {
         var comparison = { $bit : [ value, result] };
-        if (typeof this.__aggr === 'object') {
-            comparison = QueryFieldAggregator.prototype.wrapWith.call(this.__aggr, comparison);
-            delete this.__aggr;
+        if (typeof this[privatesProperty].aggregate === 'object') {
+            comparison = QueryFieldAggregator.prototype.wrapWith.call(this[privatesProperty].aggregate, comparison);
+            delete this[privatesProperty].aggregate;
         }
         var expr = QueryFieldComparer.prototype.compareWith.call(p0, comparison);
-        this.__append(expr);
+        appendQueryExpression_.bind(this)(expr);
     }
     return this;
 };
@@ -917,15 +971,15 @@ QueryExpression.prototype.ne = QueryExpression.prototype.notEqual;
  */
 QueryExpression.prototype.greaterThan = function(value)
 {
-    var p0 = this.prop();
+    var p0 = property_.bind(this)();
     if (p0) {
         var comparison = { $gt:value };
-        if (typeof this.__aggr === 'object') {
-            comparison = QueryFieldAggregator.prototype.wrapWith.call(this.__aggr, comparison);
-            delete this.__aggr;
+        if (typeof this[privatesProperty].aggregate === 'object') {
+            comparison = QueryFieldAggregator.prototype.wrapWith.call(this[privatesProperty].aggregate, comparison);
+            delete this[privatesProperty].aggregate;
         }
         var expr = QueryFieldComparer.prototype.compareWith.call(p0, comparison);
-        this.__append(expr);
+        appendQueryExpression_.bind(this)(expr);
     }
     return this;
 };
@@ -936,7 +990,7 @@ QueryExpression.prototype.greaterThan = function(value)
  */
 QueryExpression.prototype.startsWith = function(value)
 {
-    var p0 = this.prop(), r;
+    var p0 = property_.bind(this)(), r;
     if (p0) {
         if (typeof value === 'string' || value instanceof String) {
             r = new RegExp('^' + value,'i');
@@ -945,12 +999,12 @@ QueryExpression.prototype.startsWith = function(value)
             throw new Error('Invalid argument. Expected string.')
         }
         var comparison = { $regex : '^' + value, $options:'i' };
-        if (typeof this.__aggr === 'object') {
-            comparison = QueryFieldAggregator.prototype.wrapWith.call(this.__aggr,{ $regex : '^' + value, $options:'i' });
-            delete this.__aggr;
+        if (typeof this[privatesProperty].aggregate === 'object') {
+            comparison = QueryFieldAggregator.prototype.wrapWith.call(this[privatesProperty].aggregate,{ $regex : '^' + value, $options:'i' });
+            delete this[privatesProperty].aggregate;
         }
         var expr = QueryFieldComparer.prototype.compareWith.call(p0, comparison);
-        this.__append(expr);
+        appendQueryExpression_.bind(this)(expr);
     }
     return this;
 };
@@ -961,7 +1015,7 @@ QueryExpression.prototype.startsWith = function(value)
  */
 QueryExpression.prototype.endsWith = function(value)
 {
-    var p0 = this.prop(), r;
+    var p0 = property_.bind(this)(), r;
     if (p0) {
         if (typeof value === 'string' || value instanceof String) {
             //validate regular expression
@@ -971,7 +1025,7 @@ QueryExpression.prototype.endsWith = function(value)
             throw new Error('Invalid argument. Expected string.')
         }
         var expr = QueryFieldComparer.prototype.compareWith.call(p0, { $regex : value + '$', $options:'i' });
-        this.__append(expr);
+        appendQueryExpression_.bind(this)(expr);
     }
     return this;
 };
@@ -989,32 +1043,32 @@ QueryExpression.prototype.endsWith = function(value)
  */
 QueryExpression.prototype.contains = function(value)
 {
-    var p0 = this.prop();
+    var p0 = property_.bind(this)();
     if (p0) {
         var comparison = { $text: { $search: value } };
         //apply aggregation if any
-        if (typeof this.__aggr === 'object') {
-            comparison = QueryFieldAggregator.prototype.wrapWith.call(this.__aggr, comparison);
-            delete this.__aggr;
+        if (typeof this[privatesProperty].aggregate === 'object') {
+            comparison = QueryFieldAggregator.prototype.wrapWith.call(this[privatesProperty].aggregate, comparison);
+            delete this[privatesProperty].aggregate;
         }
         var expr = QueryFieldComparer.prototype.compareWith.call(p0, comparison );
-        this.__append(expr);
+        appendQueryExpression_.bind(this)(expr);
     }
     return this;
 };
 
 QueryExpression.prototype.notContains = function(value)
 {
-    var p0 = this.prop();
+    var p0 = property_.bind(this)();
     if (p0) {
         var comparison = { $text: { $search: value } };
         //apply aggregation if any
-        if (typeof this.__aggr === 'object') {
-            comparison = QueryFieldAggregator.prototype.wrapWith.call(this.__aggr, comparison);
-            delete this.__aggr;
+        if (typeof this[privatesProperty].aggregate === 'object') {
+            comparison = QueryFieldAggregator.prototype.wrapWith.call(this[privatesProperty].aggregate, comparison);
+            delete this[privatesProperty].aggregate;
         }
         var expr = { $not: QueryFieldComparer.prototype.compareWith.call(p0, comparison) };
-        this.__append(expr);
+        appendQueryExpression_.bind(this)(expr);
     }
     return this;
 };
@@ -1026,15 +1080,15 @@ QueryExpression.prototype.gt = QueryExpression.prototype.greaterThan;
  */
 QueryExpression.prototype.lowerThan = function(value)
 {
-    var p0 = this.prop();
+    var p0 = property_.bind(this)();
     if (p0) {
         var comparison = { $lt:value };
-        if (typeof this.__aggr === 'object') {
-            comparison = QueryFieldAggregator.prototype.wrapWith.call(this.__aggr, comparison);
-            delete this.__aggr;
+        if (typeof this[privatesProperty].aggregate === 'object') {
+            comparison = QueryFieldAggregator.prototype.wrapWith.call(this[privatesProperty].aggregate, comparison);
+            delete this[privatesProperty].aggregate;
         }
         var expr = QueryFieldComparer.prototype.compareWith.call(p0, comparison);
-        this.__append(expr);
+        appendQueryExpression_.bind(this)(expr);
     }
     return this;
 };
@@ -1049,15 +1103,15 @@ QueryExpression.prototype.lt = QueryExpression.prototype.lowerThan;
  */
 QueryExpression.prototype.lowerOrEqual = function(value)
 {
-    var p0 = this.prop();
+    var p0 = property_.bind(this)();
     if (p0) {
         var comparison = { $lte:value };
-        if (typeof this.__aggr === 'object') {
-            comparison = QueryFieldAggregator.prototype.wrapWith.call(this.__aggr, comparison);
-            delete this.__aggr;
+        if (typeof this[privatesProperty].aggregate === 'object') {
+            comparison = QueryFieldAggregator.prototype.wrapWith.call(this[privatesProperty].aggregate, comparison);
+            delete this[privatesProperty].aggregate;
         }
         var expr = QueryFieldComparer.prototype.compareWith.call(p0, comparison);
-        this.__append(expr);
+        appendQueryExpression_.bind(this)(expr);
     }
     return this;
 };
@@ -1069,15 +1123,15 @@ QueryExpression.prototype.lte = QueryExpression.prototype.lowerOrEqual;
  */
 QueryExpression.prototype.greaterOrEqual = function(value)
 {
-    var p0 = this.prop();
+    var p0 = property_.bind(this)();
     if (p0) {
         var comparison = { $gte:value };
-        if (typeof this.__aggr === 'object') {
-            comparison = QueryFieldAggregator.prototype.wrapWith.call(this.__aggr, comparison);
-            delete this.__aggr;
+        if (typeof this[privatesProperty].aggregate === 'object') {
+            comparison = QueryFieldAggregator.prototype.wrapWith.call(this[privatesProperty].aggregate, comparison);
+            delete this[privatesProperty].aggregate;
         }
         var expr = QueryFieldComparer.prototype.compareWith.call(p0, comparison);
-        this.__append(expr);
+        appendQueryExpression_.bind(this)(expr);
     }
     return this;
 };
@@ -1089,19 +1143,19 @@ QueryExpression.prototype.greaterOrEqual = function(value)
  */
 QueryExpression.prototype.between = function(value1, value2)
 {
-    var p0 = this.prop();
+    var p0 = property_.bind(this)();
     if (p0) {
         var comparison1 = { $gte:value1}, comparison2 = { $lte:value2 };
-        if (typeof this.__aggr === 'object') {
+        if (typeof this[privatesProperty].aggregate === 'object') {
             comparison1 = QueryFieldAggregator.prototype.wrapWith({ $gte:value1} );
             comparison2 = QueryFieldAggregator.prototype.wrapWith({ $lte:value2} );
-            delete this.__aggr
+            delete this[privatesProperty].aggregate
         }
         var comp1 = QueryFieldComparer.prototype.compareWith.call(p0, comparison1);
         var comp2 = QueryFieldComparer.prototype.compareWith.call(p0, comparison2);
         var expr = {};
         expr['$and'] = [ comp1, comp2 ];
-        this.__append(expr);
+        appendQueryExpression_.bind(this)(expr);
     }
     return this;
 };
@@ -1151,7 +1205,7 @@ QueryExpression.zeroPad = function(number, length) {
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.add = function(x) {
-    this.__aggr = { $add:[ x, new QueryParameter() ] };
+    this[privatesProperty].aggregate = { $add:[ x, new QueryParameter() ] };
     return this;
 };
 /**
@@ -1159,7 +1213,7 @@ QueryExpression.prototype.add = function(x) {
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.subtract = function(x) {
-    this.__aggr = { $subtract:[ x, new QueryParameter() ] };
+    this[privatesProperty].aggregate = { $subtract:[ x, new QueryParameter() ] };
     return this;
 };
 /**
@@ -1167,7 +1221,7 @@ QueryExpression.prototype.subtract = function(x) {
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.multiply = function(x) {
-    this.__aggr = { $multiply:[ x, new QueryParameter() ] };
+    this[privatesProperty].aggregate = { $multiply:[ x, new QueryParameter() ] };
     return this;
 };
 /**
@@ -1175,7 +1229,7 @@ QueryExpression.prototype.multiply = function(x) {
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.divide = function(x) {
-    this.__aggr = { $divide:[ x, new QueryParameter() ] };
+    this[privatesProperty].aggregate = { $divide:[ x, new QueryParameter() ] };
     return this;
 };
 /**
@@ -1183,7 +1237,7 @@ QueryExpression.prototype.divide = function(x) {
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.round = function(n) {
-    this.__aggr = { $round:[ n, new QueryParameter() ] };
+    this[privatesProperty].aggregate = { $round:[ n, new QueryParameter() ] };
     return this;
 };
 /**
@@ -1192,7 +1246,7 @@ QueryExpression.prototype.round = function(n) {
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.substr = function(start,length) {
-    this.__aggr = { $substr:[ start, length, new QueryParameter() ] };
+    this[privatesProperty].aggregate = { $substr:[ start, length, new QueryParameter() ] };
     return this;
 };
 /**
@@ -1200,7 +1254,7 @@ QueryExpression.prototype.substr = function(start,length) {
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.indexOf = function(s) {
-    this.__aggr = { $indexOf:[ s, new QueryParameter() ] };
+    this[privatesProperty].aggregate = { $indexOf:[ s, new QueryParameter() ] };
     return this;
 };
 /**
@@ -1208,98 +1262,98 @@ QueryExpression.prototype.indexOf = function(s) {
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.concat = function(s) {
-    this.__aggr = { $concat:[ s, new QueryParameter()] };
+    this[privatesProperty].aggregate = { $concat:[ s, new QueryParameter()] };
     return this;
 };
 /**
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.trim = function() {
-    this.__aggr = { $trim: new QueryParameter() };
+    this[privatesProperty].aggregate = { $trim: new QueryParameter() };
     return this;
 };
 /**
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.length = function() {
-    this.__aggr = { $length: new QueryParameter() };
+    this[privatesProperty].aggregate = { $length: new QueryParameter() };
     return this;
 };
 /**
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.getDate = function() {
-    this.__aggr = { $date: new QueryParameter() };
+    this[privatesProperty].aggregate = { $date: new QueryParameter() };
     return this;
 };
 /**
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.getYear = function() {
-    this.__aggr = { $year: new QueryParameter() };
+    this[privatesProperty].aggregate = { $year: new QueryParameter() };
     return this;
 };
 /**
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.getMonth = function() {
-    this.__aggr = { $month: new QueryParameter() };
+    this[privatesProperty].aggregate = { $month: new QueryParameter() };
     return this;
 };
 /**
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.getDay = function() {
-    this.__aggr = { $dayOfMonth: new QueryParameter() };
+    this[privatesProperty].aggregate = { $dayOfMonth: new QueryParameter() };
     return this;
 };
 /**
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.getHours = function() {
-    this.__aggr = { $hour: new QueryParameter() };
+    this[privatesProperty].aggregate = { $hour: new QueryParameter() };
     return this;
 };
 /**
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.getMinutes = function() {
-    this.__aggr = { $minutes: new QueryParameter() };
+    this[privatesProperty].aggregate = { $minutes: new QueryParameter() };
     return this;
 };
 /**
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.getSeconds = function() {
-    this.__aggr = { $seconds: new QueryParameter() };
+    this[privatesProperty].aggregate = { $seconds: new QueryParameter() };
     return this;
 };
 /**
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.floor = function() {
-    this.__aggr = { $floor: new QueryParameter() };
+    this[privatesProperty].aggregate = { $floor: new QueryParameter() };
     return this;
 };
 /**
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.ceil = function() {
-    this.__aggr = { $ceiling: new QueryParameter() };
+    this[privatesProperty].aggregate = { $ceiling: new QueryParameter() };
     return this;
 };
 /**
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.toLocaleLowerCase = function() {
-    this.__aggr = { $toLower: new QueryParameter() };
+    this[privatesProperty].aggregate = { $toLower: new QueryParameter() };
     return this;
 };
 /**
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.toLocaleUpperCase = function() {
-    this.__aggr = { $toUpper: new QueryParameter() };
+    this[privatesProperty].aggregate = { $toUpper: new QueryParameter() };
     return this;
 };
 
@@ -1425,7 +1479,7 @@ QueryField.prototype.select = function(name)
     if (typeof name !== 'string')
         throw  new Error('Invalid argument. Expected string');
     //clear object
-    Object.clear(this);
+    _.clear(this);
     // field as string e.g. { $name: 'price' }
     this.$name = name;
     return this;
@@ -1460,13 +1514,13 @@ QueryField.prototype.from = function(entity)
     }
     else {
         //get default property
-        var alias = Object.key(this);
+        var alias = _.findKey(this);
         if (_.isNil(alias))
             throw new Error("Field definition cannot be empty at this context");
         //get field expression
         var expr = this[alias];
         //get field name
-        var aggregate = Object.key(expr);
+        var aggregate = _.findKey(expr);
         if (_.isNil(aggregate))
             throw new Error("Field expression cannot be empty at this context");
         var name = expr[aggregate];
@@ -1485,7 +1539,7 @@ QueryField.prototype.count = function(name) {
     if (typeof name !== 'string')
         throw  new Error('Invalid argument. Expected string');
     //clear object
-    Object.clear(this);
+    _.clear(this);
     // field as aggregate function e.g. { price: { $count: 'price' } }
     this[name] = { $count: name };
     return this;
@@ -1502,7 +1556,7 @@ QueryField.prototype.sum = function(name) {
     if (typeof name !== 'string')
         throw  new Error('Invalid argument. Expected string');
     //clear object
-    Object.clear(this);
+    _.clear(this);
     // field as aggregate function e.g. { price: { $sum: 'price' } }
     this[name] = { $sum: name };
     return this;
@@ -1512,7 +1566,7 @@ QueryField.prototype.min = function(name) {
     if (typeof name !== 'string')
         throw  new Error('Invalid argument. Expected string');
     //clear object
-    Object.clear(this);
+    _.clear(this);
     // field as aggregate function e.g. { price: { $min: 'price' } }
     this[name] = { $min: name };
     return this;
@@ -1522,7 +1576,7 @@ QueryField.prototype.average = function(name) {
     if (typeof name !== 'string')
         throw  new Error('Invalid argument. Expected string');
     //clear object
-    Object.clear(this);
+    _.clear(this);
     // field as aggregate function e.g. { price: { $avg: 'price' } }
     this[name] = { $avg: name };
     return this;
@@ -1532,7 +1586,7 @@ QueryField.prototype.max = function(name) {
     if (typeof name !== 'string')
         throw  new Error('Invalid argument. Expected string');
     //clear object
-    Object.clear(this);
+    _.clear(this);
     // field as aggregate function e.g. { price: { $max: 'price' } }
     this[name] = { $max: name };
     return this;
@@ -1548,7 +1602,7 @@ QueryField.prototype.as = function(alias) {
     {
         if (typeof this.$name !== 'undefined')
             return null;
-        var keys = Object.keys(this);
+        var keys = _.keys(this);
         if (keys.length===0)
             return null;
         else
@@ -1557,7 +1611,7 @@ QueryField.prototype.as = function(alias) {
     if (typeof alias !== 'string')
         throw  new Error('Invalid argument. Expected string');
     //get first property
-    var prop = Object.key(this);
+    var prop = _.findKey(this);
     if (_.isNil(prop))
         throw  new Error('Invalid object state. Field is not selected.');
     var value = this[prop];
@@ -1575,7 +1629,7 @@ QueryField.prototype.name = function() {
         name = this.$name
     }
     else {
-        var prop = Object.key(this);
+        var prop = _.findKey(this);
         if (prop) {
             name = this[prop];
         }
@@ -1680,7 +1734,7 @@ QueryFieldComparer.prototype.compareWith = function(comparison) {
         return expr;
     }
     //get aggregate function
-    var aggr = Object.key(this), name;
+    var aggr = _.findKey(this), name;
     if (_.isArray(this[aggr])) {
         //get first element (the field name)
         name = QueryField.prototype.nameOf.call(this[aggr][0]);
@@ -1725,59 +1779,8 @@ function OpenDataQuery() {
     /**
      * @private
      */
-    this.privates = function() {};
+    this[privatesProperty] = function() {};
 }
-/**
- * @private
- * @returns OpenDataQuery
- */
-OpenDataQuery.prototype.append = function() {
-
-    var self = this;
-    if (self.privates.left) {
-        var expr = null;
-
-        if (self.privates.op==='in') {
-            if (_.isArray(self.privates.right)) {
-                //expand values
-                var exprs = [];
-                _.forEach(self.privates.right, function(x) {
-                    exprs.push(self.privates.left + ' eq ' + QueryExpression.escape(x));
-                });
-                if (exprs.length>0)
-                    expr = '(' + exprs.join(' or ') + ')';
-            }
-        }
-        else if (self.privates.op==='nin') {
-            if (_.isArray(self.privates.right)) {
-                //expand values
-                var exprs = [];
-                _.forEach(self.privates.right, function(x) {
-                    exprs.push(self.privates.left + ' ne ' + QueryExpression.escape(x));
-                });
-                if (exprs.length>0)
-                    expr = '(' + exprs.join(' and ') + ')';
-            }
-        }
-        else
-            expr = self.privates.left + ' ' + self.privates.op + ' ' + QueryExpression.escape(self.privates.right);
-        if (expr) {
-            if (_.isNil(self.$filter))
-                self.$filter = expr;
-            else {
-                self.privates.lop = self.privates.lop || 'and';
-                self.privates._lop = self.privates._lop || self.privates.lop;
-                if (self.privates._lop === self.privates.lop)
-                    self.$filter = self.$filter + ' ' + self.privates.lop + ' ' + expr;
-                else
-                    self.$filter = '(' + self.$filter + ') ' + self.privates.lop + ' ' + expr;
-                self.privates._lop = self.privates.lop;
-            }
-        }
-    }
-    delete self.privates.lop;delete self.privates.left; delete self.privates.op; delete self.privates.right;
-    return this;
-};
 
 /**
  * @param {Array|String} attr
@@ -1853,7 +1856,7 @@ OpenDataQuery.prototype.thenByDescending = function(name) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.where = function(name) {
-    this.privates.left = name;
+    this[privatesProperty].left = name;
     return this;
 };
 
@@ -1862,9 +1865,9 @@ OpenDataQuery.prototype.where = function(name) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.and = function(name) {
-    this.privates.lop = 'and';
+    this[privatesProperty].lop = 'and';
     if (typeof name !== 'undefined')
-        this.privates.left = name;
+        this[privatesProperty].left = name;
     return this;
 };
 
@@ -1873,9 +1876,9 @@ OpenDataQuery.prototype.and = function(name) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.or = function(name) {
-    this.privates.lop = 'or';
+    this[privatesProperty].lop = 'or';
     if (typeof name !== 'undefined')
-        this.privates.left = name;
+        this[privatesProperty].left = name;
     return this;
 };
 
@@ -1884,7 +1887,7 @@ OpenDataQuery.prototype.or = function(name) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.equal = function(value) {
-    this.privates.op = 'eq';this.privates.right = value; return this.append();
+    this[privatesProperty].op = 'eq';this[privatesProperty].right = value; return appendOpenDataExpression_.bind(this)();
 };
 
 /**
@@ -1892,7 +1895,7 @@ OpenDataQuery.prototype.equal = function(value) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.indexOf = function(name) {
-    this.privates.left = 'indexof(' + name + ')';
+    this[privatesProperty].left = 'indexof(' + name + ')';
     return this;
 };
 
@@ -1901,7 +1904,7 @@ OpenDataQuery.prototype.indexOf = function(name) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.andIndexOf = function(name) {
-    this.privates.lop = 'and';
+    this[privatesProperty].lop = 'and';
     return this.indexOf(name);
 };
 
@@ -1910,7 +1913,7 @@ OpenDataQuery.prototype.andIndexOf = function(name) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.orIndexOf = function(name) {
-    this.privates.lop = 'or';
+    this[privatesProperty].lop = 'or';
     return this.indexOf(name);
 };
 
@@ -1920,7 +1923,7 @@ OpenDataQuery.prototype.orIndexOf = function(name) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.endsWith = function(name, s) {
-    this.privates.left = sprintf('endswith(%s,%s)',name,QueryExpression.escape(s));
+    this[privatesProperty].left = sprintf('endswith(%s,%s)',name,QueryExpression.escape(s));
     return this;
 };
 
@@ -1930,7 +1933,7 @@ OpenDataQuery.prototype.endsWith = function(name, s) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.startsWith = function(name, s) {
-    this.privates.left = sprintf('startswith(%s,%s)',name,QueryExpression.escape(s));
+    this[privatesProperty].left = sprintf('startswith(%s,%s)',name,QueryExpression.escape(s));
     return this;
 };
 
@@ -1940,7 +1943,7 @@ OpenDataQuery.prototype.startsWith = function(name, s) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.substringOf = function(name, s) {
-    this.privates.left = sprintf('substringof(%s,%s)',name,QueryExpression.escape(s));
+    this[privatesProperty].left = sprintf('substringof(%s,%s)',name,QueryExpression.escape(s));
     return this;
 };
 
@@ -1951,7 +1954,7 @@ OpenDataQuery.prototype.substringOf = function(name, s) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.substring = function(name, pos, length) {
-    this.privates.left = sprintf('substring(%s,%s,%s)',name,pos,length);
+    this[privatesProperty].left = sprintf('substring(%s,%s,%s)',name,pos,length);
     return this;
 };
 
@@ -1960,7 +1963,7 @@ OpenDataQuery.prototype.substring = function(name, pos, length) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.length = function(name) {
-    this.privates.left = sprintf('length(%s)',name);
+    this[privatesProperty].left = sprintf('length(%s)',name);
     return this;
 };
 
@@ -1969,7 +1972,7 @@ OpenDataQuery.prototype.length = function(name) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.toLower = function(name) {
-    this.privates.left = sprintf('tolower(%s)',name);
+    this[privatesProperty].left = sprintf('tolower(%s)',name);
     return this;
 };
 
@@ -1978,7 +1981,7 @@ OpenDataQuery.prototype.toLower = function(name) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.toUpper = function(name) {
-    this.privates.left = sprintf('toupper(%s)',name);
+    this[privatesProperty].left = sprintf('toupper(%s)',name);
     return this;
 };
 
@@ -1987,7 +1990,7 @@ OpenDataQuery.prototype.toUpper = function(name) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.trim = function(name) {
-    this.privates.left = sprintf('trim(%s)',name);
+    this[privatesProperty].left = sprintf('trim(%s)',name);
     return this;
 };
 
@@ -2000,14 +2003,14 @@ OpenDataQuery.prototype.trim = function(name) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.concat = function(s0, s1, s2, s3, s4) {
-    this.privates.left = 'concat(' + QueryExpression.escape(s0) + ',' + QueryExpression.escape(s1);
+    this[privatesProperty].left = 'concat(' + QueryExpression.escape(s0) + ',' + QueryExpression.escape(s1);
     if (typeof s2 !== 'undefined')
-        this.privates.left +=',' + QueryExpression.escape(s2);
+        this[privatesProperty].left +=',' + QueryExpression.escape(s2);
     if (typeof s3 !== 'undefined')
-        this.privates.left +=',' + QueryExpression.escape(s3);
+        this[privatesProperty].left +=',' + QueryExpression.escape(s3);
     if (typeof s4 !== 'undefined')
-        this.privates.left +=',' + QueryExpression.escape(s4);
-    this.privates.left +=')';
+        this[privatesProperty].left +=',' + QueryExpression.escape(s4);
+    this[privatesProperty].left +=')';
     return this;
 };
 
@@ -2020,7 +2023,7 @@ OpenDataQuery.prototype.field = function(name) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.day = function(name) {
-    this.privates.left = sprintf('day(%s)',name);
+    this[privatesProperty].left = sprintf('day(%s)',name);
     return this;
 };
 
@@ -2029,7 +2032,7 @@ OpenDataQuery.prototype.day = function(name) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.day = function(name) {
-    this.privates.left = sprintf('hour(%s)',name);
+    this[privatesProperty].left = sprintf('hour(%s)',name);
     return this;
 };
 
@@ -2038,7 +2041,7 @@ OpenDataQuery.prototype.day = function(name) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.minute = function(name) {
-    this.privates.left = sprintf('minute(%s)',name);
+    this[privatesProperty].left = sprintf('minute(%s)',name);
     return this;
 };
 
@@ -2047,7 +2050,7 @@ OpenDataQuery.prototype.minute = function(name) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.month = function(name) {
-    this.privates.left = sprintf('month(%s)',name);
+    this[privatesProperty].left = sprintf('month(%s)',name);
     return this;
 };
 
@@ -2057,7 +2060,7 @@ OpenDataQuery.prototype.month = function(name) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.second = function(name) {
-    this.privates.left = sprintf('second(%s)',name);
+    this[privatesProperty].left = sprintf('second(%s)',name);
     return this;
 };
 
@@ -2067,7 +2070,7 @@ OpenDataQuery.prototype.second = function(name) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.year = function(name) {
-    this.privates.left = sprintf('year(%s)',name);
+    this[privatesProperty].left = sprintf('year(%s)',name);
     return this;
 };
 
@@ -2076,7 +2079,7 @@ OpenDataQuery.prototype.year = function(name) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.round = function(name) {
-    this.privates.left = sprintf('round(%s)',name);
+    this[privatesProperty].left = sprintf('round(%s)',name);
     return this;
 };
 
@@ -2085,7 +2088,7 @@ OpenDataQuery.prototype.round = function(name) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.floor = function(name) {
-    this.privates.left = sprintf('floor(%s)',name);
+    this[privatesProperty].left = sprintf('floor(%s)',name);
     return this;
 };
 
@@ -2094,7 +2097,7 @@ OpenDataQuery.prototype.floor = function(name) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.ceiling = function(name) {
-    this.privates.left = sprintf('floor(%s)',name);
+    this[privatesProperty].left = sprintf('floor(%s)',name);
     return this;
 };
 
@@ -2103,7 +2106,7 @@ OpenDataQuery.prototype.ceiling = function(name) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.notEqual = function(value) {
-    this.privates.op = 'ne';this.privates.right = value; return this.append();
+    this[privatesProperty].op = 'ne';this[privatesProperty].right = value; return appendOpenDataExpression_.bind(this)();
 };
 
 
@@ -2112,7 +2115,7 @@ OpenDataQuery.prototype.notEqual = function(value) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.greaterThan = function(value) {
-    this.privates.op = 'gt';this.privates.right = value; return this.append();
+    this[privatesProperty].op = 'gt';this[privatesProperty].right = value; return appendOpenDataExpression_.bind(this)();
 };
 
 /**
@@ -2120,7 +2123,7 @@ OpenDataQuery.prototype.greaterThan = function(value) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.greaterOrEqual = function(value) {
-    this.privates.op = 'ge';this.privates.right = value; return this.append();
+    this[privatesProperty].op = 'ge';this[privatesProperty].right = value; return appendOpenDataExpression_.bind(this)();
 };
 
 /**
@@ -2128,7 +2131,7 @@ OpenDataQuery.prototype.greaterOrEqual = function(value) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.lowerThan = function(value) {
-    this.privates.op = 'lt';this.privates.right = value; return this.append();
+    this[privatesProperty].op = 'lt';this[privatesProperty].right = value; return appendOpenDataExpression_.bind(this)();
 };
 
 /**
@@ -2136,7 +2139,7 @@ OpenDataQuery.prototype.lowerThan = function(value) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.lowerOrEqual = function(value) {
-    this.privates.op = 'le';this.privates.right = value; return this.append();
+    this[privatesProperty].op = 'le';this[privatesProperty].right = value; return appendOpenDataExpression_.bind(this)();
 };
 
 /**
@@ -2144,7 +2147,7 @@ OpenDataQuery.prototype.lowerOrEqual = function(value) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.in = function(values) {
-    this.privates.op = 'in';this.privates.right = values; return this.append();
+    this[privatesProperty].op = 'in';this[privatesProperty].right = values; return appendOpenDataExpression_.bind(this)();
 };
 
 /**
@@ -2152,30 +2155,13 @@ OpenDataQuery.prototype.in = function(values) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.notIn = function(values) {
-    this.privates.op = 'nin';this.privates.right = values; return this.append();
-};
-
-var qryq = {
-    /**
-     * @constructs QueryExpression
-     */
-    QueryExpression : QueryExpression,
-    /**
-     * @constructs QueryField
-     */
-    QueryField : QueryField,
-    /**
-     * @constructs OpenDataQuery
-     */
-    QueryEntity : QueryEntity,
-    /**
-     * @constructs OpenDataQuery
-     * @constructor
-     */
-    OpenDataQuery : OpenDataQuery
+    this[privatesProperty].op = 'nin';this[privatesProperty].right = values; return appendOpenDataExpression_.bind(this)();
 };
 
 if (typeof exports !== 'undefined') {
-    module.exports = qryq;
+    module.exports.QueryExpression = QueryExpression;
+    module.exports.QueryField = QueryField;
+    module.exports.QueryEntity = QueryEntity;
+    module.exports.OpenDataQuery = OpenDataQuery;
 }
 

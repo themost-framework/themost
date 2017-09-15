@@ -1,5 +1,18 @@
+/**
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2017, THEMOST LP All rights reserved
+ *
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
+ */
+'use strict';
 var _ = require('lodash');
 
+/**
+ * @returns {Function}
+ * @memberOf module:@themost/web/decorators
+ */
 function httpController() {
     return function (target, key, descriptor) {
         if (typeof target === 'function') {
@@ -9,6 +22,11 @@ function httpController() {
     }
 }
 
+/**
+ *
+ * @returns {Function}
+ * @memberOf module:@themost/web/decorators
+ */
 function httpGet() {
     return function (target, key, descriptor) {
         if (typeof descriptor.value === 'function') {
@@ -18,6 +36,11 @@ function httpGet() {
     }
 }
 
+/**
+ *
+ * @returns {Function}
+ * @memberOf module:@themost/web/decorators
+ */
 function httpAny() {
     return function (target, key, descriptor) {
         if (typeof descriptor.value === 'function') {
@@ -32,6 +55,11 @@ function httpAny() {
     }
 }
 
+/**
+ *
+ * @returns {Function}
+ * @memberOf module:@themost/web/decorators
+ */
 function httpPost() {
     return function (target, key, descriptor) {
         if (typeof descriptor.value === 'function') {
@@ -41,6 +69,11 @@ function httpPost() {
     }
 }
 
+/**
+ *
+ * @returns {Function}
+ * @memberOf module:@themost/web/decorators
+ */
 function httpPut() {
     return function (target, key, descriptor) {
         if (typeof descriptor.value === 'function') {
@@ -50,6 +83,11 @@ function httpPut() {
     }
 }
 
+/**
+ *
+ * @returns {Function}
+ * @memberOf module:@themost/web/decorators
+ */
 function httpDelete() {
     return function (target, key, descriptor) {
         if (typeof descriptor.value === 'function') {
@@ -59,6 +97,11 @@ function httpDelete() {
     }
 }
 
+/**
+ *
+ * @returns {Function}
+ * @memberOf module:@themost/web/decorators
+ */
 function httpOptions() {
     return function (target, key, descriptor) {
         if (typeof descriptor.value === 'function') {
@@ -68,6 +111,11 @@ function httpOptions() {
     }
 }
 
+/**
+ *
+ * @returns {Function}
+ * @memberOf module:@themost/web/decorators
+ */
 function httpHead() {
     return function (target, key, descriptor) {
         if (typeof descriptor.value === 'function') {
@@ -77,6 +125,11 @@ function httpHead() {
     }
 }
 
+/**
+ *
+ * @returns {Function}
+ * @memberOf module:@themost/web/decorators
+ */
 function httpAction(name) {
     if (typeof name !== 'string') {
         throw new TypeError('Action name must be a string');
@@ -94,6 +147,7 @@ function httpAction(name) {
  * @param {string} name
  * @param {string} alias
  * @returns {Function}
+ * @memberOf module:@themost/web/decorators
  */
 function httpParamAlias(name, alias) {
     if (typeof name !== 'string') {
@@ -124,6 +178,7 @@ function httpParamAlias(name, alias) {
  * @property {boolean} required
  * @property {string} message
  * @constructor
+ * @memberOf module:@themost/web/decorators
  */
 function HttpParamAttributeOptions() {
     "use strict";
@@ -132,6 +187,7 @@ function HttpParamAttributeOptions() {
 /**
  * @param {HttpParamAttributeOptions|*=} options
  * @returns {Function}
+ * @memberOf module:@themost/web/decorators
  */
 function httpParam(options) {
     if (typeof options !== 'object') { throw new TypeError('Parameter options must be an object'); }
@@ -146,15 +202,19 @@ function httpParam(options) {
     }
 }
 
-
-module.exports.httpGet = httpGet;
-module.exports.httpAny = httpAny;
-module.exports.httpPost = httpPost;
-module.exports.httpPut = httpPut;
-module.exports.httpDelete = httpDelete;
-module.exports.httpOptions = httpOptions;
-module.exports.httpHead = httpHead;
-module.exports.httpAction = httpAction;
-module.exports.httpController = httpController;
-module.exports.httpParamAlias = httpParamAlias;
-module.exports.httpParam = httpParam;
+if (typeof exports !== 'undefined') {
+    /**
+     * @module @themost/web/decorators
+     */
+    module.exports.httpGet = httpGet;
+    module.exports.httpAny = httpAny;
+    module.exports.httpPost = httpPost;
+    module.exports.httpPut = httpPut;
+    module.exports.httpDelete = httpDelete;
+    module.exports.httpOptions = httpOptions;
+    module.exports.httpHead = httpHead;
+    module.exports.httpAction = httpAction;
+    module.exports.httpController = httpController;
+    module.exports.httpParamAlias = httpParamAlias;
+    module.exports.httpParam = httpParam;
+}

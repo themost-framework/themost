@@ -11,14 +11,14 @@
 /**
  * @ignore
  */
-var web = require("./index");
+var _ = require('lodash');
 
 function toBoolean(value) {
     if (typeof value === 'function') {
         value = true;
     } else if (value && value.length !== 0) {
         var v = lowercase("" + value);
-        value = !(v == 'f' || v == '0' || v == 'false' || v == 'no' || v == 'n' || v == '[]');
+        value = !(v === 'f' || v === '0' || v === 'false' || v === 'no' || v === 'n' || v === '[]');
     } else {
         value = false;
     }
@@ -48,7 +48,7 @@ var directives = {
      * @param {HttpApplication} app
      */
     apply: function(app) {
-        app.module.directive('ejsInclude', function($context, $angular, $qs, $sce) {
+        app.module.directive('ejsInclude', function($context, $angular, $qs) {
             return {
                 replace:true,
                 restrict:'EA',
@@ -138,7 +138,7 @@ var directives = {
                             var deferred = $qs.defer();
                             try {
                                 var targetModel = $context.model(scope.model);
-                                if (web.common.isNullOrUndefined(scope.state)) {
+                                if (_.isNil(scope.state)) {
                                     if (scope.mask)
                                         if (scope.mask === 1)
                                             scope.state = 0;
@@ -152,9 +152,6 @@ var directives = {
                                             scope.state = scope.mask;
                                 }
                                 var p = new DataPermissionEventListener(), e = { model: targetModel, state: scope.state, throwError:false };
-
-
-
                                 p.validate(e, function(err) {
                                     if (e.result) {
                                         var result = $compile(element.contents())(scope);
@@ -208,7 +205,7 @@ var directives = {
                         element.html(text);
                 }
             };
-        }]).directive('ejsUserInRole', ['$context', '$compile', function($context, $compile) {
+        }]).directive('ejsUserInRole', ['$context', '$compile', function($context) {
             return {
                 restrict:'A',
                 replace: true,

@@ -1,12 +1,10 @@
 /**
- * MOST Web Framework
- * A JavaScript Web Framework
- * http://themost.io
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2017, THEMOST LP All rights reserved
  *
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com, Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Released under the BSD3-Clause license
- * Date: 2014-05-16
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
  */
 'use strict';
 var _ = require('lodash');
@@ -174,7 +172,7 @@ ComparisonExpression.prototype.exprOf = function()
         //get left expression
         var expr = this.left.exprOf();
         //find argument list
-        var name = Object.keys(expr)[0];
+        var name = _.findKey(expr);
         if (this.operator==='$eq')
             expr[name][this.left.operator].push(p.$eq);
         else

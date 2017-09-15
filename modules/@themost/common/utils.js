@@ -267,6 +267,21 @@ LangUtils.parseForm = function (form) {
     });
     return result;
 };
+
+/**
+ * @param {*} request
+ * @returns {*}
+ */
+LangUtils.parseCookies = function(request) {
+    var list = {},
+        rc = request.headers.cookie;
+    rc && rc.split(';').forEach(function (cookie) {
+        var parts = cookie.split('=');
+        list[parts.shift().trim()] = unescape(parts.join('='));
+    });
+    return list;
+};
+
 /**
  * Parses any value or string and returns the resulted object.
  * @param {*} any
@@ -809,6 +824,30 @@ PathUtils.join = function (part) {
 // Turn back into a single string path.
     return newParts.join("/") || (newParts.length ? "/" : ".");
 };
+
+if (typeof _.inherits !== 'function') {
+
+    /**
+     * @function inherits
+     * @description Inherit the prototype methods from one constructor into another
+     * @param {Function} ctor
+     * @param {Function} superCtor
+     * @memberOf _
+     * @example
+     function Animal() {
+        //
+        }
+
+     function Dog() {
+     Dog.super_.bind(this)();
+        }
+     _.inherits(Dog,Animal);
+     */
+
+    _.mixin({
+        'inherits': LangUtils.inherits
+    });
+}
 
 
 if (typeof exports !== 'undefined') {

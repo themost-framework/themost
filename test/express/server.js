@@ -16,7 +16,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  * initialize themost application as middleware
  */
 var theApp = new HttpApplication("./test/express/");
-theApp.useQuerystring().useFormatterStrategy().useAuthentication().useViewContent();
 
 var app = express();
 //register @themost middleware

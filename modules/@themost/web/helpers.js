@@ -14,7 +14,7 @@
 var fs = require('fs'),
     ejs = require('ejs'),
     util = require('util'),
-    HttpViewContext = require('./http-mvc').HttpViewContext;
+    HttpViewContext = require('./mvc').HttpViewContext;
 /**
  *
  * @param {String} name
@@ -195,7 +195,7 @@ HttpViewContext.prototype.dropdownFor = function(model, field, attributes, callb
          * @type {DataAssociationMapping}
          */
         var mapping = childModel.inferMapping(field);
-        if (typeof mapping === 'undefined' || mapping==null) {
+        if (typeof mapping === 'undefined' || mapping===null) {
             callback(new Error('Data association cannot be found.'));
         }
         /**
@@ -203,7 +203,7 @@ HttpViewContext.prototype.dropdownFor = function(model, field, attributes, callb
          * @type {DataModel}
          */
         var parentModel = this.context.model(mapping.parentModel);
-        if (typeof parentModel === 'undefined' || parentModel==null) {
+        if (typeof parentModel === 'undefined' || parentModel===null) {
             callback(new Error('Associated model cannot be found.'));
         }
         parentModel.select([{ 'label':mapping.parentLabel }, { 'value':mapping.parentField }]).all(function(err, result) {

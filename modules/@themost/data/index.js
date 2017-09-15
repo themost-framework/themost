@@ -35,7 +35,7 @@
 var model = require('./model'),
     _ = require('lodash'),
     types = require('./types'),
-    cfg = require('./configuration'),
+    cfg = require('./config'),
     validators = require('./data-validator'),
     dataCache = require('./cache'),
     dataCommon = require('./common'),

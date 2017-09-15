@@ -1,5 +1,5 @@
 'use strict';
-import {HttpController} from './../../../modules/@themost/web/http-mvc';
+import {HttpController} from '../../../modules/@themost/web/mvc';
 import {httpAction,httpGet} from './../../../modules/@themost/web/decorators';
 import 'source-map-support/register';
 

@@ -1,0 +1,3 @@
+
+<p>Hello, @model.name (@html.context(@model).translate('World'))</p>
+

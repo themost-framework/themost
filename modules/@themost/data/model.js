@@ -1137,7 +1137,7 @@ function getDataObjectClass_() {
             }
         }
         //cache DataObject class property
-        self.context.getConfiguration().models[self.name]['DataObjectClass'] = self['DataObjectClass'] = DataObjectClass;
+        self.context.getConfiguration().getModelDefinition(self.name)['DataObjectClass'] = self['DataObjectClass'] = DataObjectClass;
     }
     return DataObjectClass;
 }
@@ -2288,7 +2288,7 @@ DataModel.prototype.getDataView = function(name) {
     if (_.isNil(field))
         return;
     //cache mapping
-    var cachedModel = this.getConfiguration().models[this.name];
+    var cachedModel = this.getConfiguration().getModelDefinition(this.name);
     if (cachedModel) {
         var cachedField = cachedModel.fields.find(function(x) { return x.name === field.name });
         if (typeof cachedField === 'undefined') {

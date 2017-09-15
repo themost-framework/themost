@@ -1,39 +1,36 @@
 /**
- * MOST Web Framework
- * A JavaScript Web Framework
- * http://themost.io
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2017, THEMOST LP All rights reserved
  *
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com, Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Released under the BSD3-Clause license
- * Date: 2014-06-10
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
  */
 'use strict';
-/**
- * @ignore
- */
-var path = require('path'),
-    HttpNotFoundException = require('./common').HttpNotFoundException,
-    HttpForbiddenException = require('./common').HttpForbiddenException,
-    _ = require('lodash'),
-    util = require('util'),
-    fs = require('fs'),
-    da = require('@themost/data'),
-    url = require('url'),
-    common = require('./common');
+var path = require('path');
+var LangUtils = require('@themost/common/utils').LangUtils;
+var HttpBadRequestError = require('@themost/common/errors').HttpBadRequestError;
+var HttpServerError = require('@themost/common/errors').HttpServerError;
+var HttpNotFoundError = require('@themost/common/errors').HttpNotFoundError;
+var HttpForbiddenError = require('@themost/common/errors').HttpForbiddenError;
+var _ = require('lodash');
+var fs = require('fs');
+var DefaultDataContext = require('@themost/data').classes.DefaultDataContext;
+var url = require('url');
 /**
  * Creates an instance of HttpContext class.
  * @class
  * @property {{extension:string,type:string}} mime - Gets an object which represents the mime type associated with this context.
  * @property {string} format - Gets a string which represents the response format of this context (e.g html, json, js etc).
  * @constructor
- * @augments DataContext
- * @augments EventEmitter2
+ * @extends DataContext
+ * @extends SequentialEventEmitter
  * @param {ClientRequest} httpRequest
  * @param {ServerResponse} httpResponse
  * @returns {HttpContext}
  */
 function HttpContext(httpRequest, httpResponse) {
+    HttpContext.super_.bind(this)();
     /**
      * @type {ClientRequest}
      */
@@ -61,7 +58,7 @@ function HttpContext(httpRequest, httpResponse) {
         get: function () {
             var res = self.application.resolveMime(self.request.url);
             //if no extension is defined
-            if (typeof res === 'undefined' || res == null) {
+            if (typeof res === 'undefined' || res === null) {
                 //resolve the defined mime type by filter application mime types
                 if (self.params && self.params.mime) {
                     res = self.application.config.mimes.find(function(x) {
@@ -190,9 +187,6 @@ function HttpContext(httpRequest, httpResponse) {
      * @private
      */
     this._culture = undefined;
-    //call super class constructor
-    if (HttpContext.super_)
-        HttpContext.super_.call(this);
 
     //class extension initiators
     if (typeof this.init === 'function') {
@@ -202,8 +196,7 @@ function HttpContext(httpRequest, httpResponse) {
     
 
 }
-//todo: set HttpContext inheritance from configuration
-util.inherits(HttpContext, da.classes.DefaultDataContext);
+LangUtils.inherits(HttpContext, DefaultDataContext);
 
 HttpContext.prototype.getParam = function(name) {
     if (typeof name === 'string') {
@@ -223,7 +216,11 @@ HttpContext.prototype.getParam = function(name) {
 
     }
 };
-
+//noinspection JSUnusedGlobalSymbols
+/**
+ * @param {string} name
+ * @returns {boolean}
+ */
 HttpContext.prototype.hasParam = function(name) {
     if (typeof name === 'string') {
         if (this.hasOwnProperty('params')) {
@@ -253,22 +250,20 @@ HttpContext.prototype.init = function() {
  * @param {Date=} expires
  * @param {string=} domain
  * @param {string=} cookiePath
- * @returns {string|undefined}
+ * @returns {string}
  */
 HttpContext.prototype.cookie = function(name, value, expires, domain, cookiePath) {
 
     if (typeof value==='undefined')
     {
         if (this.request) {
-            var cookies = common.parseCookies(this.request);
+            var cookies = LangUtils.parseCookies(this.request);
             return cookies[name];
         }
-        else
-            return null;
     }
     else {
         var cookieValue;
-        if (value!=null) {
+        if (value!==null) {
             cookieValue = name + '=' + value.toString();
             if (expires instanceof Date)
                 cookieValue += ';expires=' + expires.toUTCString();
@@ -299,6 +294,7 @@ HttpContext.prototype.moment = function(p) {
     return moment(p).locale(locale);
 };
 
+//noinspection JSUnusedGlobalSymbols
 /**
  * @param {string} name - The name of the cookie to be added
  * @param {string|*} value - The value of the cookie
@@ -315,6 +311,7 @@ HttpContext.prototype.setCookie = function(name, value, expires, domain, cpath) 
     this.cookie(name, value, expires, domain, cpath);
 };
 
+//noinspection JSUnusedGlobalSymbols
 /**
  * Set a permanent cookie for user preferred language
  * @param lang - A string which represents the user preferred language e.g. en-US, en-GB etc
@@ -322,7 +319,7 @@ HttpContext.prototype.setCookie = function(name, value, expires, domain, cpath) 
 HttpContext.prototype.setLangCookie = function(lang) {
     this.cookie(".LANG", lang);
 };
-
+//noinspection JSUnusedGlobalSymbols
 /**
  * @param {string} name - The name of the cookie to be deleted
  * @param {string=} domain - An optional parameter which indicates cookie's domain.
@@ -335,6 +332,7 @@ HttpContext.prototype.removeCookie = function(name, domain, cpath) {
 
     this.cookie(name, null, null , domain, cpath);
 };
+//noinspection JSUnusedGlobalSymbols
 /**
  * Executes the specified code in unattended mode.
  * @param {Function} fn
@@ -372,7 +370,7 @@ HttpContext.prototype.unattended = function(fn, callback) {
         fn.call(self, function(err, result) {
             //restore user
             if (interactiveUser) {
-                self.user = util._extend({ }, interactiveUser);
+                self.user = _.assign({ }, interactiveUser);
             }
             delete self.interactiveUser;
             delete self._unattended;
@@ -382,7 +380,7 @@ HttpContext.prototype.unattended = function(fn, callback) {
     catch(e) {
         //restore user
         if (interactiveUser) {
-            self.user = util._extend({ }, interactiveUser);
+            self.user = _.assign({ }, interactiveUser);
         }
         delete self.interactiveUser;
         delete self._unattended;
@@ -427,7 +425,7 @@ HttpContext.prototype.culture = function(value) {
         if (lang) {
             //search application cultures
             var obj = cultures.find(function(x) {
-                return (x == lang.toLowerCase()) || (x.substr(0,2) == lang.toLowerCase().substr(0,2));
+                return (x === lang.toLowerCase()) || (x.substr(0,2) === lang.toLowerCase().substr(0,2));
             });
             //if user culture is valid for this application
             if (obj) {
@@ -444,6 +442,7 @@ HttpContext.prototype.culture = function(value) {
         this._culture = value;
     }
 };
+//noinspection JSUnusedGlobalSymbols
 /**
  * Performs cross-site request forgery validation against the specified token
  * @param {string=} csrfToken
@@ -456,25 +455,25 @@ HttpContext.prototype.validateAntiForgeryToken = function(csrfToken) {
             csrfToken = self.params['_CSRFToken'];
     }
     if (typeof csrfToken !== 'string')
-        throw new common.HttpBadRequest('Bad request. Invalid cross-site request forgery token.');
-    if (csrfToken.length==0)
-        throw new common.HttpBadRequest('Bad request. Empty cross-site request forgery token.');
+        throw new HttpBadRequestError('Bad request. Invalid cross-site request forgery token.');
+    if (csrfToken.length===0)
+        throw new HttpBadRequestError('Bad request. Empty cross-site request forgery token.');
     try {
         var cookies = self.cookies, csrfCookieToken, csrfRequestToken;
         if (cookies['.CSRF']) {
             //try to decrypt cookie token
             try {
-                csrfCookieToken = JSON.parse(self.application.decrypt(cookies['.CSRF']));
+                csrfCookieToken = JSON.parse(self.application.getStrategy(EncryptionStrategy).decrypt(cookies['.CSRF']));
             }
             catch(e) {
-                throw new common.HttpBadRequest('Bad request.Invalid cross-site request forgery data.');
+                throw new HttpBadRequestError('Bad request.Invalid cross-site request forgery data.');
             }
             //then try to decrypt the token provided
             try {
-                csrfRequestToken = JSON.parse(self.application.decrypt(csrfToken));
+                csrfRequestToken = JSON.parse(self.application.getStrategy(EncryptionStrategy).decrypt(csrfToken));
             }
             catch(e) {
-                throw new common.HttpBadRequest('Bad request.Invalid cross-site request forgery data.');
+                throw new HttpBadRequestError('Bad request.Invalid cross-site request forgery data.');
             }
             if ((typeof csrfCookieToken === 'object') && (typeof csrfRequestToken === 'object')) {
 
@@ -488,7 +487,7 @@ HttpContext.prototype.validateAntiForgeryToken = function(csrfToken) {
                         }
                     }
                 }
-                if (valid==true) {
+                if (valid===true) {
                     //2. validate timestamp
                     var timestamp = new Date(csrfCookieToken.date);
                     var diff = Math.abs((new Date())-timestamp);
@@ -508,29 +507,32 @@ HttpContext.prototype.validateAntiForgeryToken = function(csrfToken) {
                     return;
 
             }
-            throw new common.HttpBadRequest('Bad request. A cross-site request forgery was detected.');
+            throw new HttpBadRequestError('Bad request. A cross-site request forgery was detected.');
         }
         else {
-            throw new common.HttpBadRequest('Bad request.Missing cross-site request forgery data.');
+            throw new HttpBadRequestError('Bad request.Missing cross-site request forgery data.');
         }
     }
     catch(e) {
         if (e.status)
             throw e;
         else
-            throw new common.HttpServerError('Request validation failed.');
+            throw new HttpServerError('Request validation failed.');
     }
 };
-
+//noinspection JSUnusedGlobalSymbols
+/**
+ *
+ * @param file
+ */
 HttpContext.prototype.writeFile = function (file) {
     try {
         var fs = require("fs");
         var path = require("path");
-        var app = require('./index');
         var response = this.response;
         //check if file exists
         if (!fs.existsSync(file)) {
-            throw new HttpNotFoundException();
+            throw new HttpNotFoundError();
         }
         //get file extension
         var extensionName = path.extname(file);
@@ -545,7 +547,7 @@ HttpContext.prototype.writeFile = function (file) {
             contentType = mime.type;
         //throw exception (MIME not found)
         if (contentType === null) {
-            throw new HttpForbiddenException();
+            throw new HttpForbiddenError();
         }
 
         fs.readFile(file, "binary", function (err, stream) {
@@ -572,21 +574,24 @@ HttpContext.prototype.writeFile = function (file) {
  * */
 HttpContext.prototype.is = function (method) {
     var self = this;
-    if (self.request == null)
+    if (_.isNil(self.request))
         return false;
-    if (util.isArray(method)) {
-        return (method.filter(function(x) { return self.request.method.toUpperCase() == x.toUpperCase(); }).length>0);
+    if (_.isArray(method)) {
+        return (method.filter(function(x) { return self.request.method.toUpperCase() === x.toUpperCase(); }).length>0);
     }
     else {
         if (typeof method !== 'string')
             return false;
-        if (method=='*')
+        if (method==='*')
             return true;
-        return (self.request.method.toUpperCase() == method.toUpperCase());
+        return (self.request.method.toUpperCase() === method.toUpperCase());
     }
 
 };
-
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Indicates whether current HTTP request is a POST request
+ */
 HttpContext.prototype.isPost = function () {
     return this.is('POST');
 };
@@ -600,7 +605,7 @@ HttpContext.prototype.handle = function(method, fn) {
     if (self.is(method)) {
         self.handled = true;
         process.nextTick(function () {
-            fn.call(self);
+            fn.bind(self)();
         });
     }
     return self;
@@ -624,14 +629,15 @@ HttpContext.prototype.catch = function(callback) {
  */
 HttpContext.prototype.unhandle = function(fn) {
     if (!this.handled) {
-        fn.call(this);
+        fn.bind(this)();
     }
     return this;
 };
 
+//noinspection JSUnusedGlobalSymbols
 /**
  * Invokes the given function if the current HTTP method is equal to POST
- * @param {Function()} fn
+ * @param {Function} fn
  * @returns {HttpContext}
  */
 HttpContext.prototype.handlePost = function(fn) {
@@ -640,26 +646,27 @@ HttpContext.prototype.handlePost = function(fn) {
 
 /**
  * Invokes the given function if the current HTTP method is equal to GET
- * @param {Function()} fn
+ * @param {Function} fn
  * @returns {HttpContext}
  */
 HttpContext.prototype.handleGet = function(fn) {
     return this.handle('GET', fn);
 };
 
-
+//noinspection JSUnusedGlobalSymbols
 /**
  * Invokes the given function if the current HTTP method is equal to PUT
- * @param {Function()} fn
+ * @param {Function} fn
  * @returns {HttpContext}
  */
 HttpContext.prototype.handlePut = function(fn) {
     return this.handle('PUT', fn);
 };
 
+//noinspection JSUnusedGlobalSymbols
 /**
  * Invokes the given function if the current HTTP method is equal to PUT
- * @param {Function()} fn
+ * @param {Function} fn
  */
 HttpContext.prototype.handleDelete = function(fn) {
     return this.handle('DELETE', fn);
@@ -686,8 +693,7 @@ HttpContext.prototype.currentHandler = function (value) {
  */
 HttpContext.prototype.translate = function(text, lib) {
     try {
-        var self = this, app = self.application;
-        //todo::get current HTTP context locale
+        var self = this, app = self.application, file;
         //ensure locale
         var locale = this.culture();
         //ensure localization library
@@ -698,7 +704,7 @@ HttpContext.prototype.translate = function(text, lib) {
         //if library has not been yet initialized
         if (!library) {
             //get library path
-            var file = app.mapPath('/locales/'.concat(lib,'.',locale,'.json'));
+            file = app.mapPath('/locales/'.concat(lib,'.',locale,'.json'));
             //if file does not exist
             if (!fs.existsSync(file))
             {
@@ -711,7 +717,7 @@ HttpContext.prototype.translate = function(text, lib) {
             }
         }
         if (!library[locale]) {
-            var file = app.mapPath('/locales/'.concat(lib,'.',locale,'.json'));
+            file = app.mapPath('/locales/'.concat(lib,'.',locale,'.json'));
             if (fs.existsSync(file))
                 library[locale] = JSON.parse(fs.readFileSync(file,'utf8'));
         }
@@ -733,6 +739,7 @@ HttpContext.prototype.translate = function(text, lib) {
  */
 HttpContext.prototype.t = HttpContext.prototype.translate;
 
+//noinspection JSUnusedGlobalSymbols
 /**
  * Creates an instance of a view engine based on the given extension (e.g. ejs, md etc)
  * @param {string} extension
@@ -754,24 +761,19 @@ HttpContext.prototype.engine = function(extension) {
  * @returns {HttpViewContext|*}
  */
 HttpContext.prototype.createViewContext = function() {
-    var mvc = require("./http-mvc");
+    var mvc = require("./mvc");
     return new mvc.HttpViewContext(this);
 };
 
-if (typeof exports !== 'undefined')
-    module.exports = {
-        /**
-         * @class HttpContext
-         */
-        HttpContext:HttpContext,
-        /**
-         * Creates an instance of HttpContext class.
-         * @param {ClientRequest} request
-         * @param {ServerResponse} response
-         * @returns {HttpContext}
-         */
-        createInstance: function (request, response) {
-
-            return new HttpContext(request, response);
-        }
-    }
+if (typeof exports !== 'undefined') {
+    module.exports.HttpContext = HttpContext;
+    /**
+     * Creates an instance of HttpContext class.
+     * @param {ClientRequest} request
+     * @param {ServerResponse} response
+     * @returns {HttpContext}
+     */
+    module.exports.createInstance = function (request, response) {
+        return new HttpContext(request, response);
+    };
+}

@@ -2337,7 +2337,18 @@ function afterExecute_(result, callback) {
     var field, parentField, junction;
     if (self.$expand) {
         //get distinct values
-        var expands = self.$expand.distinct(function(x) { return x; });
+        var expands = _.intersectionBy( _.reverse(self.$expand), function(x) {
+            if (typeof x === 'string') {
+                return x;
+            }
+            else if (x instanceof types.DataAssociationMapping) {
+                return x;
+            }
+            else if (typeof x.name === "string") {
+                return x.name;
+            }
+            return x;
+        });
         async.eachSeries(expands, function(expand, cb) {
 
             try {
