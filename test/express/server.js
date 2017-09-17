@@ -16,12 +16,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  * initialize themost application as middleware
  */
 var theApp = new HttpApplication("./test/express/");
-
 var app = express();
 //register @themost middleware
 app.use(theApp.runtime());
-// app.use('/', function(req, res){
-//     res.send('hello world');
-// });
 app.listen(process.env.PORT || 3000);
 //# sourceMappingURL=server.js.map

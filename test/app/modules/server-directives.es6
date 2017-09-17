@@ -11,7 +11,7 @@ export function bootstrap(angular) {
            link:function(scope, element, attrs) {
                element.text(attrs['helloText']);
            }
-       }
+       };
     });
 
 }

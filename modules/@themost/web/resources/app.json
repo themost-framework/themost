@@ -1,24 +1,10 @@
 {
-    "handlers": [
-        { "name":"query","type":"./handlers/querystring" },
-        { "name":"auth","type":"./handlers/auth" },
-        { "name":"basic-auth","type":"./handlers/basic-auth" },
-        { "name":"static","type":"./handlers/static" },
-        { "name":"view","type":"./handlers/view" },
-        { "name":"multipart","type":"./handlers/multipart" },
-        { "name":"json","type":"./handlers/json" },
-        { "name":"post","type":"./handlers/post" },
-        { "name":"route-params","type":"./handlers/route-params" },
-        { "name":"directive","type":"./handlers/directive" }
-    ],
     "engines": [
         { "name": "EJS View Engine", "extension": "ejs", "type": "./engines/ejs" },
-        { "name": "Markdown View Engine", "extension": "md", "type": "./engines/md" },
-        { "name": "Jade View Engine", "extension": "jade", "type": "./engines/jade" },
-        { "name": "Vash View Engine", "extension": "vash", "type": "./engines/vash" }
+        { "name": "Angular Server View Engine", "extension": "ng", "type": "./engines/ng" }
     ],
     "controllers": {
-        "base": "./../controllers/data.js"
+        "base": "./controllers/data.js"
     },
     "settings": {
         "crypto": {

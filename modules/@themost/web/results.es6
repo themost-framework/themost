@@ -1,0 +1,166 @@
+/**
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
+ *                     Anthi Oikonomou anthioikonomou@gmail.com
+ *
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
+ */
+'use strict';
+import 'source-map-support/register';
+import Rx from 'rxjs';
+import {_} from 'lodash';
+import {FormatterStrategy} from "./formatters";
+import {HttpMethodNotAllowedError} from "@themost/common/errors";
+/**
+ * @class
+ * @abstract
+ */
+export class HttpResult {
+    /**
+     * @constructor
+     */
+    constructor() {
+
+        if (new.target === HttpResult) {
+            throw new TypeError("Cannot construct abstract instances directly");
+        }
+    }
+
+    toObservable() {
+        return Rx.Observable.of(this);
+    }
+
+}
+
+/**
+ * @class
+ */
+export class HttpAnyResult extends HttpResult {
+    /**
+     * @constructor
+     * @param {*} data
+     */
+    constructor(data) {
+        super();
+        this.data = data;
+        this.contentType = 'text/html';
+        this.contentEncoding = 'utf8';
+    }
+
+    /**
+     * Creates an instance of HTTP next result
+     * @param {*} data
+     * @returns {HttpAnyResult}
+     */
+    static create(data) {
+        return new HttpAnyResult(data);
+    }
+
+    /**
+     * Executes an HttpResult instance against an existing HttpContext.
+     * @param {HttpContext} context
+     * @returns {Observable}
+     * */
+    execute(context) {
+        const self = this;
+        return Rx.Observable.bindNodeCallback(function(callback) {
+            try {
+                /**
+                 * @type {FormatterStrategy}
+                 */
+                const formatterStrategy = context.getApplication().getService(FormatterStrategy),
+                    /**
+                     * @type {ServerResponse}
+                     */
+                    response = context.response;
+
+                if (_.isNil(self.data)) {
+                    response.writeHead(204);
+                    return callback();
+                }
+
+                if (_.isNil(formatterStrategy)) {
+                    return callback(new HttpMethodNotAllowedError());
+                }
+
+                const formatter = formatterStrategy.find(context);
+                if (_.isNil(formatter)) {
+                    return callback(new HttpMethodNotAllowedError());
+                }
+                return formatter.execute(context, self.data).subscribe(()=>{
+                   return callback();
+                }, (err) => {
+                    return callback(err);
+                });
+            }
+            catch(err) {
+                callback(err);
+            }
+        })();
+    }
+
+}
+
+/**
+ * @class
+ */
+export class HttpNextResult extends HttpResult {
+    /**
+     * @constructor
+     */
+    constructor() {
+        super();
+    }
+
+    /**
+     * Creates an instance of HTTP next result
+     * @returns {HttpNextResult}
+     */
+    static create() {
+        return new HttpNextResult();
+    }
+
+}
+
+/**
+ * @class
+ */
+export class HttpEndResult extends HttpResult {
+    /**
+     * @constructor
+     */
+    constructor() {
+        super();
+    }
+
+    /**
+     * Creates an instance of HTTP next result
+     * @returns {HttpEndResult}
+     */
+    static create() {
+        return new HttpEndResult();
+    }
+}
+
+/**
+ * @class
+ */
+export class HttpErrorResult extends HttpResult {
+    /**
+     * @constructor
+     */
+    constructor(statusCode) {
+        super();
+    }
+
+    /**
+     * Creates an instance of HTTP next result
+     * @param {number} statusCode
+     * @returns {HttpErrorResult}
+     */
+    static create(statusCode) {
+        return new HttpErrorResult(statusCode);
+    }
+}

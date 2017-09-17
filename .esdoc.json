@@ -1,0 +1,7 @@
+{
+    "source": "./modules/@themost",
+    "includes": ["\\.(es6)$"],
+    "excludes": ["^node_modules/"],
+    "destination": "./doc",
+    "plugins": [{"name": "esdoc-standard-plugin"}]
+}

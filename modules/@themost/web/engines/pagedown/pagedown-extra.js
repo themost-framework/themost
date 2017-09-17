@@ -10,9 +10,9 @@
 (function() {
     global.Markdown = { };
     require('./Markdown.Extra.js');
-    return Markdown.Extra;
+    return global.Markdown.Extra;
 })();
 if (typeof exports !== 'undefined') {
-    exports.Extra = Markdown.Extra;
+    exports.Extra = global.Markdown.Extra;
 }
 

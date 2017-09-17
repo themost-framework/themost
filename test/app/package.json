@@ -1,0 +1,29 @@
+{
+  "name": "themost-test-app",
+  "version": "2.0.0-alpha",
+  "private": true,
+  "description": "Test Application - MOST Web Framework 2.0 Codename Blueshift",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "engines": {
+    "node": ">= 5.4.1"
+  },
+  "keywords": [
+    "most",
+    "themost",
+    "web",
+    "framework",
+    "data",
+    "orm",
+    "http",
+    "mvc"
+  ],
+  "dependencies": {
+
+  },
+  "devDependencies": {
+
+  }
+}

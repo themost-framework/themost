@@ -9,9 +9,9 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _dec, _dec2, _desc, _value, _class;
 
-var _httpMvc = require('../../../modules/@themost/web/mvc');
+var _mvc = require('../../../modules/@themost/web/mvc');
 
-var HttpController = _httpMvc.HttpController;
+var HttpController = _mvc.HttpController;
 
 var _decorators = require('./../../../modules/@themost/web/decorators');
 

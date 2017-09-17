@@ -32,30 +32,27 @@
   "homepage": "https://github.com/kbarbounakis/themost#readme",
   "dependencies": {
     "async": "^2.5.0",
-    "blueimp-md5": "^2.7.0",
-    "hashmap": "^2.3.0",
-    "lodash": "^4.17.4",
-    "winston": "^2.3.1",
-    "esprima": "~2.1.0",
-    "q": "^1.4.1",
-    "moment": "^2.8.4",
-    "node-cache": "^1.1.0",
-    "sprintf": "^0.1.5",
-    "symbol": "^0.3.1",
     "async-ejs": "0.1.6",
+    "blueimp-md5": "^2.7.0",
     "body-parser": "~1.10.1",
     "domino": "1.0.18",
     "ejs": "0.8.5",
+    "esprima": "~2.1.0",
     "formidable": "1.0.14",
-    "most-xml": "~0.3.0",
-    "pagedown": "^1.1.0",
     "jade": "^1.11.0",
+    "lodash": "^4.17.4",
+    "moment": "^2.8.4",
+    "most-xml": "~0.3.0",
+    "node-cache": "^1.1.0",
+    "pagedown": "^1.1.0",
     "pug": "^0.1.0",
-    "vash": "^0.11.2"
+    "q": "^1.4.1",
+    "rxjs": "^5.0.1",
+    "sprintf": "^0.1.5",
+    "vash": "^0.11.2",
+    "winston": "^2.3.1"
   },
   "devDependencies": {
-    "chai": "^4.1.2",
-    "mocha": "^3.5.1",
     "babel-cli": "^6.22.2",
     "babel-plugin-transform-async-to-generator": "^6.22.0",
     "babel-plugin-transform-builtin-extend": "^1.1.0",
@@ -64,6 +61,8 @@
     "babel-plugin-transform-es2015-typeof-symbol": "^6.22.0",
     "babel-plugin-transform-regenerator": "^6.22.0",
     "babel-preset-env": "^1.1.8",
+    "chai": "^4.1.2",
+    "esdoc-standard-plugin": "^1.0.0",
     "express": "^4.15.4",
     "grunt": "^1.0.1",
     "grunt-babel": "^6.0.0",
@@ -71,6 +70,19 @@
     "grunt-contrib-watch": "^1.0.0",
     "grunt-newer": "^1.2.0",
     "load-grunt-tasks": "^3.5.2",
-      "source-map-support": "^0.4.11"
+    "mocha": "^3.5.1",
+    "source-map-support": "^0.4.11"
+  },
+  "jshintConfig": {
+    "esversion": 6,
+    "newcap": false,
+    "node": true,
+    "varstmt": true,
+    "sub":true,
+    "globals": [
+      "describe",
+      "it",
+      "angular"
+    ]
   }
 }

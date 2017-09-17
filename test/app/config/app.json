@@ -1,10 +1,10 @@
 {
     "engines": [
-        { "name": "EJS View Engine", "extension": "ejs", "type": "@themost/web/engines/ejs" },
-        { "name": "Markdown View Engine", "extension": "md", "type": "@themost/web/engines/md" },
+        { "name": "EJS View Engine", "extension": "ejs", "type": "./engines/ejs" },
+        { "name": "Markdown View Engine", "extension": "md", "type": "./engines/md" },
         { "name": "Jade View Engine", "extension": "jade", "type": "./engines/jade" },
         { "name": "Vash View Engine", "extension": "vash", "type": "./engines/vash" },
-        { "name": "Angular Server View Engine", "extension": "ng", "type": "@themost/web/engines/ng" }
+        { "name": "Angular Server View Engine", "extension": "ng", "type": "./engines/ng" }
     ],
     "controllers": {
         "base": "./http-data-controller.js"

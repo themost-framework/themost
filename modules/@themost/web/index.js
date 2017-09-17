@@ -7,128 +7,142 @@
  * found in the LICENSE file at https://themost.io/license
  */
 'use strict';
-var HttpApplication  = require('./app').HttpApplication;
-var HttpContext = require('./http-context').HttpContext;
-var common = require('./common');
-var HttpError = require('@themost/common/errors').HttpError;
-var TraceUtils = require('@themost/common/utils').TraceUtils;
-var files = require('./files');
-var _ = require('lodash');
-var mvc = require('./mvc');
-var html = require('./html');
-var path = require("path");
-var fs = require("fs");
-var decorators = require('./decorators');
-var HttpHiddenController = require('./controllers/hidden');
-var HttpBaseController = require('./controllers/base');
-var HttpDataController = require('./controllers/data');
-var HttpLookupController = require('./controllers/lookup');
-var EjsEngine = require('./engines/ejs').EjsEngine;
-var JadeEngine = require('./engines/jade').JadeEngine;
 
-var web = { };
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
 
+var _common = require('./common');
 
-/** @module @themost/web */
+Object.keys(_common).forEach(function (key) {
+  if (key === "default") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function get() {
+      return _common[key];
+    }
+  });
+});
 
-/**
- * Expression handler for Access Denied HTTP errors (401).
- * @param {*=} options
- */
-web.unauthorized = function(options) {
-    return function(err, req, res, next)
-    {
-        try {
-            if (err.status===401)  {
-                if (/text\/html/g.test(req.get('accept'))) {
-                    if (web.current.config.settings) {
-                        if (web.current.config.settings.auth) {
-                            var page = web.current.config.settings.auth.loginPage || '/login.html';
-                            res.set('Location', page.concat('?returnUrl=', encodeURIComponent(req.url)));
-                            res.status(302).end();
-                            return;
-                        }
-                    }
-                }
-            }
-            next(err);
-        }
-        catch(e) {
-            console.log(e);
-            next(err);
-        }
-    };
-};
-/**
- * Expression handler for HTTP errors.
- */
-web.error = function() {
-    return function(err, request, response, next)
-    {
-        try {
-            var ejs = require('ejs');
-            if (_.isNil(response) || _.isNil(request)) {
-                next(err);
-            }
-            if (!/text\/html/g.test(request.get('accept'))) {
-                next(err);
-            }
-            else {
-                if (response._headerSent) {
-                    next(err);
-                    return;
-                }
-                fs.readFile(path.join(__dirname, './http-error.html.ejs'), 'utf8', function (readErr, data) {
-                    if (readErr) {
-                        //log process error
-                        TraceUtils.log(readErr);
-                        next(err);
-                        return;
-                    }
-                    //compile data
-                    var str;
-                    try {
-                        if (err instanceof HttpError) {
-                            str = ejs.render(data, { error:err });
-                        }
-                        else {
-                            var httpErr = new HttpError(500, null, err.message);
-                            httpErr.stack = err.stack;
-                            str = ejs.render(data, {error: httpErr});
-                        }
-                    }
-                    catch (e) {
-                        TraceUtils.log(e);
-                        next(err);
-                        return;
-                    }
-                    //write status header
-                    response.writeHead(err.status || 500 , { "Content-Type": "text/html" });
-                    response.write(str);
-                    response.end();
-                });
-            }
-        }
-        catch(e) {
-            console.log(e);
-            next(err);
-        }
-    };
-};
+var _cache = require('./cache');
 
+Object.keys(_cache).forEach(function (key) {
+  if (key === "default") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function get() {
+      return _cache[key];
+    }
+  });
+});
 
-if (typeof exports !== 'undefined')
-{
-    //controllers
-    module.exports.HttpBaseController = HttpBaseController;
-    module.exports.HttpDataController = HttpDataController;
-    module.exports.HttpLookupController = HttpLookupController;
-    module.exports.HttpHiddenController = HttpHiddenController;
-    //engines
-    module.exports.EjsEngine = EjsEngine;
-    module.exports.JadeEngine = JadeEngine;
+var _app = require('./app');
 
+Object.keys(_app).forEach(function (key) {
+  if (key === "default") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function get() {
+      return _app[key];
+    }
+  });
+});
 
-    module.exports.HttpApplication = HttpApplication;
-    module.exports.HttpContext = HttpContext;
-}
+var _consumers = require('./consumers');
+
+Object.keys(_consumers).forEach(function (key) {
+  if (key === "default") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function get() {
+      return _consumers[key];
+    }
+  });
+});
+
+var _context = require('./context');
+
+Object.keys(_context).forEach(function (key) {
+  if (key === "default") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function get() {
+      return _context[key];
+    }
+  });
+});
+
+var _results = require('./results');
+
+Object.keys(_results).forEach(function (key) {
+  if (key === "default") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function get() {
+      return _results[key];
+    }
+  });
+});
+
+var _static = require('./consumers/static');
+
+Object.keys(_static).forEach(function (key) {
+  if (key === "default") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function get() {
+      return _static[key];
+    }
+  });
+});
+
+var _route = require('./consumers/route');
+
+Object.keys(_route).forEach(function (key) {
+  if (key === "default") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function get() {
+      return _route[key];
+    }
+  });
+});
+
+var _interfaces = require('./interfaces');
+
+Object.keys(_interfaces).forEach(function (key) {
+  if (key === "default") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function get() {
+      return _interfaces[key];
+    }
+  });
+});
+
+var _auth = require('./consumers/auth');
+
+Object.keys(_auth).forEach(function (key) {
+  if (key === "default") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function get() {
+      return _auth[key];
+    }
+  });
+});
+
+var _localization = require('./localization');
+
+Object.keys(_localization).forEach(function (key) {
+  if (key === "default") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function get() {
+      return _localization[key];
+    }
+  });
+});
+
+require('source-map-support/register');
+//# sourceMappingURL=index.js.map

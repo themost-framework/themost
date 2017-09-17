@@ -18,7 +18,7 @@ export function bootstrap(angular) {
             link: function(scope, element) {
                 element.text('Hello User!!');
             }
-        }
+        };
     }
     angular.module('server-extensions',[])
         .directive('helloUser', helloUser);

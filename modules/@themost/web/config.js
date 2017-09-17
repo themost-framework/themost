@@ -1,128 +1,136 @@
 /**
  * @license
  * MOST Web Framework 2.0 Codename Blueshift
- * Copyright (c) 2017, THEMOST LP All rights reserved
+ * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
+ *                     Anthi Oikonomou anthioikonomou@gmail.com
  *
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
 'use strict';
-var _ = require('lodash');
-var ConfigurationBase  = require('@themost/common/config').ConfigurationBase;
-var LangUtils  = require('@themost/common/utils').LangUtils;
-var PathUtils  = require('@themost/common/utils').PathUtils;
-var sprintf  = require('sprintf').sprintf;
-var TraceUtils  = require('@themost/common/utils').TraceUtils;
-var Symbol = require('symbol');
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.HttpConfiguration = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _lodash = require('lodash');
+
+var _ = _lodash._;
+
+var _config = require('@themost/common/config');
+
+var ConfigurationStrategy = _config.ConfigurationStrategy;
+var ConfigurationBase = _config.ConfigurationBase;
+
+var _utils = require('@themost/common/utils');
+
+var PathUtils = _utils.PathUtils;
+var TraceUtils = _utils.TraceUtils;
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
 var routesProperty = Symbol('routes');
-/**
- * @class
- * @constructor
- * @param {string} configPath
- * @extends ConfigurationBase
- * @property {Array} mimes
- * @property {Array} engines
- * @property {*} controllers
- * @property {Array} routes
- */
-function HttpConfiguration(configPath) {
-    HttpConfiguration.super_.bind(this)(configPath);
-    if (!this.hasSourceAt('mimes')) { this.setSourceAt('mimes',[]); }
-    if (!this.hasSourceAt('engines')) { this.setSourceAt('engines',[]); }
-    if (!this.hasSourceAt('controllers')) { this.setSourceAt('controllers',{}); }
-    if (!this.hasSourceAt('handlers')) { this.setSourceAt('handlers',[]); }
-    if (!this.hasSourceAt('settings')) { this.setSourceAt('settings',[]); }
-    try {
-        this[routesProperty] = require(PathUtils.join(this.getConfigurationPath(),'routes.json'))
-    }
-    catch(err) {
-        if (err.code === 'MODULE_NOT_FOUND') {
-            this[routesProperty] = require('./resources/routes.json');
-        }
-        else {
-            TraceUtils.error('An error occurred while loading routes collection');
-            TraceUtils.error(err);
-        }
-    }
 
-    var self = this;
-    Object.defineProperty(self, 'handlers', {
-        get: function() {
-            return self.getSourceAt('handlers');
-        }, configurable:false, enumerable:false
-    });
-    //process handlers
-    var handlers = this.getSourceAt('handlers'),
-        defaultApplicationConfig = require('./resources/app.json');
-    //default handlers
-    var defaultHandlers = defaultApplicationConfig.handlers;
-    for (var i = 0; i < defaultHandlers.length; i++) {
-        (function(item) {
-            if (typeof handlers.filter(function(x) { return x.name === item.name; })[0] === 'undefined') {
-                handlers.push(item);
-            }
-        })(defaultHandlers[i]);
-    }
-    _.forEach(handlers,function (h) {
+var HttpConfiguration = exports.HttpConfiguration = function (_ConfigurationBase) {
+    _inherits(HttpConfiguration, _ConfigurationBase);
+
+    /**
+     * @param {string} configPath
+     */
+    function HttpConfiguration(configPath) {
+        _classCallCheck(this, HttpConfiguration);
+
+        var _this = _possibleConstructorReturn(this, (HttpConfiguration.__proto__ || Object.getPrototypeOf(HttpConfiguration)).call(this, configPath));
+
+        if (!_this.hasSourceAt('mimes')) {
+            _this.setSourceAt('mimes', []);
+        }
+        if (!_this.hasSourceAt('engines')) {
+            _this.setSourceAt('engines', []);
+        }
+        if (!_this.hasSourceAt('controllers')) {
+            _this.setSourceAt('controllers', []);
+        }
         try {
-            var handlerPath = h.type;
-            if (handlerPath.indexOf('/') === 0) {
-                handlerPath = self.mapPath(handlerPath);
-            }
-            var handlerModule = require(handlerPath), handler = null;
-            if (handlerModule) {
-                if (typeof handlerModule.createInstance !== 'function') {
-                    TraceUtils.log('The specified handler (%s) cannot be instantiated. The module does not export createInstance() function.', h.name);
-                    return;
-                }
-                handler = handlerModule.createInstance();
-                if (handler)
-                    self.handlers.push(handler);
+            _this[routesProperty] = require(PathUtils.join(_this.getConfigurationPath(), 'routes.json'));
+        } catch (err) {
+            if (err.code === 'MODULE_NOT_FOUND') {
+                _this[routesProperty] = require('./resources/routes.json');
+            } else {
+                TraceUtils.error('An error occurred while loading routes collection');
+                TraceUtils.error(err);
             }
         }
-        catch (e) {
-            throw new Error(sprintf('The specified handler (%s) cannot be loaded. %s', h.name, e.message));
+        return _this;
+    }
+
+    /**
+     * Gets a collection of mime types registered for the current application
+     * @returns {Array}
+     */
+
+
+    _createClass(HttpConfiguration, [{
+        key: 'getMimeType',
+
+
+        /**
+         * Gets a mime type based on the given extension
+         * @param {string} extension
+         * @returns {T}
+         */
+        value: function getMimeType(extension) {
+            return _.find(this.mimes, function (x) {
+                return x.extension === extension || x.extension === '.' + extension;
+            });
         }
-    });
+    }, {
+        key: 'mimes',
+        get: function get() {
+            return this.getSourceAt('mimes');
+        }
 
-    Object.defineProperty(self, 'mimes', {
-        get: function() {
-            return self.getSourceAt('mimes');
-        }, configurable:false, enumerable:false
-    });
+        /**
+         * Gets a collection of mime types registered for the current application
+         * @returns {Array}
+         */
 
-    Object.defineProperty(self, 'engines', {
-        get: function() {
-            return self.getSourceAt('engines');
-        }, configurable:false, enumerable:false
-    });
+    }, {
+        key: 'engines',
+        get: function get() {
+            return this.getSourceAt('engines');
+        }
 
-    Object.defineProperty(self, 'controllers', {
-        get: function() {
-            return self.getSourceAt('controllers');
-        }, configurable:false, enumerable:false
-    });
+        /**
+         * Gets a collection of mime types registered for the current application
+         * @returns {Array}
+         */
 
-    Object.defineProperty(self, 'routes', {
-        get: function() {
-            return self[routesProperty];
-        }, configurable:false, enumerable:false
-    });
+    }, {
+        key: 'controllers',
+        get: function get() {
+            return this.getSourceAt('controllers');
+        }
 
-}
-LangUtils.inherits(HttpConfiguration, ConfigurationBase);
+        /**
+         * Gets a collection of routes registered for the current application
+         * @returns {Array}
+         */
 
-/**
- * Gets a mime type based on the given extension
- * @param {string} extension
- * @returns {T}
- */
-HttpConfiguration.prototype.getMimeType = function(extension) {
-    return _.find(this.mimes,function(x) {
-        return (x.extension===extension) || (x.extension==='.'+extension);
-    });
-};
+    }, {
+        key: 'routes',
+        get: function get() {
+            return this[routesProperty];
+        }
+    }]);
 
-if (typeof exports !== 'undefined') {
-    module.exports.HttpConfiguration = HttpConfiguration;
-}
+    return HttpConfiguration;
+}(ConfigurationBase);
+//# sourceMappingURL=config.js.map
