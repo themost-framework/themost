@@ -780,8 +780,8 @@ var HttpController = function () {
         key: 'jsvar',
         value: function jsvar(name, obj) {
             if (typeof name !== 'string') return new HttpEmptyResult();
-            if (name.length == 0) return new HttpEmptyResult();
-            if (typeof obj === 'undefined' || obj == null) return new HttpJavascriptResult(name.concat(' = null;'));else if (obj instanceof Date) return new HttpJavascriptResult(name.concat(' = new Date(', obj.valueOf(), ');'));else if (typeof obj === 'string') return new HttpJavascriptResult(name.concat(' = ', obj, ';'));else return new HttpJavascriptResult(name.concat(' = ', JSON.stringify(obj), ';'));
+            if (name.length === 0) return new HttpEmptyResult();
+            if (typeof obj === 'undefined' || obj === null) return new HttpJavascriptResult(name.concat(' = null;'));else if (obj instanceof Date) return new HttpJavascriptResult(name.concat(' = new Date(', obj.valueOf(), ');'));else if (typeof obj === 'string') return new HttpJavascriptResult(name.concat(' = ', obj, ';'));else return new HttpJavascriptResult(name.concat(' = ', JSON.stringify(obj), ';'));
         }
 
         /**

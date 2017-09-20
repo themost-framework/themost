@@ -444,7 +444,7 @@ var DataCachingListener = exports.DataCachingListener = function () {
                 }
                 //validate conditional caching
                 if (event.model.caching === 'conditional') {
-                    if (event.emitter && typeof event.emitter.data == 'function') {
+                    if (event.emitter && typeof event.emitter.data === 'function') {
                         if (!event.emitter.data('cache')) {
                             return callback();
                         }
@@ -465,7 +465,7 @@ var DataCachingListener = exports.DataCachingListener = function () {
                     //calculate execution time (debug)
                     var logTime = new Date().getTime();
                     //query cache
-                    return DataCache.getCurrent().get(key).subscribe(function (result) {
+                    return DataCache.getCurrent().get(key).then(function (result) {
                         if (typeof result !== 'undefined') {
                             //delete expandables
                             if (event.emitter) {
@@ -487,7 +487,7 @@ var DataCachingListener = exports.DataCachingListener = function () {
                             //do nothing and exit
                             return callback();
                         }
-                    }, function (err) {
+                    }).catch(function (err) {
                         TraceUtils.log('DataCacheListener: An error occured while trying to get cached data.');
                         TraceUtils.log(err);
                         return callback();
@@ -518,7 +518,7 @@ var DataCachingListener = exports.DataCachingListener = function () {
                 }
                 //validate conditional caching
                 if (event.model.caching === 'conditional') {
-                    if (event.emitter && typeof event.emitter.data == 'function') {
+                    if (event.emitter && typeof event.emitter.data === 'function') {
                         if (!event.emitter.data('cache')) {
                             return callback();
                         }
@@ -539,9 +539,9 @@ var DataCachingListener = exports.DataCachingListener = function () {
                         if (process.env.NODE_ENV === 'development') {
                             TraceUtils.debug('DataCacheListener: Setting data to cache [' + key + ']');
                         }
-                        return DataCache.getCurrent().add(key, event.result).subscribe(function () {
+                        return DataCache.getCurrent().add(key, event.result).then(function () {
                             return callback();
-                        }, function (err) {
+                        }).catch(function (err) {
                             TraceUtils.error('An error occurred while adding item in data cache');
                             TraceUtils.error(err);
                             return callback();
@@ -1290,7 +1290,7 @@ function DataNestedObject_BeforeSave_(attr, event, callback) {
         });
     } else if (event.state == 2) {
         //first of all get original address from db
-        event.model.where(key).equal(event.target[key]).select(key, name).silent().first().subscribe(function (result) {
+        event.model.where(key).equal(event.target[key]).select(key, name).silent().first().then(function (result) {
             if (_.isNil(result)) {
                 return callback(new Error('Invalid object state.'));
             }
@@ -1313,7 +1313,7 @@ function DataNestedObject_BeforeSave_(attr, event, callback) {
                     return callback(err);
                 });
             }
-        }, function (err) {
+        }).catch(function (err) {
             return callback(err);
         });
     } else {

@@ -975,13 +975,13 @@ export class DataModel extends SequentialEventEmitter {
          * @augments DataObject
          * @ignore
          */
-        const DataObjectClass = self.context.getConfiguration().getStrategy(ModelClassLoaderStrategy).resolve(self);
+        const DataObjectClass = self.context.getConfiguration().getConfiguration().getStrategy(ModelClassLoaderStrategy).resolve(self);
         let src;
         if (_.isArray(obj)) {
             const arr = [];
             obj.forEach(function(x) {
                 if (typeof x !== 'undefined' && x!==null) {
-                    const o = new DataObjectClass();
+                    const o = new DataObjectClass(self.name);
                     if (typeof x === 'object') {
                         _.assign(o, x);
                     }
@@ -992,14 +992,13 @@ export class DataModel extends SequentialEventEmitter {
                     if (typeConvert)
                         convertInternal_.call(self, o);
                     o.context = self.context;
-                    o.$$type = self.name;
                     arr.push(o);
                 }
             });
             return arr;
         }
         else {
-            const result = new DataObjectClass();
+            const result = new DataObjectClass(self.name);
             if (typeof obj === 'object') {
                 _.assign(result, obj);
             }
@@ -1010,7 +1009,6 @@ export class DataModel extends SequentialEventEmitter {
             if (typeConvert)
                 convertInternal_.call(self, result);
             result.context = self.context;
-            result.$$type = self.name;
             return result;
         }
     }

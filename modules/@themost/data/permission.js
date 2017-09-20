@@ -24,6 +24,10 @@ var _lodash = require('lodash');
 
 var _ = _lodash._;
 
+var _q = require('q');
+
+var Q = _interopRequireDefault(_q).default;
+
 var _async = require('async');
 
 var async = _interopRequireDefault(_async).default;
@@ -476,7 +480,7 @@ var DataPermissionEventListener = exports.DataPermissionEventListener = function
             //do not check permissions if the target model has no privileges defined
             if (model.privileges.filter(function (x) {
                 return !x.disabled;
-            }, model.privileges).length == 0) {
+            }, model.privileges).length === 0) {
                 return callback();
             }
             //infer permission mask
@@ -503,7 +507,7 @@ var DataPermissionEventListener = exports.DataPermissionEventListener = function
             var authSettings = context.getConfiguration().getAuthSettings();
             if (authSettings) {
                 var unattendedExecutionAccount = authSettings.unattendedExecutionAccount;
-                if ((typeof unattendedExecutionAccount !== 'undefined' || unattendedExecutionAccount != null) && unattendedExecutionAccount === context.user.name) {
+                if ((typeof unattendedExecutionAccount !== 'undefined' || unattendedExecutionAccount !== null) && unattendedExecutionAccount === context.user.name) {
                     return callback();
                 }
             }
@@ -720,15 +724,16 @@ function queryUser(context, username, callback) {
                     //get anonymous user object
                     var user = users.convert(result);
                     //get user groups
-                    user.property('groups').select('id', 'name').silent().all(function (err, groups) {
+                    user.property('groups').select('id', 'name').silent().all().then(function (groups) {
                         if (err) {
-                            callback(err);
-                            return;
+                            return callback(err);
                         }
                         //set anonymous user groups
                         user.groups = groups || [];
                         //return user
-                        callback(null, user);
+                        return callback(null, user);
+                    }).catch(function (err) {
+                        return callback(err);
                     });
                 }
             });
@@ -758,11 +763,17 @@ function effectiveAccounts(context, callback) {
     //if the current user is anonymous
     if (context.user.name === 'anonymous') {
         //get anonymous user data
-        return DataCache.getCurrent().getOrDefault('/User/anonymous', function (cb) {
-            anonymousUser(context, function (err, result) {
-                cb(err, result);
+
+        return DataCache.getCurrent().getOrDefault('/User/anonymous', function () {
+            return Q.promise(function (resolve, reject) {
+                anonymousUser(context, function (err, result) {
+                    if (err) {
+                        return reject(err);
+                    }
+                    return resolve(result);
+                });
             });
-        }).subscribe(function (result) {
+        }).then(function (result) {
             var arr = [];
             if (result) {
                 arr.push({ "id": result.id, "name": result.name });
@@ -773,16 +784,30 @@ function effectiveAccounts(context, callback) {
             }
             if (arr.length === 0) arr.push({ id: null });
             return callback(null, arr);
-        }, function (err) {
+        }).catch(function (err) {
             return callback(err);
         });
     } else {
-        return DataCache.getCurrent().getOrDefault('/User/{context.user.name}', function (cb) {
-            queryUser(context, context.user.name, cb);
-        }).subscribe(function (user) {
-            DataCache.getCurrent().getOrDefault('/User/anonymous', function (cb) {
-                anonymousUser(context, cb);
-            }).subscribe(function (anonymous) {
+        return DataCache.getCurrent().getOrDefault('/User/' + context.user.name, function () {
+            return Q.promise(function (resolve, reject) {
+                queryUser(context, context.user.name, function (err, res) {
+                    if (err) {
+                        return reject(err);
+                    }
+                    return resolve(res);
+                });
+            });
+        }).then(function (user) {
+            return DataCache.getCurrent().getOrDefault('/User/anonymous', function () {
+                return Q.promise(function (resolve, reject) {
+                    anonymousUser(context, function (err, result) {
+                        if (err) {
+                            return reject(err);
+                        }
+                        return resolve(result);
+                    });
+                });
+            }).then(function (anonymous) {
                 var arr = [];
                 if (user) {
                     arr.push({ "id": user.id, "name": user.name });
@@ -798,10 +823,8 @@ function effectiveAccounts(context, callback) {
                 }
                 if (arr.length === 0) arr.push({ id: null });
                 callback(null, arr);
-            }, function (err) {
-                return callback(err);
             });
-        }, function (err) {
+        }).catch(function (err) {
             return callback(err);
         });
     }

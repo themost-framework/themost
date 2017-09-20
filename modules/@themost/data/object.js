@@ -85,7 +85,9 @@ var DataObject = function (_SequentialEventEmitt) {
         //initialize object type
         var _this = _possibleConstructorReturn(this, (DataObject.__proto__ || Object.getPrototypeOf(DataObject)).call(this));
 
-        if (type) _this[typeProperty] = type;else {
+        if (type) {
+            _this[typeProperty] = type;
+        } else {
             //get type from constructor name
             if (/Model$/.test(_this.constructor.name)) {
                 _this[typeProperty] = _this.constructor.name.replace(/Model$/, '');
@@ -105,7 +107,7 @@ var DataObject = function (_SequentialEventEmitt) {
                 if (err) {
                     return callback(err);
                 }
-                callback(null, state == 1);
+                callback(null, state === 1);
             });
         }).selector('live', function (callback) {
             if (typeof callback !== 'function') {
@@ -117,11 +119,11 @@ var DataObject = function (_SequentialEventEmitt) {
                 if (err) {
                     return callback(err);
                 }
-                callback(null, state == 2);
+                callback(null, state === 2);
             });
         });
 
-        if (typeof obj !== 'undefined' && obj != null) {
+        if (typeof obj !== 'undefined' && obj !== null) {
             _.assign(_this, obj);
         }
 
@@ -340,7 +342,7 @@ var DataObject = function (_SequentialEventEmitt) {
                                     if (err) {
                                         return callback(err);
                                     }
-                                    if (state == 2) {
+                                    if (state === 2) {
                                         model.where(model.primaryKey).equal(self[model.primaryKey]).select(name).value(function (err, value) {
                                             if (err) {
                                                 return callback(err);
@@ -358,9 +360,9 @@ var DataObject = function (_SequentialEventEmitt) {
                 };
             }
             //validate field association
-            if (mapping.associationType == 'association') {
-                if (mapping.parentModel == model.name) return new HasOneToManyAssociation(self, mapping);else return new HasManyToOneAssociation(self, mapping);
-            } else if (mapping.associationType == 'junction') {
+            if (mapping.associationType === 'association') {
+                if (mapping.parentModel === model.name) return new HasOneToManyAssociation(self, mapping);else return new HasManyToOneAssociation(self, mapping);
+            } else if (mapping.associationType === 'junction') {
                 if (mapping.parentModel === model.name) {
                     if (typeof mapping.childModel === 'undefined') {
                         return new HasTagAssociation(self, mapping);
@@ -689,12 +691,12 @@ var DataObject = function (_SequentialEventEmitt) {
                             if (self.getModel().$silent) {
                                 additionalModel.silent();
                             }
-                            additionalModel.where(self.getModel().getPrimaryKey()).equal(self.getId()).first().subscribe(function (result) {
+                            additionalModel.where(self.getModel().getPrimaryKey()).equal(self.getId()).first().then(function (result) {
                                 if (result) {
                                     return deferred.resolve(additionalModel.convert(result));
                                 }
                                 return deferred.resolve();
-                            }, function (err) {
+                            }).catch(function (err) {
                                 return deferred.reject(err);
                             });
                         } catch (e) {

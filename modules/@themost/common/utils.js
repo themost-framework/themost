@@ -64,7 +64,7 @@ var Args = exports.Args = function () {
         /**
          * Checks the expression and throws an exception if the condition is not met.
          * @param {*} expr
-         * @param {string|error} err
+         * @param {string|Error} err
          */
         value: function check(expr, err) {
             Args.notNull(expr, "Expression");
@@ -141,7 +141,7 @@ var Args = exports.Args = function () {
     }, {
         key: 'notNumber',
         value: function notNumber(arg, name) {
-            if (typeof arg !== 'string') {
+            if (typeof arg !== 'number') {
                 var err = new Error(name + " must be number");
                 err.code = "EARG";
                 throw err;

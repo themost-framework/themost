@@ -686,7 +686,13 @@ var SqlFormatter = exports.SqlFormatter = function () {
             //get entity name
             var entity = _.findKey(obj.$select);
             var joins = [];
-            if (_.isArray(obj.$expand)) joins = obj.$expand;else if (_.isObject(obj.$expand)) joins.push(obj.$expand);
+            if (_.isArray(obj.$expand)) {
+                joins = _.filter(obj.$expand, function (x) {
+                    return _.isObject(x);
+                });
+            } else if (_.isObject(obj.$expand)) {
+                joins.push(obj.$expand);
+            }
             //get entity fields
             var fields = obj.fields();
             //if fields is not an array
@@ -712,6 +718,8 @@ var SqlFormatter = exports.SqlFormatter = function () {
                 }).join(', '), ' FROM ', escapedEntity);
             }
 
+            var table = void 0;
+
             //add join if any
             _.forEach(joins, function (x) {
                 if (x.$entity instanceof QueryExpression) {
@@ -721,10 +729,10 @@ var SqlFormatter = exports.SqlFormatter = function () {
                     if (x.$entity.$alias) sql = sql.concat(' AS ').concat($this.escapeName(x.$entity.$alias));
                 } else {
                     //get join table name
-                    var _table = _.findKey(x.$entity);
+                    table = _.findKey(x.$entity);
                     //get on statement (the join comparison)
                     var joinType = (x.$entity.$join || 'inner').toUpperCase();
-                    sql = sql.concat(' ' + joinType + ' JOIN ').concat($this.escapeName(_table));
+                    sql = sql.concat(' ' + joinType + ' JOIN ').concat($this.escapeName(table));
                     //add alias
                     if (x.$entity.$as) sql = sql.concat(' AS ').concat($this.escapeName(x.$entity.$as));
                 }
@@ -736,11 +744,8 @@ var SqlFormatter = exports.SqlFormatter = function () {
 
                     var right = x.$with[1];
 
-                    var //the default left table is the query entity
-                    leftTable = entity;
-
-                    var //the default right table is the join entity
-                    rightTable = table;
+                    var leftTable = entity;
+                    var rightTable = table;
 
                     if ((typeof left === 'undefined' ? 'undefined' : _typeof(left)) === 'object') {
                         leftTable = _.findKey(left);

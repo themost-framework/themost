@@ -17,7 +17,6 @@ import Rx from 'rxjs';
 import {DataAssociationMapping} from './types';
 import {DataError} from '@themost/common/errors';
 import {QueryExpression, QueryField, QueryFieldUtils, QueryEntity} from '@themost/query/query';
-import {MappingExtensions} from './mapping-extensions';
 import {TextUtils} from "@themost/common/utils";
 
 /**
@@ -1242,7 +1241,7 @@ export class DataQueryable {
                 }
                 arg.forEach(function(x) {
                     if (typeof x === 'string') {
-                        field = self.model.field(x);
+                        const field = self.model.field(x);
                         if (field) {
                             if (field.many || (field.mapping && field.mapping.associationType === 'junction'))
                                 self.expand(field.name);
@@ -1278,7 +1277,7 @@ export class DataQueryable {
                     return f;
                 });
                 //and select fields
-                self.select(fields);
+                self.select.apply(self,fields);
             }
         }
         else {
@@ -1540,14 +1539,14 @@ export class DataQueryable {
     /**
      * Executes the specified query against the underlying model and returns the first item.
      * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise. The second argument will contain the result.
-     * @returns {Observable|*}
+     * @returns {Promise|*}
      * @example
      //retrieve an order by id
      context.model('Order')
      .where('id').equal(302)
-     .first().subscribe((result) => {
+     .first().then(function(result) {
             done(null, result);
-        }, (err) => {
+        }).catch(function(err) {
             done(err);
         });
      */
@@ -1555,19 +1554,33 @@ export class DataQueryable {
         if (typeof callback === 'function') {
             return firstInternal.call(this, callback);
         }
-        return Rx.Observable.bindNodeCallback(firstInternal.bind(this))();
+        return Q.promise((resolve, reject) => {
+            return firstInternal.bind(this)((err, result) => {
+                if (err) {
+                    return reject(err);
+                }
+                return resolve(result);
+            });
+        });
     }
 
     /**
      * Executes the specified query and returns all objects which satisfy the specified criteria.
      * @param {Function=} callback
-     * @returns {Observable|*}
+     * @returns {Promise|*}
      */
     all(callback) {
         if (typeof callback === 'function') {
             return allInternal.call(this, callback);
         }
-        return Rx.Observable.bindNodeCallback(allInternal.bind(this))();
+        return Q.promise((resolve, reject) => {
+            return allInternal.bind(this)((err, result) => {
+                if (err) {
+                    return reject(err);
+                }
+                return resolve(result);
+            });
+        });
     }
 
     /**
@@ -1953,7 +1966,7 @@ export class DataQueryable {
 
     /**
      * Gets or sets a boolean which indicates whether results should be cached or not. This parameter is valid for models which have caching mechanisms.
-     * @param {string=} value
+     * @param {boolean=} value
      * @returns {string|DataQueryable}
      */
     cache(value) {
@@ -2530,15 +2543,14 @@ export class DataQueryable {
      * @returns {Promise|*}
      */
     getTypedItem() {
-        const self = this, d = Q.defer();
-        process.nextTick(function() {
-            self.first().subscribe((result) => {
-                return d.resolve(self.model.convert(result));
-            }, (err) => {
-                return d.reject(err);
+        const self = this;
+        return Q.promise((resolve, reject) => {
+            return self.getItem().then((result) => {
+                return resolve(self.model.convert(result));
+            }).catch((err) => {
+                return reject(err);
             });
         });
-        return d.promise;
     }
 
     /**
@@ -2546,15 +2558,22 @@ export class DataQueryable {
      * @returns {Promise|*}
      */
     getTypedItems() {
-        const self = this, d = Q.defer();
-        process.nextTick(function() {
-            self.getItems().then(function (result) {
-                return d.resolve(self.model.convert(result));
-            }).catch(function(err) {
-                return d.reject(err);
+        const self = this;
+        return Q.promise((resolve, reject) => {
+            return self.getItems().then((result) => {
+                return resolve(self.model.convert(result));
+            }).catch((err) => {
+                return reject(err);
             });
         });
-        return d.promise;
+    }
+
+    /**
+     * Executes current query and returns a result set based on the specified paging parameters.
+     * @returns {Promise|*}
+     */
+    getList() {
+        return this.list();
     }
 
     /**
@@ -2593,7 +2612,7 @@ export class DataQueryable {
 
 function select_(arg) {
     const self = this;
-    if (typeof arg === 'string' && arg.length==0) {
+    if (typeof arg === 'string' && arg.length===0) {
         return;
     }
     let a = DataAttributeResolver.prototype.testAggregatedNestedAttribute.call(self,arg);
@@ -2724,7 +2743,7 @@ function countInternal(callback) {
     callback = callback || function() {};
     //add a count expression
     const field = self.model.attributes[0];
-    if (field==null)
+    if (field===null)
         return callback.call(this, new Error('Queryable collection does not have any property.'));
     //normalize query and remove skip
     delete self.query.$skip;
@@ -2936,7 +2955,7 @@ function finalExecuteInternal_(e, callback) {
                const result = e['result'];
                afterExecute_.call(self, result, function(err, result) {
                    if (err) { return callback(err); }
-                   if (afterListenerCount==0) { return callback(null, result); }
+                   if (afterListenerCount===0) { return callback(null, result); }
                    //raise after execute event
                    self.model.emit('after.execute', e, function(err) {
                        if (err) { return callback(err); }
@@ -2949,7 +2968,7 @@ function finalExecuteInternal_(e, callback) {
                if (err) { return callback(err); }
                afterExecute_.call(self, result, function(err, result) {
                    if (err) { return callback(err); }
-                   if (afterListenerCount==0) { return callback(null, result); }
+                   if (afterListenerCount===0) { return callback(null, result); }
                    //raise after execute event
                    e.result = result;
                    self.model.emit('after.execute', e, function(err) {
@@ -2979,13 +2998,12 @@ function afterExecute_(result, callback) {
            return x;
         });
         async.eachSeries(expands, function(expand, cb) {
-
+            let mapping, options = {};
             try {
                 /**
                  * get mapping
                  * @type {DataAssociationMapping|*}
                  */
-                var mapping = null, options = { };
                 if (expand instanceof DataAssociationMapping) {
                     mapping = expand;
                     if (typeof expand.select !== 'undefined' && expand.select !== null) {
@@ -3063,6 +3081,7 @@ function afterExecute_(result, callback) {
             }
 
             if (mapping) {
+                const MappingExtensions = require('./mapping-extensions').MappingExtensions;
                 //clone mapping
                 const thisMapping = _.assign({}, mapping);
                 thisMapping.options = options;
@@ -3135,10 +3154,10 @@ function toArrayCallback(result, callback) {
                 return callback(null, result);
             }
             const fields = self.query.fields();
-            if (_.isArray(fields)==false) {
+            if (!_.isArray(fields)) {
                 return callback(null, result);
             }
-            if (fields.length==1) {
+            if (fields.length===1) {
                 const arr = [];
                 result.forEach(function(x) {
                     if (_.isNil(x))

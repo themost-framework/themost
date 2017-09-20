@@ -26,13 +26,13 @@ var _lodash = require('lodash');
 
 var _ = _lodash._;
 
-var _rxjs = require('rxjs');
-
-var Rx = _interopRequireDefault(_rxjs).default;
-
 var _utils = require('@themost/common/utils');
 
 var Args = _utils.Args;
+
+var _q = require('q');
+
+var Q = _interopRequireDefault(_q).default;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -92,14 +92,14 @@ var DataCache = exports.DataCache = function (_SequentialEventEmitt) {
         /**
          * Removes a cached value.
          * @param {string} key - A string that represents the key of the cached value to be removed
-         * @returns {Observable}
+         * @returns {Promise}
          */
 
     }, {
         key: 'remove',
         value: function remove(key) {
             var self = this;
-            return Rx.Observable.bindNodeCallback(function (callback) {
+            return Q.denodeify(function (callback) {
                 self.init(function (err) {
                     if (err) {
                         return callback(err);
@@ -111,14 +111,14 @@ var DataCache = exports.DataCache = function (_SequentialEventEmitt) {
 
         /**
          * Flush all cached data.
-         * @returns {Observable}
+         * @returns {Promise}
          */
 
     }, {
         key: 'clear',
         value: function clear() {
             var self = this;
-            return Rx.Observable.bindNodeCallback(function (callback) {
+            return Q.denodeify(function (callback) {
                 self.init(function (err) {
                     if (err) {
                         return callback(err);
@@ -134,14 +134,14 @@ var DataCache = exports.DataCache = function (_SequentialEventEmitt) {
          * @param {string} key - A string that represents the key of the cached value
          * @param {*} value - The value to be cached
          * @param {number=} absoluteExpiration - An absolute expiration time in seconds. This parameter is optional.
-         * @returns {Observable}
+         * @returns {Promise}
          */
 
     }, {
         key: 'add',
         value: function add(key, value, absoluteExpiration) {
             var self = this;
-            return Rx.Observable.bindNodeCallback(function (callback) {
+            return Q.denodeify(function (callback) {
                 self.init(function (err) {
                     if (err) {
                         return callback(err);
@@ -156,7 +156,7 @@ var DataCache = exports.DataCache = function (_SequentialEventEmitt) {
          * @param {string|*} key - A string which represents the key of the cached data
          * @param {Function} fn - A function to execute if data will not be found in cache
          * @param {number=} absoluteExpiration - An absolute expiration time in seconds. This parameter is optional.
-         * @returns {Observable}
+         * @returns {Promise}
          */
 
     }, {
@@ -164,21 +164,21 @@ var DataCache = exports.DataCache = function (_SequentialEventEmitt) {
         value: function getOrDefault(key, fn, absoluteExpiration) {
             var self = this;
             Args.check(_.isFunction(fn), 'Invalid argument. Expected function.');
-            return self.get(key).flatMap(function (res) {
+            return self.get(key).then(function (res) {
                 if (_.isNil(res)) {
                     var source = fn();
-                    Args.check(source instanceof Observable, 'Invalid argument. Expected a valid observable.');
-                    return source.flatMap(function (res) {
+                    Args.check(_.isFunction(source.then), 'Invalid argument. Expected a valid promise.');
+                    return source.then(function (res) {
                         if (_.isNil(res)) {
-                            return Rx.Observable.of();
+                            return Q();
                         }
-                        return self.add(key, res, absoluteExpiration).flatMap(function () {
-                            return Rx.Observable.of(res);
+                        return self.add(key, res, absoluteExpiration).then(function () {
+                            return Q(res);
                         });
                     });
                 }
-                return Rx.Observable.of(res);
-            })();
+                return Q(res);
+            });
         }
 
         /**
@@ -190,7 +190,7 @@ var DataCache = exports.DataCache = function (_SequentialEventEmitt) {
     }, {
         key: 'get',
         value: function get(key) {
-            return Rx.Observable.bindNodeCallback(function (key, callback) {
+            return Q.denodeify(function (key, callback) {
                 var self = this;
                 self.init(function (err) {
                     if (err) {
@@ -245,26 +245,26 @@ var NoDataCache = exports.NoDataCache = function () {
     /**
      * Gets a cached value defined by the given key.
      * @param {string|*} key
-     * @returns {Observable}
+     * @returns {Promise}
      */
 
 
     _createClass(NoDataCache, [{
         key: 'get',
         value: function get(key) {
-            return Rx.Observable.of();
+            return Q();
         }
 
         /**
          * Removes a cached value.
          * @param {string} key - A string that represents the key of the cached value to be removed
-         * @returns {Observable}
+         * @returns {Promise}
          */
 
     }, {
         key: 'remove',
         value: function remove(key) {
-            return Rx.Observable.of();
+            return Q();
         }
 
         /**
@@ -272,24 +272,24 @@ var NoDataCache = exports.NoDataCache = function () {
          * @param {string} key - A string that represents the key of the cached value
          * @param {*} value - The value to be cached
          * @param {number=} absoluteExpiration - An absolute expiration time in seconds. This parameter is optional.
-         * @returns {Observable}
+         * @returns {Promise}
          */
 
     }, {
         key: 'add',
         value: function add(key, value, absoluteExpiration) {
-            return Rx.Observable.of();
+            return Q();
         }
 
         /**
          * Flush all cached data.
-         * @returns {Observable}
+         * @returns {Promise}
          */
 
     }, {
         key: 'clear',
         value: function clear() {
-            return Rx.Observable.of();
+            return Q();
         }
 
         /**
@@ -297,7 +297,7 @@ var NoDataCache = exports.NoDataCache = function () {
          * @param {string|*} key - A string which represents the key of the cached data
          * @param {Function} fn - A function to execute if data will not be found in cache
          * @param {number=} absoluteExpiration - An absolute expiration time in seconds. This parameter is optional.
-         * @returns {Observable}
+         * @returns {Promise}
          */
 
     }, {
@@ -309,9 +309,9 @@ var NoDataCache = exports.NoDataCache = function () {
             Args.check(source instanceof Observable, 'Invalid argument. Expected a valid observable.');
             return source.flatMap(function (res) {
                 if (_.isNil(res)) {
-                    return Rx.Observable.of();
+                    return Qf();
                 }
-                return Rx.Observable.of(res);
+                return Q(res);
             });
         }
     }]);

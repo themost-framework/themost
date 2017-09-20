@@ -270,7 +270,7 @@ var OutputFormatter = exports.OutputFormatter = function () {
 
 
 function _json_ignore_null_replacer(key, value) {
-    if (value == null) return undefined;
+    if (value === null) return undefined;
     return value;
 }
 

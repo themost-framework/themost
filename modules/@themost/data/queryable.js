@@ -55,10 +55,6 @@ var QueryField = _query.QueryField;
 var QueryFieldUtils = _query.QueryFieldUtils;
 var QueryEntity = _query.QueryEntity;
 
-var _mappingExtensions = require('./mapping-extensions');
-
-var MappingExtensions = _mappingExtensions.MappingExtensions;
-
 var _utils = require('@themost/common/utils');
 
 var TextUtils = _utils.TextUtils;
@@ -434,7 +430,7 @@ var DataAttributeResolver = exports.DataAttributeResolver = function () {
             //if mapping defines a junction between two models
             if (mapping && mapping.associationType === "junction") {
                 //get field
-                var _field = self.field(member[0]);
+                var field = self.field(member[0]);
 
                 var entity = void 0;
                 var expr = void 0;
@@ -450,17 +446,17 @@ var DataAttributeResolver = exports.DataAttributeResolver = function () {
                     }
                     q = QueryExpression.create(self.viewAdapter).select('*');
                     //init an entity based on association adapter (e.g. GroupMembers as members)
-                    entity = QueryEntity.create(mapping.associationAdapter).as(_field.name);
+                    entity = QueryEntity.create(mapping.associationAdapter).as(field.name);
                     //init join expression between association adapter and current data model
                     //e.g. Group.id = GroupMembers.parentId
-                    expr = QueryExpression.create().where(QueryField.create(mapping.parentField).from(self.viewAdapter)).equal(QueryField.create(parentField).from(_field.name));
+                    expr = QueryExpression.create().where(QueryField.create(mapping.parentField).from(self.viewAdapter)).equal(QueryField.create(parentField).from(field.name));
                     //append join
                     q.join(entity).with(expr);
                     //data object tagging
                     if (typeof mapping.childModel === 'undefined') {
                         return {
                             $expand: [q.$expand],
-                            $select: QueryField.create(valueField).from(_field.name)
+                            $select: QueryField.create(valueField).from(field.name)
                         };
                     }
 
@@ -468,7 +464,7 @@ var DataAttributeResolver = exports.DataAttributeResolver = function () {
                     if (member[1] === mapping.childField) {
                         return {
                             $expand: [q.$expand],
-                            $select: QueryField.create(valueField).from(_field.name)
+                            $select: QueryField.create(valueField).from(field.name)
                         };
                     } else {
                         //get child model
@@ -477,9 +473,9 @@ var DataAttributeResolver = exports.DataAttributeResolver = function () {
                             throw new DataError("EJUNC", "The associated model cannot be found.");
                         }
                         //create new join
-                        var alias = _field.name + "_" + childModel.name;
+                        var alias = field.name + "_" + childModel.name;
                         entity = QueryEntity.create(childModel.viewAdapter).as(alias);
-                        expr = QueryExpression.create().where(QueryField.create("valueId").from(_field.name)).equal(QueryField.create(mapping.childField).from(alias));
+                        expr = QueryExpression.create().where(QueryField.create("valueId").from(field.name)).equal(QueryField.create(mapping.childField).from(alias));
                         //append join
                         q.join(entity).with(expr);
                         return {
@@ -491,17 +487,17 @@ var DataAttributeResolver = exports.DataAttributeResolver = function () {
                     q = QueryExpression.create(self.viewAdapter).select('*');
                     //the underlying model is the child model
                     //init an entity based on association adapter (e.g. GroupMembers as groups)
-                    entity = QueryEntity.create(mapping.associationAdapter).as(_field.name);
+                    entity = QueryEntity.create(mapping.associationAdapter).as(field.name);
                     //init join expression between association adapter and current data model
                     //e.g. Group.id = GroupMembers.parentId
-                    expr = QueryExpression.create().where(QueryField.create(mapping.childField).from(self.viewAdapter)).equal(QueryField.create("valueId").from(_field.name));
+                    expr = QueryExpression.create().where(QueryField.create(mapping.childField).from(self.viewAdapter)).equal(QueryField.create("valueId").from(field.name));
                     //append join
                     q.join(entity).with(expr);
                     //return the resolved attribute for futher proccesing e.g. members.id
                     if (member[1] === mapping.parentField) {
                         return {
                             $expand: [q.$expand],
-                            $select: QueryField.create("parentId").from(_field.name)
+                            $select: QueryField.create("parentId").from(field.name)
                         };
                     } else {
                         //get parent model
@@ -510,9 +506,9 @@ var DataAttributeResolver = exports.DataAttributeResolver = function () {
                             throw new DataError("EJUNC", "The associated model cannot be found.");
                         }
                         //create new join
-                        var parentAlias = _field.name + "_" + parentModel.name;
+                        var parentAlias = field.name + "_" + parentModel.name;
                         entity = QueryEntity.create(parentModel.viewAdapter).as(parentAlias);
-                        expr = QueryExpression.create().where(QueryField.create("parentId").from(_field.name)).equal(QueryField.create(mapping.parentField).from(parentAlias));
+                        expr = QueryExpression.create().where(QueryField.create("parentId").from(field.name)).equal(QueryField.create(mapping.parentField).from(parentAlias));
                         //append join
                         q.join(entity).with(expr);
                         return {
@@ -1261,14 +1257,14 @@ var DataQueryable = exports.DataQueryable = function () {
                     return this;
                 }
                 //validate field or model view
-                var _field2 = self.model.field(arg);
-                if (_field2) {
+                var field = self.model.field(arg);
+                if (field) {
                     //validate field
-                    if (_field2.many || _field2.mapping && _field2.mapping.associationType === 'junction') {
-                        self.expand(_field2.name);
+                    if (field.many || field.mapping && field.mapping.associationType === 'junction') {
+                        self.expand(field.name);
                     } else {
                         arr = [];
-                        arr.push(self.resolveField(_field2.name));
+                        arr.push(self.resolveField(field.name));
                     }
                 } else {
                     //get data view
@@ -1279,11 +1275,11 @@ var DataQueryable = exports.DataQueryable = function () {
                         var name = void 0;
                         self.$view.fields.forEach(function (x) {
                             name = x.name;
-                            _field2 = self.model.field(name);
+                            field = self.model.field(name);
                             //if a field with the given name exists in target model
-                            if (_field2) {
+                            if (field) {
                                 //check if this field has an association mapping
-                                if (_field2.many || _field2.mapping && _field2.mapping.associationType === 'junction') self.expand(_field2.name);else arr.push(self.resolveField(_field2.name));
+                                if (field.many || field.mapping && field.mapping.associationType === 'junction') self.expand(field.name);else arr.push(self.resolveField(field.name));
                             } else {
                                 var b = DataAttributeResolver.prototype.testAggregatedNestedAttribute.call(self, name);
                                 if (b) {
@@ -1337,9 +1333,9 @@ var DataQueryable = exports.DataQueryable = function () {
                     }
                     arg.forEach(function (x) {
                         if (typeof x === 'string') {
-                            field = self.model.field(x);
-                            if (field) {
-                                if (field.many || field.mapping && field.mapping.associationType === 'junction') self.expand(field.name);else arr.push(self.resolveField(field.name));
+                            var _field = self.model.field(x);
+                            if (_field) {
+                                if (_field.many || _field.mapping && _field.mapping.associationType === 'junction') self.expand(_field.name);else arr.push(self.resolveField(_field.name));
                             }
                             //test nested attribute and simple attribute expression
                             else {
@@ -1367,7 +1363,7 @@ var DataQueryable = exports.DataQueryable = function () {
                         return f;
                     });
                     //and select fields
-                    self.select(fields);
+                    self.select.apply(self, fields);
                 }
             } else {
                 self.query.select(arr);
@@ -1625,14 +1621,14 @@ var DataQueryable = exports.DataQueryable = function () {
         /**
          * Executes the specified query against the underlying model and returns the first item.
          * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise. The second argument will contain the result.
-         * @returns {Observable|*}
+         * @returns {Promise|*}
          * @example
          //retrieve an order by id
          context.model('Order')
          .where('id').equal(302)
-         .first().subscribe((result) => {
+         .first().then(function(result) {
                 done(null, result);
-            }, (err) => {
+            }).catch(function(err) {
                 done(err);
             });
          */
@@ -1640,25 +1636,43 @@ var DataQueryable = exports.DataQueryable = function () {
     }, {
         key: 'first',
         value: function first(callback) {
+            var _this = this;
+
             if (typeof callback === 'function') {
                 return firstInternal.call(this, callback);
             }
-            return Rx.Observable.bindNodeCallback(firstInternal.bind(this))();
+            return Q.promise(function (resolve, reject) {
+                return firstInternal.bind(_this)(function (err, result) {
+                    if (err) {
+                        return reject(err);
+                    }
+                    return resolve(result);
+                });
+            });
         }
 
         /**
          * Executes the specified query and returns all objects which satisfy the specified criteria.
          * @param {Function=} callback
-         * @returns {Observable|*}
+         * @returns {Promise|*}
          */
 
     }, {
         key: 'all',
         value: function all(callback) {
+            var _this2 = this;
+
             if (typeof callback === 'function') {
                 return allInternal.call(this, callback);
             }
-            return Rx.Observable.bindNodeCallback(allInternal.bind(this))();
+            return Q.promise(function (resolve, reject) {
+                return allInternal.bind(_this2)(function (err, result) {
+                    if (err) {
+                        return reject(err);
+                    }
+                    return resolve(result);
+                });
+            });
         }
 
         /**
@@ -2096,7 +2110,7 @@ var DataQueryable = exports.DataQueryable = function () {
 
         /**
          * Gets or sets a boolean which indicates whether results should be cached or not. This parameter is valid for models which have caching mechanisms.
-         * @param {string=} value
+         * @param {boolean=} value
          * @returns {string|DataQueryable}
          */
 
@@ -2764,16 +2778,14 @@ var DataQueryable = exports.DataQueryable = function () {
     }, {
         key: 'getTypedItem',
         value: function getTypedItem() {
-            var self = this,
-                d = Q.defer();
-            process.nextTick(function () {
-                self.first().subscribe(function (result) {
-                    return d.resolve(self.model.convert(result));
-                }, function (err) {
-                    return d.reject(err);
+            var self = this;
+            return Q.promise(function (resolve, reject) {
+                return self.getItem().then(function (result) {
+                    return resolve(self.model.convert(result));
+                }).catch(function (err) {
+                    return reject(err);
                 });
             });
-            return d.promise;
         }
 
         /**
@@ -2784,16 +2796,25 @@ var DataQueryable = exports.DataQueryable = function () {
     }, {
         key: 'getTypedItems',
         value: function getTypedItems() {
-            var self = this,
-                d = Q.defer();
-            process.nextTick(function () {
-                self.getItems().then(function (result) {
-                    return d.resolve(self.model.convert(result));
+            var self = this;
+            return Q.promise(function (resolve, reject) {
+                return self.getItems().then(function (result) {
+                    return resolve(self.model.convert(result));
                 }).catch(function (err) {
-                    return d.reject(err);
+                    return reject(err);
                 });
             });
-            return d.promise;
+        }
+
+        /**
+         * Executes current query and returns a result set based on the specified paging parameters.
+         * @returns {Promise|*}
+         */
+
+    }, {
+        key: 'getList',
+        value: function getList() {
+            return this.list();
         }
 
         /**
@@ -2868,7 +2889,7 @@ var DataQueryable = exports.DataQueryable = function () {
 
 function select_(arg) {
     var self = this;
-    if (typeof arg === 'string' && arg.length == 0) {
+    if (typeof arg === 'string' && arg.length === 0) {
         return;
     }
     var a = DataAttributeResolver.prototype.testAggregatedNestedAttribute.call(self, arg);
@@ -2987,7 +3008,7 @@ function countInternal(callback) {
     callback = callback || function () {};
     //add a count expression
     var field = self.model.attributes[0];
-    if (field == null) return callback.call(this, new Error('Queryable collection does not have any property.'));
+    if (field === null) return callback.call(this, new Error('Queryable collection does not have any property.'));
     //normalize query and remove skip
     delete self.query.$skip;
     delete self.query.$take;
@@ -3217,7 +3238,7 @@ function finalExecuteInternal_(e, callback) {
                     if (err) {
                         return callback(err);
                     }
-                    if (afterListenerCount == 0) {
+                    if (afterListenerCount === 0) {
                         return callback(null, result);
                     }
                     //raise after execute event
@@ -3238,7 +3259,7 @@ function finalExecuteInternal_(e, callback) {
                     if (err) {
                         return callback(err);
                     }
-                    if (afterListenerCount == 0) {
+                    if (afterListenerCount === 0) {
                         return callback(null, result);
                     }
                     //raise after execute event
@@ -3274,14 +3295,13 @@ function afterExecute_(result, callback) {
             return x;
         });
         async.eachSeries(expands, function (expand, cb) {
-
+            var mapping = void 0,
+                options = {};
             try {
                 /**
                  * get mapping
                  * @type {DataAssociationMapping|*}
                  */
-                var mapping = null,
-                    options = {};
                 if (expand instanceof DataAssociationMapping) {
                     mapping = expand;
                     if (typeof expand.select !== 'undefined' && expand.select !== null) {
@@ -3348,6 +3368,7 @@ function afterExecute_(result, callback) {
             }
 
             if (mapping) {
+                var MappingExtensions = require('./mapping-extensions').MappingExtensions;
                 //clone mapping
                 var thisMapping = _.assign({}, mapping);
                 thisMapping.options = options;
@@ -3409,10 +3430,10 @@ function toArrayCallback(result, callback) {
                 return callback(null, result);
             }
             var fields = self.query.fields();
-            if (_.isArray(fields) == false) {
+            if (!_.isArray(fields)) {
                 return callback(null, result);
             }
-            if (fields.length == 1) {
+            if (fields.length === 1) {
                 var arr = [];
                 result.forEach(function (x) {
                     if (_.isNil(x)) return;

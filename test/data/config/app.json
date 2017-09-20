@@ -46,7 +46,7 @@
         {
             "name": "local-db", "invariantName": "sqlite", "default": true,
             "options": {
-                "database": "test-app/db/local.db"
+                "database": "test/data/db/local.db"
             }
         }
     ],

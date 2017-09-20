@@ -34,7 +34,6 @@ var QueryEntity = _query.QueryEntity;
 
 var _associations = require('./associations');
 
-var HasOneToManyAssociation = _associations.HasOneToManyAssociation;
 var HasManyToOneAssociation = _associations.HasManyToOneAssociation;
 var HasManyToManyAssociation = _associations.HasManyToManyAssociation;
 var HasTagAssociation = _associations.HasTagAssociation;
@@ -101,7 +100,7 @@ var MappingExtensions = exports.MappingExtensions = function () {
                             return deferred.resolve();
                         }
                         var arr = _.isArray(items) ? items : [items];
-                        if (arr.length == 0) {
+                        if (arr.length === 0) {
                             return deferred.resolve();
                         }
                         if (_.isNil(thisQueryable)) {
@@ -112,12 +111,12 @@ var MappingExtensions = exports.MappingExtensions = function () {
                         }
                         //get array of key values (for childs)
                         var values = arr.filter(function (x) {
-                            return typeof x[mapping.childField] !== 'undefined' && x[mapping.childField] != null;
+                            return typeof x[mapping.childField] !== 'undefined' && x[mapping.childField] !== null;
                         }).map(function (x) {
                             return x[mapping.childField];
                         });
                         //query junction model
-                        var junction = new HasManyToOneAssociation(thisQueryable.model.convert({}), mapping);
+                        var junction = new HasManyToManyAssociation(thisQueryable.model.convert({}), mapping);
                         junction.getBaseModel().where('valueId').in(values).flatten().silent().all(function (err, junctions) {
                             if (err) {
                                 return deferred.reject(err);
@@ -147,7 +146,7 @@ var MappingExtensions = exports.MappingExtensions = function () {
                                 //and finally query parent
                                 q.getItems().then(function (parents) {
                                     //if result contains only one item
-                                    if (arr.length == 1) {
+                                    if (arr.length === 1) {
                                         arr[0][mapping.refersTo] = parents;
                                         return deferred.resolve();
                                     }
@@ -157,7 +156,7 @@ var MappingExtensions = exports.MappingExtensions = function () {
                                         var valueId = x[mapping.childField];
                                         //get parent(s)
                                         var p = junctions.filter(function (y) {
-                                            return y.valueId == valueId;
+                                            return y.valueId === valueId;
                                         }).map(function (r) {
                                             return r['parentId'];
                                         });
@@ -187,7 +186,7 @@ var MappingExtensions = exports.MappingExtensions = function () {
                             return deferred.resolve();
                         }
                         var arr = _.isArray(items) ? items : [items];
-                        if (arr.length == 0) {
+                        if (arr.length === 0) {
                             return deferred.resolve();
                         }
                         if (_.isNil(thisQueryable)) {
@@ -250,7 +249,7 @@ var MappingExtensions = exports.MappingExtensions = function () {
                             return deferred.resolve();
                         }
                         var arr = _.isArray(items) ? items : [items];
-                        if (arr.length == 0) {
+                        if (arr.length === 0) {
                             return deferred.resolve();
                         }
                         if (_.isNil(thisQueryable)) {
@@ -260,7 +259,7 @@ var MappingExtensions = exports.MappingExtensions = function () {
                             return deferred.resolve();
                         }
                         var values = arr.filter(function (x) {
-                            return typeof x[mapping.parentField] !== 'undefined' && x[mapping.parentField] != null;
+                            return typeof x[mapping.parentField] !== 'undefined' && x[mapping.parentField] !== null;
                         }).map(function (x) {
                             return x[mapping.parentField];
                         });
@@ -304,7 +303,7 @@ var MappingExtensions = exports.MappingExtensions = function () {
                                     q.silent();
                                 }
                                 //append where statement for this operation
-                                if (values.length == 1) {
+                                if (values.length === 1) {
                                     q.where(mapping.childField).equal(values[0]);
                                 } else {
                                     q.where(mapping.childField).in(values);
@@ -312,7 +311,7 @@ var MappingExtensions = exports.MappingExtensions = function () {
                                 //and finally query childs
                                 q.getItems().then(function (childs) {
                                     //if result contains only one item
-                                    if (arr.length == 1) {
+                                    if (arr.length === 1) {
                                         arr[0][mapping.refersTo] = childs;
                                         return deferred.resolve();
                                     }
@@ -322,7 +321,7 @@ var MappingExtensions = exports.MappingExtensions = function () {
                                         var parentId = x[mapping.parentField];
                                         //get parent(s)
                                         var p = junctions.filter(function (y) {
-                                            return y.parentId == parentId;
+                                            return y.parentId === parentId;
                                         }).map(function (r) {
                                             return r['valueId'];
                                         });
@@ -354,7 +353,7 @@ var MappingExtensions = exports.MappingExtensions = function () {
                             return deferred.resolve();
                         }
                         var arr = _.isArray(items) ? items : [items];
-                        if (arr.length == 0) {
+                        if (arr.length === 0) {
                             return deferred.resolve();
                         }
                         if (_.isNil(thisQueryable)) {
@@ -445,7 +444,7 @@ var MappingExtensions = exports.MappingExtensions = function () {
                                 if (thisQueryable.$silent) {
                                     q.silent();
                                 }
-                                q.silent().getAllItems().subscribe(function (parents) {
+                                q.silent().getAllItems().then(function (parents) {
                                     var childField = thisQueryable.model.field(mapping.childField);
                                     var keyField = childField.property || childField.name;
                                     var iterator = function iterator(x) {
@@ -456,7 +455,7 @@ var MappingExtensions = exports.MappingExtensions = function () {
                                     };
                                     _.forEach(arr, iterator);
                                     return deferred.resolve();
-                                }, function (err) {
+                                }).catch(function (err) {
                                     return deferred.reject(err);
                                 });
                             });
@@ -476,7 +475,7 @@ var MappingExtensions = exports.MappingExtensions = function () {
                             return deferred.resolve();
                         }
                         var arr = _.isArray(items) ? items : [items];
-                        if (arr.length == 0) {
+                        if (arr.length === 0) {
                             return deferred.resolve();
                         }
                         if (_.isNil(thisQueryable)) {
@@ -499,7 +498,7 @@ var MappingExtensions = exports.MappingExtensions = function () {
                             }), function (x) {
                                 return x[keyField];
                             }));
-                            if (values.length == 0) {
+                            if (values.length === 0) {
                                 return deferred.resolve();
                             }
                             thisArg.getParentModel().filter(mapping.options, function (err, q) {
@@ -519,7 +518,7 @@ var MappingExtensions = exports.MappingExtensions = function () {
                                 //append where statement for this operation
                                 q.where(mapping.parentField).in(values);
                                 //set silent (?)
-                                q.silent().getAllItems().subscribe(function (parents) {
+                                q.silent().getAllItems().then(function (parents) {
                                     var key = null;
 
                                     var selector = function selector(x) {
@@ -538,7 +537,7 @@ var MappingExtensions = exports.MappingExtensions = function () {
                                         arr.forEach(iterator);
                                     }
                                     return deferred.resolve();
-                                }, function (err) {
+                                }).catch(function (err) {
                                     return deferred.reject(err);
                                 });
                             });
@@ -558,7 +557,7 @@ var MappingExtensions = exports.MappingExtensions = function () {
                             return deferred.resolve();
                         }
                         var arr = _.isArray(items) ? items : [items];
-                        if (arr.length == 0) {
+                        if (arr.length === 0) {
                             return deferred.resolve();
                         }
                         if (_.isNil(thisQueryable)) {
@@ -581,7 +580,7 @@ var MappingExtensions = exports.MappingExtensions = function () {
                             }), function (x) {
                                 return x[keyField];
                             }));
-                            if (values.length == 0) {
+                            if (values.length === 0) {
                                 return deferred.resolve();
                             }
                             //search for view named summary
@@ -600,7 +599,7 @@ var MappingExtensions = exports.MappingExtensions = function () {
                                     q.$levels = 0;
                                 }
                                 q.prepare();
-                                if (values.length == 1) {
+                                if (values.length === 1) {
                                     q.where(mapping.childField).equal(values[0]);
                                 } else {
                                     q.where(mapping.childField).in(values);
@@ -640,7 +639,7 @@ var MappingExtensions = exports.MappingExtensions = function () {
                             return deferred.resolve();
                         }
                         var arr = _.isArray(items) ? items : [items];
-                        if (arr.length == 0) {
+                        if (arr.length === 0) {
                             return deferred.resolve();
                         }
                         if (_.isNil(thisQueryable)) {
@@ -663,7 +662,7 @@ var MappingExtensions = exports.MappingExtensions = function () {
                             }), function (x) {
                                 return x[keyField];
                             }));
-                            if (values.length == 0) {
+                            if (values.length === 0) {
                                 return deferred.resolve();
                             }
                             //search for view named summary
@@ -716,6 +715,4 @@ var MappingExtensions = exports.MappingExtensions = function () {
 
     return MappingExtensions;
 }();
-
-;
 //# sourceMappingURL=mapping-extensions.js.map

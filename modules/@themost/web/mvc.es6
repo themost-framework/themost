@@ -606,9 +606,9 @@ export class HttpController {
     jsvar(name, obj) {
         if (typeof name !== 'string')
             return new HttpEmptyResult();
-        if (name.length==0)
+        if (name.length===0)
             return new HttpEmptyResult();
-        if (typeof obj === 'undefined' || obj == null)
+        if (typeof obj === 'undefined' || obj === null)
             return new HttpJavascriptResult(name.concat(' = null;'));
         else if (obj instanceof Date)
             return new HttpJavascriptResult(name.concat(' = new Date(', obj.valueOf(), ');'));

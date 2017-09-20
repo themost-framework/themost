@@ -22,7 +22,7 @@ require('source-map-support/register');
 
 var _lodash = require('lodash');
 
-var _ = _lodash._;
+var _ = _interopRequireDefault(_lodash).default;
 
 var _utils = require('@themost/common/utils');
 
@@ -41,11 +41,27 @@ var _config = require('@themost/common/config');
 var ConfigurationStrategy = _config.ConfigurationStrategy;
 var ConfigurationBase = _config.ConfigurationBase;
 
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/**
+ *
+ * @param s
+ * @returns {*}
+ * @private
+ */
+function _dasherize(s) {
+    if (_.isString(s)) return _.trim(s).replace(/[_\s]+/g, '-').replace(/([A-Z])/g, '-$1').replace(/-+/g, '-').replace(/^-/, '').toLowerCase();
+    return s;
+}
+if (typeof _.dasherize !== 'function') {
+    _.mixin({ 'dasherize': _dasherize });
+}
 
 /**
  * @ignore
@@ -57,6 +73,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  * @property {boolean} slidingExpiration
  * @property {string} loginPage
  */
+
 var AuthSettings = exports.AuthSettings = function AuthSettings() {
     _classCallCheck(this, AuthSettings);
 
@@ -75,6 +92,7 @@ var adapterTypesProperty = Symbol('adapterTypes');
  * @classdesc Holds the configuration of data modeling infrastructure
  * @class
  * @property {DataConfigurationAuth} auth
+ * @extends ConfigurationStrategy
  *
  */
 
@@ -374,6 +392,16 @@ var SchemaLoaderStrategy = exports.SchemaLoaderStrategy = function (_Configurati
             this[modelsProperty].set(data.name, data);
             return this;
         }
+
+        /**
+         * @returns {string[]}
+         */
+
+    }, {
+        key: 'getModels',
+        value: function getModels() {
+            return _.keys(this[modelsProperty]);
+        }
     }]);
 
     return SchemaLoaderStrategy;
@@ -469,7 +497,7 @@ var DefaultSchemaLoaderStrategy = exports.DefaultSchemaLoaderStrategy = function
             }
             //and finally get this list of file
             var files = this[filesProperty];
-            if (files.length == 0) return;
+            if (files.length === 0) return;
             var r = new RegExp('^' + name.concat('.json') + '$', 'i');
             for (i = 0; i < files.length; i++) {
                 r.lastIndex = 0;
@@ -541,7 +569,7 @@ var DefaultModelClassLoaderStrategy = exports.DefaultModelClassLoaderStrategy = 
             } else {
                 //try to find module by using capitalize naming convention
                 // e.g. OrderDetail -> OrderDetailModel.js
-                var classPath = PathUtils.join(this.getConfiguration().getExecutionPath(), 'models', this.name.concat('Model.js'));
+                var classPath = PathUtils.join(this.getConfiguration().getExecutionPath(), 'models', model.name.concat('Model.js'));
                 try {
                     modelDefinition['DataObjectClass'] = DataObjectClass = require(classPath);
                 } catch (err) {
@@ -549,11 +577,11 @@ var DefaultModelClassLoaderStrategy = exports.DefaultModelClassLoaderStrategy = 
                         try {
                             //try to find module by using dasherize naming convention
                             // e.g. OrderDetail -> order-detail-model.js
-                            classPath = PathUtils.join(this.getConfiguration().getExecutionPath(), 'models', _.dasherize(this.name).concat('-model.js'));
+                            classPath = PathUtils.join(this.getConfiguration().getExecutionPath(), 'models', _.dasherize(model.name).concat('-model.js'));
                             modelDefinition['DataObjectClass'] = DataObjectClass = require(classPath);
                         } catch (err) {
                             if (err.code === 'MODULE_NOT_FOUND') {
-                                if (typeof this['inherits'] === 'undefined' || this['inherits'] == null) {
+                                if (typeof this['inherits'] === 'undefined' || this['inherits'] === null) {
                                     //use default DataObject class
                                     modelDefinition['DataObjectClass'] = DataObjectClass = require('./object').DataObject;
                                 } else {

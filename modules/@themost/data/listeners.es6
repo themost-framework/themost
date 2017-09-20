@@ -369,7 +369,7 @@ export class DataCachingListener {
             if (!caching) { return callback(); }
             //validate conditional caching
             if (event.model.caching==='conditional') {
-                if (event.emitter && typeof event.emitter.data == 'function') {
+                if (event.emitter && typeof event.emitter.data === 'function') {
                     if (!event.emitter.data('cache')) {
                         return callback();
                     }
@@ -391,7 +391,7 @@ export class DataCachingListener {
                 //calculate execution time (debug)
                 const logTime = new Date().getTime();
                 //query cache
-                return DataCache.getCurrent().get(key).subscribe((result)=> {
+                return DataCache.getCurrent().get(key).then((result)=> {
                     if (typeof result !== 'undefined') {
                         //delete expandables
                         if (event.emitter) {
@@ -415,7 +415,7 @@ export class DataCachingListener {
                         //do nothing and exit
                         return callback();
                     }
-                }, (err) => {
+                }).catch((err) => {
                     TraceUtils.log('DataCacheListener: An error occured while trying to get cached data.');
                     TraceUtils.log(err);
                     return callback();
@@ -443,7 +443,7 @@ export class DataCachingListener {
             if (!caching) { return callback(); }
             //validate conditional caching
             if (event.model.caching==='conditional') {
-                if (event.emitter && typeof event.emitter.data == 'function') {
+                if (event.emitter && typeof event.emitter.data === 'function') {
                     if (!event.emitter.data('cache')) {
                         return callback();
                     }
@@ -465,9 +465,9 @@ export class DataCachingListener {
                     if (process.env.NODE_ENV==='development') {
                         TraceUtils.debug('DataCacheListener: Setting data to cache [' + key + ']');
                     }
-                    return DataCache.getCurrent().add(key, event.result).subscribe(() => {
+                    return DataCache.getCurrent().add(key, event.result).then(() => {
                         return callback();
-                    }, (err) => {
+                    }).catch((err) => {
                         TraceUtils.error('An error occurred while adding item in data cache');
                         TraceUtils.error(err);
                         return callback();
@@ -1109,7 +1109,7 @@ function DataNestedObject_BeforeSave_(attr, event, callback) {
             .equal(event.target[key])
             .select(key,name)
             .silent()
-            .first().subscribe((result) => {
+            .first().then((result) => {
             if (_.isNil(result)) { return callback(new Error('Invalid object state.')); }
             const nestedKey = nestedModel.getPrimaryKey();
             if (_.isNil(result[name])) {
@@ -1131,7 +1131,7 @@ function DataNestedObject_BeforeSave_(attr, event, callback) {
                     return callback(err);
                 });
             }
-        }, (err) => {
+        }).catch((err) => {
             return callback(err);
         });
     }

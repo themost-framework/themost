@@ -20,6 +20,8 @@
     "web",
     "framework",
     "data",
+    "odata",
+    "rest",
     "orm",
     "http",
     "mvc"
@@ -71,14 +73,15 @@
     "grunt-newer": "^1.2.0",
     "load-grunt-tasks": "^3.5.2",
     "mocha": "^3.5.1",
-    "source-map-support": "^0.4.11"
+    "source-map-support": "^0.4.11",
+    "xml-formatter": "^1.0.1"
   },
   "jshintConfig": {
     "esversion": 6,
     "newcap": false,
     "node": true,
     "varstmt": true,
-    "sub":true,
+    "sub": true,
     "globals": [
       "describe",
       "it",

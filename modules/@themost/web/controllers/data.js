@@ -256,30 +256,7 @@ var HttpDataController = (_dec = httpGet(), _dec2 = httpAction('new'), _dec3 = h
     _createClass(HttpDataController, [{
         key: 'getNewItem',
         value: function getNewItem() {
-
-            return Rx.Observable.bindNodeCallback(function (callback) {
-                try {
-                    var self = this,
-                        context = self.context;
-                    context.handle(['GET'], function () {
-                        callback(null, self.result());
-                    }).handle(['POST', 'PUT'], function () {
-                        var target = self.model.convert(context.params[self.model.name] || context.params.data, true);
-                        self.model.save(target, function (err) {
-                            if (err) {
-                                callback(HttpError.create(err));
-                            } else {
-                                if (context.params.attr('returnUrl')) callback(null, context.params.attr('returnUrl'));
-                                callback(null, self.result(target));
-                            }
-                        });
-                    }).unhandle(function () {
-                        callback(new HttpMethodNotAllowedError());
-                    });
-                } catch (e) {
-                    callback(HttpError.create(e));
-                }
-            })();
+            return {};
         }
 
         /**

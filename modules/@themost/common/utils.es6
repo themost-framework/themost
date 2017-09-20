@@ -45,7 +45,7 @@ export class Args {
     /**
      * Checks the expression and throws an exception if the condition is not met.
      * @param {*} expr
-     * @param {string|error} err
+     * @param {string|Error} err
      */
     static check(expr, err) {
         Args.notNull(expr,"Expression");
@@ -111,7 +111,7 @@ export class Args {
      * @param {string} name
      */
     static notNumber(arg, name) {
-        if (typeof arg !== 'string') {
+        if (typeof arg !== 'number') {
             const err = new Error(name + " must be number");
             err.code = "EARG";
             throw err;

@@ -43,8 +43,9 @@ export class DataObject extends SequentialEventEmitter {
     constructor(type, obj) {
         super();
         //initialize object type
-        if (type)
+        if (type) {
             this[typeProperty] = type;
+        }
         else {
             //get type from constructor name
             if (/Model$/.test(this.constructor.name)) {
@@ -62,18 +63,18 @@ export class DataObject extends SequentialEventEmitter {
             const self = this, model = self.getModel();
             model.inferState(self, function(err, state) {
                 if (err) { return callback(err); }
-                callback(null, (state==1));
+                callback(null, (state===1));
             });
         }).selector('live', function(callback) {
             if (typeof callback !== 'function') { return new Error(STR_MISSING_CALLBACK_ARGUMENT, STR_MISSING_ARGUMENT_CODE); }
             const self = this, model = self.getModel();
             model.inferState(self, function(err, state) {
                 if (err) { return callback(err); }
-                callback(null, (state==2));
+                callback(null, (state===2));
             });
         });
 
-        if (typeof obj !== 'undefined' && obj != null) {
+        if (typeof obj !== 'undefined' && obj !== null) {
             _.assign(this, obj);
         }
 
@@ -270,7 +271,7 @@ export class DataObject extends SequentialEventEmitter {
                         else {
                             model.inferState(self, function(err, state) {
                                 if (err) { return callback(err); }
-                                if (state==2) {
+                                if (state===2) {
                                     model.where(model.primaryKey).equal(self[model.primaryKey]).select(name).value(function(err, value) {
                                         if (err) { return callback(err); }
                                         callback(null, value);
@@ -287,13 +288,13 @@ export class DataObject extends SequentialEventEmitter {
             };
         }
         //validate field association
-        if (mapping.associationType=='association') {
-            if (mapping.parentModel==model.name)
+        if (mapping.associationType==='association') {
+            if (mapping.parentModel===model.name)
                 return new HasOneToManyAssociation(self, mapping);
             else
                 return new HasManyToOneAssociation(self, mapping);
         }
-        else if (mapping.associationType=='junction') {
+        else if (mapping.associationType==='junction') {
             if (mapping.parentModel===model.name) {
                 if (typeof mapping.childModel === 'undefined') {
                     return new HasTagAssociation(self, mapping);
@@ -594,12 +595,12 @@ export class DataObject extends SequentialEventEmitter {
                             return deferred.resolve();
                         }
                         if (self.getModel().$silent) { additionalModel.silent(); }
-                        additionalModel.where(self.getModel().getPrimaryKey()).equal(self.getId()).first().subscribe((result) => {
+                        additionalModel.where(self.getModel().getPrimaryKey()).equal(self.getId()).first().then((result) => {
                             if (result) {
                                 return deferred.resolve(additionalModel.convert(result));
                             }
                             return deferred.resolve();
-                        }, (err)=> {
+                        }).catch((err)=> {
                             return deferred.reject(err);
                         });
                     }

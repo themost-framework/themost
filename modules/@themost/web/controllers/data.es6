@@ -174,35 +174,7 @@ class HttpDataController extends HttpController {
     @httpGet()
     @httpAction('new')
     getNewItem() {
-
-        return Rx.Observable.bindNodeCallback(function(callback) {
-            try {
-                const self = this, context = self.context;
-                context.handle(['GET'],function() {
-                    callback(null, self.result());
-                }).handle(['POST', 'PUT'],function() {
-                    const target = self.model.convert(context.params[self.model.name] || context.params.data, true);
-                    self.model.save(target, function(err)
-                    {
-                        if (err) {
-                            callback(HttpError.create(err));
-                        }
-                        else {
-                            if (context.params.attr('returnUrl'))
-                                callback(null, context.params.attr('returnUrl'));
-                            callback(null, self.result(target));
-                        }
-                    });
-                }).unhandle(function() {
-                    callback(new HttpMethodNotAllowedError());
-                });
-            }
-            catch (e) {
-                callback(HttpError.create(e));
-            }
-        })();
-
-
+        return { };
     }
 
     /**
@@ -325,7 +297,7 @@ class HttpDataController extends HttpController {
     @httpAction('edit')
     postItem(id) {
         const self = this;
-        return Rx.Observable.bindNodeCallback(function(callback) {
+        return Rx.Observable.bindNodeCallback((callback) => {
             const target = self.model.convert(data, true);
             if (target) {
                 self.model.save(target, function(err)
@@ -464,6 +436,8 @@ class HttpDataController extends HttpController {
                 }
             });
     }
+
+
 
     /*jshint ignore:start*/
     @httpGet()

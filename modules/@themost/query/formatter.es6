@@ -587,10 +587,14 @@ export class SqlFormatter {
         //get entity name
         const entity = _.findKey(obj.$select);
         let joins = [];
-        if (_.isArray(obj.$expand))
-            joins=obj.$expand;
-        else if (_.isObject(obj.$expand))
+        if (_.isArray(obj.$expand)) {
+            joins=_.filter(obj.$expand, (x)=> {
+                return _.isObject(x);
+            });
+        }
+        else if (_.isObject(obj.$expand)) {
             joins.push(obj.$expand);
+        }
         //get entity fields
         const fields = obj.fields();
         //if fields is not an array
@@ -619,6 +623,7 @@ export class SqlFormatter {
             }).join(', '), ' FROM ', escapedEntity);
         }
 
+        let table;
 
         //add join if any
         _.forEach(joins, function(x) {
@@ -631,7 +636,7 @@ export class SqlFormatter {
             }
             else {
                 //get join table name
-                let table = _.findKey(x.$entity);
+                table = _.findKey(x.$entity);
                 //get on statement (the join comparison)
                 const joinType = (x.$entity.$join || 'inner').toUpperCase();
                 sql = sql.concat(' '+ joinType + ' JOIN ').concat($this.escapeName(table));
@@ -649,11 +654,8 @@ export class SqlFormatter {
 
                 const right = x.$with[1];
 
-                let //the default left table is the query entity
-                    leftTable =  entity;
-
-                let //the default right table is the join entity
-                    rightTable = table;
+                let leftTable =  entity;
+                let rightTable = table;
 
                 if (typeof left === 'object') {
                     leftTable = _.findKey(left);

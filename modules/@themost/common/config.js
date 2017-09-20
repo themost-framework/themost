@@ -211,6 +211,7 @@ var ConfigurationBase = exports.ConfigurationBase = function () {
         /**
          * Gets a configuration strategy
          * @param {Function|*} configStrategyCtor
+         * @returns {ConfigurationStrategy|*}
          */
 
     }, {

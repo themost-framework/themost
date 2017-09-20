@@ -17,7 +17,6 @@ import {Args} from "@themost/common/utils";
 import {QueryExpression, QueryFieldUtils} from "@themost/query/query";
 import {AbstractMethodError,AbstractClassError, DataError, DataNotFoundError} from '@themost/common/errors';
 
-
 const parentProperty = Symbol('parent');
 const modelProperty = Symbol('model');
 const baseModelProperty = Symbol('basemodel');
@@ -104,7 +103,7 @@ export class DataObjectAssociationListener {
                 const keys = Object.keys(e.target);
                 const mappings = [];
                 keys.forEach(function(x) {
-                    if (e.target.hasOwnProperty(x) && typeof e.target[x] === 'object' && e.target[x] != null) {
+                    if (e.target.hasOwnProperty(x) && typeof e.target[x] === 'object' && e.target[x] !== null) {
                             //try to find field mapping, if any
                             const mapping = e.model.inferMapping(x);
                             if (mapping && mapping.associationType==='association' && mapping.childModel===e.model.name)
@@ -149,7 +148,7 @@ export class DataObjectAssociationListener {
                                     er = new Error('An associated object cannot be found.');er.code = 'EDATA';er.model = associatedModel.name;
                                     cb(er);
                                 }
-                                else if (result.total==0) {
+                                else if (result.total===0) {
                                     er = new Error('An associated object cannot be found.');er.code = 'EDATA';er.model = associatedModel.name;
                                     cb(er);
                                 }
@@ -414,7 +413,7 @@ export class HasOneToManyAssociation extends HasAssociation {
     get model() {
         if (_.isNil(this[modelProperty])) {
             const mapping = this.getMapping();
-            Args.notNull(mapping,new Error('Data association mapping cannot be empty at this context.'));
+            Args.check(_.isObject(mapping),new DataError('Data association mapping cannot be empty at this context.'));
             this[modelProperty] = this.getParent().getContext().model(mapping.childModel);
         }
         return this[modelProperty];
@@ -426,10 +425,10 @@ export class HasOneToManyAssociation extends HasAssociation {
     get query() {
         if (_.isNil(this[queryProperty])) {
             const mapping = this.getMapping();
-            Args.notNull(mapping,new Error('Data association cannot be empty at this context.'));
+            Args.check(_.isObject(mapping),new DataError('Data association cannot be empty at this context.'));
             //prepare query by selecting the foreign key of the related object
             const parent = this.getParent();
-            Args.notNull(parent,new Error('Parent object cannot be empty at this context.'));
+            Args.check(_.isObject(parent),new DataError('Parent object cannot be empty at this context.'));
             this[queryProperty] = QueryExpression.create(this.model.getViewAdapter())
                 .where(mapping.childField)
                 .equal(parent[mapping.parentField]).prepare();
@@ -498,10 +497,10 @@ export class HasManyToOneAssociation extends HasAssociation {
     get query() {
         if (_.isNil(this[queryProperty])) {
             const mapping = this.getMapping();
-            Args.notNull(mapping,new Error('Data association cannot be empty at this context.'));
+            Args.check(_.isObject(mapping), new DataError('Data association cannot be empty at this context.'));
             //prepare query by selecting the foreign key of the related object
             const parent = this.getParent();
-            Args.notNull(parent,new Error('Parent object cannot be empty at this context.'));
+            Args.check(_.isObject(parent),new DataError('Parent object cannot be empty at this context.'));
             this[queryProperty] = QueryExpression.create(this.model.getViewAdapter())
                 .where(mapping.parentField)
                 .equal(parent[mapping.childField]).prepare();
@@ -515,7 +514,7 @@ export class HasManyToOneAssociation extends HasAssociation {
     get model() {
         if (_.isNil(this[modelProperty])) {
             const mapping = this.getMapping();
-            Args.notNull(mapping,new Error('Data association mapping cannot be empty at this context.'));
+            Args.check(_.isObject(mapping),new DataError('Data association mapping cannot be empty at this context.'));
             this[modelProperty] = this.getParent().getContext().model(mapping.parentModel);
         }
         return this[modelProperty];
@@ -647,7 +646,7 @@ export class HasManyToManyAssociation extends HasAssociation {
             const mapping = this.getMapping(),
                 parentObject = this.getParent(),
                 parentObjectModel = parentObject.getModel();
-            Args.notNull(mapping, new DataError('Data association mapping cannot be empty at this context'));
+            Args.check(_.isObject(mapping), new DataError('Data association mapping cannot be empty at this context'));
             //initialize query
             this[queryProperty] = QueryExpression.create(this.model.getViewAdapter());
             //get association adapter
@@ -661,16 +660,18 @@ export class HasManyToManyAssociation extends HasAssociation {
             if (mapping.parentModel === parentObjectModel.name) {
                 left[modelAdapter] = [ mapping.childField ];
                 right[baseModelAdapter] = [childField];
-                this.query.join(baseModelAdapter, [])
+                this[queryProperty].join(baseModelAdapter, [])
                     .with([left, right])
                     .where(parentField).equal(parentObject[mapping.parentField]).prepare();
+                return this[queryProperty];
             }
             else if (mapping.childModel === parentObjectModel.name) {
                 left[modelAdapter] = [ mapping.parentField ];
                 right[baseModelAdapter] = [parentField];
-                this.query.join(baseModelAdapter, [])
+                this[queryProperty].join(baseModelAdapter, [])
                     .with([left, right])
                     .where(childField).equal(parentObject[mapping.childField]).prepare();
+                return this[queryProperty];
             }
             //throw association error
             throw new DataError('Data association model cannot be found or is mispelled');
@@ -700,7 +701,7 @@ export class HasManyToManyAssociation extends HasAssociation {
         if (_.isNil(this[baseModelProperty])) {
             const conf = this.getParent().getContext().getConfiguration();
             const mapping = this.getMapping();
-            Args.notNull(mapping, new DataError('Data association mapping cannot be empty at this context'));
+            Args.check(_.isObject(mapping), new DataError('Data association mapping cannot be empty at this context'));
             //search in cache (configuration.current.cache)
             const baseModelDefinition = conf.getModelDefinition(mapping.associationAdapter);
             if (_.isObject(baseModelDefinition)) {
@@ -723,13 +724,13 @@ export class HasManyToManyAssociation extends HasAssociation {
                         name: 'parentId',
                         indexed: true,
                         nullable: false,
-                        type: (parentField.type == 'Counter') ? 'Integer' : parentField.type
+                        type: (parentField.type === 'Counter') ? 'Integer' : parentField.type
                     },
                     {
                         name: 'valueId',
                         indexed: true,
                         nullable: false,
-                        type: (childField.type == 'Counter') ? 'Integer' : childField.type
+                        type: (childField.type === 'Counter') ? 'Integer' : childField.type
                     }],
                 constraints: [
                     {
@@ -744,6 +745,10 @@ export class HasManyToManyAssociation extends HasAssociation {
             this[baseModelProperty] = this.getParent().getContext().model(mapping.associationAdapter);
         }
         return this[baseModelProperty];
+    }
+
+    getBaseModel() {
+        return this.baseModel;
     }
 
     /**
@@ -1106,7 +1111,7 @@ export class HasTagAssociation extends HasAssociation {
         if (_.isNil(this[baseModelProperty])) {
             const conf = this.getParent().getContext().getConfiguration();
             const mapping = this.getMapping();
-            Args.notNull(mapping, new DataError('Data association mapping cannot be empty at this context'));
+            Args.check(_.isObject(mapping), new DataError('Data association mapping cannot be empty at this context'));
             //search in cache (configuration.current.cache)
             const baseModelDefinition = conf.getModelDefinition(mapping.associationAdapter);
             if (_.isObject(baseModelDefinition)) {
@@ -1157,7 +1162,7 @@ export class HasTagAssociation extends HasAssociation {
             const mapping = this.getMapping(),
                 parentObject = this.getParent(),
                 parentObjectModel = parentObject.getModel();
-            Args.notNull(mapping, new DataError('Data association mapping cannot be empty at this context'));
+            Args.check(_.isObject(mapping), new DataError('Data association mapping cannot be empty at this context'));
             //get model adapter
             const modelAdapter = this.model.getViewAdapter();
             //initialize query
@@ -1171,7 +1176,7 @@ export class HasTagAssociation extends HasAssociation {
             left[ parentAdapter ] = [ mapping.parentField ];
             right[ modelAdapter ] = [ QueryFieldUtils.select("object").from(modelAdapter).getName() ];
             const objectField = QueryFieldUtils.select("object").from(modelAdapter).$name;
-            this.query.join(parentAdapter, []).with([left, right]).where(objectField).equal(obj[mapping.parentField]).prepare(false);
+            this[queryProperty].join(parentAdapter, []).with([left, right]).where(objectField).equal(obj[mapping.parentField]).prepare(false);
         }
         return this[queryProperty];
     }
@@ -1342,7 +1347,7 @@ function HasTagAssociation_Clear_(callback) {
         }
         if (self.$silent) { this.getBaseModel().silent(); }
         self.getBaseModel().where("object").equal(self.parent[self.mapping.parentField]).select("id").all().then(function(result) {
-            if (result.length==0) { return callback(); }
+            if (result.length===0) { return callback(); }
             return self.getBaseModel().remove(result).then(function () {
                 return callback();
             });

@@ -9,12 +9,27 @@
  */
 'use strict';
 import 'source-map-support/register';
-import {_} from 'lodash';
+import _ from 'lodash';
 import {TraceUtils,PathUtils} from "@themost/common/utils";
 import {Args} from "@themost/common/utils";
 import {AbstractClassError, AbstractMethodError} from "@themost/common/errors";
 import {ConfigurationStrategy, ConfigurationBase} from "@themost/common/config";
 import {RandomUtils} from "@themost/common/utils";
+
+/**
+ *
+ * @param s
+ * @returns {*}
+ * @private
+ */
+function _dasherize(s) {
+    if (_.isString(s))
+        return _.trim(s).replace(/[_\s]+/g, '-').replace(/([A-Z])/g, '-$1').replace(/-+/g, '-').replace(/^-/,'').toLowerCase();
+    return s;
+}
+if (typeof _.dasherize !== 'function') {
+    _.mixin({'dasherize' : _dasherize});
+}
 
 
 /**
@@ -45,6 +60,7 @@ const adapterTypesProperty =  Symbol('adapterTypes');
  * @classdesc Holds the configuration of data modeling infrastructure
  * @class
  * @property {DataConfigurationAuth} auth
+ * @extends ConfigurationStrategy
  *
  */
 export class DataConfigurationStrategy extends ConfigurationStrategy {
@@ -240,6 +256,7 @@ export class DataConfigurationStrategy extends ConfigurationStrategy {
         }
         return configuration.getStrategy(DataConfigurationStrategy);
     }
+
 }
 
 
@@ -301,6 +318,13 @@ export class SchemaLoaderStrategy extends ConfigurationStrategy {
         Args.notString(data.name,'Model name');
         this[modelsProperty].set(data.name,data);
         return this;
+    }
+
+    /**
+     * @returns {string[]}
+     */
+    getModels() {
+        return _.keys(this[modelsProperty]);
     }
 
 }
@@ -382,7 +406,7 @@ export class DefaultSchemaLoaderStrategy extends SchemaLoaderStrategy {
         }
         //and finally get this list of file
         const files = this[filesProperty];
-        if (files.length==0)
+        if (files.length===0)
             return;
         const r = new RegExp('^' + name.concat('.json') + '$','i');
         for (i = 0; i < files.length; i++) {
@@ -438,7 +462,7 @@ export class DefaultModelClassLoaderStrategy extends ConfigurationStrategy {
         else {
             //try to find module by using capitalize naming convention
             // e.g. OrderDetail -> OrderDetailModel.js
-            let classPath = PathUtils.join(this.getConfiguration().getExecutionPath(),'models',this.name.concat('Model.js'));
+            let classPath = PathUtils.join(this.getConfiguration().getExecutionPath(),'models',model.name.concat('Model.js'));
             try {
                 modelDefinition['DataObjectClass'] = DataObjectClass = require(classPath);
             }
@@ -447,12 +471,12 @@ export class DefaultModelClassLoaderStrategy extends ConfigurationStrategy {
                     try {
                         //try to find module by using dasherize naming convention
                         // e.g. OrderDetail -> order-detail-model.js
-                        classPath = PathUtils.join(this.getConfiguration().getExecutionPath(),'models',_.dasherize(this.name).concat('-model.js'));
+                        classPath = PathUtils.join(this.getConfiguration().getExecutionPath(),'models',_.dasherize(model.name).concat('-model.js'));
                         modelDefinition['DataObjectClass'] = DataObjectClass = require(classPath);
                     }
                     catch(err) {
                         if (err.code === 'MODULE_NOT_FOUND') {
-                            if (typeof this['inherits'] === 'undefined' || this['inherits'] == null) {
+                            if (typeof this['inherits'] === 'undefined' || this['inherits'] === null) {
                                 //use default DataObject class
                                 modelDefinition['DataObjectClass'] = DataObjectClass = require('./object').DataObject;
                             }

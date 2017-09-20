@@ -1108,13 +1108,13 @@ var DataModel = exports.DataModel = function (_SequentialEventEmitt) {
              * @augments DataObject
              * @ignore
              */
-            var DataObjectClass = self.context.getConfiguration().getStrategy(ModelClassLoaderStrategy).resolve(self);
+            var DataObjectClass = self.context.getConfiguration().getConfiguration().getStrategy(ModelClassLoaderStrategy).resolve(self);
             var src = void 0;
             if (_.isArray(obj)) {
                 var arr = [];
                 obj.forEach(function (x) {
                     if (typeof x !== 'undefined' && x !== null) {
-                        var o = new DataObjectClass();
+                        var o = new DataObjectClass(self.name);
                         if ((typeof x === 'undefined' ? 'undefined' : _typeof(x)) === 'object') {
                             _.assign(o, x);
                         } else {
@@ -1123,13 +1123,12 @@ var DataModel = exports.DataModel = function (_SequentialEventEmitt) {
                         }
                         if (typeConvert) convertInternal_.call(self, o);
                         o.context = self.context;
-                        o.$$type = self.name;
                         arr.push(o);
                     }
                 });
                 return arr;
             } else {
-                var result = new DataObjectClass();
+                var result = new DataObjectClass(self.name);
                 if ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === 'object') {
                     _.assign(result, obj);
                 } else {
@@ -1138,7 +1137,6 @@ var DataModel = exports.DataModel = function (_SequentialEventEmitt) {
                 }
                 if (typeConvert) convertInternal_.call(self, result);
                 result.context = self.context;
-                result.$$type = self.name;
                 return result;
             }
         }

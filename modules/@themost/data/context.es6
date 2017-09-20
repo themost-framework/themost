@@ -14,7 +14,6 @@ import {_} from 'lodash';
 import {TraceUtils} from '@themost/common/utils';
 import {DataConfigurationStrategy} from './config';
 
-
 /**
  * @classdesc Represents the default data context of MOST Data Applications.
  * The default data context uses the adapter which is registered as the default adapter in application configuration.
@@ -230,14 +229,6 @@ class NamedDataContext extends DataContext {
             db_ = value;
         };
 
-        /**
-         * Gets an instance of DataConfiguration class which is associated with this data context
-         * @returns {DataConfigurationStrategy}
-         */
-        this.getConfiguration = function() {
-            return DataConfigurationStrategy.getCurrent();
-        };
-
         delete self.db;
 
         Object.defineProperty(self, 'db', {
@@ -250,6 +241,14 @@ class NamedDataContext extends DataContext {
             configurable : true,
             enumerable:false });
 
+    }
+
+    /**
+     * Gets an instance of DataConfiguration class which is associated with this data context
+     * @returns {DataConfigurationStrategy}
+     */
+    getConfiguration() {
+        return DataConfigurationStrategy.getCurrent();
     }
 
     /**

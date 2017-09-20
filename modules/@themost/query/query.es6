@@ -10,7 +10,7 @@
 'use strict';
 import 'source-map-support/register';
 import sprintf from 'sprintf';
-import {_} from 'lodash';
+import _ from 'lodash';
 
 function _empty(obj) {
     if (typeof obj === 'undefined' || obj === null) { return; }
@@ -166,7 +166,7 @@ export class QueryExpression {
      */
     prop(s) {
         if (typeof s === 'undefined') { return this[privatesProperty].prop; }
-        if (s == null) { delete this[privatesProperty].prop; }
+        if (s === null) { delete this[privatesProperty].prop; }
         this[privatesProperty].prop = s;
     }
 
@@ -199,16 +199,18 @@ export class QueryExpression {
      */
     fields() {
 
-        if (typeof this.$select === 'undefined' || this.$select == null)
+        if (_.isNil(this.$select))
             return [];
         const entity = _.findKey(this.$select);
         let joins = [];
-        if (this.$expand!=null)
+        if (_.isArray(this.$expand))
         {
-            if (_.isArray(this.$expand))
-                joins=this.$expand;
-            else
-                joins.push(this.$expand);
+            joins=_.filter(this.$expand, (x)=>{
+                return _.isObject(x);
+            });
+        }
+        else if (_.isObject(this.$expand)) {
+            joins.push(this.$expand);
         }
         //get entity fields
         const fields = [];
@@ -291,7 +293,7 @@ export class QueryExpression {
             return false;
         const entity = _.findKey(self.$select);
         let joins = [];
-        if (self.$expand!=null)
+        if (self.$expand!==null)
         {
             if (_.isArray(self.$expand))
                 joins=self.$expand;
@@ -321,7 +323,7 @@ export class QueryExpression {
      * @returns {boolean}
      */
     hasPaging() {
-        return (typeof this.$take !=='undefined' && this.$take!=null);
+        return (typeof this.$take !=='undefined' && this.$take!==null);
     }
 
     /**
@@ -373,7 +375,7 @@ export class QueryExpression {
      * @returns {QueryExpression}
      */
     delete(entity) {
-        if (entity==null)
+        if (_.isNil(entity))
             return this;
         this.$delete = entity.valueOf();
         //delete other properties (if any)
@@ -389,7 +391,7 @@ export class QueryExpression {
      * @returns {QueryExpression}
      */
     insert(obj) {
-        if (obj==null)
+        if (_.isNil(obj))
             return this;
         if (_.isArray(obj) || _.isObject(obj)) {
             this.$insert = { table1: obj };
@@ -405,17 +407,17 @@ export class QueryExpression {
     }
 
     into(entity) {
-        if (entity==null)
+        if (_.isNil(entity))
             return this;
-        if (this.$insert==null)
+        if (_.isNil(this.$insert))
             return this;
         const prop = _.findKey(this.$insert);
-        if (prop==null)
+        if (_.isNil(prop))
             return this;
-        if (prop==entity)
+        if (prop===entity)
             return this;
         const value = this.$insert[prop];
-        if (value==null)
+        if (_.isNil(value))
             return this;
         this.$insert[entity] = value;
         delete this.$insert[prop];
@@ -428,7 +430,7 @@ export class QueryExpression {
      * @returns {QueryExpression}
      */
     update(entity) {
-        if (entity==null)
+        if (_.isNil(entity))
             return this;
         if (typeof entity !== 'string')
             throw new Error('Invalid argument type. Update entity argument must be a string.');
@@ -447,13 +449,13 @@ export class QueryExpression {
      * @returns {QueryExpression}
      */
     set(obj) {
-        if (obj==null)
+        if (_.isNil(obj))
             return this;
         if (_.isArray(obj) || !_.isObject(obj))
             throw new Error('Invalid argument type. Update expression argument must be an object.');
         //get entity name (by property)
         const prop = _.findKey(this.$update);
-        if (prop==null)
+        if (_.isNil(prop))
             throw new Error('Invalid operation. Update entity cannot be empty at this context.');
         //set object to update
         this.$update[prop] = obj;
@@ -468,7 +470,7 @@ export class QueryExpression {
     select(props) {
 
         const args = Array.prototype.slice.call(arguments);
-        if (args.length==0)
+        if (args.length===0)
             return this;
         if (_.isArray(args[0]) && args.length>1) {
             throw new TypeError('Invalid arguments. Expected array only (for backward compatibility issues)')
@@ -545,10 +547,10 @@ export class QueryExpression {
      */
     join(entity, props, alias) {
 
-        if (entity==null)
+        if (_.isNil(entity))
             return this;
-        if (this.$select==null)
-            throw new Error('Query entity cannot be empty when adding a join entity.');
+        // if (_.isNil(this.$select))
+        //     throw new Error('Query entity cannot be empty when adding a join entity.');
         let obj = {};
         if (entity instanceof QueryEntity) {
             //do nothing (clone object)
@@ -575,9 +577,9 @@ export class QueryExpression {
      */
     with(obj) {
 
-        if (obj==null)
+        if (_.isNil(obj))
             return this;
-        if (this[privatesProperty].expand==null)
+        if (_.isNil(this[privatesProperty].expand))
             throw new Error('Join entity cannot be empty when adding a join expression. Use QueryExpression.join(entity, props) before.');
         if (obj instanceof QueryExpression)
         {
@@ -585,7 +587,6 @@ export class QueryExpression {
              * @type {QueryExpression}
              */
             const expr = obj;
-
             let where = null;
             if (expr.$where)
                 where = expr.$prepared ? { $and: [expr.$prepared, expr.$where] } : expr.$where;
@@ -596,37 +597,34 @@ export class QueryExpression {
         else {
             this[privatesProperty].expand.$with = obj;
         }
-        if (this.$expand==null) {
-            this.$expand = this[privatesProperty].expand;
+
+        //copy expand
+        const expand = [];
+        if (_.isArray(this.$expand)) {
+            expand.push.apply(expand, this.$expand);
         }
-        else {
-            if (_.isArray(this.$expand)) {
-                this.$expand.push(this[privatesProperty].expand);
-            }
-            else {
-                //get expand object
-                const expand = this.$expand;
-                //and create array of expand objects
-                this.$expand = [expand, this[privatesProperty].expand];
-            }
+        else if (_.isObject(this.$expand)) {
+            expand.push(this.$expand);
         }
+        //finally add new expand item
+        expand.push(this[privatesProperty].expand);
+        this.$expand = expand;
         //destroy temp object
-        this[privatesProperty].expand = null;
+        delete this[privatesProperty].expand;
         //and return QueryExpression
         return this;
     }
 
     /**
      * Applies an ascending ordering to a query expression
-     * @param name {string|Array}
+     * @param name {string}
      * @returns {QueryExpression}
      */
     orderBy(name) {
 
-        if (name==null)
+        if (_.isNil(name))
             return this;
-        if (this.$order==null)
-            this.$order = [];
+        this.$order = this.$order || [];
         this.$order.push({ $asc: name });
         return this;
     }
@@ -638,10 +636,9 @@ export class QueryExpression {
      */
     orderByDescending(name) {
 
-        if (name==null)
+        if (_.isNil(name))
             return this;
-        if (this.$order==null)
-            this.$order = [];
+        this.$order = this.$order || [];
         this.$order.push({ $desc: name });
         return this;
     }
@@ -653,11 +650,9 @@ export class QueryExpression {
      */
     thenBy(name) {
 
-        if (name==null)
+        if (_.isNil(name))
             return this;
-        if (this.$order==null)
-        //throw exception (?)
-            return this;
+        this.$order = this.$order || [];
         this.$order.push({ $asc: name });
         return this;
     }
@@ -669,11 +664,9 @@ export class QueryExpression {
      */
     thenByDescending(name) {
 
-        if (name==null)
+        if (_.isNil(name))
             return this;
-        if (this.$order==null)
-        //throw exception (?)
-            return this;
+        this.$order = this.$order || [];
         this.$order.push({ $desc: name });
         return this;
     }
@@ -685,9 +678,9 @@ export class QueryExpression {
      */
     groupBy(name) {
 
-        if (name==null)
+        if (_.isNil(name))
             return this;
-        if (this.$group==null)
+        if (this.$group===null)
             this.$group = [];
         const self = this;
         if (_.isArray(name)) {
@@ -716,7 +709,7 @@ export class QueryExpression {
             if (op) {
                 //get current operator
                 const keys = _.keys(this.$where);
-                if (keys[0]==op) {
+                if (keys[0]===op) {
                     this.$where[op].push(expr);
                 }
                 else {
@@ -940,7 +933,6 @@ export class QueryExpression {
      */
     endsWith(value) {
         const p0 = this.prop();
-        let r;
         if (p0) {
             if (!_.isString(value)) {
                 throw new Error('Invalid argument. Expected string.');
@@ -1580,9 +1572,10 @@ export class QueryFieldUtils {
         f[name] = { $divide:[ QueryFieldUtils.select(name), divider ] };
         return _.assign(new QueryField(), f);
     }
+
     /**
      * @param {string} name
-     * @param {number=} divider
+     * @param {number=} multiplier
      * @returns {QueryField}
      */
     static multiply(name, multiplier) {
@@ -1705,7 +1698,7 @@ export class QueryField {
         if (typeof  obj === 'string') {
             this.$name = obj;
         }
-        else if (typeof obj === 'object' && obj!=null) {
+        else if (typeof obj === 'object' && obj!==null) {
             _.assign(this, obj);
         }
     }
@@ -1729,7 +1722,7 @@ export class QueryField {
      * @returns {QueryField}
      */
     select(name) {
-        if (typeof name != 'string')
+        if (typeof name !== 'string')
             throw  new Error('Invalid argument. Expected string');
         //clear object
         _empty(this);
@@ -1786,7 +1779,7 @@ export class QueryField {
     }
 
     count(name) {
-        if (typeof name != 'string')
+        if (typeof name !== 'string')
             throw  new Error('Invalid argument. Expected string');
         //clear object
         _empty(this);
@@ -1804,7 +1797,7 @@ export class QueryField {
     }
 
     sum(name) {
-        if (typeof name != 'string')
+        if (typeof name !== 'string')
             throw  new Error('Invalid argument. Expected string');
         //clear object
         _empty(this);
@@ -1814,7 +1807,7 @@ export class QueryField {
     }
 
     min(name) {
-        if (typeof name != 'string')
+        if (typeof name !== 'string')
             throw  new Error('Invalid argument. Expected string');
         //clear object
         _empty(this);
@@ -1824,7 +1817,7 @@ export class QueryField {
     }
 
     average(name) {
-        if (typeof name != 'string')
+        if (typeof name !== 'string')
             throw  new Error('Invalid argument. Expected string');
         //clear object
         _empty(this);
@@ -1834,7 +1827,7 @@ export class QueryField {
     }
 
     max(name) {
-        if (typeof name != 'string')
+        if (typeof name !== 'string')
             throw  new Error('Invalid argument. Expected string');
         //clear object
         _empty(this);
@@ -1854,19 +1847,19 @@ export class QueryField {
             if (typeof this.$name !== 'undefined')
                 return null;
             const keys = _.keys(this);
-            if (keys.length==0)
+            if (keys.length === 0)
                 return null;
             else
                 return keys[0];
         }
-        if (typeof alias != 'string')
+        if (typeof alias !== 'string')
             throw  new Error('Invalid argument. Expected string');
         //get first property
         const prop = _.findKey(this);
-        if (prop == null)
+        if (prop === null)
             throw  new Error('Invalid object state. Field is not selected.');
         const value = this[prop];
-        if (prop!=alias) {
+        if (prop!==alias) {
             this[alias] = value;
             delete this[prop];
         }
@@ -1996,7 +1989,7 @@ export class OpenDataQuery {
         if (self[privatesProperty].left) {
             let expr = null;
 
-            if (self[privatesProperty].op=='in') {
+            if (self[privatesProperty].op==='in') {
                 if (_.isArray(self[privatesProperty].right)) {
                     //expand values
                     exprs = [];
@@ -2007,7 +2000,7 @@ export class OpenDataQuery {
                         expr = '(' + exprs.join(' or ') + ')';
                 }
             }
-            else if (self[privatesProperty].op=='nin') {
+            else if (self[privatesProperty].op==='nin') {
                 if (_.isArray(self[privatesProperty].right)) {
                     //expand values
                     exprs = [];
@@ -2026,7 +2019,7 @@ export class OpenDataQuery {
                 else {
                     self[privatesProperty].lop = self[privatesProperty].lop || 'and';
                     self[privatesProperty]._lop = self[privatesProperty]._lop || self[privatesProperty].lop;
-                    if (self[privatesProperty]._lop == self[privatesProperty].lop)
+                    if (self[privatesProperty]._lop === self[privatesProperty].lop)
                         self.$filter = self.$filter + ' ' + self[privatesProperty].lop + ' ' + expr;
                     else
                         self.$filter = '(' + self.$filter + ') ' + self[privatesProperty].lop + ' ' + expr;
@@ -2073,7 +2066,7 @@ export class OpenDataQuery {
      * @returns OpenDataQuery
      */
     orderBy(name) {
-        if (typeof name !=='undefined' || name!=null)
+        if (typeof name !=='undefined' || name!==null)
             this.$orderby = name.toString();
         return this;
     }
@@ -2083,7 +2076,7 @@ export class OpenDataQuery {
      * @returns OpenDataQuery
      */
     orderByDescending(name) {
-        if (typeof name !=='undefined' || name!=null)
+        if (typeof name !=='undefined' || name!==null)
             this.$orderby = name.toString() + ' desc';
         return this;
     }
@@ -2093,7 +2086,7 @@ export class OpenDataQuery {
      * @returns OpenDataQuery
      */
     thenBy(name) {
-        if (typeof name !=='undefined' || name!=null) {
+        if (typeof name !=='undefined' || name!==null) {
                 this.$orderby += (this.$orderby ? ',' + name.toString() : name.toString());
         }
     }
@@ -2103,7 +2096,7 @@ export class OpenDataQuery {
      * @returns OpenDataQuery
      */
     thenByDescending(name) {
-        if (typeof name !=='undefined' || name!=null) {
+        if (typeof name !=='undefined' || name!==null) {
             this.$orderby += (this.$orderby ? ',' + name.toString() : name.toString()) + ' desc';
         }
     }

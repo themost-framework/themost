@@ -167,6 +167,7 @@ export class ConfigurationBase {
     /**
      * Gets a configuration strategy
      * @param {Function|*} configStrategyCtor
+     * @returns {ConfigurationStrategy|*}
      */
     getStrategy(configStrategyCtor) {
         Args.notFunction(configStrategyCtor,"Configuration strategy constructor");

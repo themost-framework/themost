@@ -279,14 +279,6 @@ var NamedDataContext = function (_DataContext2) {
             db_ = value;
         };
 
-        /**
-         * Gets an instance of DataConfiguration class which is associated with this data context
-         * @returns {DataConfigurationStrategy}
-         */
-        _this2.getConfiguration = function () {
-            return DataConfigurationStrategy.getCurrent();
-        };
-
         delete self.db;
 
         Object.defineProperty(self, 'db', {
@@ -303,13 +295,24 @@ var NamedDataContext = function (_DataContext2) {
     }
 
     /**
-     * Gets an instance of DataModel class based on the given name.
-     * @param name {string} - A string that represents the model name.
-     * @returns {DataModel} - An instance of DataModel class associated with this data context.
+     * Gets an instance of DataConfiguration class which is associated with this data context
+     * @returns {DataConfigurationStrategy}
      */
 
 
     _createClass(NamedDataContext, [{
+        key: 'getConfiguration',
+        value: function getConfiguration() {
+            return DataConfigurationStrategy.getCurrent();
+        }
+
+        /**
+         * Gets an instance of DataModel class based on the given name.
+         * @param name {string} - A string that represents the model name.
+         * @returns {DataModel} - An instance of DataModel class associated with this data context.
+         */
+
+    }, {
         key: 'model',
         value: function model(name) {
             var self = this;

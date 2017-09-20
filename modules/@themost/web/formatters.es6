@@ -165,7 +165,7 @@ export class OutputFormatter {
  * @private
  */
 function _json_ignore_null_replacer(key, value) {
-    if (value == null)
+    if (value === null)
         return undefined;
     return value;
 }
