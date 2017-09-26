@@ -14,11 +14,10 @@ import crypto from 'crypto';
 import moment from 'moment';
 import {Args,TraceUtils,LangUtils,RandomUtils} from '@themost/common/utils';
 import {HttpConsumer} from '../consumers';
-import Rx from 'rxjs';
 import {HttpNextResult} from '../results';
 import {HttpApplicationService} from "../interfaces";
 import {AbstractClassError, AbstractMethodError, HttpForbiddenError, HttpUnauthorizedError} from "@themost/common/errors";
-
+import Q from 'q';
 
 const ANONYMOUS_IDENTITY = { name: 'anonymous', authenticationType:'None' };
 /**
@@ -73,13 +72,13 @@ export class AuthConsumer extends HttpConsumer {
             const context = this;
             try {
                 let handler = new AuthHandler();
-                return Rx.Observable.bindNodeCallback(handler.authenticateRequest)(context)
-                    .flatMap(()=> {
-                        return HttpNextResult.create().toObservable();
+                return Q.nfbind(handler.authenticateRequest)(context)
+                    .then(()=> {
+                        return HttpNextResult.create().toPromise();
                     });
             }
             catch(err) {
-                return Rx.Observable['throw'](err);
+                return Q.reject(err);
             }
         });
     }
@@ -140,9 +139,9 @@ class BasicAuthHandler {
              * @type {AuthStrategy}
              */
             const authStrategy = context.getApplication().getService(AuthStrategy);
-            authStrategy.login(context,authorizationArgs.userName, authorizationArgs.userPassword).subscribe(()=>{
+            authStrategy.login(context,authorizationArgs.userName, authorizationArgs.userPassword).then(()=>{
                 return callback(null, true);
-            }, (err)=> {
+            }).catch((err)=> {
                 return callback(err);
             });
         }
@@ -163,13 +162,13 @@ export class BasicAuthConsumer extends HttpConsumer {
             const context = this;
             try {
                 let handler = new BasicAuthHandler();
-                return Rx.Observable.bindNodeCallback(handler.authenticateRequest)(context)
-                    .flatMap(()=> {
-                        return HttpNextResult.create().toObservable();
+                return Q.nfbind(handler.authenticateRequest)(context)
+                    .then(()=> {
+                        return HttpNextResult.create().toPromise();
                     });
             }
             catch(err) {
-                return Rx.Observable['throw'](err);
+                return Q.reject(err);
             }
         });
     }
@@ -207,7 +206,7 @@ export class AuthStrategy extends HttpApplicationService {
      * @param thisContext - The current context
      * @param userName - A string which represents the user name
      * @param userPassword - A string which represents the user password
-     * @returns {Observable}
+     * @returns {Promise}
      */
     login(thisContext, userName, userPassword) {
         throw new AbstractMethodError();
@@ -216,7 +215,7 @@ export class AuthStrategy extends HttpApplicationService {
     /**
      * Removes any authorization assigned to the given context
      * @param thisContext
-     * @returns {Observable}
+     * @returns {Promise}
      */
     logout(thisContext) {
         throw new AbstractMethodError();
@@ -318,11 +317,11 @@ export class DefaultAuthStrategy extends HttpApplicationService {
      * @param thisContext - The current context
      * @param userName - A string which represents the user name
      * @param userPassword - A string which represents the user password
-     * @returns {Observable}
+     * @returns {Promise}
      */
     login(thisContext, userName, userPassword) {
         const self = this;
-        return Rx.Observable.bindNodeCallback(function(context, userName, password, callback) {
+        return Q.nfbind(function(context, userName, password, callback) {
             try {
                 context.model('user').where('name').equal(userName).select('id','enabled').silent().first(function(err, result) {
                     if (err) {
@@ -345,7 +344,7 @@ export class DefaultAuthStrategy extends HttpApplicationService {
                         .or('userPassword').equal('{md5}'.concat(crypto.createHash('md5').update(userPassword).digest('hex')))
                         .or('userPassword').equal('{sha1}'.concat(crypto.createHash('sha1').update(userPassword).digest('hex')))
                         .silent().count().then(function(count) {
-                        if (count==1) {
+                        if (count===1) {
                             //set cookie
                             self.setAuthCookie(context, userName);
                             context.user = { name: userName, authenticationType:'Basic' };
@@ -370,11 +369,11 @@ export class DefaultAuthStrategy extends HttpApplicationService {
     /**
      * Removes any authorization assigned to the given context
      * @param thisContext
-     * @returns {Observable}
+     * @returns {Promise}
      */
     logout(thisContext) {
         const self = this;
-        return Rx.Observable.bindNodeCallback(function(callback) {
+        return Q.nfbind(function(callback) {
             //set auth cookie
             self.setAuthCookie(thisContext,'anonymous');
             return callback();

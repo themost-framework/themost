@@ -13,7 +13,6 @@ import async from 'async';
 import sprintf from 'sprintf';
 import {_} from 'lodash';
 import Q from 'q';
-import Rx from 'rxjs';
 import {DataAssociationMapping} from './types';
 import {DataError} from '@themost/common/errors';
 import {QueryExpression, QueryField, QueryFieldUtils, QueryEntity} from '@themost/query/query';
@@ -3147,37 +3146,32 @@ function afterExecute_(result, callback) {
  * @param {Function} callback
  */
 function toArrayCallback(result, callback) {
-    try {
-        const self = this;
-        if (self.$asArray) {
-            if (typeof self.query === 'undefined') {
-                return callback(null, result);
-            }
-            const fields = self.query.fields();
-            if (!_.isArray(fields)) {
-                return callback(null, result);
-            }
-            if (fields.length===1) {
-                const arr = [];
-                result.forEach(function(x) {
-                    if (_.isNil(x))
-                        return;
-                    const key = Object.keys(x)[0];
-                    if (x[key])
-                        arr.push(x[key]);
-                });
-                return callback(null, arr);
-            }
-            else {
-                return callback(null, result);
-            }
+    const self = this;
+    if (self.$asArray) {
+        if (typeof self.query === 'undefined') {
+            return callback(null, result);
+        }
+        const fields = self.query.fields();
+        if (!_.isArray(fields)) {
+            return callback(null, result);
+        }
+        if (fields.length===1) {
+            const arr = [];
+            _.forEach(result, function(x) {
+                if (_.isNil(x))
+                    return;
+                const key = Object.keys(x)[0];
+                if (x[key])
+                    arr.push(x[key]);
+            });
+            return callback(null, arr);
         }
         else {
             return callback(null, result);
         }
     }
-    catch (e) {
-        return callback(e);
+    else {
+        return callback(null, result);
     }
 }
 

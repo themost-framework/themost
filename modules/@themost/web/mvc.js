@@ -24,9 +24,9 @@ var _lodash = require('lodash');
 
 var _ = _lodash._;
 
-var _rxjs = require('rxjs');
+var _q = require('q');
 
-var Rx = _interopRequireDefault(_rxjs).default;
+var Q = _interopRequireDefault(_q).default;
 
 var _fs = require('fs');
 
@@ -109,7 +109,7 @@ var HttpContentResult = exports.HttpContentResult = function (_HttpAnyResult) {
         key: 'execute',
         value: function execute(context) {
             var self = this;
-            return Rx.Observable.bindNodeCallback(function (callback) {
+            return Q.nfcall(function (callback) {
                 /**
                  * @type ServerResponse
                  * */
@@ -123,7 +123,7 @@ var HttpContentResult = exports.HttpContentResult = function (_HttpAnyResult) {
                         return callback(err);
                     });
                 }
-            })();
+            });
         }
     }]);
 
@@ -151,12 +151,12 @@ var HttpEmptyResult = exports.HttpEmptyResult = function (_HttpAnyResult2) {
 
         /**
          * @param context
-         * @returns {Observable<T>}
+         * @returns {Promise}
          */
         value: function execute(context) {
             //do nothing
             context.response.writeHead(204);
-            return Rx.Observable.of();
+            return Q();
         }
     }]);
 
@@ -203,7 +203,7 @@ var HttpJsonResult = exports.HttpJsonResult = function (_HttpAnyResult3) {
     }
     /**
      * @param context
-     * @returns {Observable<T>}
+     * @returns {Promise}
      */
 
 
@@ -211,7 +211,7 @@ var HttpJsonResult = exports.HttpJsonResult = function (_HttpAnyResult3) {
         key: 'execute',
         value: function execute(context) {
             var self = this;
-            return Rx.Observable.bindNodeCallback(function (callback) {
+            return Q.nfcall(function (callback) {
                 /**
                  * @type ServerResponse
                  * */
@@ -224,7 +224,7 @@ var HttpJsonResult = exports.HttpJsonResult = function (_HttpAnyResult3) {
                 response.write(self.data, self.contentEncoding, function (err) {
                     return callback(err);
                 });
-            })();
+            });
         }
     }]);
 
@@ -258,7 +258,7 @@ var HttpJavascriptResult = exports.HttpJavascriptResult = function (_HttpAnyResu
 
     /**
      * @param context
-     * @returns {Observable<T>}
+     * @returns {Promise}
      */
 
 
@@ -266,7 +266,7 @@ var HttpJavascriptResult = exports.HttpJavascriptResult = function (_HttpAnyResu
         key: 'execute',
         value: function execute(context) {
             var self = this;
-            return Rx.Observable.bindNodeCallback(function (callback) {
+            return Q.nfcall(function (callback) {
                 /**
                  * @type ServerResponse
                  * */
@@ -279,7 +279,7 @@ var HttpJavascriptResult = exports.HttpJavascriptResult = function (_HttpAnyResu
                 response.write(self.data, self.contentEncoding, function (err) {
                     return callback(err);
                 });
-            })();
+            });
         }
     }]);
 
@@ -341,7 +341,7 @@ var HttpRedirectResult = exports.HttpRedirectResult = function (_HttpAnyResult6)
     /**
      *
      * @param {HttpContext} context
-     * @returns {Observable}
+     * @returns {Promise}
      */
 
 
@@ -353,7 +353,7 @@ var HttpRedirectResult = exports.HttpRedirectResult = function (_HttpAnyResult6)
              * */
             var response = context.response;
             response.writeHead(302, { 'Location': this.url });
-            return Rx.Observable.of();
+            return Q();
         }
     }]);
 
@@ -389,7 +389,7 @@ var HttpFileResult = exports.HttpFileResult = function (_HttpAnyResult7) {
     /**
      *
      * @param {HttpContext} context
-     * @returns {Observable}
+     * @returns {Promise}
      */
 
 
@@ -397,7 +397,7 @@ var HttpFileResult = exports.HttpFileResult = function (_HttpAnyResult7) {
         key: 'execute',
         value: function execute(context) {
 
-            return Rx.Observable.bindNodeCallback(function (callback) {
+            return Q.nfcall(function (callback) {
                 var physicalPath = this.physicalPath,
                     fileName = this.fileName;
                 fs.exists(physicalPath, function (exists) {
@@ -469,7 +469,7 @@ var HttpFileResult = exports.HttpFileResult = function (_HttpAnyResult7) {
                         }
                     }
                 });
-            })();
+            });
         }
     }]);
 
@@ -571,7 +571,7 @@ var HttpViewResult = exports.HttpViewResult = function (_HttpAnyResult8) {
 
         /**
          * @param {HttpContext} context
-         * @returns {Observable<T>|IteratorResult<T>|*}
+         * @returns {Promise}
          * */
 
     }, {
@@ -579,7 +579,7 @@ var HttpViewResult = exports.HttpViewResult = function (_HttpAnyResult8) {
         value: function execute(context) {
             var self = this;
 
-            return Rx.Observable.bindNodeCallback(function (callback) {
+            return Q.nfcall(function (callback) {
                 /**
                  * @type ServerResponse
                  * */
@@ -689,7 +689,7 @@ var HttpViewResult = exports.HttpViewResult = function (_HttpAnyResult8) {
                         return callback(err1);
                     }
                 });
-            })();
+            });
         }
     }]);
 
@@ -716,14 +716,14 @@ var HttpController = function () {
     /**
      * Creates a view result object for the given request.
      * @param {*=} data
-     * @returns {Observable}
+     * @returns {Promise}
      */
 
 
     _createClass(HttpController, [{
         key: 'view',
         value: function view(data) {
-            return new HttpViewResult(null, data).toObservable();
+            return new HttpViewResult(null, data).toPromise();
         }
     }, {
         key: 'forbidden',
@@ -786,7 +786,7 @@ var HttpController = function () {
 
         /**
          * Invokes a default action and returns an HttpViewResult instance
-         * @returns {Observable}
+         * @returns {Promise}
          */
 
     }, {
@@ -950,7 +950,7 @@ var HttpViewContext = exports.HttpViewContext = function () {
 
     /**
      * @param {string} url
-     * @returns {Observable}
+     * @returns {Promise}
      */
 
 
@@ -960,8 +960,8 @@ var HttpViewContext = exports.HttpViewContext = function () {
             //get response cookie, if any
             var requestCookie = this.context.response.getHeader('set-cookie');
             if (typeof this.context.request.headers.cookie !== 'undefined') requestCookie = this.context.request.headers.cookie;
-            return this.context.getApplication().executeRequest({ url: url, cookie: requestCookie }).flatMap(function (result) {
-                if (result.statusCode >= 200 && result.statusCode < 300) return Rx.Observable.of(result.body);else return Rx.Observable['throw'](new HttpError(result.statusCode));
+            return this.context.getApplication().executeRequest({ url: url, cookie: requestCookie }).then(function (result) {
+                if (result.statusCode >= 200 && result.statusCode < 300) return Q(result.body);else return Q.reject(new HttpError(result.statusCode));
             });
         }
     }, {

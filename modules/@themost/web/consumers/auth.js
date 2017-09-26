@@ -41,10 +41,6 @@ var _consumers = require('../consumers');
 
 var HttpConsumer = _consumers.HttpConsumer;
 
-var _rxjs = require('rxjs');
-
-var Rx = _interopRequireDefault(_rxjs).default;
-
 var _results = require('../results');
 
 var HttpNextResult = _results.HttpNextResult;
@@ -59,6 +55,10 @@ var AbstractClassError = _errors.AbstractClassError;
 var AbstractMethodError = _errors.AbstractMethodError;
 var HttpForbiddenError = _errors.HttpForbiddenError;
 var HttpUnauthorizedError = _errors.HttpUnauthorizedError;
+
+var _q = require('q');
+
+var Q = _interopRequireDefault(_q).default;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -132,11 +132,11 @@ var AuthConsumer = exports.AuthConsumer = function (_HttpConsumer) {
             var context = this;
             try {
                 var handler = new AuthHandler();
-                return Rx.Observable.bindNodeCallback(handler.authenticateRequest)(context).flatMap(function () {
-                    return HttpNextResult.create().toObservable();
+                return Q.nfbind(handler.authenticateRequest)(context).then(function () {
+                    return HttpNextResult.create().toPromise();
                 });
             } catch (err) {
-                return Rx.Observable['throw'](err);
+                return Q.reject(err);
             }
         }));
     }
@@ -180,9 +180,9 @@ var BasicAuthHandler = function () {
                  * @type {AuthStrategy}
                  */
                 var authStrategy = context.getApplication().getService(AuthStrategy);
-                authStrategy.login(context, authorizationArgs.userName, authorizationArgs.userPassword).subscribe(function () {
+                authStrategy.login(context, authorizationArgs.userName, authorizationArgs.userPassword).then(function () {
                     return callback(null, true);
-                }, function (err) {
+                }).catch(function (err) {
                     return callback(err);
                 });
             } catch (err) {
@@ -238,11 +238,11 @@ var BasicAuthConsumer = exports.BasicAuthConsumer = function (_HttpConsumer2) {
             var context = this;
             try {
                 var handler = new BasicAuthHandler();
-                return Rx.Observable.bindNodeCallback(handler.authenticateRequest)(context).flatMap(function () {
-                    return HttpNextResult.create().toObservable();
+                return Q.nfbind(handler.authenticateRequest)(context).then(function () {
+                    return HttpNextResult.create().toPromise();
                 });
             } catch (err) {
-                return Rx.Observable['throw'](err);
+                return Q.reject(err);
             }
         }));
     }
@@ -293,7 +293,7 @@ var AuthStrategy = exports.AuthStrategy = function (_HttpApplicationServi) {
          * @param thisContext - The current context
          * @param userName - A string which represents the user name
          * @param userPassword - A string which represents the user password
-         * @returns {Observable}
+         * @returns {Promise}
          */
 
     }, {
@@ -305,7 +305,7 @@ var AuthStrategy = exports.AuthStrategy = function (_HttpApplicationServi) {
         /**
          * Removes any authorization assigned to the given context
          * @param thisContext
-         * @returns {Observable}
+         * @returns {Promise}
          */
 
     }, {
@@ -431,14 +431,14 @@ var DefaultAuthStrategy = exports.DefaultAuthStrategy = function (_HttpApplicati
          * @param thisContext - The current context
          * @param userName - A string which represents the user name
          * @param userPassword - A string which represents the user password
-         * @returns {Observable}
+         * @returns {Promise}
          */
 
     }, {
         key: 'login',
         value: function login(thisContext, userName, userPassword) {
             var self = this;
-            return Rx.Observable.bindNodeCallback(function (context, userName, password, callback) {
+            return Q.nfbind(function (context, userName, password, callback) {
                 try {
                     context.model('user').where('name').equal(userName).select('id', 'enabled').silent().first(function (err, result) {
                         if (err) {
@@ -457,7 +457,7 @@ var DefaultAuthStrategy = exports.DefaultAuthStrategy = function (_HttpApplicati
                             return callback(new Error('Login failed due to server error.'));
                         }
                         model.where('id').equal(result.id).prepare().and('userPassword').equal('{clear}'.concat(userPassword)).or('userPassword').equal('{md5}'.concat(crypto.createHash('md5').update(userPassword).digest('hex'))).or('userPassword').equal('{sha1}'.concat(crypto.createHash('sha1').update(userPassword).digest('hex'))).silent().count().then(function (count) {
-                            if (count == 1) {
+                            if (count === 1) {
                                 //set cookie
                                 self.setAuthCookie(context, userName);
                                 context.user = { name: userName, authenticationType: 'Basic' };
@@ -479,14 +479,14 @@ var DefaultAuthStrategy = exports.DefaultAuthStrategy = function (_HttpApplicati
         /**
          * Removes any authorization assigned to the given context
          * @param thisContext
-         * @returns {Observable}
+         * @returns {Promise}
          */
 
     }, {
         key: 'logout',
         value: function logout(thisContext) {
             var self = this;
-            return Rx.Observable.bindNodeCallback(function (callback) {
+            return Q.nfbind(function (callback) {
                 //set auth cookie
                 self.setAuthCookie(thisContext, 'anonymous');
                 return callback();

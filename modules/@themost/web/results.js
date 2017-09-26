@@ -18,9 +18,9 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 require('source-map-support/register');
 
-var _rxjs = require('rxjs');
+var _q = require('q');
 
-var Rx = _interopRequireDefault(_rxjs).default;
+var Q = _interopRequireDefault(_q).default;
 
 var _lodash = require('lodash');
 
@@ -59,9 +59,9 @@ var HttpResult = exports.HttpResult = function () {
     }
 
     _createClass(HttpResult, [{
-        key: 'toObservable',
-        value: function toObservable() {
-            return Rx.Observable.of(this);
+        key: 'toPromise',
+        value: function toPromise() {
+            return Q(this);
         }
     }]);
 
@@ -105,11 +105,11 @@ var HttpAnyResult = exports.HttpAnyResult = function (_HttpResult) {
         /**
          * Executes an HttpResult instance against an existing HttpContext.
          * @param {HttpContext} context
-         * @returns {Observable}
+         * @returns {Promise}
          * */
         value: function execute(context) {
             var self = this;
-            return Rx.Observable.bindNodeCallback(function (callback) {
+            return Q.nfcall(function (callback) {
                 try {
                     /**
                      * @type {FormatterStrategy}
@@ -134,9 +134,9 @@ var HttpAnyResult = exports.HttpAnyResult = function (_HttpResult) {
                     if (_.isNil(formatter)) {
                         return callback(new HttpMethodNotAllowedError());
                     }
-                    return formatter.execute(context, self.data).subscribe(function () {
+                    return formatter.execute(context, self.data).then(function () {
                         return callback();
-                    }, function (err) {
+                    }).catch(function (err) {
                         return callback(err);
                     });
                 } catch (err) {

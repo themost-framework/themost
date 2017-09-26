@@ -333,11 +333,11 @@ function HttpInternalProvider($context, $async, $q) {
                 return promise;
             };
 
-            $context.getApplication().executeRequest(config).subscribe(function (response) {
+            $context.getApplication().executeRequest(config).then(function (response) {
                 response.status = response.statusCode;
                 response.data = response.body;
                 deferred.resolve(response);
-            }, function (err) {
+            }).catch(function (err) {
                 if (err) {
                     deferred.reject({ data: err.message, status: 500, headers: {} });
                 }

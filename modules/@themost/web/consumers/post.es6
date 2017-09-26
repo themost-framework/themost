@@ -14,7 +14,7 @@ import {_} from 'lodash';
 import {LangUtils,TraceUtils} from '@themost/common/utils';
 import xml from 'most-xml';
 import {HttpConsumer} from '../consumers';
-import Rx from 'rxjs';
+import Q from 'q';
 import {HttpNextResult} from '../results';
 
 /**
@@ -84,13 +84,13 @@ export class PostContentConsumer extends HttpConsumer {
             const context = this;
             try {
                 const handler = new PostHandler();
-                return Rx.Observable.bindNodeCallback(handler.beginRequest)(context)
-                    .flatMap(()=> {
-                        return HttpNextResult.create().toObservable();
+                return Q.nfbind(handler.beginRequest)(context)
+                    .then(()=> {
+                        return HttpNextResult.create().toPromise();
                     });
             }
             catch(err) {
-                return Rx.Observable['throw'](err);
+                return Q.reject(err);
             }
         });
     }

@@ -753,8 +753,11 @@ var SqlFormatter = exports.SqlFormatter = function () {
                     if ((typeof right === 'undefined' ? 'undefined' : _typeof(right)) === 'object') {
                         rightTable = _.findKey(right);
                     }
-                    var leftFields = left[leftTable],
-                        rightFields = right[rightTable];
+                    var leftFields = [];
+                    var rightFields = [];
+                    leftFields.push.apply(leftFields, _.isArray(left[leftTable]) ? left[leftTable] : [left[leftTable]]);
+                    rightFields.push.apply(rightFields, _.isArray(right[rightTable]) ? right[rightTable] : [right[rightTable]]);
+
                     for (var i = 0; i < leftFields.length; i++) {
                         var leftExpr = null,
                             rightExpr = null;

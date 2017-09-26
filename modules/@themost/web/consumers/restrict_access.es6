@@ -15,7 +15,7 @@ import {HttpApplicationService} from '../interfaces';
 import {HttpNextResult} from '../results';
 import {HttpConsumer} from '../consumers';
 import {_} from 'lodash';
-import Rx from 'rxjs';
+import Q from 'q';
 import url from 'url';
 /**
  * @class
@@ -46,12 +46,12 @@ export class RestrictAccessService extends HttpApplicationService{
 
     /**
      * @param {string} requestURL
-     * @returns {Observable}
+     * @returns {Promise}
      */
     isNotRestricted(requestURL) {
        try {
            if (_.isNil(requestURL)) {
-               return Rx.Observable.of(true);
+               return Q(true);
            }
            const uri = url.parse(requestURL);
            const conf = this.getApplication().getConfiguration();
@@ -70,30 +70,30 @@ export class RestrictAccessService extends HttpApplicationService{
                    if (/\*$/.test(location.path)) {
                        //wildcard search /something/*
                        if ((uri.pathname.indexOf(location.path.replace(/\*$/,''))===0) && (location.allow==='*')) {
-                           return Rx.Observable.of(true);
+                           return Q(true);
                        }
                    }
                    else {
                        if ((uri.pathname===location.path) && (location.allow==='*')) {
-                           return Rx.Observable.of(true);
+                           return Q(true);
                        }
                    }
                }
-               return Rx.Observable.of(false);
+               return Q(false);
            }
-           return Rx.Observable.of(true);
+           return Q(true);
        }
        catch(err) {
-           return Rx.Observable['throw'](err);
+           return Q.reject(err);
        }
     }
     /**
      * @param {string} requestURL
-     * @returns {Observable}
+     * @returns {Promise}
      */
     isRestricted(requestURL) {
-        return this.isNotRestricted(requestURL).flatMap((res)=> {
-           return Rx.Observable.of(!res);
+        return this.isNotRestricted(requestURL).then((res)=> {
+           return Q(!res);
         });
     }
 }
@@ -120,12 +120,12 @@ class RestrictHandler {
                 if (_.isNil(svc)) {
                     return callback();
                 }
-                svc.isRestricted(context.request.url).subscribe((res)=> {
+                svc.isRestricted(context.request.url).then((res)=> {
                     if (res) {
                         return callback(new HttpUnauthorizedError());
                     }
                     return callback();
-                }, (err)=> {
+                }).catch((err)=> {
                     TraceUtils.log(err);
                     return callback(new HttpUnauthorizedError());
                 });
@@ -149,13 +149,13 @@ export class RestrictAccessConsumer extends HttpConsumer {
             const context = this;
             try {
                 let handler = new RestrictHandler();
-                return Rx.Observable.bindNodeCallback(handler.authorizeRequest)(context)
-                    .flatMap(()=> {
-                        return HttpNextResult.create().toObservable();
+                return Q.nfbind(handler.authorizeRequest)(context)
+                    .then(()=> {
+                        return HttpNextResult.create().toPromise();
                     });
             }
             catch(err) {
-                return Rx.Observable['throw'](err);
+                return Q.reject(err);
             }
         });
     }

@@ -379,13 +379,13 @@ var MethodCallExpression = exports.MethodCallExpression = function () {
             var name = '$'.concat(this.name);
             //set arguments array
             method[name] = [];
-            if (this.args.length == 0) throw new Error('Unsupported method expression. Method arguments cannot be empty.');
+            if (this.args.length === 0) throw new Error('Unsupported method expression. Method arguments cannot be empty.');
             //get first argument
             if (this.args[0] instanceof MemberExpression) {
                 var member = this.args[0].name;
                 for (var i = 1; i < this.args.length; i++) {
                     var arg = this.args[i];
-                    if (typeof arg === 'undefined' || arg == null) method[name].push(null);else if (typeof arg.exprOf === 'function') method[name].push(arg.exprOf());else method[name].push(arg);
+                    if (typeof arg === 'undefined' || arg === null) method[name].push(null);else if (typeof arg.exprOf === 'function') method[name].push(arg.exprOf());else method[name].push(arg);
                 }
                 result[member] = method;
                 return result;

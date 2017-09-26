@@ -15,16 +15,16 @@
   },
   "homepage": "https://github.com/kbarbounakis/themost#readme",
   "dependencies": {
-    "lodash": "^4.17.4",
-    "async": "0.2.10",
-    "moment": "2.8.4",
-    "@themost/query": "2.0.0-alpha.1",
     "@themost/common": "2.0.0-alpha.1",
-    "node-cache": "^1.1.0",
+    "@themost/query": "2.0.0-alpha.1",
+    "async": "0.2.10",
+    "lodash": "^4.17.4",
+    "moment": "2.8.4",
     "most-xml": "^0.3.7",
+    "node-cache": "^1.1.0",
+    "pluralize": "^7.0.0",
     "q": "~1.1.1",
-    "sprintf": "^0.1.5",
-    "rxjs": "^5.0.1",
-    "source-map-support": "^0.4.11"
+    "source-map-support": "^0.4.11",
+    "sprintf": "^0.1.5"
   }
 }

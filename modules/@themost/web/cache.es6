@@ -10,7 +10,7 @@
 'use strict';
 import 'source-map-support/register';
 import {_} from 'lodash';
-import Rx from 'rxjs';
+import Q from 'q';
 import NodeCache from 'node-cache';
 import {HttpApplicationService} from './interfaces';
 import {AbstractClassError,AbstractMethodError} from '@themost/common/errors';
@@ -36,7 +36,7 @@ export class CacheStrategy extends HttpApplicationService {
      * @param {string} key - A string that represents the key of the cached value
      * @param {*} value - The value to be cached
      * @param {number=} absoluteExpiration - An absolute expiration time in seconds. This parameter is optional.
-     * @returns {Observable}
+     * @returns {Promise}
      */
     add(key, value, absoluteExpiration) {
         throw new AbstractMethodError();
@@ -46,7 +46,7 @@ export class CacheStrategy extends HttpApplicationService {
      * Removes a cached value.
      * @abstract
      * @param {string} key - A string that represents the key of the cached value to be removed
-     * @returns {Observable}
+     * @returns {Promise}
      */
     remove(key) {
         throw new AbstractMethodError();
@@ -54,7 +54,7 @@ export class CacheStrategy extends HttpApplicationService {
     /**
      * Flush all cached data.
      * @abstract
-     * @returns {Observable}
+     * @returns {Promise}
      */
     clear() {
         throw new AbstractMethodError();
@@ -62,7 +62,7 @@ export class CacheStrategy extends HttpApplicationService {
     /**
      * Gets a cached value defined by the given key.
      * @param {string} key
-     * @returns {Observable}
+     * @returns {Promise}
      */
     get(key) {
         throw new AbstractMethodError();
@@ -72,7 +72,7 @@ export class CacheStrategy extends HttpApplicationService {
      * @param {string|*} key - A string which represents the key of the cached data
      * @param {Function} fn - A function to execute if data will not be found in cache
      * @param {number=} absoluteExpiration - An absolute expiration time in seconds. This parameter is optional.
-     * @returns {Observable}
+     * @returns {Promise}
      */
     getOrDefault(key, fn, absoluteExpiration) {
         throw new AbstractMethodError();
@@ -113,19 +113,19 @@ export class DefaultCacheStrategy extends CacheStrategy  {
      * Removes a cached value.
      * @abstract
      * @param {string} key - A string that represents the key of the cached value to be removed
-     * @returns {Observable}
+     * @returns {Promise}
      */
     remove(key) {
-        return Rx.Observable.bindNodeCallback(this[rawCacheProperty].set.bind(this[rawCacheProperty]))(key);
+        return Q.nfbind(this[rawCacheProperty].set.bind(this[rawCacheProperty]))(key);
     }
 
     /**
     * Flush all cached data.
-     * @returns {Observable}
+     * @returns {Promise}
     */
     clear() {
         this[rawCacheProperty].flushAll();
-        return Rx.Observable.of();
+        return Q();
     }
 
     /**
@@ -133,11 +133,11 @@ export class DefaultCacheStrategy extends CacheStrategy  {
      * @param {string} key - A string that represents the key of the cached value
      * @param {*} value - The value to be cached
      * @param {number=} absoluteExpiration - An absolute expiration time in seconds. This parameter is optional.
-     * @returns {Observable}
+     * @returns {Promise}
      */
     add(key, value, absoluteExpiration) {
 
-        return Rx.Observable.bindNodeCallback(this[rawCacheProperty].set, this[rawCacheProperty])(key, value, absoluteExpiration);
+        return Q.nfbind(this[rawCacheProperty].set, this[rawCacheProperty])(key, value, absoluteExpiration);
 
     }
 
@@ -146,37 +146,35 @@ export class DefaultCacheStrategy extends CacheStrategy  {
      * @param {string|*} key - A string which represents the key of the cached data
      * @param {Function} fn - A function to execute if data will not be found in cache
      * @param {number=} absoluteExpiration - An absolute expiration time in seconds. This parameter is optional.
-     * @returns {Observable}
+     * @returns {Promise}
      */
     getOrDefault(key, fn, absoluteExpiration) {
         const self = this;
         Args.check(_.isFunction(fn),'Invalid argument. Expected function.');
-        return self.get(key).flatMap((res) => {
+        return self.get(key).then((res) => {
            if (_.isNil(res)) {
                let source = fn();
-               Args.check(source instanceof Observable, 'Invalid argument. Expected a valid observable.');
-               return source.flatMap((res) => {
+               Args.check(typeof source.then !== 'function', 'Invalid argument. Expected a valid observable.');
+               return source.then((res) => {
                    if (_.isNil(res)) {
-                       return Rx.Observable.of();
+                       return Q();
                    }
-                   return self.add(key,res,absoluteExpiration).flatMap(() => {
-                       return Rx.Observable.of(res);
-                   });
+                   return self.add(key,res,absoluteExpiration);
                });
            }
-            return Rx.Observable.of(res);
+            return Q(res);
         });
     }
 
     /**
      * Gets a cached value defined by the given key.
      * @param {string|*} key
-     * @returns {Observable}
+     * @returns {Promise}
      */
     get(key) {
-        return Rx.Observable.bindNodeCallback(this[rawCacheProperty].get.bind(this[rawCacheProperty]))(key)
-            .flatMap((res) => {
-                return Rx.Observable.of(res[key]);
+        return Q.nfbind(this[rawCacheProperty].get.bind(this[rawCacheProperty]))(key)
+            .then((res) => {
+                return Q(res[key]);
             });
 
     }

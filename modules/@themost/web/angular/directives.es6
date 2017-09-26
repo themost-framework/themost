@@ -64,11 +64,11 @@ export class AngularServerModuleDefaults {
                             $context.getApplication().executeRequest({
                                 url: src,
                                 cookie: $context.request.headers.cookie
-                            }).subscribe((result)=>{
+                            }).then((result)=>{
                                 element.removeAttr('data-src');
                                 element.replaceWith(angular.element(result.body.replace(/\n/,'')));
                                 resolve();
-                            }, (err) => {
+                            }).catch((err) => {
                                 element.replaceWith(null);
                                 reject(err.message);
                             });

@@ -102,9 +102,9 @@ var _config = require('@themost/data/config');
 
 var DataConfigurationStrategy = _config.DataConfigurationStrategy;
 
-var _rxjs = require('rxjs');
+var _q = require('q');
 
-var Rx = _interopRequireDefault(_rxjs).default;
+var Q = _interopRequireDefault(_q).default;
 
 var _path = require('path');
 
@@ -180,21 +180,20 @@ function startInternal(options) {
         var server_ = http.createServer(function (request, response) {
             var context = self.createContext(request, response);
             //begin request processing
-            Rx.Observable.bindNodeCallback(processRequestInternal.bind(self))(context).subscribe(function () {
+            return Q.nfbind(processRequestInternal).bind(self)(context).then(function () {
                 context.finalize(function () {
                     if (context.response) {
                         context.response.end();
                     }
                 });
-            }, function (err) {
-                //process error
-                Rx.Observable.bindNodeCallback(processErrorInternal)(context, err).subscribe(function (res) {
+            }).catch(function (err) {
+                return Q.nfbind(processErrorInternal).bind(self)(context, err).then(function (res) {
                     context.finalize(function () {
                         if (context.response) {
                             context.response.end();
                         }
                     });
-                }, function (err) {
+                }).catch(function (err) {
                     //an error occurred while handling request error
                     TraceUtils.error(err);
                     if (context && context.response) {
@@ -257,20 +256,24 @@ function processRequestInternal(context, callback) {
      * @param {Function} cb
      */
     function (consumer, cb) {
-        consumer.callable.apply(context).subscribe(function (result) {
-            //if result is an instance of HttpNextResult
-            if (result instanceof HttpNextResult) {
-                //continue series execution (call series callback with no error)
-                return cb();
-            } else if (result instanceof HttpResult) {
-                //continue series execution (call series callback with no error)
-                return cb(result);
-            }
-            //else break series execution and return result
-            return cb(new HttpAnyResult(result));
-        }, function (err) {
+        try {
+            consumer.callable.apply(context).then(function (result) {
+                //if result is an instance of HttpNextResult
+                if (result instanceof HttpNextResult) {
+                    //continue series execution (call series callback with no error)
+                    return cb();
+                } else if (result instanceof HttpResult) {
+                    //continue series execution (call series callback with no error)
+                    return cb(result);
+                }
+                //else break series execution and return result
+                return cb(new HttpAnyResult(result));
+            }).catch(function (err) {
+                return cb(err);
+            });
+        } catch (err) {
             return cb(err);
-        });
+        }
     }, function (finalRes) {
         if (_.isNil(finalRes)) {
             //get otherwise consumer
@@ -279,16 +282,16 @@ function processRequestInternal(context, callback) {
                 if (!_.isFunction(otherWiseConsumer.callable)) {
                     return callback(new ReferenceError('HTTP consumer callable must be a function.'));
                 }
-                return otherWiseConsumer.callable.apply(context).subscribe(function (result) {
+                return otherWiseConsumer.callable.apply(context).then(function (result) {
                     if (result instanceof HttpNextResult) {
                         return callback(new HttpNotFoundError());
                     }
                     if (result instanceof HttpResult) {
                         if (typeof finalRes.execute === 'function') {
                             //execute result
-                            return finalRes.execute(context).subscribe(function () {
+                            return finalRes.execute(context).then(function () {
                                 return callback();
-                            }, function (err) {
+                            }).catch(function (err) {
                                 return callback(err);
                             });
                         }
@@ -296,13 +299,13 @@ function processRequestInternal(context, callback) {
                     } else {
                         //create an instance of HttpAnyResult class
                         var intermediateRes = new HttpAnyResult(result);
-                        return intermediateRes.execute(context).subscribe(function () {
+                        return intermediateRes.execute(context).then(function () {
                             callback();
-                        }, function (err) {
+                        }).catch(function (err) {
                             return callback(err);
                         });
                     }
-                }, function (err) {
+                }).catch(function (err) {
                     return callback(err);
                 });
             } else {
@@ -321,9 +324,9 @@ function processRequestInternal(context, callback) {
                 try {
                     if (typeof finalRes.execute === 'function') {
                         //execute result
-                        return finalRes.execute(context).subscribe(function () {
+                        return finalRes.execute(context).then(function () {
                             return callback();
-                        }, function (err) {
+                        }).catch(function (err) {
                             return callback(err);
                         });
                     }
@@ -358,12 +361,12 @@ function processErrorInternal(context, error, callback) {
         return callback(error);
     }
     return async.eachSeries(errorConsumers, function (consumer, cb) {
-        consumer.callable.call(context, error).subscribe(function (result) {
+        consumer.callable.call(context, error).then(function (result) {
             if (result instanceof HttpNextResult) {
                 return cb();
             }
             return cb(result);
-        }, function (err) {
+        }).catch(function (err) {
             return cb(err);
         });
     }, function (err) {
@@ -852,18 +855,18 @@ var HttpApplication = exports.HttpApplication = function () {
         /**
          * Creates a new context and executes the given function
          * @param {Function} fn - A function to execute. The first argument is the current context
-         * @returns {Observable}
+         * @returns {Promise}
          */
         value: function execute(fn) {
             var self = this;
-            return Rx.Observable.bindNodeCallback(function (callback) {
+            return Q.nfcall(function (callback) {
                 //create context
                 var request = createRequestInternal.call(self),
                     response = createResponseInternal.call(self, request);
                 var context = self.createContext(request, response);
-                fn(context).subscribe(function () {
+                fn(context).then(function () {
                     return callback();
-                }, function (err) {
+                }).catch(function (err) {
                     return callback(err);
                 });
             });
@@ -872,14 +875,14 @@ var HttpApplication = exports.HttpApplication = function () {
         /**
          * Creates a new context and executes the given function in unattended mode
          * @param {Function} fn
-         * @returns {Observable}
+         * @returns {Promise}
          */
 
     }, {
         key: 'executeUnattended',
         value: function executeUnattended(fn) {
             var self = this;
-            return Rx.Observable.bindNodeCallback(function (callback) {
+            return Q.nfcall(function (callback) {
                 //create context
                 var request = createRequestInternal.call(self),
                     response = createResponseInternal.call(self, request);
@@ -891,9 +894,9 @@ var HttpApplication = exports.HttpApplication = function () {
                         context.user = { name: account, authenticationType: 'Basic' };
                     }
                 }
-                fn(context).subscribe(function () {
+                fn(context).then(function () {
                     return callback();
-                }, function (err) {
+                }).catch(function (err) {
                     return callback(err);
                 });
             });
@@ -903,14 +906,14 @@ var HttpApplication = exports.HttpApplication = function () {
          * Executes and external HTTP request
          * @param {string|*} options
          * @param {*} data
-         * @returns {Observable}
+         * @returns {Promise}
          */
 
     }, {
         key: 'executeExternalRequest',
         value: function executeExternalRequest(options, data) {
 
-            return Rx.Observable.bindNodeCallback(function (callback) {
+            return Q.nfcall(function (callback) {
                 //make request
                 var https = require('https'),
                     opts = typeof options === 'string' ? url.parse(options) : options,
@@ -937,20 +940,22 @@ var HttpApplication = exports.HttpApplication = function () {
                     if ((typeof data === 'undefined' ? 'undefined' : _typeof(data)) === "object") req.write(JSON.stringify(data));else req.write(data.toString());
                 }
                 req.end();
-            })();
+            });
         }
 
         /**
          * Executes an external or internal HTTP request
          * @param {*|string} options
-         * @returns {Observable}
+         * @returns {Promise}
          */
 
     }, {
         key: 'executeRequest',
         value: function executeRequest(options) {
+            var _this = this;
+
             var self = this;
-            return Rx.Observable.bindNodeCallback(function (callback) {
+            return Q.nfbind(function (callback) {
                 var requestOptions = {};
                 if (typeof options === 'string') {
                     _.assign(requestOptions, { url: options });
@@ -963,19 +968,19 @@ var HttpApplication = exports.HttpApplication = function () {
                 if (requestOptions.url.indexOf('/') !== 0) {
                     _.assign(requestOptions, url.parse(requestOptions.url));
                     //execute external request
-                    return this.executeExternalRequest(requestOptions, null).subscribe(function (res) {
+                    return _this.executeExternalRequest(requestOptions, null).then(function (res) {
                         return callback(null, res);
-                    }, function (err) {
+                    }).catch(function (err) {
                         return callback(err);
                     });
                 } else {
                     //create request and response
-                    var request = createRequestInternal.call(this, requestOptions),
-                        response = createResponseInternal.call(this, request);
+                    var request = createRequestInternal.call(_this, requestOptions),
+                        response = createResponseInternal.call(_this, request);
                     //set content length header to -1 (for backward compatibility issues)
                     response.setHeader('Content-Length', -1);
                     //create context
-                    var requestContext = this.createContext(request, response);
+                    var requestContext = _this.createContext(request, response);
                     //and finally process context
                     return processRequestInternal.call(self, requestContext, function (err) {
                         if (err) {
@@ -1021,7 +1026,7 @@ var HttpApplication = exports.HttpApplication = function () {
                         }
                     });
                 }
-            }, this)();
+            }).bind(this)();
         }
 
         /**

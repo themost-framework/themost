@@ -44,9 +44,9 @@ var _mostXml = require('most-xml');
 
 var xml = _interopRequireDefault(_mostXml).default;
 
-var _rxjs = require('rxjs');
+var _q = require('q');
 
-var Rx = _interopRequireDefault(_rxjs).default;
+var Q = _interopRequireDefault(_q).default;
 
 var _config = require('@themost/common/config');
 
@@ -357,9 +357,9 @@ var ViewHandler = function () {
                                 k++;
                             }
                         }
-                        return actionMethod.apply(controller, params).subscribe(function (result) {
+                        return actionMethod.apply(controller, params).then(function (result) {
                             return callback(null, result);
-                        }, function (err) {
+                        }).catch(function (err) {
                             return callback(err);
                         });
                     }
@@ -478,29 +478,29 @@ var ViewConsumer = exports.ViewConsumer = function (_HttpConsumer) {
             try {
                 var handler = new ViewHandler();
                 //execute mapRequest
-                return Rx.Observable.bindNodeCallback(handler.mapRequest.bind(handler))(context).flatMap(function () {
+                return Q.nfbind(handler.mapRequest.bind(handler))(context).then(function () {
                     //if request has been mapped
                     if (context.request.currentHandler instanceof ViewHandler) {
                         //execute post map request
-                        return Rx.Observable.bindNodeCallback(handler.postMapRequest.bind(handler))(context);
+                        return Q.nfbind(handler.postMapRequest.bind(handler))(context);
                     }
                     //otherwise return next result
-                    return Rx.Observable.of(new HttpNextResult());
-                }).flatMap(function () {
+                    return Q(new HttpNextResult());
+                }).then(function () {
                     //if current handler is an instance of ViewHandler
                     if (context.request.currentHandler instanceof ViewHandler) {
                         //process request
-                        return Rx.Observable.bindNodeCallback(handler.processRequest.bind(handler))(context).flatMap(function (res) {
+                        return Q.nfbind(handler.processRequest.bind(handler))(context).then(function (res) {
                             if (res instanceof HttpEndResult) {
-                                return res.toObservable();
+                                return res.toPromise();
                             }
-                            return Rx.Observable.of(res);
+                            return Q(res);
                         });
                     }
-                    return Rx.Observable.of(new HttpNextResult());
+                    return Q(new HttpNextResult());
                 });
             } catch (err) {
-                return Rx.Observable['throw'](err);
+                return Q.reject(err);
             }
         }));
     }

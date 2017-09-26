@@ -16,7 +16,7 @@ class RootController extends HttpController {
     @httpGet()
     /*jshint ignore:end*/
     index() {
-        return this.content('Hello World').toObservable();
+        return this.content('Hello World').toPromise();
     }
     /* jshint ignore:start*/
     @httpGet()
@@ -25,7 +25,7 @@ class RootController extends HttpController {
     getHello() {
         return this.json({
             message: 'Hello World'
-        }).toObservable();
+        }).toPromise();
     }
     /* jshint ignore:start*/
     @httpGet()

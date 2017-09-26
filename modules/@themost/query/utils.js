@@ -34,11 +34,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  */
 
 function convertTimezone(tz) {
-    if (tz == "Z") return 0;
+    if (tz === "Z") return 0;
 
     var m = tz.match(/([+\-\s])(\d\d):?(\d\d)?/);
     if (m) {
-        return (m[1] == '-' ? -1 : 1) * (parseInt(m[2], 10) + (m[3] ? parseInt(m[3], 10) : 0) / 60) * 60;
+        return (m[1] === '-' ? -1 : 1) * (parseInt(m[2], 10) + (m[3] ? parseInt(m[3], 10) : 0) / 60) * 60;
     }
     return false;
 }
@@ -54,7 +54,7 @@ function zeroPad(number, length) {
 function dateToString(date, timeZone) {
     var dt = new Date(date);
 
-    if (timeZone != 'local') {
+    if (timeZone !== 'local') {
         var tz = convertTimezone(timeZone);
         dt.setTime(dt.getTime() + dt.getTimezoneOffset() * 60000);
         if (tz !== false) {
@@ -177,7 +177,7 @@ function _escape(val, stringifyObjects, timeZone) {
 }
 
 function _format(sql, values, stringifyObjects, timeZone) {
-    values = values == null ? [] : [].concat(values);
+    values = values === null ? [] : [].concat(values);
     var index = 0;
     return sql.replace(/\?\??/g, function (match) {
         if (index === values.length) {
@@ -221,7 +221,7 @@ var SqlUtils = exports.SqlUtils = function () {
         key: 'format',
         value: function format(sql, values) {
             var args = Array.prototype.slice.call(arguments, 1);
-            if (args.length == 0) return sql;
+            if (args.length === 0) return sql;
             if (_.isArray(args) && args.length > 1) {
                 throw new TypeError('Invalid arguments. Expected array only (for backward compatibility issues)');
             }

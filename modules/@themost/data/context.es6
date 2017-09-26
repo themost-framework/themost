@@ -11,7 +11,7 @@
 import 'source-map-support/register';
 import {DataContext} from './types';
 import {_} from 'lodash';
-import {TraceUtils} from '@themost/common/utils';
+import {TraceUtils,Args} from '@themost/common/utils';
 import {DataConfigurationStrategy} from './config';
 
 /**
@@ -114,6 +114,16 @@ export class DefaultDataContext extends DataContext {
      */
     getConfiguration() {
         return DataConfigurationStrategy.getCurrent();
+    }
+
+    /**
+     * Gets a configuration strategy
+     * @param {Function|*} configStrategyCtor
+     * @returns {ConfigurationStrategy|*}
+     */
+    getStrategy(configStrategyCtor) {
+        Args.notFunction(configStrategyCtor,"Configuration strategy constructor");
+        return this.getConfiguration().getConfiguration().getStrategy(configStrategyCtor);
     }
 
     /**

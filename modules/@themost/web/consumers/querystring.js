@@ -30,9 +30,9 @@ var _consumers = require('../consumers');
 
 var HttpConsumer = _consumers.HttpConsumer;
 
-var _rxjs = require('rxjs');
+var _q = require('q');
 
-var Rx = _interopRequireDefault(_rxjs).default;
+var Q = _interopRequireDefault(_q).default;
 
 var _results = require('../results');
 
@@ -101,11 +101,11 @@ var QuerystringConsumer = exports.QuerystringConsumer = function (_HttpConsumer)
             var context = this;
             try {
                 var handler = new QuerystringHandler();
-                return Rx.Observable.bindNodeCallback(handler.beginRequest)(context).flatMap(function () {
-                    return HttpNextResult.create().toObservable();
+                return Q.nfbind(handler.beginRequest)(context).then(function () {
+                    return HttpNextResult.create().toPromise();
                 });
             } catch (err) {
-                return Rx.Observable['throw'](err);
+                return Q.reject(err);
             }
         }));
     }

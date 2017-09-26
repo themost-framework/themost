@@ -118,7 +118,7 @@ var OpenDataParser = exports.OpenDataParser = function () {
     }, {
         key: 'getOperator',
         value: function getOperator(token) {
-            if (token.type == Token.TokenType.Identifier) {
+            if (token.type === Token.TokenType.Identifier) {
                 switch (token.identifier) {
                     case "and":
                         return Token.Operator.And;
@@ -236,7 +236,7 @@ var OpenDataParser = exports.OpenDataParser = function () {
     }, {
         key: 'atStart',
         value: function atStart() {
-            return this.offset == 0;
+            return this.offset === 0;
         }
 
         /**
@@ -250,7 +250,7 @@ var OpenDataParser = exports.OpenDataParser = function () {
             var self = this;
             //ensure callback
             callback = callback || function () {};
-            if (this.tokens.length == 0) {
+            if (this.tokens.length === 0) {
                 callback.call(self);
                 return;
             }
@@ -262,11 +262,11 @@ var OpenDataParser = exports.OpenDataParser = function () {
                         callback.call(self, null, result);
                     }
                     //method call exception for [,] or [)] tokens e.g indexOf(Title,'...')
-                    else if (this.currentToken.syntax == SyntaxToken.Comma.syntax || this.currentToken.syntax == SyntaxToken.ParenClose.syntax) {
+                    else if (this.currentToken.syntax === SyntaxToken.Comma.syntax || this.currentToken.syntax === SyntaxToken.ParenClose.syntax) {
                             callback.call(self, null, result);
                         } else {
                             var op = this.getOperator(self.currentToken);
-                            if (op == null) {
+                            if (op === null) {
                                 callback.call(self, new Error('Expected operator.'));
                             } else {
                                 this.moveNext();
@@ -308,7 +308,7 @@ var OpenDataParser = exports.OpenDataParser = function () {
             var expr = null;
             if (LogicalExpression.isLogicalOperator(operator)) {
                 if (left instanceof LogicalExpression) {
-                    if (left.operator == operator) {
+                    if (left.operator === operator) {
                         expr = LogicalExpression.create(operator);
                         for (var i = 0; i < left.args.length; i++) {
                             var o = left.args[i];
@@ -345,17 +345,17 @@ var OpenDataParser = exports.OpenDataParser = function () {
             var self = this;
             //ensure callback
             callback = callback || function () {};
-            if (self.tokens.length == 0) {
+            if (self.tokens.length === 0) {
                 callback.call(self);
                 return;
             }
             switch (this.currentToken.type) {
                 case Token.TokenType.Identifier:
                     //if next token is an open parenthesis token and the current token is not an operator. current=indexOf, next=(
-                    if (self.nextToken.syntax == SyntaxToken.ParenOpen.syntax && self.getOperator(self.currentToken) == null) {
+                    if (self.nextToken.syntax === SyntaxToken.ParenOpen.syntax && self.getOperator(self.currentToken) === null) {
                         //then parse method call
                         self.parseMethodCall(callback);
-                    } else if (self.getOperator(self.currentToken) == Token.Operator.Not) {
+                    } else if (self.getOperator(self.currentToken) === Token.Operator.Not) {
                         callback.call(self, new Error('Not operator is not yet implemented.'));
                         return;
                     } else {
@@ -363,7 +363,7 @@ var OpenDataParser = exports.OpenDataParser = function () {
                             if (err) {
                                 callback.call(self, err);
                             } else {
-                                while (!self.atEnd() && self.currentToken.syntax == SyntaxToken.Slash.syntax) {
+                                while (!self.atEnd() && self.currentToken.syntax === SyntaxToken.Slash.syntax) {
                                     //self.moveNext();
                                     //self.parseMembers(callback)
                                     callback.call(self, new Error('Slash syntax is not yet implemented.'));
@@ -380,11 +380,11 @@ var OpenDataParser = exports.OpenDataParser = function () {
                     callback.call(self, null, value);
                     break;
                 case Token.TokenType.Syntax:
-                    if (self.currentToken.syntax == SyntaxToken.Negative.syntax) {
+                    if (self.currentToken.syntax === SyntaxToken.Negative.syntax) {
                         callback.call(self, new Error('Negative syntax is not yet implemented.'));
                         return;
                     }
-                    if (self.currentToken.syntax == SyntaxToken.ParenOpen.syntax) {
+                    if (self.currentToken.syntax === SyntaxToken.ParenOpen.syntax) {
                         self.moveNext();
                         self.parseCommon(function (err, result) {
                             if (err) {
@@ -409,7 +409,7 @@ var OpenDataParser = exports.OpenDataParser = function () {
             var self = this;
             //ensure callback
             callback = callback || function () {};
-            if (this.tokens.length == 0) callback.call(this);else {
+            if (this.tokens.length === 0) callback.call(this);else {
                 //get method name
                 var method = self.currentToken.identifier;
                 self.moveNext();
@@ -423,7 +423,7 @@ var OpenDataParser = exports.OpenDataParser = function () {
                             if (err) {
                                 callback.call(self, err);
                             } else {
-                                if (typeof expr === 'undefined' || expr == null) callback.call(self, null, MethodCallExpression.create(method, args));else callback.call(self, null, expr);
+                                if (typeof expr === 'undefined' || expr === null) callback.call(self, null, MethodCallExpression.create(method, args));else callback.call(self, null, expr);
                             }
                         });
                     }
@@ -438,11 +438,11 @@ var OpenDataParser = exports.OpenDataParser = function () {
             callback = callback || function () {};
             args = args || [];
             self.expectAny();
-            if (self.currentToken.syntax == SyntaxToken.Comma.syntax) {
+            if (self.currentToken.syntax === SyntaxToken.Comma.syntax) {
                 self.moveNext();
                 self.expectAny();
                 self.parseMethodCallArguments(args, callback);
-            } else if (self.currentToken.syntax == SyntaxToken.ParenClose.syntax) {
+            } else if (self.currentToken.syntax === SyntaxToken.ParenClose.syntax) {
                 self.moveNext();
                 callback(null, arguments);
             } else {
@@ -467,14 +467,14 @@ var OpenDataParser = exports.OpenDataParser = function () {
             var self = this;
             //ensure callback
             callback = callback || function () {};
-            if (this.tokens.length == 0) {
+            if (this.tokens.length === 0) {
                 callback.call(this);
             } else {
-                if (this.currentToken.type != 'Identifier') {
+                if (this.currentToken.type !== 'Identifier') {
                     callback.call(self, new Error('Expected identifier.'));
                 } else {
                     var identifier = this.currentToken.identifier;
-                    while (this.nextToken.syntax == SyntaxToken.Slash.syntax) {
+                    while (this.nextToken.syntax === SyntaxToken.Slash.syntax) {
                         //read syntax token
                         this.moveNext();
                         //get next token
@@ -543,8 +543,8 @@ var OpenDataParser = exports.OpenDataParser = function () {
             this.current = 0;
             this.offset = 0;
             var result = [];
-            var token = null;
-            while ((token = this.getNext()) != null) {
+            var token = void 0;
+            while ((token = this.getNext()) !== null) {
                 result.push(token);
             }
             return result;
@@ -634,7 +634,7 @@ var OpenDataParser = exports.OpenDataParser = function () {
 
             for (_current++; _current < _source.length; _current++) {
                 var c = _source.charAt(_current);
-                if (OpenDataParser.isIdentifierChar(c) == false) break;
+                if (OpenDataParser.isIdentifierChar(c) === false) break;
             }
 
             var name = _source.substr(_offset, _current - _offset).trim();
@@ -680,7 +680,7 @@ var OpenDataParser = exports.OpenDataParser = function () {
                     this.current = _current;this.offset = _offset;
                     break;
             }
-            if (_offset < _source.length && _source.charAt(_offset) == '\'') {
+            if (_offset < _source.length && _source.charAt(_offset) === '\'') {
                 var stringType = void 0;
                 switch (name) {
                     case "X":
@@ -699,7 +699,7 @@ var OpenDataParser = exports.OpenDataParser = function () {
                         stringType = LiteralToken.StringType.None;break;
                 }
 
-                if (stringType != LiteralToken.StringType.None && _source.charAt(_offset) == '\'') {
+                if (stringType !== LiteralToken.StringType.None && _source.charAt(_offset) == '\'') {
                     var content = this.parseString();
                     return this.parseSpecialString(content.value, stringType);
                 }
@@ -716,7 +716,7 @@ var OpenDataParser = exports.OpenDataParser = function () {
         key: 'parseGuidString',
         value: function parseGuidString(value) {
             if (typeof value !== 'string') throw new Error(sprintf.sprintf('Invalid argument at %s.', this.offset));
-            if (value.match(OpenDataParser.GuidRegex) != null) throw new Error(sprintf.sprintf('Guid format is invalid at %s.', this.offset));
+            if (value.match(OpenDataParser.GuidRegex) !== null) throw new Error(sprintf.sprintf('Guid format is invalid at %s.', this.offset));
             return new LiteralToken(value, LiteralType.Guid);
         }
 
@@ -728,10 +728,10 @@ var OpenDataParser = exports.OpenDataParser = function () {
     }, {
         key: 'parseTimeString',
         value: function parseTimeString(value) {
-            if (typeof value === 'undefined' || value == null) return null;
+            if (typeof value === 'undefined' || value === null) return null;
             var match = value.match(OpenDataParser.DurationRegex);
-            if (match != null) {
-                var negative = match[1] == "-";
+            if (match !== null) {
+                var negative = match[1] === "-";
                 var year = match[2].length > 0 ? parseInt(match[2]) : 0,
                     month = match[3].length > 0 ? parseInt(match[3]) : 0,
                     day = match[4].length > 0 ? parseInt(match[4]) : 0,
@@ -777,9 +777,9 @@ var OpenDataParser = exports.OpenDataParser = function () {
     }, {
         key: 'parseDateTimeString',
         value: function parseDateTimeString(value) {
-            if (typeof value === 'undefined' || value == null) return null;
+            if (typeof value === 'undefined' || value === null) return null;
             var match = value.match(OpenDataParser.DateTimeRegex);
-            if (match != null) {
+            if (match !== null) {
                 var year = parseInt(match[1]),
                     month = parseInt(match[2]),
                     day = parseInt(match[3]),
@@ -836,8 +836,8 @@ var OpenDataParser = exports.OpenDataParser = function () {
             for (_current++; _current < _source.length; _current++) {
                 var c = this.source.charAt(_current);
 
-                if (c == '\'') {
-                    if (_current < _source.length - 1 && _source.charAt(_current + 1) == '\'') {
+                if (c === '\'') {
+                    if (_current < _source.length - 1 && _source.charAt(_current + 1) === '\'') {
                         _current++;
                         sb += '\'';
                     } else {
@@ -884,7 +884,7 @@ var OpenDataParser = exports.OpenDataParser = function () {
 
             for (_current++; _current < _source.length; _current++) {
                 c = _source.charAt(_current);
-                if (c == OpenDataParser.CHR_POINT) {
+                if (c === OpenDataParser.CHR_POINT) {
                     if (floating) break;
                     floating = true;
                 } else if (!OpenDataParser.isDigit(c)) {
@@ -894,17 +894,17 @@ var OpenDataParser = exports.OpenDataParser = function () {
             var haveExponent = false;
             if (_current < _source.length) {
                 c = _source.charAt(_current);
-                if (c == 'E' || c == 'e') {
+                if (c === 'E' || c === 'e') {
                     _current++;
-                    if (_source.charAt(_current) == '-') _current++;
-                    var exponentEnd = _current == _source.length ? null : this.skipDigits(_current);
-                    if (exponentEnd == null) throw new Error(sprintf.sprintf('Expected digits after exponent at %s.', _offset));
+                    if (_source.charAt(_current) === '-') _current++;
+                    var exponentEnd = _current === _source.length ? null : this.skipDigits(_current);
+                    if (exponentEnd === null) throw new Error(sprintf.sprintf('Expected digits after exponent at %s.', _offset));
                     _current = exponentEnd;
                     haveExponent = true;
 
                     if (_current < _source.length) {
                         c = _source.charAt(_current);
-                        if (c == 'm' || c == 'M') throw new Error(sprintf.sprintf('Unexpected exponent for decimal literal at %s.', _offset));else if (c == 'l' || c == 'L') throw new Error(sprintf.sprintf('Unexpected exponent for long literal at %s.', _offset));
+                        if (c === 'm' || c === 'M') throw new Error(sprintf.sprintf('Unexpected exponent for decimal literal at %s.', _offset));else if (c === 'l' || c === 'L') throw new Error(sprintf.sprintf('Unexpected exponent for long literal at %s.', _offset));
                     }
                 }
             }
@@ -990,7 +990,7 @@ var OpenDataParser = exports.OpenDataParser = function () {
     }], [{
         key: 'isChar',
         value: function isChar(c) {
-            return c.match(OpenDataParser.REGEXP_CHAR) != null;
+            return c.match(OpenDataParser.REGEXP_CHAR) !== null;
         }
 
         /**
@@ -1001,12 +1001,12 @@ var OpenDataParser = exports.OpenDataParser = function () {
     }, {
         key: 'isDigit',
         value: function isDigit(c) {
-            return c.match(OpenDataParser.REGEXP_DIGIT) != null;
+            return c.match(OpenDataParser.REGEXP_DIGIT) !== null;
         }
     }, {
         key: 'isIdentifierStartChar',
         value: function isIdentifierStartChar(c) {
-            return c == OpenDataParser.CHR_UNDERSCORE || c == OpenDataParser.CHR_DOLLARSIGN || OpenDataParser.isChar(c);
+            return c === OpenDataParser.CHR_UNDERSCORE || c === OpenDataParser.CHR_DOLLARSIGN || OpenDataParser.isChar(c);
         }
 
         /**
@@ -1017,7 +1017,7 @@ var OpenDataParser = exports.OpenDataParser = function () {
     }, {
         key: 'isWhitespace',
         value: function isWhitespace(c) {
-            return c == OpenDataParser.CHR_WHITESPACE;
+            return c === OpenDataParser.CHR_WHITESPACE;
         }
     }, {
         key: 'isIdentifierChar',
@@ -1074,27 +1074,27 @@ var Token = exports.Token = function () {
     _createClass(Token, [{
         key: 'isParenOpen',
         value: function isParenOpen() {
-            return this.type == 'Syntax' && this.syntax == '(';
+            return this.type === 'Syntax' && this.syntax === '(';
         }
     }, {
         key: 'isParenClose',
         value: function isParenClose() {
-            return this.type == 'Syntax' && this.syntax == ')';
+            return this.type === 'Syntax' && this.syntax === ')';
         }
     }, {
         key: 'isSlash',
         value: function isSlash() {
-            return this.type == 'Syntax' && this.syntax == '/';
+            return this.type === 'Syntax' && this.syntax === '/';
         }
     }, {
         key: 'isComma',
         value: function isComma() {
-            return this.type == 'Syntax' && this.syntax == ',';
+            return this.type === 'Syntax' && this.syntax === ',';
         }
     }, {
         key: 'isNegative',
         value: function isNegative() {
-            return this.type == 'Syntax' && this.syntax == '-';
+            return this.type === 'Syntax' && this.syntax === '-';
         }
     }]);
 

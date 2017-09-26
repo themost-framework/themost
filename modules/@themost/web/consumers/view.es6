@@ -15,7 +15,7 @@ import {HttpConsumer} from '../consumers';
 import {_} from 'lodash';
 import url from 'url';
 import xml from 'most-xml';
-import Rx from 'rxjs';
+import Q from 'q';
 import {ModuleLoaderStrategy} from "@themost/common/config";
 
 
@@ -374,9 +374,9 @@ class ViewHandler {
                             k++;
                         }
                     }
-                    return actionMethod.apply(controller, params).subscribe((result) => {
+                    return actionMethod.apply(controller, params).then((result) => {
                         return callback(null, result);
-                    },(err) => {
+                    }).catch((err) => {
                         return callback(err);
                     });
                 }
@@ -430,31 +430,31 @@ export class ViewConsumer extends HttpConsumer {
             try {
                 let handler = new ViewHandler();
                 //execute mapRequest
-                return Rx.Observable.bindNodeCallback(handler.mapRequest.bind(handler))(context)
-                    .flatMap(()=> {
+                return Q.nfbind(handler.mapRequest.bind(handler))(context)
+                    .then(()=> {
                         //if request has been mapped
                         if (context.request.currentHandler instanceof ViewHandler) {
                             //execute post map request
-                            return Rx.Observable.bindNodeCallback(handler.postMapRequest.bind(handler))(context);
+                            return Q.nfbind(handler.postMapRequest.bind(handler))(context);
                         }
                         //otherwise return next result
-                        return Rx.Observable.of(new HttpNextResult());
-                    }).flatMap(()=> {
+                        return Q(new HttpNextResult());
+                    }).then(()=> {
                         //if current handler is an instance of ViewHandler
                         if (context.request.currentHandler instanceof ViewHandler) {
                             //process request
-                            return Rx.Observable.bindNodeCallback(handler.processRequest.bind(handler))(context).flatMap((res)=> {
+                            return Q.nfbind(handler.processRequest.bind(handler))(context).then((res)=> {
                                 if (res instanceof HttpEndResult) {
-                                    return res.toObservable();
+                                    return res.toPromise();
                                 }
-                                return Rx.Observable.of(res);
+                                return Q(res);
                             });
                         }
-                        return Rx.Observable.of(new HttpNextResult());
+                        return Q(new HttpNextResult());
                     });
             }
             catch(err) {
-                return Rx.Observable['throw'](err);
+                return Q.reject(err);
             }
         });
     }

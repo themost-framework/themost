@@ -36,10 +36,6 @@ var _q = require('q');
 
 var Q = _interopRequireDefault(_q).default;
 
-var _rxjs = require('rxjs');
-
-var Rx = _interopRequireDefault(_rxjs).default;
-
 var _types = require('./types');
 
 var DataAssociationMapping = _types.DataAssociationMapping;
@@ -3423,32 +3419,28 @@ function afterExecute_(result, callback) {
  * @param {Function} callback
  */
 function toArrayCallback(result, callback) {
-    try {
-        var self = this;
-        if (self.$asArray) {
-            if (typeof self.query === 'undefined') {
-                return callback(null, result);
-            }
-            var fields = self.query.fields();
-            if (!_.isArray(fields)) {
-                return callback(null, result);
-            }
-            if (fields.length === 1) {
-                var arr = [];
-                result.forEach(function (x) {
-                    if (_.isNil(x)) return;
-                    var key = Object.keys(x)[0];
-                    if (x[key]) arr.push(x[key]);
-                });
-                return callback(null, arr);
-            } else {
-                return callback(null, result);
-            }
+    var self = this;
+    if (self.$asArray) {
+        if (typeof self.query === 'undefined') {
+            return callback(null, result);
+        }
+        var fields = self.query.fields();
+        if (!_.isArray(fields)) {
+            return callback(null, result);
+        }
+        if (fields.length === 1) {
+            var arr = [];
+            _.forEach(result, function (x) {
+                if (_.isNil(x)) return;
+                var key = Object.keys(x)[0];
+                if (x[key]) arr.push(x[key]);
+            });
+            return callback(null, arr);
         } else {
             return callback(null, result);
         }
-    } catch (e) {
-        return callback(e);
+    } else {
+        return callback(null, result);
     }
 }
 

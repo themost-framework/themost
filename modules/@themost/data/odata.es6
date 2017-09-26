@@ -19,7 +19,14 @@ import {XDocument} from 'most-xml';
 import Q from 'q';
 const nameProperty = Symbol('name');
 const entityTypesProperty = Symbol('entityTypes');
+const entityContainerProperty = Symbol('entityContainer');
 const ignoreEntityTypesProperty = Symbol('ignoredEntityTypes');
+const builderProperty = Symbol('builder');
+const entityTypeProperty = Symbol('entityType');
+const edmProperty = Symbol('edm');
+import pluralize from 'pluralize';
+
+const SchemaDefaultNamespace = "Edm.Models";
 
 /**
  * @class
@@ -48,8 +55,7 @@ EdmType.EdmString="Edm.String";
 EdmType.EdmTimeOfDay="Edm.TimeOfDay";
 
 /**
- * @class
- * @abstract
+ * @enum
  */
 export class EdmMultiplicity {
 
@@ -58,6 +64,16 @@ EdmMultiplicity.Many = "Many";
 EdmMultiplicity.One = "One";
 EdmMultiplicity.Unknown = "Unknown";
 EdmMultiplicity.ZeroOrOne = "ZeroOrOne";
+
+/**
+ * @enum
+ */
+export class EntitySetKind {
+
+}
+EntitySetKind.EntitySet = "EntitySet";
+EntitySetKind.Singleton = "Singleton";
+EntitySetKind.FunctionImport = "FunctionImport";
 
 /**
  * @class
@@ -235,6 +251,52 @@ export class EntityTypeConfiguration {
 }
 
 /**
+ *
+ */
+export class EntitySetConfiguration {
+    /**
+     * @param {ODataModelBuilder} builder
+     * @param {string} entityType
+     * @param {string} name
+     */
+   constructor(builder, entityType, name) {
+       Args.check(builder instanceof ODataModelBuilder, new TypeError('Invalid argument. Configuration builder must be an instance of ODataModelBuilder class'));
+       Args.notString(entityType, 'Entity Type');
+       Args.notString(name, 'EntitySet Name');
+       this[builderProperty] = builder;
+       this[entityTypeProperty] = entityType;
+       //ensure entity type
+        if (!this[builderProperty].hasEntity(this[entityTypeProperty])) {
+            this[builderProperty].addEntity(this[entityTypeProperty]);
+        }
+       this.name = name;
+       this.kind = EntitySetKind.EntitySet;
+       //use the given name as entity set URL by default
+       this.url = name;
+   }
+
+   hasUrl(url) {
+       Args.notString(url, 'Entity Resource Path');
+       this.url = url;
+   }
+
+    getUrl() {
+        return this.url;
+    }
+
+    /**
+     * @returns {EntityTypeConfiguration}
+     */
+   get entityType() {
+       if (!this[builderProperty].hasEntity(this[entityTypeProperty])) {
+        return this[builderProperty].addEntity(this[entityTypeProperty]);
+       }
+       return this[builderProperty].getEntity(this[entityTypeProperty]);
+   }
+
+}
+
+/**
  * @classdesc Represents the OData model builder of an HTTP application
  * @class
  */
@@ -247,6 +309,7 @@ export class ODataModelBuilder extends ConfigurationStrategy {
         super(config);
         this[entityTypesProperty] = {};
         this[ignoreEntityTypesProperty] = [];
+        this[entityContainerProperty] = [];
     }
 
     /**
@@ -271,6 +334,47 @@ export class ODataModelBuilder extends ConfigurationStrategy {
         return this.getEntity(name)
     }
 
+    /**
+     * Checks if the given entity set exists in entity container
+     * @param {string} name
+     * @returns {boolean}
+     */
+    hasEntitySet(name) {
+        return _.findIndex(this[entityContainerProperty], (x) => {
+           return x.name === name;
+        })>=0;
+    }
+
+    /**
+     * Registers an entity type
+     * @param {string} entityType
+     * @param {string} name
+     * @returns {EntitySetConfiguration}
+     */
+    addEntitySet(entityType, name) {
+        if (!this.hasEntitySet(name)) {
+            this[entityContainerProperty].push(new EntitySetConfiguration(this, entityType, name));
+        }
+        return this.getEntitySet(name);
+    }
+
+    /**
+     * Gets an entity set
+     * @param name
+     * @returns {EntitySetConfiguration}
+     */
+    getEntitySet(name) {
+        Args.notString(name, 'EntitySet Name');
+        return _.find(this[entityContainerProperty], (x)=> {
+            return x.name === name;
+        });
+    }
+
+    /**
+     * Ignores the entity type with the given name
+     * @param {string} name
+     * @returns {ODataModelBuilder}
+     */
     ignore(name) {
         const hasEntity = this[ignoreEntityTypesProperty].indexOf(name);
         if (hasEntity < 0) {
@@ -296,20 +400,45 @@ export class ODataModelBuilder extends ConfigurationStrategy {
         const self = this;
         return Q.promise((resolve, reject) => {
             try{
+                const schema = {
+                    namespace:SchemaDefaultNamespace,
+                    entityType:[],
+                    entityContainer: {
+                        "name":"DefaultContainer",
+                        "entitySet":[]
+                    }
+                };
+                //get entity types by excluding ignored entities
                 const keys = _.filter(_.keys(self[entityTypesProperty]), (x)=> {
-                   return this[ignoreEntityTypesProperty].indexOf(x)<0;
+                    return self[ignoreEntityTypesProperty].indexOf(x)<0;
                 });
-                const entities = {};
+                //enumerate entity types
                 _.forEach(keys, (key)=> {
-                    entities[key] = self[entityTypesProperty][key];
+                    schema.entityType.push(self[entityTypesProperty][key]);
                 });
+                //enumerate entity sets
+                schema.entityContainer.entitySet.push.apply(schema.entityContainer.entitySet, self[entityContainerProperty]);
 
-                return resolve(entities);
+                return resolve(schema);
             }
             catch(err) {
                 return reject(err);
             }
         });
+    }
+
+    /**
+     * @param {boolean=} all
+     * @returns {ODataModelBuilder}
+     */
+    clean(all) {
+        delete this[edmProperty];
+        if (typeof all === 'boolean' && all === true) {
+            this[entityTypesProperty] = {};
+            this[ignoreEntityTypesProperty] = [];
+            this[entityContainerProperty] = [];
+        }
+        return this;
     }
 
     /**
@@ -320,7 +449,7 @@ export class ODataModelBuilder extends ConfigurationStrategy {
         const self = this;
         return Q.promise((resolve, reject) => {
             try{
-                return self.getEdm().then((entities)=> {
+                return self.getEdm().then((schema)=> {
                     const doc = new XDocument();
                     const rootElement = doc.createElement("edmx:Edmx");
                     rootElement.setAttribute("xmlns:edmx", "http://docs.oasis-open.org/odata/ns/edmx");
@@ -330,11 +459,12 @@ export class ODataModelBuilder extends ConfigurationStrategy {
                     const dataServicesElement = doc.createElement("edmx:DataServices");
                     const schemaElement = doc.createElement("Schema");
                     schemaElement.setAttribute("xmlns", "http://docs.oasis-open.org/odata/ns/edm");
+                    schemaElement.setAttribute("Namespace", schema.namespace);
                     //schemaElement.setAttribute("Namespace", "Most.Data.Models");
 
                     //append edmx:DataServices > Schema
                     dataServicesElement.appendChild(schemaElement);
-                    _.forEach(entities,
+                    _.forEach(schema.entityType,
                         /**
                          *
                          * @param {EntityTypeConfiguration} entityType
@@ -344,8 +474,9 @@ export class ODataModelBuilder extends ConfigurationStrategy {
                             //create element Schema > EntityType
                             const entityTypeElement = doc.createElement("EntityType");
                             entityTypeElement.setAttribute("Name", entityType.name);
+                            entityTypeElement.setAttribute("OpenType", true);
                             if (entityType.baseType) {
-                                entityTypeElement.setAttribute("BaseType", entityType.baseType);
+                                entityTypeElement.setAttribute("BaseType", schema.namespace.concat(".", entityType.baseType));
                             }
 
                             if (entityType.key && entityType.key.propertyRef) {
@@ -380,6 +511,31 @@ export class ODataModelBuilder extends ConfigurationStrategy {
                             //append Schema > EntityType
                             schemaElement.appendChild(entityTypeElement);
                         });
+
+                    //create Schema > EntityContainer
+                    const entityContainerElement = doc.createElement("EntityContainer");
+                    entityContainerElement.setAttribute("Name", schema.entityContainer.name || "DefaultContainer");
+
+                    _.forEach(schema.entityContainer.entitySet,
+                        /**
+                         * @param {EntitySetConfiguration} child
+                         */
+                        (child) => {
+                        const childElement = doc.createElement(child.kind);
+                        childElement.setAttribute("Name", child.name);
+                        if ((child.kind === EntitySetKind.EntitySet) || (child.kind === EntitySetKind.Singleton)) {
+                            childElement.setAttribute("EntityType", schema.namespace.concat(".", child.entityType.name));
+                        }
+                        const childAnnotation = doc.createElement("Annotation");
+                        childAnnotation.setAttribute("Term", "Org.OData.Core.V1.ResourcePath");
+                        childAnnotation.setAttribute("String", child.getUrl());
+                        childElement.appendChild(childAnnotation);
+                        //append Schema > EntityContainer > (EntitySet, Singleton, FunctionImport)
+                        entityContainerElement.appendChild(childElement);
+                    });
+
+                    //append Schema > EntityContainer
+                    schemaElement.appendChild(entityContainerElement);
 
                     //append edmx:Edmx > edmx:DataServices
                     rootElement.appendChild(dataServicesElement);
@@ -432,44 +588,46 @@ export class ODataConventionModelBuilder extends ODataModelBuilder {
 
     /**
      * Automatically registers an entity type from the given model
+     * @param {string} entityType
      * @param {string} name
+     * @returns {EntitySetConfiguration}
      */
-    addEntity(name) {
+    addEntitySet(entityType, name) {
         const self = this;
-        const superAddEntity = super.addEntity;
+        const superAddEntitySet = super.addEntitySet;
         /**
          * @type {EntityTypeConfiguration}
          */
-        if (this.hasEntity(name)) {
-            return this.getEntity(name);
+        if (this.hasEntitySet(name)) {
+            return this.getEntitySet(name);
         }
         /**
          * @type {DataConfigurationStrategy|*}
          */
         const strategy = self.getConfiguration().getStrategy(DataConfigurationStrategy);
         if (strategy) {
+            let modelEntitySet = superAddEntitySet.bind(self)(entityType, name);
             /**
              * @type {EntityTypeConfiguration}
              */
-            let entityType = superAddEntity.bind(self)(name);
+            let modelEntityType = modelEntitySet.entityType;
             /**
              * @type {DataModel}
              */
-            const definition = strategy.model(name);
+            const definition = strategy.model(entityType);
             if (definition) {
                 const model = new DataModel(definition, new EntityDataContext(strategy));
                 let inheritedAttributes = [];
                 if (model.inherits) {
                     //add base entity
-                    self.addEntity(model.inherits);
+                    self.addEntitySet(model.inherits, pluralize(model.inherits));
                     //set inheritance
-                    entityType.derivesFrom(model.inherits);
+                    modelEntityType.derivesFrom(model.inherits);
                     const baseModel = model.base();
                     if (baseModel) {
                         inheritedAttributes = baseModel.attributeNames;
                     }
                 }
-                const primaryKey = model.getPrimaryKey();
                 _.forEach(_.filter(model.attributes, function(x) {
                     if (x.primary && model.inherits) {
                         return false;
@@ -482,25 +640,26 @@ export class ODataConventionModelBuilder extends ODataModelBuilder {
                         //find data type
                         const dataType = strategy.dataTypes[x.type];
                         //add property
-                        const edmType = _.isObject(dataType) ? (dataType.hasOwnProperty("edmtype") ? dataType["edmtype"]: "Edm." + x.type) : x.type;
-                        entityType.addProperty(name, edmType, x.nullable);
+                        const edmType = _.isObject(dataType) ? (dataType.hasOwnProperty("edmtype") ? dataType["edmtype"]: "Edm." + x.type) : SchemaDefaultNamespace.concat(".",x.type);
+                        modelEntityType.addProperty(name, edmType, x.nullable);
                         if (x.primary) {
-                            entityType.hasKey(name, edmType);
+                            modelEntityType.hasKey(name, edmType);
                         }
                     }
                     else {
+                        const namespacedType = SchemaDefaultNamespace.concat(".",x.type);
                         //add navigation property
-                        entityType.addNavigationProperty(name, x.type, x.many ? EdmMultiplicity.Many: EdmMultiplicity.One);
+                        modelEntityType.addNavigationProperty(name, namespacedType, x.many ? EdmMultiplicity.Many: EdmMultiplicity.One);
                         //add navigation property entity (if type is not a primitive type)
                         if (!strategy.dataTypes.hasOwnProperty(x.type)) {
-                            self.addEntity(x.type);
+                            self.addEntitySet(x.type, pluralize(x.type));
                         }
                     }
                 });
             }
-            return entityType;
+            return modelEntitySet;
         }
-        return superAddEntity.bind(self)(name);
+        return superAddEntitySet.bind(self)(entityType, name);
     }
 
     /**
@@ -532,7 +691,7 @@ export class ODataConventionModelBuilder extends ODataModelBuilder {
                         });
                         _.forEach(models, (x)=> {
                             if (!_.isNil(x)) {
-                                self.addEntity(x);
+                                self.addEntitySet(x, pluralize(x));
                             }
                         });
                         return resolve();
@@ -555,8 +714,12 @@ export class ODataConventionModelBuilder extends ODataModelBuilder {
         const self = this, superGetEdm = super.getEdm;
         return Q.promise((resolve, reject) => {
             try{
+                if (_.isObject(self[edmProperty])) {
+                    return resolve(self[edmProperty]);
+                }
                 return superGetEdm.bind(self)().then((result) => {
-                    return resolve(result);
+                    self[edmProperty] = result;
+                    return resolve(self[edmProperty]);
                 }).catch((err)=> {
                     return reject(err);
                 });
@@ -566,7 +729,8 @@ export class ODataConventionModelBuilder extends ODataModelBuilder {
             }
         });
     }
+}
 
-
+export class ODataJsonFormatter {
 
 }

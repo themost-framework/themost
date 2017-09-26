@@ -12,12 +12,12 @@ import 'source-map-support/register';
 import {HttpServerError,HttpNotFoundError,HttpForbiddenError} from '@themost/common/errors';
 import {TraceUtils} from '@themost/common/utils';
 import {_} from 'lodash';
+import Q from 'q';
 import fs from 'fs';
 import url from 'url';
 import path from 'path';
 import crypto from 'crypto';
 import {HttpConsumer} from '../consumers';
-import Rx from 'rxjs';
 import {HttpNextResult, HttpEndResult} from '../results';
 
 /**
@@ -45,7 +45,7 @@ class StaticHandler {
         callback = callback || function() {};
         try {
             let uri = url.parse(context.request.url).pathname;
-            if (_.isString(this.whenDir) && this.whenDir!='/') {
+            if (_.isString(this.whenDir) && this.whenDir!=='/') {
                 const re = new RegExp('^' + _.escapeRegExp(this.whenDir),'ig');
                 if (!re.test(uri)) {
                     return callback(null, false);
@@ -87,7 +87,7 @@ class StaticHandler {
     unmodifiedRequest(context, executionPath, callback) {
         try {
             const requestETag = context.request.headers['if-none-match'];
-            if (typeof requestETag === 'undefined' || requestETag == null) {
+            if (typeof requestETag === 'undefined' || requestETag === null) {
                 callback(null, false);
                 return;
             }
@@ -107,7 +107,7 @@ class StaticHandler {
                                     const md5 = crypto.createHash('md5');
                                     md5.update(stats.mtime.toString());
                                     const responseETag = md5.digest('base64');
-                                    return callback(null, (requestETag==responseETag));
+                                    return callback(null, (requestETag===responseETag));
                                 }
                             }
                         });
@@ -155,7 +155,7 @@ class StaticHandler {
                 md5.update(stats.mtime.toString());
                 const responseETag = md5.digest('base64');
                 if (requestETag)
-                    if (requestETag==responseETag) {
+                    if (requestETag===responseETag) {
                         //context.response.writeHead(304, { 'Last-Modified':stats.mtime.toUTCString() });
                         context.response.writeHead(304, { });
                         context.response.end();
@@ -173,7 +173,7 @@ class StaticHandler {
                         contentEncoding = mime.encoding;
                 }
                 //throw exception (MIME not found or access denied)
-                if (contentType==null) {
+                if (contentType===null) {
                     return callback(new HttpForbiddenError())
                 }
                 else {
@@ -214,16 +214,16 @@ export class StaticContentConsumer extends HttpConsumer {
             const context = this;
             try {
                 let handler = new StaticHandler(rootDir);
-                return Rx.Observable.bindNodeCallback(handler.mapRequest.bind(handler))(context)
-                    .flatMap((res) => {
+                return Q.nfbind(handler.mapRequest.bind(handler))(context)
+                    .then((res) => {
                         if (res) {
-                            return Rx.Observable.bindNodeCallback(handler.processRequest.bind(handler))(context);
+                            return Q.nfbind(handler.processRequest.bind(handler))(context);
                         }
-                        return HttpNextResult.create().toObservable();
+                        return HttpNextResult.create().toPromise();
                     });
             }
             catch(err) {
-                return Rx.Observable['throw'](err);
+                return Q.reject(err);
             }
         });
     }
@@ -244,16 +244,16 @@ export class MapStaticContentConsumer extends HttpConsumer {
             try {
                 let handler = new StaticHandler(rootDir);
                 handler.whenDir = whenDir;
-                return Rx.Observable.bindNodeCallback(handler.mapRequest.bind(handler))(context)
-                    .flatMap((res) => {
+                return Q.nfbind(handler.mapRequest.bind(handler))(context)
+                    .then((res) => {
                         if (res) {
-                            return Rx.Observable.bindNodeCallback(handler.processRequest.bind(handler))(context);
+                            return Q.nfbind(handler.processRequest.bind(handler))(context);
                         }
-                        return HttpNextResult.create().toObservable();
+                        return HttpNextResult.create().toPromise();
                     });
             }
             catch(err) {
-                return Rx.Observable['throw'](err);
+                return Q.reject(err);
             }
         });
     }

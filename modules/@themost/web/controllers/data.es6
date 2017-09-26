@@ -9,7 +9,7 @@
  */
 'use strict';
 import 'source-map-support/register';
-import Rx from 'rxjs';
+import Q from 'q';
 import {_} from 'lodash';
 import {HttpController} from '../mvc';
 import {httpGet,httpAction} from '../decorators';
@@ -169,23 +169,23 @@ class HttpDataController extends HttpController {
 
     /**
      * Handles data object creation (e.g. /user/new.html, /user/new.json etc)
-     * @returns {Observable}
+     * @returns {Promise|*}
      */
     @httpGet()
     @httpAction('new')
     getNewItem() {
-        return { };
+        return Q({});
     }
 
     /**
      * Handles data object insertion (e.g. /user/new.html, /user/new.json etc)
-     * @returns {Observable}
+     * @returns {Promise|*}
      */
     @httpPost()
     @httpAction('new')
     postNewItem(data) {
         const self = this;
-        return Rx.Observable.bindNodeCallback(function(callback) {
+        return Q.nfbind(function(callback) {
             if (_.isArray(data)) {
                 return callback(new HttpBadRequestError());
             }
@@ -204,7 +204,7 @@ class HttpDataController extends HttpController {
 
     /**
      * Handles data object insertion (e.g. /user/new.html, /user/new.json etc)
-     * @returns {Observable}
+     * @returns {Promise|*}
      */
     @httpPut()
     @httpAction('new')
@@ -212,11 +212,14 @@ class HttpDataController extends HttpController {
         return this.postNewItem(data);
     }
 
+    /**
+     * @returns {Promise|*}
+     */
     @httpGet()
     @httpAction('schema')
     getSchema() {
         const self = this, context = self.context;
-        return Rx.Observable.bindNodeCallback(function(callback) {
+        return Q.nfbind(function(callback) {
             if (self.model) {
                 //prepare client model
                 const clone = JSON.parse(JSON.stringify(self.model));
@@ -281,7 +284,7 @@ class HttpDataController extends HttpController {
     /**
      * Handles data object display (e.g. /user/1/edit.html, /user/1/edit.json etc)
      * @param {*} id
-     * @returns {Observable}
+     * @returns {Promise|*}
      */
     @httpGet()
     @httpAction('edit')
@@ -291,13 +294,13 @@ class HttpDataController extends HttpController {
     /**
      * Handles data object post (e.g. /user/1/edit.html, /user/1/edit.json etc)
      * @param {*} id
-     * @returns {Observable|*}
+     * @returns {Promise|*}
      */
     @httpPost()
     @httpAction('edit')
     postItem(id) {
         const self = this;
-        return Rx.Observable.bindNodeCallback((callback) => {
+        return Q.nfbind((callback) => {
             const target = self.model.convert(data, true);
             if (target) {
                 self.model.save(target, function(err)
@@ -319,7 +322,7 @@ class HttpDataController extends HttpController {
     /**
      * Handles data object put (e.g. /user/1/edit.html, /user/1/edit.json etc)
      * @param {*} id
-     * @returns {Observable|*}
+     * @returns {Promise|*}
      */
     @httpPut()
     @httpAction('edit')
@@ -330,30 +333,30 @@ class HttpDataController extends HttpController {
     /**
      * Handles data object post (e.g. /user/1/edit.html, /user/1/edit.json etc)
      * @param {*} id
-     * @returns {Observable|*}
+     * @returns {Promise|*}
      */
     @httpDelete()
     @httpAction('edit')
     deleteItem(id) {
         const self = this;
         return self.model.where(self.model.getPrimaryKey()).equal(id).first()
-            .flatMap((x)=> {
+            .then((x)=> {
            if (_.isObject(x)) {
                return self.model.remove(x);
            }
-           throw new HttpNotFoundError();
+           return Q.reject(HttpNotFoundError());
         });
     }
 
     /**
      * Handles data object display (e.g. /user/1/show.html, /user/1/show.json etc)
      * @param {*} id
-     * @returns {Observable|*}
+     * @returns {Promise|*}
      */
     @httpGet()
     @httpAction('show')
     getItem(id) {
-        return Rx.Observable.fromPromise(this.model.where(this.model.getPrimaryKey()).equal(id).first)(id);
+        return Q.nfbind(this.model.where(this.model.getPrimaryKey()).equal(id).first)(id);
     }
     /**
      * @param {Function} callback
@@ -445,7 +448,7 @@ class HttpDataController extends HttpController {
     /*jshint ignore:end*/
     getItems() {
         const self = this, context = self.context;
-        return Rx.Observable.bindNodeCallback(function(callback) {
+        return Q.nfbind(function(callback) {
             const top = parseInt(context.params.attr('$top')),
                 take = top > 0 ? top : (top === -1 ? top : 25),
                 count = /^true$/ig.test(context.params.attr('$inlinecount')) || false,
@@ -526,7 +529,7 @@ class HttpDataController extends HttpController {
     @httpAction('index')
     postItems(data) {
         const self = this;
-        return Rx.Observable.bindNodeCallback(function(callback) {
+        return Q.nfbind(function(callback) {
             let target;
             try {
                 target = self.model.convert(data, true);
@@ -559,7 +562,7 @@ class HttpDataController extends HttpController {
     @httpAction('index')
     deleteItems(data) {
         const self = this;
-        return Rx.Observable.bindNodeCallback(function(callback) {
+        return Q.nfbind(function(callback) {
             //get data
             let target;
             try {
@@ -652,13 +655,13 @@ class HttpDataController extends HttpController {
        ...
     }
     </code></pre>
-     *@returns {Observable}
+     *@returns {Promise}
      */
     @httpGet()
     @httpAction('association')
     getAssociatedItems(parent, model) {
         const self = this;
-        return Rx.Observable.bindNodeCallback(function(callback) {
+        return Q.nfbind(function(callback) {
             if (_.isNil(parent) || _.isNil(model)) {
                 return callback(new HttpBadRequestError());
             }

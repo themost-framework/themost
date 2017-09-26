@@ -153,8 +153,8 @@ export class ConfigurationBase {
 
     /**
      * Register a configuration strategy
-     * @param {Function} configStrategyCtor
-     * @param {Function} strategyCtor
+     * @param {Function|*} configStrategyCtor
+     * @param {Function|*} strategyCtor
      * @returns ConfigurationBase
      */
     useStrategy(configStrategyCtor, strategyCtor) {

@@ -34,9 +34,9 @@ var _lodash = require('lodash');
 
 var _ = _lodash._;
 
-var _rxjs = require('rxjs');
+var _q = require('q');
 
-var Rx = _interopRequireDefault(_rxjs).default;
+var Q = _interopRequireDefault(_q).default;
 
 var _accepts = require('accepts');
 
@@ -248,13 +248,13 @@ var OutputFormatter = exports.OutputFormatter = function () {
          * Executes formatter against the given HTTP context
          * @param {HttpContext} context
          * @param {*} data
-         * @returns {Observable}
+         * @returns {Promise}
          */
 
     }, {
         key: 'execute',
         value: function execute(context, data) {
-            throw new AbstractMethodError();
+            return Q.reject(new AbstractMethodError());
         }
     }]);
 
@@ -325,7 +325,7 @@ var JsonOutputFormatter = exports.JsonOutputFormatter = function (_OutputFormatt
          *
          * @param {HttpContext} context
          * @param {*} data
-         * @returns {Observable}
+         * @returns {Promise}
          */
 
     }, {
@@ -333,7 +333,7 @@ var JsonOutputFormatter = exports.JsonOutputFormatter = function (_OutputFormatt
         value: function execute(context, data) {
             var _this4 = this;
 
-            return Rx.Observable.bindNodeCallback(function (callback) {
+            return Q.nfbind(function (callback) {
                 if (_.isNil(data)) {
                     //return 204 (no content)
                     context.response.writeHead(204);
@@ -408,7 +408,7 @@ var XmlOutputFormatter = exports.XmlOutputFormatter = function (_OutputFormatter
          * Executes formatter against the given HTTP context
          * @param {HttpContext} context
          * @param {*} data
-         * @returns {Observable}
+         * @returns {Promise}
          */
 
     }, {
@@ -416,7 +416,7 @@ var XmlOutputFormatter = exports.XmlOutputFormatter = function (_OutputFormatter
         value: function execute(context, data) {
             var _this6 = this;
 
-            return Rx.Observable.bindNodeCallback(function (callback) {
+            return Q.nfbind(function (callback) {
                 if (_.isNil(data)) {
                     //return 204 (no content)
                     context.response.writeHead(204);
@@ -487,7 +487,7 @@ var HtmlOutputFormatter = exports.HtmlOutputFormatter = function (_OutputFormatt
          * Executes formatter against the given HTTP context
          * @param {HttpContext} context
          * @param {*} data
-         * @returns {Observable}
+         * @returns {Promise}
          */
 
     }, {
@@ -495,7 +495,7 @@ var HtmlOutputFormatter = exports.HtmlOutputFormatter = function (_OutputFormatt
         value: function execute(context, data) {
             var _this8 = this;
 
-            return Rx.Observable.bindNodeCallback(function (callback) {
+            return Q.nfbind(function (callback) {
                 if (_.isNil(data)) {
                     //return 204 (no content)
                     context.response.writeHead(204);

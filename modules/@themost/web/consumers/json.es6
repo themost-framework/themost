@@ -10,7 +10,7 @@
 'use strict';
 import 'source-map-support/register';
 import {HttpConsumer} from '../consumers';
-import Rx from 'rxjs';
+import Q from 'q';
 import bodyParser from 'body-parser';
 import {HttpNextResult} from '../results';
 
@@ -87,13 +87,13 @@ export class JsonContentConsumer extends HttpConsumer {
             const context = this;
             try {
                 let handler = new JsonHandler();
-                return Rx.Observable.bindNodeCallback(handler.beginRequest)(context)
-                    .flatMap(()=> {
-                    return HttpNextResult.create().toObservable();
+                return Q.nfbind(handler.beginRequest)(context)
+                    .then(()=> {
+                    return HttpNextResult.create().toPromise();
                 });
             }
             catch(err) {
-                return Rx.Observable['throw'](err);
+                return Q.reject(err);
             }
         });
     }

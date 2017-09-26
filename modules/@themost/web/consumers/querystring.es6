@@ -12,7 +12,7 @@ import 'source-map-support/register';
 import {_} from 'lodash';
 import querystring from 'querystring';
 import {HttpConsumer} from '../consumers';
-import Rx from 'rxjs';
+import Q from 'q';
 import {HttpNextResult} from '../results';
 
 /**
@@ -58,13 +58,13 @@ export class QuerystringConsumer extends HttpConsumer {
             const context = this;
             try {
                 let handler = new QuerystringHandler();
-                return Rx.Observable.bindNodeCallback(handler.beginRequest)(context)
-                    .flatMap(()=> {
-                        return HttpNextResult.create().toObservable();
+                return Q.nfbind(handler.beginRequest)(context)
+                    .then(()=> {
+                        return HttpNextResult.create().toPromise();
                     });
             }
             catch(err) {
-                return Rx.Observable['throw'](err);
+                return Q.reject(err);
             }
         });
     }

@@ -52,7 +52,7 @@
         "name": "workspace",
         "title": "Workspace",
         "description": "A workspace where this item belongs.",
-        "type": "Workspace"
+        "type": "Integer"
     },
     {
         "name": "dateCreated",

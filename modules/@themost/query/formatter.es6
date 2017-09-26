@@ -663,7 +663,11 @@ export class SqlFormatter {
                 if (typeof right === 'object') {
                     rightTable = _.findKey(right);
                 }
-                const leftFields = left[leftTable], rightFields = right[rightTable];
+                const leftFields =[];
+                const rightFields =[];
+                leftFields.push.apply(leftFields, _.isArray(left[leftTable]) ? left[leftTable]: [left[leftTable]]);
+                rightFields.push.apply(rightFields, _.isArray(right[rightTable]) ? right[rightTable]: [right[rightTable]]);
+
                 for (let i = 0; i < leftFields.length; i++)
                 {
                     let leftExpr = null, rightExpr = null;

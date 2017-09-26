@@ -34,10 +34,6 @@ var _consumers = require('../consumers');
 
 var HttpConsumer = _consumers.HttpConsumer;
 
-var _rxjs = require('rxjs');
-
-var Rx = _interopRequireDefault(_rxjs).default;
-
 var _results = require('../results');
 
 var HttpNextResult = _results.HttpNextResult;
@@ -133,11 +129,11 @@ var MultipartContentConsumer = exports.MultipartContentConsumer = function (_Htt
             var context = this;
             try {
                 var handler = new MultipartHandler();
-                return Rx.Observable.bindNodeCallback(handler.beginRequest)(context).flatMap(function () {
-                    return HttpNextResult.create().toObservable();
+                return Q.nfbind(handler.beginRequest)(context).then(function () {
+                    return HttpNextResult.create().toPromise();
                 });
             } catch (err) {
-                return Rx.Observable['throw'](err);
+                return Q.reject(err);
             }
         }));
     }

@@ -32,6 +32,10 @@ var _lodash = require('lodash');
 
 var _ = _lodash._;
 
+var _q = require('q');
+
+var Q = _interopRequireDefault(_q).default;
+
 var _fs = require('fs');
 
 var fs = _interopRequireDefault(_fs).default;
@@ -51,10 +55,6 @@ var crypto = _interopRequireDefault(_crypto).default;
 var _consumers = require('../consumers');
 
 var HttpConsumer = _consumers.HttpConsumer;
-
-var _rxjs = require('rxjs');
-
-var Rx = _interopRequireDefault(_rxjs).default;
 
 var _results = require('../results');
 
@@ -100,7 +100,7 @@ var StaticHandler = function () {
             callback = callback || function () {};
             try {
                 var uri = url.parse(context.request.url).pathname;
-                if (_.isString(this.whenDir) && this.whenDir != '/') {
+                if (_.isString(this.whenDir) && this.whenDir !== '/') {
                     var re = new RegExp('^' + _.escapeRegExp(this.whenDir), 'ig');
                     if (!re.test(uri)) {
                         return callback(null, false);
@@ -141,7 +141,7 @@ var StaticHandler = function () {
         value: function unmodifiedRequest(context, executionPath, callback) {
             try {
                 var requestETag = context.request.headers['if-none-match'];
-                if (typeof requestETag === 'undefined' || requestETag == null) {
+                if (typeof requestETag === 'undefined' || requestETag === null) {
                     callback(null, false);
                     return;
                 }
@@ -159,7 +159,7 @@ var StaticHandler = function () {
                                         var md5 = crypto.createHash('md5');
                                         md5.update(stats.mtime.toString());
                                         var responseETag = md5.digest('base64');
-                                        return callback(null, requestETag == responseETag);
+                                        return callback(null, requestETag === responseETag);
                                     }
                                 }
                             });
@@ -205,7 +205,7 @@ var StaticHandler = function () {
                     var md5 = crypto.createHash('md5');
                     md5.update(stats.mtime.toString());
                     var responseETag = md5.digest('base64');
-                    if (requestETag) if (requestETag == responseETag) {
+                    if (requestETag) if (requestETag === responseETag) {
                         //context.response.writeHead(304, { 'Last-Modified':stats.mtime.toUTCString() });
                         context.response.writeHead(304, {});
                         context.response.end();
@@ -223,7 +223,7 @@ var StaticHandler = function () {
                         if (mime.encoding) contentEncoding = mime.encoding;
                     }
                     //throw exception (MIME not found or access denied)
-                    if (contentType == null) {
+                    if (contentType === null) {
                         return callback(new HttpForbiddenError());
                     } else {
                         //create stream
@@ -268,14 +268,14 @@ var StaticContentConsumer = exports.StaticContentConsumer = function (_HttpConsu
             var context = this;
             try {
                 var handler = new StaticHandler(rootDir);
-                return Rx.Observable.bindNodeCallback(handler.mapRequest.bind(handler))(context).flatMap(function (res) {
+                return Q.nfbind(handler.mapRequest.bind(handler))(context).then(function (res) {
                     if (res) {
-                        return Rx.Observable.bindNodeCallback(handler.processRequest.bind(handler))(context);
+                        return Q.nfbind(handler.processRequest.bind(handler))(context);
                     }
-                    return HttpNextResult.create().toObservable();
+                    return HttpNextResult.create().toPromise();
                 });
             } catch (err) {
-                return Rx.Observable['throw'](err);
+                return Q.reject(err);
             }
         }));
     }
@@ -302,14 +302,14 @@ var MapStaticContentConsumer = exports.MapStaticContentConsumer = function (_Htt
             try {
                 var handler = new StaticHandler(rootDir);
                 handler.whenDir = whenDir;
-                return Rx.Observable.bindNodeCallback(handler.mapRequest.bind(handler))(context).flatMap(function (res) {
+                return Q.nfbind(handler.mapRequest.bind(handler))(context).then(function (res) {
                     if (res) {
-                        return Rx.Observable.bindNodeCallback(handler.processRequest.bind(handler))(context);
+                        return Q.nfbind(handler.processRequest.bind(handler))(context);
                     }
-                    return HttpNextResult.create().toObservable();
+                    return HttpNextResult.create().toPromise();
                 });
             } catch (err) {
-                return Rx.Observable['throw'](err);
+                return Q.reject(err);
             }
         }));
     }

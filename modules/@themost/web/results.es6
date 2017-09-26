@@ -9,7 +9,7 @@
  */
 'use strict';
 import 'source-map-support/register';
-import Rx from 'rxjs';
+import Q from 'q';
 import {_} from 'lodash';
 import {FormatterStrategy} from "./formatters";
 import {HttpMethodNotAllowedError} from "@themost/common/errors";
@@ -28,8 +28,8 @@ export class HttpResult {
         }
     }
 
-    toObservable() {
-        return Rx.Observable.of(this);
+    toPromise() {
+        return Q(this);
     }
 
 }
@@ -61,11 +61,11 @@ export class HttpAnyResult extends HttpResult {
     /**
      * Executes an HttpResult instance against an existing HttpContext.
      * @param {HttpContext} context
-     * @returns {Observable}
+     * @returns {Promise}
      * */
     execute(context) {
         const self = this;
-        return Rx.Observable.bindNodeCallback(function(callback) {
+        return Q.nfcall(function(callback) {
             try {
                 /**
                  * @type {FormatterStrategy}
@@ -89,9 +89,9 @@ export class HttpAnyResult extends HttpResult {
                 if (_.isNil(formatter)) {
                     return callback(new HttpMethodNotAllowedError());
                 }
-                return formatter.execute(context, self.data).subscribe(()=>{
+                return formatter.execute(context, self.data).then(()=>{
                    return callback();
-                }, (err) => {
+                }).catch((err) => {
                     return callback(err);
                 });
             }

@@ -194,8 +194,8 @@ var ConfigurationBase = exports.ConfigurationBase = function () {
 
         /**
          * Register a configuration strategy
-         * @param {Function} configStrategyCtor
-         * @param {Function} strategyCtor
+         * @param {Function|*} configStrategyCtor
+         * @param {Function|*} strategyCtor
          * @returns ConfigurationBase
          */
 

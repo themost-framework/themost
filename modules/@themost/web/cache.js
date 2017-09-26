@@ -22,9 +22,9 @@ var _lodash = require('lodash');
 
 var _ = _lodash._;
 
-var _rxjs = require('rxjs');
+var _q = require('q');
 
-var Rx = _interopRequireDefault(_rxjs).default;
+var Q = _interopRequireDefault(_q).default;
 
 var _nodeCache = require('node-cache');
 
@@ -77,7 +77,7 @@ var CacheStrategy = exports.CacheStrategy = function (_HttpApplicationServi) {
      * @param {string} key - A string that represents the key of the cached value
      * @param {*} value - The value to be cached
      * @param {number=} absoluteExpiration - An absolute expiration time in seconds. This parameter is optional.
-     * @returns {Observable}
+     * @returns {Promise}
      */
 
 
@@ -91,7 +91,7 @@ var CacheStrategy = exports.CacheStrategy = function (_HttpApplicationServi) {
          * Removes a cached value.
          * @abstract
          * @param {string} key - A string that represents the key of the cached value to be removed
-         * @returns {Observable}
+         * @returns {Promise}
          */
 
     }, {
@@ -102,7 +102,7 @@ var CacheStrategy = exports.CacheStrategy = function (_HttpApplicationServi) {
         /**
          * Flush all cached data.
          * @abstract
-         * @returns {Observable}
+         * @returns {Promise}
          */
 
     }, {
@@ -113,7 +113,7 @@ var CacheStrategy = exports.CacheStrategy = function (_HttpApplicationServi) {
         /**
          * Gets a cached value defined by the given key.
          * @param {string} key
-         * @returns {Observable}
+         * @returns {Promise}
          */
 
     }, {
@@ -126,7 +126,7 @@ var CacheStrategy = exports.CacheStrategy = function (_HttpApplicationServi) {
          * @param {string|*} key - A string which represents the key of the cached data
          * @param {Function} fn - A function to execute if data will not be found in cache
          * @param {number=} absoluteExpiration - An absolute expiration time in seconds. This parameter is optional.
-         * @returns {Observable}
+         * @returns {Promise}
          */
 
     }, {
@@ -179,26 +179,26 @@ var DefaultCacheStrategy = exports.DefaultCacheStrategy = function (_CacheStrate
      * Removes a cached value.
      * @abstract
      * @param {string} key - A string that represents the key of the cached value to be removed
-     * @returns {Observable}
+     * @returns {Promise}
      */
 
 
     _createClass(DefaultCacheStrategy, [{
         key: 'remove',
         value: function remove(key) {
-            return Rx.Observable.bindNodeCallback(this[rawCacheProperty].set.bind(this[rawCacheProperty]))(key);
+            return Q.nfbind(this[rawCacheProperty].set.bind(this[rawCacheProperty]))(key);
         }
 
         /**
         * Flush all cached data.
-         * @returns {Observable}
+         * @returns {Promise}
         */
 
     }, {
         key: 'clear',
         value: function clear() {
             this[rawCacheProperty].flushAll();
-            return Rx.Observable.of();
+            return Q();
         }
 
         /**
@@ -206,14 +206,14 @@ var DefaultCacheStrategy = exports.DefaultCacheStrategy = function (_CacheStrate
          * @param {string} key - A string that represents the key of the cached value
          * @param {*} value - The value to be cached
          * @param {number=} absoluteExpiration - An absolute expiration time in seconds. This parameter is optional.
-         * @returns {Observable}
+         * @returns {Promise}
          */
 
     }, {
         key: 'add',
         value: function add(key, value, absoluteExpiration) {
 
-            return Rx.Observable.bindNodeCallback(this[rawCacheProperty].set, this[rawCacheProperty])(key, value, absoluteExpiration);
+            return Q.nfbind(this[rawCacheProperty].set, this[rawCacheProperty])(key, value, absoluteExpiration);
         }
 
         /**
@@ -221,7 +221,7 @@ var DefaultCacheStrategy = exports.DefaultCacheStrategy = function (_CacheStrate
          * @param {string|*} key - A string which represents the key of the cached data
          * @param {Function} fn - A function to execute if data will not be found in cache
          * @param {number=} absoluteExpiration - An absolute expiration time in seconds. This parameter is optional.
-         * @returns {Observable}
+         * @returns {Promise}
          */
 
     }, {
@@ -229,34 +229,32 @@ var DefaultCacheStrategy = exports.DefaultCacheStrategy = function (_CacheStrate
         value: function getOrDefault(key, fn, absoluteExpiration) {
             var self = this;
             Args.check(_.isFunction(fn), 'Invalid argument. Expected function.');
-            return self.get(key).flatMap(function (res) {
+            return self.get(key).then(function (res) {
                 if (_.isNil(res)) {
                     var source = fn();
-                    Args.check(source instanceof Observable, 'Invalid argument. Expected a valid observable.');
-                    return source.flatMap(function (res) {
+                    Args.check(typeof source.then !== 'function', 'Invalid argument. Expected a valid observable.');
+                    return source.then(function (res) {
                         if (_.isNil(res)) {
-                            return Rx.Observable.of();
+                            return Q();
                         }
-                        return self.add(key, res, absoluteExpiration).flatMap(function () {
-                            return Rx.Observable.of(res);
-                        });
+                        return self.add(key, res, absoluteExpiration);
                     });
                 }
-                return Rx.Observable.of(res);
+                return Q(res);
             });
         }
 
         /**
          * Gets a cached value defined by the given key.
          * @param {string|*} key
-         * @returns {Observable}
+         * @returns {Promise}
          */
 
     }, {
         key: 'get',
         value: function get(key) {
-            return Rx.Observable.bindNodeCallback(this[rawCacheProperty].get.bind(this[rawCacheProperty]))(key).flatMap(function (res) {
-                return Rx.Observable.of(res[key]);
+            return Q.nfbind(this[rawCacheProperty].get.bind(this[rawCacheProperty]))(key).then(function (res) {
+                return Q(res[key]);
             });
         }
     }]);

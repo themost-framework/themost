@@ -25,7 +25,7 @@ import {RoutingStrategy,DefaultRoutingStrategy,RouteConsumer} from './consumers/
 import {LocalizationStrategy,DefaultLocalizationStrategy} from './localization';
 import {CacheStrategy,DefaultCacheStrategy} from './cache';
 import {DataConfigurationStrategy} from '@themost/data/config';
-import Rx from 'rxjs';
+import Q from 'q';
 import path from 'path';
 import http from 'http';
 import https from 'https';
@@ -64,48 +64,45 @@ function startInternal(options) {
         //extend options
         _.assign(opts, options);
 
-        const server_ = http.createServer(function (request, response) {
+        const server_ = http.createServer((request, response) => {
             const context = self.createContext(request, response);
             //begin request processing
-            Rx.Observable.bindNodeCallback(processRequestInternal.bind(self))(context)
-                .subscribe(()=> {
+            return Q.nfbind(processRequestInternal).bind(self)(context).then(()=> {
+                context.finalize(function() {
+                    if (context.response) { context.response.end(); }
+                });
+            }).catch((err)=> {
+                return Q.nfbind(processErrorInternal).bind(self)(context, err).then((res)=> {
                     context.finalize(function() {
                         if (context.response) { context.response.end(); }
                     });
-            }, (err) => {
-                //process error
-                Rx.Observable.bindNodeCallback(processErrorInternal)(context, err)
-                    .subscribe((res) => {
-                        context.finalize(function() {
-                            if (context.response) { context.response.end(); }
-                        });
-                    }, (err) => {
-                        //an error occurred while handling request error
-                        TraceUtils.error(err);
-                        if (context && context.response) {
-                            if (err instanceof HttpError) {
-                                const statusCode = err.status || 500;
-                                //send a text/plain error (and safely end response)
-                                context.response.writeHead(statusCode, {"Content-Type": "text/plain"});
-                                context.response.write(statusCode + ' ' + err.message + '\n');
-                            }
-                            else {
-                                //send a text/plain error (and safely end response)
-                                context.response.writeHead(500, {"Content-Type": "text/plain"});
-                                context.response.write('500 Internal Server Error\n');
-                            }
-
-                            if (typeof context.finalize === 'function') {
-                                context.finalize(function() {
-                                    if (context.response) { context.response.end(); }
-                                });
-                            }
-                            else {
-                                if (context.response) { context.response.end(); }
-                            }
-
+                }).catch((err)=> {
+                    //an error occurred while handling request error
+                    TraceUtils.error(err);
+                    if (context && context.response) {
+                        if (err instanceof HttpError) {
+                            const statusCode = err.status || 500;
+                            //send a text/plain error (and safely end response)
+                            context.response.writeHead(statusCode, {"Content-Type": "text/plain"});
+                            context.response.write(statusCode + ' ' + err.message + '\n');
                         }
-                    });
+                        else {
+                            //send a text/plain error (and safely end response)
+                            context.response.writeHead(500, {"Content-Type": "text/plain"});
+                            context.response.write('500 Internal Server Error\n');
+                        }
+
+                        if (typeof context.finalize === 'function') {
+                            context.finalize(function() {
+                                if (context.response) { context.response.end(); }
+                            });
+                        }
+                        else {
+                            if (context.response) { context.response.end(); }
+                        }
+
+                    }
+                });
             });
         });
         self[serverProperty] = server_;
@@ -139,23 +136,29 @@ function processRequestInternal(context, callback) {
          * @param {HttpConsumer} consumer
          * @param {Function} cb
          */
-        function(consumer, cb) {
-        consumer.callable.apply(context).subscribe((result)=> {
-            //if result is an instance of HttpNextResult
-            if (result instanceof HttpNextResult) {
-                //continue series execution (call series callback with no error)
-                return cb();
+        (consumer, cb) => {
+            try {
+                consumer.callable.apply(context).then((result)=> {
+                    //if result is an instance of HttpNextResult
+                    if (result instanceof HttpNextResult) {
+                        //continue series execution (call series callback with no error)
+                        return cb();
+                    }
+                    else if (result instanceof HttpResult) {
+                        //continue series execution (call series callback with no error)
+                        return cb(result);
+                    }
+                    //else break series execution and return result
+                    return cb(new HttpAnyResult(result));
+                }).catch((err)=> {
+                    return cb(err);
+                });
             }
-            else if (result instanceof HttpResult) {
-                //continue series execution (call series callback with no error)
-                return cb(result);
+            catch(err) {
+                return cb(err);
             }
-            //else break series execution and return result
-            return cb(new HttpAnyResult(result));
-        }, err=> {
-            return cb(err);
-        });
-    }, function(finalRes) {
+
+    }, (finalRes) => {
             if (_.isNil(finalRes)) {
                 //get otherwise consumer
                 const otherWiseConsumer = self[otherwiseConsumerProperty];
@@ -163,16 +166,16 @@ function processRequestInternal(context, callback) {
                     if (!_.isFunction(otherWiseConsumer.callable)) {
                         return callback(new ReferenceError('HTTP consumer callable must be a function.'));
                     }
-                    return otherWiseConsumer.callable.apply(context).subscribe(result=> {
+                    return otherWiseConsumer.callable.apply(context).then(result=> {
                         if (result instanceof HttpNextResult) {
                             return callback(new HttpNotFoundError());
                         }
                         if (result instanceof HttpResult) {
                             if (typeof finalRes.execute === 'function') {
                                 //execute result
-                                return finalRes.execute(context).subscribe(() => {
+                                return finalRes.execute(context).then(() => {
                                     return callback();
-                                }, (err) => {
+                                }).catch((err) => {
                                     return callback(err);
                                 });
                             }
@@ -181,13 +184,13 @@ function processRequestInternal(context, callback) {
                         else {
                             //create an instance of HttpAnyResult class
                             const intermediateRes = new HttpAnyResult(result);
-                            return intermediateRes.execute(context).subscribe(() => {
+                            return intermediateRes.execute(context).then(() => {
                                 callback();
-                            }, (err) => {
+                            }).catch((err) => {
                                 return callback(err);
                             });
                         }
-                    }, err => {
+                    }).catch((err) => {
                         return callback(err);
                     });
                 }
@@ -207,9 +210,9 @@ function processRequestInternal(context, callback) {
                 try {
                     if (typeof finalRes.execute === 'function') {
                         //execute result
-                        return finalRes.execute(context).subscribe(() => {
+                        return finalRes.execute(context).then(() => {
                             return callback();
-                        }, (err) => {
+                        }).catch((err) => {
                             return callback(err);
                         });
                     }
@@ -245,16 +248,16 @@ function processErrorInternal(context, error, callback) {
         if (errorConsumers.length===0) {
             return callback(error);
         }
-    return async.eachSeries(errorConsumers, function(consumer, cb) {
-        consumer.callable.call(context, error).subscribe(result=> {
+    return async.eachSeries(errorConsumers, (consumer, cb) => {
+        consumer.callable.call(context, error).then(result=> {
             if (result instanceof HttpNextResult) {
                 return cb();
             }
             return cb(result);
-        }, err=> {
+        }).catch((err)=> {
             return cb(err);
         });
-    }, function(err) {
+    }, (err) => {
         return callback(err);
     });
 }
@@ -658,18 +661,18 @@ export class HttpApplication {
     /**
      * Creates a new context and executes the given function
      * @param {Function} fn - A function to execute. The first argument is the current context
-     * @returns {Observable}
+     * @returns {Promise}
      */
     execute(fn) {
         const self = this;
-        return Rx.Observable.bindNodeCallback(function(callback) {
+        return Q.nfcall(function(callback) {
             //create context
             const request = createRequestInternal.call(self),
                 response = createResponseInternal.call(self,request);
             let context = self.createContext(request, response);
-            fn(context).subscribe(()=>{
+            fn(context).then(()=>{
                 return callback();
-            }, (err) => {
+            }).catch((err) => {
                 return callback(err);
             });
         });
@@ -678,11 +681,11 @@ export class HttpApplication {
     /**
      * Creates a new context and executes the given function in unattended mode
      * @param {Function} fn
-     * @returns {Observable}
+     * @returns {Promise}
      */
     executeUnattended(fn) {
         const self = this;
-        return Rx.Observable.bindNodeCallback(function(callback) {
+        return Q.nfcall(function(callback) {
             //create context
             const request = createRequestInternal.call(self),
                 response = createResponseInternal.call(self,request);
@@ -694,9 +697,9 @@ export class HttpApplication {
                     context.user = { name: account, authenticationType: 'Basic'};
                 }
             }
-            fn(context).subscribe(()=>{
+            fn(context).then(()=>{
                 return callback();
-            }, (err) => {
+            }).catch((err) => {
                 return callback(err);
             });
         });
@@ -706,11 +709,11 @@ export class HttpApplication {
      * Executes and external HTTP request
      * @param {string|*} options
      * @param {*} data
-     * @returns {Observable}
+     * @returns {Promise}
      */
     executeExternalRequest(options, data) {
 
-        return Rx.Observable.bindNodeCallback(function(callback) {
+        return Q.nfcall(function(callback) {
             //make request
             const https = require('https'),
                 opts = (typeof options==='string') ? url.parse(options) : options,
@@ -742,7 +745,7 @@ export class HttpApplication {
                     req.write(data.toString());
             }
             req.end();
-        })();
+        });
 
 
     }
@@ -750,11 +753,11 @@ export class HttpApplication {
     /**
      * Executes an external or internal HTTP request
      * @param {*|string} options
-     * @returns {Observable}
+     * @returns {Promise}
      */
     executeRequest(options) {
         const self = this;
-        return Rx.Observable.bindNodeCallback(function(callback) {
+        return Q.nfbind((callback) => {
             const requestOptions = { };
             if (typeof options === 'string') {
                 _.assign(requestOptions, { url:options });
@@ -769,9 +772,9 @@ export class HttpApplication {
             {
                 _.assign(requestOptions, url.parse(requestOptions.url));
                 //execute external request
-                return this.executeExternalRequest(requestOptions,null).subscribe((res)=> {
+                return this.executeExternalRequest(requestOptions,null).then((res)=> {
                     return callback(null, res);
-                }, (err)=> {
+                }).catch((err)=> {
                     return callback(err);
                 });
             }
@@ -830,7 +833,7 @@ export class HttpApplication {
                     }
                 });
             }
-        }, this)();
+        }).bind(this)();
 
 
     }

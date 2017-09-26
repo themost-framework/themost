@@ -88,11 +88,11 @@ var AngularServerModuleDefaults = exports.AngularServerModuleDefaults = function
                                 $context.getApplication().executeRequest({
                                     url: src,
                                     cookie: $context.request.headers.cookie
-                                }).subscribe(function (result) {
+                                }).then(function (result) {
                                     element.removeAttr('data-src');
                                     element.replaceWith(angular.element(result.body.replace(/\n/, '')));
                                     resolve();
-                                }, function (err) {
+                                }).catch(function (err) {
                                     element.replaceWith(null);
                                     reject(err.message);
                                 });

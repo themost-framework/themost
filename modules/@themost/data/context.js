@@ -29,6 +29,7 @@ var _ = _lodash._;
 var _utils = require('@themost/common/utils');
 
 var TraceUtils = _utils.TraceUtils;
+var Args = _utils.Args;
 
 var _config = require('./config');
 
@@ -148,6 +149,19 @@ var DefaultDataContext = exports.DefaultDataContext = function (_DataContext) {
         key: 'getConfiguration',
         value: function getConfiguration() {
             return DataConfigurationStrategy.getCurrent();
+        }
+
+        /**
+         * Gets a configuration strategy
+         * @param {Function|*} configStrategyCtor
+         * @returns {ConfigurationStrategy|*}
+         */
+
+    }, {
+        key: 'getStrategy',
+        value: function getStrategy(configStrategyCtor) {
+            Args.notFunction(configStrategyCtor, "Configuration strategy constructor");
+            return this.getConfiguration().getConfiguration().getStrategy(configStrategyCtor);
         }
 
         /**

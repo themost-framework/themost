@@ -72,7 +72,7 @@ var RootController = (_dec = httpGet(), _dec2 = httpGet(), _dec3 = httpAction('h
 
         /*jshint ignore:end*/
         value: function index() {
-            return this.content('Hello World').toObservable();
+            return this.content('Hello World').toPromise();
         }
         /* jshint ignore:start*/
 
@@ -83,7 +83,7 @@ var RootController = (_dec = httpGet(), _dec2 = httpGet(), _dec3 = httpAction('h
         value: function getHello() {
             return this.json({
                 message: 'Hello World'
-            }).toObservable();
+            }).toPromise();
         }
         /* jshint ignore:start*/
 
