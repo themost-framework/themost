@@ -425,6 +425,25 @@ var HttpContext = exports.HttpContext = function (_DefaultDataContext) {
                 throw new HttpBadRequestError('Bad request.Missing cross-site request forgery data.');
             }
         }
+    }, {
+        key: 'getParam',
+        value: function getParam(name) {
+            if (typeof name === 'string') {
+                if (this.hasOwnProperty('params')) {
+                    var params = this['params'];
+                    if ((typeof params === 'undefined' ? 'undefined' : _typeof(params)) !== 'object') {
+                        return;
+                    }
+                    if (params.hasOwnProperty(name)) return params[name];
+                    //otherwise make a case insensitive search
+                    var re = new RegExp('^' + name + '$', 'i');
+                    var p = Object.keys(params).filter(function (x) {
+                        return re.test(x);
+                    })[0];
+                    if (p) return params[p];
+                }
+            }
+        }
 
         /**
          * Translates the given string to the language specified in this context

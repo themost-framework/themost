@@ -1,7 +1,7 @@
 
 'use strict';
 import {HttpController} from '../../../modules/@themost/web/mvc';
-import {httpAction,httpGet} from '../../../modules/@themost/web/decorators';
+import {httpAction, httpAuthorize, httpGet, httpParam} from '../../../modules/@themost/web/decorators';
 
 
 /**
@@ -21,10 +21,12 @@ class RootController extends HttpController {
     /* jshint ignore:start*/
     @httpGet()
     @httpAction('hello')
+    @httpParam({"name": "name", "required":true, "pattern":/^\w+$/})
+    @httpParam({"name": "message", "required":false, "pattern":/^\w+$/})
     /* jshint ignore:end*/
-    getHello() {
+    getHello(name, message) {
         return this.json({
-            message: 'Hello World'
+            message: `Hello ${name}`
         }).toPromise();
     }
     /* jshint ignore:start*/

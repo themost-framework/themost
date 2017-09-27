@@ -69,7 +69,7 @@ export class SequentialEventEmitter {
 
             if (index > -1) {
                 listeners.splice(index, 1);
-                this[listenersProperty].set(type, listeners);
+                //this[listenersProperty].set(type, listeners);
                 return this;
             }
         }
@@ -116,17 +116,24 @@ export class SequentialEventEmitter {
         //get listeners
         const listeners = self[listenersProperty].get(event);
         if (typeof listeners === 'undefined') {
-            return callback.call(self);
+            return callback.bind(self)();
         }
         //validate listeners
         if (listeners.length===0) {
             //exit emitter
-            return callback.call(self);
+            return callback.bind(self)();
         }
         //apply each series
-        async.applyEachSeries(listeners, args, function(err) {
-            callback.call(self, err);
-        });
+        try {
+            //apply each series
+            async.applyEachSeries(listeners, args, function(err) {
+                callback.call(self, err);
+            });
+        }
+        catch(err) {
+            return callback.bind(self)(err);
+        }
+
     }
 
     once(type, listener) {

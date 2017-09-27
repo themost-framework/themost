@@ -340,6 +340,24 @@ export class HttpContext extends DefaultDataContext {
             }
     }
 
+    getParam (name) {
+        if (typeof name === 'string') {
+            if (this.hasOwnProperty('params')) {
+                const params = this['params'];
+                if (typeof params !== 'object') {
+                    return;
+                }
+                if (params.hasOwnProperty(name))
+                    return params[name];
+                //otherwise make a case insensitive search
+                const re = new RegExp('^' + name + '$','i');
+                const p = Object.keys(params).filter(function(x) { return re.test(x); })[0];
+                if (p)
+                    return params[p];
+            }
+        }
+    }
+
     /**
      * Translates the given string to the language specified in this context
      * @param {string} text - The string to translate

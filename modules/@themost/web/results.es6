@@ -65,7 +65,7 @@ export class HttpAnyResult extends HttpResult {
      * */
     execute(context) {
         const self = this;
-        return Q.nfcall(function(callback) {
+        return Q.nfbind(function(callback) {
             try {
                 /**
                  * @type {FormatterStrategy}

@@ -1809,9 +1809,8 @@ var DataQueryable = exports.DataQueryable = function () {
     }, {
         key: 'getItems',
         value: function getItems() {
-            var self = this,
-                d = Q.defer();
-            process.nextTick(function () {
+            var self = this;
+            return Q.promise(function (resolve, reject) {
                 delete self.query.$inlinecount;
                 if ((parseInt(self.query.$take) || 0) < 0) {
                     delete self.query.$take;
@@ -1822,12 +1821,11 @@ var DataQueryable = exports.DataQueryable = function () {
                 }
                 execute_.call(self, function (err, result) {
                     if (err) {
-                        return d.reject(err);
+                        return reject(err);
                     }
-                    return d.resolve(result);
+                    return resolve(result);
                 });
             });
-            return d.promise;
         }
 
         /**

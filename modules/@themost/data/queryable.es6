@@ -1708,8 +1708,8 @@ export class DataQueryable {
      * @returns {Promise|*}
      */
     getItems() {
-        const self = this, d = Q.defer();
-        process.nextTick(function() {
+        const self = this;
+        return Q.promise((resolve, reject) => {
             delete self.query.$inlinecount;
             if ((parseInt(self.query.$take) || 0) < 0) {
                 delete self.query.$take;
@@ -1720,12 +1720,11 @@ export class DataQueryable {
             }
             execute_.call(self,function(err, result) {
                 if (err) {
-                    return d.reject(err);
+                    return reject(err);
                 }
-                return d.resolve(result);
+                return resolve(result);
             });
         });
-        return d.promise;
     }
 
     /**

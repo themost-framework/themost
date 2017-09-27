@@ -109,7 +109,7 @@ var HttpAnyResult = exports.HttpAnyResult = function (_HttpResult) {
          * */
         value: function execute(context) {
             var self = this;
-            return Q.nfcall(function (callback) {
+            return Q.nfbind(function (callback) {
                 try {
                     /**
                      * @type {FormatterStrategy}

@@ -7,7 +7,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _dec, _dec2, _dec3, _dec4, _dec5, _dec6, _dec7, _dec8, _dec9, _dec10, _dec11, _desc, _value, _class;
+var _dec, _dec2, _dec3, _dec4, _dec5, _dec6, _dec7, _dec8, _dec9, _dec10, _dec11, _dec12, _dec13, _desc, _value, _class;
 
 var _mvc = require('../../../modules/@themost/web/mvc');
 
@@ -16,7 +16,9 @@ var HttpController = _mvc.HttpController;
 var _decorators = require('../../../modules/@themost/web/decorators');
 
 var httpAction = _decorators.httpAction;
+var httpAuthorize = _decorators.httpAuthorize;
 var httpGet = _decorators.httpGet;
+var httpParam = _decorators.httpParam;
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -56,7 +58,7 @@ function _applyDecoratedDescriptor(target, property, decorators, descriptor, con
 /**
  * @class
  */
-var RootController = (_dec = httpGet(), _dec2 = httpGet(), _dec3 = httpAction('hello'), _dec4 = httpGet(), _dec5 = httpAction('helloMarkdown'), _dec6 = httpGet(), _dec7 = httpAction('helloJade'), _dec8 = httpGet(), _dec9 = httpAction('helloAngular'), _dec10 = httpGet(), _dec11 = httpAction('helloVash'), (_class = function (_HttpController) {
+var RootController = (_dec = httpGet(), _dec2 = httpGet(), _dec3 = httpAction('hello'), _dec4 = httpParam({ "name": "name", "required": true, "pattern": /^\w+$/ }), _dec5 = httpParam({ "name": "message", "required": false, "pattern": /^\w+$/ }), _dec6 = httpGet(), _dec7 = httpAction('helloMarkdown'), _dec8 = httpGet(), _dec9 = httpAction('helloJade'), _dec10 = httpGet(), _dec11 = httpAction('helloAngular'), _dec12 = httpGet(), _dec13 = httpAction('helloVash'), (_class = function (_HttpController) {
     _inherits(RootController, _HttpController);
 
     function RootController() {
@@ -80,9 +82,9 @@ var RootController = (_dec = httpGet(), _dec2 = httpGet(), _dec3 = httpAction('h
         key: 'getHello',
 
         /* jshint ignore:end*/
-        value: function getHello() {
+        value: function getHello(name, message) {
             return this.json({
-                message: 'Hello World'
+                message: 'Hello ' + name
             }).toPromise();
         }
         /* jshint ignore:start*/
@@ -125,7 +127,7 @@ var RootController = (_dec = httpGet(), _dec2 = httpGet(), _dec3 = httpAction('h
     }]);
 
     return RootController;
-}(HttpController), (_applyDecoratedDescriptor(_class.prototype, 'index', [_dec], Object.getOwnPropertyDescriptor(_class.prototype, 'index'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'getHello', [_dec2, _dec3], Object.getOwnPropertyDescriptor(_class.prototype, 'getHello'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'getHelloMarkdown', [_dec4, _dec5], Object.getOwnPropertyDescriptor(_class.prototype, 'getHelloMarkdown'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'getHelloJade', [_dec6, _dec7], Object.getOwnPropertyDescriptor(_class.prototype, 'getHelloJade'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'getHelloAngular', [_dec8, _dec9], Object.getOwnPropertyDescriptor(_class.prototype, 'getHelloAngular'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'getHelloVash', [_dec10, _dec11], Object.getOwnPropertyDescriptor(_class.prototype, 'getHelloVash'), _class.prototype)), _class));
+}(HttpController), (_applyDecoratedDescriptor(_class.prototype, 'index', [_dec], Object.getOwnPropertyDescriptor(_class.prototype, 'index'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'getHello', [_dec2, _dec3, _dec4, _dec5], Object.getOwnPropertyDescriptor(_class.prototype, 'getHello'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'getHelloMarkdown', [_dec6, _dec7], Object.getOwnPropertyDescriptor(_class.prototype, 'getHelloMarkdown'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'getHelloJade', [_dec8, _dec9], Object.getOwnPropertyDescriptor(_class.prototype, 'getHelloJade'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'getHelloAngular', [_dec10, _dec11], Object.getOwnPropertyDescriptor(_class.prototype, 'getHelloAngular'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'getHelloVash', [_dec12, _dec13], Object.getOwnPropertyDescriptor(_class.prototype, 'getHelloVash'), _class.prototype)), _class));
 
 //noinspection JSUnusedGlobalSymbols
 

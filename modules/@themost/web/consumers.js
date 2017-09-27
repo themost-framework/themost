@@ -40,6 +40,17 @@ var HttpConsumer = exports.HttpConsumer = function () {
   function HttpConsumer(callable, params) {
     _classCallCheck(this, HttpConsumer);
 
+    /**
+     * IMPORTANT NOTE FOR HTTP CONSUMERS
+     * An HttpConsumer callable is bind with current instance of HttpContext class
+     * so ES6 arrow functions cannot be used while writing an HttpConsumer callable
+     * working example
+     * (this an instance of HttpContext)
+     var consumer = new HttpConsumer(function() {
+        console.log(this.request.url)
+     });
+     */
+
     Args.check(_.isFunction(callable), 'Consumer must be a function');
     /**
      * @type {Function}
@@ -60,7 +71,7 @@ var HttpConsumer = exports.HttpConsumer = function () {
   _createClass(HttpConsumer, [{
     key: 'run',
     value: function run(context, args) {
-      this.callable.apply(context, args);
+      return this.callable.apply(context, Array.prototype.slice.call(arguments));
     }
   }]);
 
@@ -117,7 +128,7 @@ var HttpErrorConsumer = exports.HttpErrorConsumer = function () {
   _createClass(HttpErrorConsumer, [{
     key: 'run',
     value: function run(context, err) {
-      this.callable.call(context, err);
+      return this.callable.bind(context)(context, err);
     }
   }]);
 

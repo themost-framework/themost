@@ -91,20 +91,21 @@ var NotNullConstraintListener = exports.NotNullConstraintListener = function () 
             var attrs = event.model.attributes.filter(function (x) {
                 return !x.primary && !(typeof x.nullable === 'undefined' ? true : x.nullable);
             });
-            if (attrs.length == 0) {
-                callback(null);
-                return 0;
+            if (attrs.length === 0) {
+                return callback();
             }
             async.eachSeries(attrs, function (attr, cb) {
                 var name = attr.property || attr.name,
                     value = event.target[name];
-                if ((value == null || value === undefined) && event.state == 1 || value == null && typeof value !== 'undefined' && event.state == 2) {
+                if ((value === null || value === undefined) && event.state === 1 || value === null && typeof value !== 'undefined' && event.state === 2) {
                     var er = new NotNullError('A value is required.', null, event.model.name, attr.name);
                     if (process.env.NODE_ENV === 'development') {
                         TraceUtils.log(er);
                     }
                     return cb(er);
-                } else cb(null);
+                } else {
+                    cb();
+                }
             }, function (err) {
                 callback(err);
             });
@@ -722,7 +723,7 @@ var DataModelCreateViewListener = exports.DataModelCreateViewListener = function
             var baseModel = self.base();
             //get array of fields
             var fields = _.map(_.filter(self.attributes, function (x) {
-                return self.name == x.model && !x.many;
+                return self.name === x.model && !x.many;
             }), function (x) {
                 return QueryField.create(x.name).from(adapter);
             });
@@ -731,7 +732,7 @@ var DataModelCreateViewListener = exports.DataModelCreateViewListener = function
              */
             var q = QueryExpression.create(adapter).select(fields);
             //get base adapter
-            var baseAdapter = baseModel != null ? baseModel.name.concat('Data') : null,
+            var baseAdapter = baseModel !== null ? baseModel.name.concat('Data') : null,
                 baseFields = [];
             //enumerate columns of base model (if any)
             if (_.isObject(baseModel)) {
@@ -999,7 +1000,7 @@ var DataStateValidatorListener = exports.DataStateValidatorListener = function (
                         event.state = 2;
                     }
                 //if state is Update (2)
-                if (event.state == 2) {
+                if (event.state === 2) {
                     //if key exists exit
                     if (keyState) return callback();else {
                         return DataStateValidator_MapKey_(model, target, function (err) {
@@ -1010,7 +1011,7 @@ var DataStateValidatorListener = exports.DataStateValidatorListener = function (
                             return callback();
                         });
                     }
-                } else if (event.state == 1) {
+                } else if (event.state === 1) {
                     if (!keyState) {
                         return DataStateValidator_MapKey_(model, target, function (err, result) {
                             if (err) {
@@ -1229,8 +1230,8 @@ var DataNestedObjectListener = exports.DataNestedObjectListener = function () {
                 }, function (err) {
                     return callback(err);
                 });
-            } catch (e) {
-                return callback(e);
+            } catch (err) {
+                return callback(err);
             }
         }
     }, {
@@ -1283,12 +1284,12 @@ function DataNestedObject_BeforeSave_(attr, event, callback) {
     if (_.isNil(nestedModel)) {
         return callback();
     }
-    if (event.state == 1) {
+    if (event.state === 1) {
         //save nested object
         nestedModel.silent().save(nestedObj, function (err) {
             callback(err);
         });
-    } else if (event.state == 2) {
+    } else if (event.state === 2) {
         //first of all get original address from db
         event.model.where(key).equal(event.target[key]).select(key, name).silent().first().then(function (result) {
             if (_.isNil(result)) {

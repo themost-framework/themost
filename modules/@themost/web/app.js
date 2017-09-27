@@ -180,14 +180,14 @@ function startInternal(options) {
         var server_ = http.createServer(function (request, response) {
             var context = self.createContext(request, response);
             //begin request processing
-            return Q.nfbind(processRequestInternal).bind(self)(context).then(function () {
+            return Q.nbind(processRequestInternal, self)(context).then(function () {
                 context.finalize(function () {
                     if (context.response) {
                         context.response.end();
                     }
                 });
             }).catch(function (err) {
-                return Q.nfbind(processErrorInternal).bind(self)(context, err).then(function (res) {
+                return Q.nbind(processErrorInternal, self)(context, err).then(function (res) {
                     context.finalize(function () {
                         if (context.response) {
                             context.response.end();
@@ -257,7 +257,7 @@ function processRequestInternal(context, callback) {
      */
     function (consumer, cb) {
         try {
-            consumer.callable.apply(context).then(function (result) {
+            consumer.run(context).then(function (result) {
                 //if result is an instance of HttpNextResult
                 if (result instanceof HttpNextResult) {
                     //continue series execution (call series callback with no error)
@@ -282,7 +282,7 @@ function processRequestInternal(context, callback) {
                 if (!_.isFunction(otherWiseConsumer.callable)) {
                     return callback(new ReferenceError('HTTP consumer callable must be a function.'));
                 }
-                return otherWiseConsumer.callable.apply(context).then(function (result) {
+                return otherWiseConsumer.run(context).then(function (result) {
                     if (result instanceof HttpNextResult) {
                         return callback(new HttpNotFoundError());
                     }
@@ -946,7 +946,7 @@ var HttpApplication = exports.HttpApplication = function () {
         /**
          * Executes an external or internal HTTP request
          * @param {*|string} options
-         * @returns {Promise}
+         * @returns {Promise|*}
          */
 
     }, {
@@ -955,7 +955,7 @@ var HttpApplication = exports.HttpApplication = function () {
             var _this = this;
 
             var self = this;
-            return Q.nfbind(function (callback) {
+            return Q.nbind(function (callback) {
                 var requestOptions = {};
                 if (typeof options === 'string') {
                     _.assign(requestOptions, { url: options });
@@ -1026,7 +1026,7 @@ var HttpApplication = exports.HttpApplication = function () {
                         }
                     });
                 }
-            }).bind(this)();
+            }, this)();
         }
 
         /**

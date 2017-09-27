@@ -28,7 +28,7 @@ var sprintf = _interopRequireDefault(_sprintf).default;
 
 var _config = require('./config');
 
-var DataConfiguration = _config.DataConfiguration;
+var DataConfigurationStrategy = _config.DataConfigurationStrategy;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -131,7 +131,6 @@ var PatternValidator = exports.PatternValidator = function (_DataValidator) {
         var _this = _possibleConstructorReturn(this, (PatternValidator.__proto__ || Object.getPrototypeOf(PatternValidator)).call(this));
 
         _this.pattern = pattern;
-        PatternValidator.super_.call(_this);
         return _this;
     }
 
@@ -243,7 +242,6 @@ var MinLengthValidator = exports.MinLengthValidator = function (_DataValidator2)
         var _this2 = _possibleConstructorReturn(this, (MinLengthValidator.__proto__ || Object.getPrototypeOf(MinLengthValidator)).call(this));
 
         _this2.minLength = length;
-        MinLengthValidator.super_.call(_this2);
         return _this2;
     }
 
@@ -354,7 +352,6 @@ var MaxLengthValidator = exports.MaxLengthValidator = function (_DataValidator3)
         var _this3 = _possibleConstructorReturn(this, (MaxLengthValidator.__proto__ || Object.getPrototypeOf(MaxLengthValidator)).call(this));
 
         _this3.maxLength = length;
-        MaxLengthValidator.super_.call(_this3);
         return _this3;
     }
 
@@ -456,7 +453,6 @@ var MinValueValidator = exports.MinValueValidator = function (_DataValidator4) {
         var _this4 = _possibleConstructorReturn(this, (MinValueValidator.__proto__ || Object.getPrototypeOf(MinValueValidator)).call(this));
 
         _this4.minValue = min;
-        MinValueValidator.super_.call(_this4);
         return _this4;
     }
 
@@ -555,7 +551,6 @@ var MaxValueValidator = exports.MaxValueValidator = function (_DataValidator5) {
         var _this5 = _possibleConstructorReturn(this, (MaxValueValidator.__proto__ || Object.getPrototypeOf(MaxValueValidator)).call(this));
 
         _this5.maxValue = max;
-        MaxValueValidator.super_.call(_this5);
         return _this5;
     }
 
@@ -661,7 +656,6 @@ var RangeValidator = exports.RangeValidator = function (_DataValidator6) {
 
         _this6.minValue = min;
         _this6.maxValue = max;
-        RangeValidator.super_.call(_this6);
         return _this6;
     }
 
@@ -814,8 +808,7 @@ var DataTypeValidator = exports.DataTypeValidator = function (_DataValidator7) {
 
         var _this7 = _possibleConstructorReturn(this, (DataTypeValidator.__proto__ || Object.getPrototypeOf(DataTypeValidator)).call(this));
 
-        if (typeof type === 'string') _this7.dataType = DataConfiguration.getCurrent().dataTypes[type];else _this7.dataType = type;
-        DataTypeValidator.super_.call(_this7);
+        if (typeof type === 'string') _this7.dataType = DataConfigurationStrategy.getCurrent().dataTypes[type];else _this7.dataType = type;
         return _this7;
     }
 
@@ -1211,10 +1204,7 @@ var RequiredValidator = exports.RequiredValidator = function (_DataValidator8) {
     function RequiredValidator() {
         _classCallCheck(this, RequiredValidator);
 
-        var _this8 = _possibleConstructorReturn(this, (RequiredValidator.__proto__ || Object.getPrototypeOf(RequiredValidator)).call(this));
-
-        RequiredValidator.super_.call(_this8);
-        return _this8;
+        return _possibleConstructorReturn(this, (RequiredValidator.__proto__ || Object.getPrototypeOf(RequiredValidator)).call(this));
     }
 
     /**

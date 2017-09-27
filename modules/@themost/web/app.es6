@@ -67,12 +67,12 @@ function startInternal(options) {
         const server_ = http.createServer((request, response) => {
             const context = self.createContext(request, response);
             //begin request processing
-            return Q.nfbind(processRequestInternal).bind(self)(context).then(()=> {
+            return Q.nbind(processRequestInternal,self)(context).then(()=> {
                 context.finalize(function() {
                     if (context.response) { context.response.end(); }
                 });
             }).catch((err)=> {
-                return Q.nfbind(processErrorInternal).bind(self)(context, err).then((res)=> {
+                return Q.nbind(processErrorInternal,self)(context, err).then((res)=> {
                     context.finalize(function() {
                         if (context.response) { context.response.end(); }
                     });
@@ -138,7 +138,7 @@ function processRequestInternal(context, callback) {
          */
         (consumer, cb) => {
             try {
-                consumer.callable.apply(context).then((result)=> {
+                consumer.run(context).then((result)=> {
                     //if result is an instance of HttpNextResult
                     if (result instanceof HttpNextResult) {
                         //continue series execution (call series callback with no error)
@@ -166,7 +166,7 @@ function processRequestInternal(context, callback) {
                     if (!_.isFunction(otherWiseConsumer.callable)) {
                         return callback(new ReferenceError('HTTP consumer callable must be a function.'));
                     }
-                    return otherWiseConsumer.callable.apply(context).then(result=> {
+                    return otherWiseConsumer.run(context).then(result=> {
                         if (result instanceof HttpNextResult) {
                             return callback(new HttpNotFoundError());
                         }
@@ -753,11 +753,11 @@ export class HttpApplication {
     /**
      * Executes an external or internal HTTP request
      * @param {*|string} options
-     * @returns {Promise}
+     * @returns {Promise|*}
      */
     executeRequest(options) {
         const self = this;
-        return Q.nfbind((callback) => {
+        return Q.nbind((callback) => {
             const requestOptions = { };
             if (typeof options === 'string') {
                 _.assign(requestOptions, { url:options });
@@ -833,7 +833,7 @@ export class HttpApplication {
                     }
                 });
             }
-        }).bind(this)();
+        },this)();
 
 
     }
