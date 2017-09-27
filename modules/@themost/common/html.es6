@@ -6,21 +6,19 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
-import {_} from 'lodash';
+import _ from 'lodash';
 
-//noinspection JSUnusedLocalSymbols
 /**
  * @private
  */
-const HTML_START_CHAR='<',
-    HTML_END_CHAR='>',
-    HTML_FULL_END_STRING = ' />',
-    HTML_SPACE_CHAR = ' ',
-    HTML_ATTR_STRING = '%0="%1"',
-    HTML_START_TAG_STRING = '<%0',
-    HTML_END_TAG_STRING = '</%0>';
+const HTML_START_CHAR = '<';
+const HTML_END_CHAR = '>';
+const HTML_FULL_END_STRING = ' />';
+const HTML_SPACE_CHAR = ' ';
+const HTML_ATTR_STRING = '%0="%1"';
+const HTML_START_TAG_STRING = '<%0';
+const HTML_END_TAG_STRING = '</%0>';
 
 /**
  * @classdesc HtmlWriter class represents a helper class for rendering HTML content.

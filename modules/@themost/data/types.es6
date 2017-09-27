@@ -7,12 +7,10 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
 import {SequentialEventEmitter} from '@themost/common/emitter';
-import {_} from 'lodash';
-
-
+import {AbstractClassError,AbstractMethodError} from '@themost/common/errors';
+import _ from 'lodash';
 /**
  * @classdesc Represents an abstract data connector to a database
  * <p>
@@ -214,7 +212,7 @@ export class DataAdapter {
      * @param {Function} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise.
      */
     open(callback) {
-        //
+        return callback(new AbstractMethodError());
     }
 
     /**
@@ -222,7 +220,7 @@ export class DataAdapter {
      * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise.
      */
     close(callback) {
-        //
+        return callback(new AbstractMethodError());
     }
 
     /**
@@ -232,17 +230,17 @@ export class DataAdapter {
      * @param {Function} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain the result.
      */
     execute(query, values, callback) {
-        //
+        return callback(new AbstractMethodError());
     }
 
     /**
      * Executes a batch query expression and returns the result.
-     * @param {DataModelBatch} batch - The batch query expression to execute
+     * @param {*} batch - The batch query expression to execute
      * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain the result.
      * @deprecated This method is deprecated.
      */
     executeBatch(batch, callback) {
-        //
+        return callback(new AbstractMethodError());
     }
 
     /**
@@ -252,7 +250,7 @@ export class DataAdapter {
      * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain the result.
      */
     selectIdentity(entity, attribute, callback) {
-        //
+        return callback(new AbstractMethodError());
     }
 
     /**
@@ -261,7 +259,7 @@ export class DataAdapter {
      * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain the result.
      */
     executeInTransaction(fn, callback) {
-        //
+        return callback(new AbstractMethodError());
     }
 
     /**
@@ -271,7 +269,7 @@ export class DataAdapter {
      * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise.
      */
     createView(name, query, callback) {
-        //
+        return callback(new AbstractMethodError());
     }
 }
 
@@ -293,20 +291,16 @@ export class DataEventArgs {
 
 /**
  * @classdesc Represents the main data context.
+ * @property {DataAdapter} db
  * @class
- * @constructor
+ * @abstract
  */
 export class DataContext extends SequentialEventEmitter {
     constructor() {
         super();
-        /**
-         * Gets the current database adapter
-         * @type {DataAdapter}
-         */
-        this.db = undefined;
         Object.defineProperty(this, 'db', {
             get : function() {
-                return null;
+                throw new AbstractMethodError();
             },
             configurable : true,
             enumerable:false });
@@ -316,24 +310,27 @@ export class DataContext extends SequentialEventEmitter {
      * Gets a data model based on the given data context
      * @param name {string} A string that represents the model to be loaded.
      * @returns {DataModel}
+     * @abstract
      */
     model(name) {
-        return null;
+        throw new AbstractMethodError();
     }
 
     /**
      * Gets an instance of DataConfiguration class which is associated with this data context
      * @returns {DataConfigurationStrategy}
+     * @abstract
      */
     getConfiguration() {
-        return null;
+        throw new AbstractMethodError();
     }
 
     /**
-     * @param cb {Function}
+     * @param callback {Function}
+     * @abstract
      */
-    finalize(cb) {
-        //
+    finalize(callback) {
+        return callback(new AbstractMethodError());
     }
 }
 
@@ -347,37 +344,41 @@ export class DataEventListener {
     /**
      * Occurs before executing a data operation. The event arguments contain the query that is going to be executed.
      * @param {DataEventArgs} e - An object that represents the event arguments passed to this operation.
-     * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+     * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occurred.
+     * @abstract
      */
     beforeExecute(e, cb) {
-        return this;
+        return cb(new AbstractMethodError());
     }
 
     /**
      * Occurs after executing a data operation. The event arguments contain the executed query.
      * @param {DataEventArgs} e - An object that represents the event arguments passed to this operation.
-     * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+     * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occurred.
+     * @abstract
      */
     afterExecute(e, cb) {
-        return this;
+        return cb(new AbstractMethodError());
     }
 
     /**
      * Occurs before creating or updating a data object.
      * @param {DataEventArgs} e - An object that represents the event arguments passed to this operation.
      * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+     * @abstract
      */
     beforeSave(e, cb) {
-        return this;
+        return cb(new AbstractMethodError());
     }
 
     /**
      * Occurs after creating or updating a data object.
      * @param {DataEventArgs} e - An object that represents the event arguments passed to this operation.
-     * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+     * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occurred.
+     * @abstract
      */
     afterSave(e, cb) {
-        return this;
+        return cb(new AbstractMethodError());
     }
 
     /**
@@ -385,27 +386,30 @@ export class DataEventListener {
      * @param {DataEventArgs} e - An object that represents the event arguments passed to this operation.
      * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
      * @returns {DataEventListener}
+     * @abstract
      */
     beforeRemove(e, cb) {
-        return this;
+        return cb(new AbstractMethodError());
     }
 
     /**
      * Occurs after removing a data object.
      * @param {DataEventArgs} e - An object that represents the event arguments passed to this operation.
-     * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+     * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occurred.
+     * @abstract
      */
     afterRemove(e, cb) {
-        return this;
+        return cb(new AbstractMethodError());
     }
 
     /**
      * Occurs after upgrading a data model.
      * @param {DataEventArgs} e - An object that represents the event arguments passed to this operation.
-     * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+     * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occurred.
+     * @abstract
      */
     afterUpgrade(e, cb) {
-        return this;
+        return cb(new AbstractMethodError());
     }
 }
 
@@ -673,7 +677,7 @@ export class DataModelEventListener {
  * An enumeration of tha available privilege types
  * @enum
  */
-const PrivilegeType = {
+export const PrivilegeType = {
     /**
      * Self Privilege (self).
      * @type {string}
@@ -748,7 +752,7 @@ export class DataContextEmitter {
  * An enumeration of the available data object states
  * @enum {number}
  */
-const DataObjectState = {
+export const DataObjectState = {
     /**
      * Insert State (1)
      */
@@ -767,7 +771,7 @@ const DataObjectState = {
  * An enumeration of the available data caching types
  * @enum {string}
  */
-const DataCachingType = {
+export const DataCachingType = {
     /**
      * Data will never be cached (none)
      */
@@ -808,7 +812,7 @@ export class ParserUtils {
     }
 
     static parseCounter(val) {
-        return types.parsers.parseInteger(val);
+        return ParserUtils.parseInteger(val);
     }
 
     static parseFloat(val) {
@@ -831,7 +835,7 @@ export class ParserUtils {
     }
 
     static parseNumber(val) {
-        return types.parsers.parseFloat(val);
+        return ParserUtils.parseFloat(val);
     }
 
     static parseDateTime(val) {
@@ -850,7 +854,7 @@ export class ParserUtils {
     }
 
     static parseDate(val) {
-        const res = types.parsers.parseDateTime(val);
+        const res = ParserUtils.parseDateTime(val);
         if (res instanceof Date) {
             res.setHours(0, 0, 0, 0);
             return res;
@@ -859,7 +863,7 @@ export class ParserUtils {
     }
 
     static parseBoolean(val) {
-        return (types.parsers.parseInteger(val) !== 0);
+        return (ParserUtils.parseInteger(val) !== 0);
     }
 
     static parseText(val) {

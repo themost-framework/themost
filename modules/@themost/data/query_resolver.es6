@@ -7,13 +7,10 @@
  * found in the LICENSE file at https://themost.io/license
  */
 
-'use strict';
 import _ from 'lodash';
 import Q from 'q';
 import {Args} from "@themost/common/utils";
 import {LangUtils} from "../common/utils";
-
-const TopQueryOption = "$top";
 
 export class QueryOptionsResolver {
 

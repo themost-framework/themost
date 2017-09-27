@@ -7,9 +7,8 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
-import {_} from 'lodash';
+import _ from 'lodash';
 import Q from 'q';
 import {QueryExpression,QueryField,QueryEntity} from '@themost/query/query';
 import {HasManyToOneAssociation, HasManyToManyAssociation,HasTagAssociation} from './associations';
@@ -77,8 +76,8 @@ export class MappingExtensions {
                     let values = arr.filter(function(x) {
                         return (typeof x[mapping.childField]!=='undefined')
                             && (x[mapping.childField]!==null); })
-                            .map(function(x) { return x[mapping.childField]
-                            });
+                        .map(function(x) { return x[mapping.childField]
+                        });
                     //query junction model
                     const junction = new HasManyToManyAssociation(thisQueryable.model.convert({ }), mapping);
                     junction.getBaseModel().where('valueId').in(values).flatten().silent().all(function(err, junctions) {
@@ -368,19 +367,19 @@ export class MappingExtensions {
                         return deferred.resolve();
                     }
                     thisArg.getParentModel().migrate(function(err) {
-                       if (err) { return deferred.reject(err); }
+                        if (err) { return deferred.reject(err); }
                         thisArg.getParentModel().filter(mapping.options, function(err, q) {
-                           if (err) { return deferred.reject(err); }
+                            if (err) { return deferred.reject(err); }
                             //Important Backward compatibility issue (<1.8.0)
                             //Description: if $levels parameter is not defined then set the default value to 0.
                             if (typeof q.$levels === 'undefined') {
                                 q.$levels = 0;
                             }
                             q.query
-                               .distinct()
-                               .join(thisQueryable.query.as('j0'))
-                               .with(QueryExpression.create().where(QueryEntity.create(thisArg.getParentModel().viewAdapter).select(mapping.parentField))
-                                   .equal(QueryEntity.create("j0").select(mapping.childField)));
+                                .distinct()
+                                .join(thisQueryable.query.as('j0'))
+                                .with(QueryExpression.create().where(QueryEntity.create(thisArg.getParentModel().viewAdapter).select(mapping.parentField))
+                                    .equal(QueryEntity.create("j0").select(mapping.childField)));
                             //inherit silent mode
                             if (thisQueryable.$silent)  { q.silent(); }
                             q.silent().getAllItems().then((parents) => {
@@ -389,7 +388,7 @@ export class MappingExtensions {
                                 const iterator = function(x) {
                                     const key = x[keyField];
                                     x[keyField] = _.find(parents, function(x) {
-                                       return x[mapping.parentField] === key;
+                                        return x[mapping.parentField] === key;
                                     });
                                 };
                                 _.forEach(arr, iterator);
@@ -432,7 +431,7 @@ export class MappingExtensions {
                         }
                         const values = _.intersection(_.map(_.filter(arr, function(x) {
                             return x.hasOwnProperty(keyField);
-                            }), function (x) { return x[keyField];}));
+                        }), function (x) { return x[keyField];}));
                         if (values.length===0) {
                             return deferred.resolve();
                         }

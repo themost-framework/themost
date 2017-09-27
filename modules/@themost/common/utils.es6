@@ -6,10 +6,9 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
 import winston from 'winston';
-import {_} from 'lodash';
+import _ from 'lodash';
 
 const UUID_CHARS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 const HEX_CHARS = 'abcdef1234567890';
@@ -75,7 +74,7 @@ export class Args {
      * @param {string} name
      */
     static notNull(arg, name) {
-        if (typeof arg === 'undefined' || arg == null) {
+        if (typeof arg === 'undefined' || arg === null) {
             const err = new Error(name + " may not be null or undefined");
             err.code = "ENULL";
             throw err;
@@ -225,7 +224,7 @@ export class TextUtils {
      */
     static toMD5(value) {
 
-        if (typeof value === 'undefined' || value == null) {
+        if (typeof value === 'undefined' || value === null) {
             return;
         }
         //browser implementation
@@ -301,7 +300,7 @@ export class TextUtils {
         }
 
         const crypto = require('crypto');
-        if (typeof value === 'undefined' || value == null) {
+        if (typeof value === 'undefined' || value === null) {
             return;
         }
         const sha256 = crypto.createHash('sha256');
@@ -336,7 +335,7 @@ export class TextUtils {
         for (i = 0; i < 36; i++) {
             if (!uuid[i]) {
                 r = 0 | Math.random()*16;
-                n = (i == 19) ? (r & 0x3) | 0x8 : r;
+                n = (i === 19) ? (r & 0x3) | 0x8 : r;
                 uuid[i] = UUID_CHARS.substring(n,1);
             }
         }
@@ -360,7 +359,7 @@ export class TraceUtils {
      */
     static log(data) {
         const args = Array.prototype.slice.call(arguments);
-        if (args.length==0) { return; }
+        if (args.length===0) { return; }
         if (data instanceof Error) {
             return TraceUtils.error.apply(this, args);
         }
@@ -376,7 +375,7 @@ export class TraceUtils {
      */
     static error(data) {
         const args = Array.prototype.slice.call(arguments);
-        if (args.length==0) { return; }
+        if (args.length===0) { return; }
         if (data instanceof Error) {
             if (data.stack) {
                 return logger.error(data.stack);
@@ -395,7 +394,7 @@ export class TraceUtils {
      */
     static info(data) {
         const args = Array.prototype.slice.call(arguments);
-        if (args.length==0) { return; }
+        if (args.length===0) { return; }
         return logger.info.apply(logger, args);
     }
 
@@ -406,7 +405,7 @@ export class TraceUtils {
      */
     static warn(data) {
         const args = Array.prototype.slice.call(arguments);
-        if (args.length==0) { return; }
+        if (args.length===0) { return; }
         return logger.warn.apply(logger, args);
     }
 
@@ -417,7 +416,7 @@ export class TraceUtils {
      */
     static debug(data) {
         const args = Array.prototype.slice.call(arguments);
-        if (args.length==0) { return; }
+        if (args.length===0) { return; }
         return logger.debug.apply(logger, args);
     }
 }
@@ -489,7 +488,7 @@ export class LangUtils {
         let result;
         if ((typeof value === 'string'))
         {
-            if (value.length==0) {
+            if (value.length===0) {
                 result = value
             }
             if (value.match(BooleanTrueRegex)) {
@@ -554,7 +553,7 @@ export class LangUtils {
                 LangUtils.extend(descriptor, expr1, value);
             }
         }
-        else if (expr.indexOf('[')==0) {
+        else if (expr.indexOf('[')===0) {
             //get property
             const re = /\[(.*?)\]/g;
             match = re.exec(expr);
@@ -567,7 +566,7 @@ export class LangUtils {
                     if (!_.isArray(origin.value))
                         origin.value = [];
                 }
-                if (expr1.length==0) {
+                if (expr1.length===0) {
                     if (origin.value instanceof LangUtils) {
                         origin.value = {};
                     }
@@ -617,7 +616,7 @@ export class LangUtils {
      */
     static parseForm (form) {
         const result = {};
-        if (typeof form === 'undefined' || form==null)
+        if (typeof form === 'undefined' || form===null)
             return result;
         const keys = Object.keys(form);
         keys.forEach(function(key) {
@@ -658,13 +657,13 @@ export class LangUtils {
      * @returns {*}
      */
     static parseBoolean(any) {
-        if (typeof any === 'undefined' || any == null)
+        if (typeof any === 'undefined' || any === null)
             return false;
         else if (typeof any === 'number')
-            return any != 0;
+            return any !== 0;
         else if (typeof any === 'string') {
             if (any.match(LangUtils.IntegerRegex) || any.match(LangUtils.FloatRegex)) {
-                return parseInt(any, 10) != 0;
+                return parseInt(any, 10) !== 0;
             }
             else if (any.match(LangUtils.BooleanTrueRegex))
                 return true;
@@ -680,7 +679,7 @@ export class LangUtils {
         else if (typeof any === 'boolean')
             return any;
         else {
-            return (parseInt(any) || 0) != 0;
+            return (parseInt(any) || 0) !== 0;
         }
     }
 
@@ -709,26 +708,26 @@ export class PathUtils {
      * @returns {string}
      */
     static join(...part) {
-            // Split the inputs into a list of path commands.
-            let parts = [], i, l;
-            for (i = 0, l = arguments.length; i < l; i++) {
-                parts = parts.concat(arguments[i].replace(/\\/g,"/").split("/"));
-            }
-            // Interpret the path commands to get the new resolved path.
-            let newParts = [];
-            for (i = 0, l = parts.length; i < l; i++) {
-                let part_ = parts[i];
-                // Remove leading and trailing slashes
-                // Also remove "." segments
-                if (!part_ || part_ === ".") continue;
-                // Interpret ".." to pop the last segment
-                if (part_ === "..") newParts.pop();
-                // Push new path segments.
-                else newParts.push(part_);
-            }
-            // Preserve the initial slash if there was one.
-            if (parts[0] === "") newParts.unshift("");
-            // Turn back into a single string path.
-            return newParts.join("/") || (newParts.length ? "/" : ".");
+        // Split the inputs into a list of path commands.
+        let parts = [], i, l;
+        for (i = 0, l = arguments.length; i < l; i++) {
+            parts = parts.concat(arguments[i].replace(/\\/g,"/").split("/"));
         }
+        // Interpret the path commands to get the new resolved path.
+        let newParts = [];
+        for (i = 0, l = parts.length; i < l; i++) {
+            let part_ = parts[i];
+            // Remove leading and trailing slashes
+            // Also remove "." segments
+            if (!part_ || part_ === ".") continue;
+            // Interpret ".." to pop the last segment
+            if (part_ === "..") newParts.pop();
+            // Push new path segments.
+            else newParts.push(part_);
+        }
+        // Preserve the initial slash if there was one.
+        if (parts[0] === "") newParts.unshift("");
+        // Turn back into a single string path.
+        return newParts.join("/") || (newParts.length ? "/" : ".");
+    }
 }

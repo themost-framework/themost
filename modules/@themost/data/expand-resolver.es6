@@ -7,9 +7,8 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
-import {_} from 'lodash';
+import _ from 'lodash';
 
 /**
  * @param {string} s
@@ -34,7 +33,7 @@ function testSplitExpandExpr_(s) {
                 match[0] = s.substr(lastSplitIndex, ix-lastSplitIndex);
                 paren = 0;
             }
-            if (ix1==-1) { ix1 = ix; }
+            if (ix1===-1) { ix1 = ix; }
             hasParen = true;
             paren += 1;
         }
@@ -44,19 +43,19 @@ function testSplitExpandExpr_(s) {
         else if (charAt==='\'') {
             isLiteral = !isLiteral;
         }
-        else if ((charAt===',') && (paren ==-1)) {
-            if (match==null) {
+        else if ((charAt===',') && (paren ===-1)) {
+            if (match===null) {
                 matches.push([s.substr(lastSplitIndex, ix-lastSplitIndex)]);
             }
             lastSplitIndex = ix+1;
             hasParen = false;
         }
 
-        if ((ix === s.length - 1) && (paren == -1)) {
+        if ((ix === s.length - 1) && (paren === -1)) {
             matches.push([s.substr(lastSplitIndex, ix-lastSplitIndex+1)]);
             match = null;
         }
-        else if (paren == 0) {
+        else if (paren === 0) {
             match = match || [ ];
             match[1] = s.substr(ix1+1, ix-ix1-1);
             matches.push(match);

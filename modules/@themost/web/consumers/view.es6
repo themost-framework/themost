@@ -7,18 +7,17 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
+
 import 'source-map-support/register';
 import {TraceUtils, LangUtils} from '@themost/common/utils';
 import {HttpNextResult, HttpEndResult} from '../results';
 import {HttpConsumer} from '../consumers';
-import {_} from 'lodash';
+import _ from 'lodash';
 import url from 'url';
 import xml from 'most-xml';
 import Q from 'q';
 import async from 'async';
 import {ModuleLoaderStrategy} from "@themost/common/config";
-
 
 /**
  *

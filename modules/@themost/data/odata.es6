@@ -6,11 +6,8 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-
-
-'use strict';
 import _ from 'lodash';
-import {ConfigurationStrategy,ConfigurationBase} from '@themost/common/config';
+import {ConfigurationStrategy} from '@themost/common/config';
 import {Args} from "@themost/common/utils";
 import {DataConfigurationStrategy, SchemaLoaderStrategy} from "./config";
 import {DataModel} from "./model";
@@ -259,26 +256,26 @@ export class EntitySetConfiguration {
      * @param {string} entityType
      * @param {string} name
      */
-   constructor(builder, entityType, name) {
-       Args.check(builder instanceof ODataModelBuilder, new TypeError('Invalid argument. Configuration builder must be an instance of ODataModelBuilder class'));
-       Args.notString(entityType, 'Entity Type');
-       Args.notString(name, 'EntitySet Name');
-       this[builderProperty] = builder;
-       this[entityTypeProperty] = entityType;
-       //ensure entity type
+    constructor(builder, entityType, name) {
+        Args.check(builder instanceof ODataModelBuilder, new TypeError('Invalid argument. Configuration builder must be an instance of ODataModelBuilder class'));
+        Args.notString(entityType, 'Entity Type');
+        Args.notString(name, 'EntitySet Name');
+        this[builderProperty] = builder;
+        this[entityTypeProperty] = entityType;
+        //ensure entity type
         if (!this[builderProperty].hasEntity(this[entityTypeProperty])) {
             this[builderProperty].addEntity(this[entityTypeProperty]);
         }
-       this.name = name;
-       this.kind = EntitySetKind.EntitySet;
-       //use the given name as entity set URL by default
-       this.url = name;
-   }
+        this.name = name;
+        this.kind = EntitySetKind.EntitySet;
+        //use the given name as entity set URL by default
+        this.url = name;
+    }
 
-   hasUrl(url) {
-       Args.notString(url, 'Entity Resource Path');
-       this.url = url;
-   }
+    hasUrl(url) {
+        Args.notString(url, 'Entity Resource Path');
+        this.url = url;
+    }
 
     getUrl() {
         return this.url;
@@ -287,12 +284,12 @@ export class EntitySetConfiguration {
     /**
      * @returns {EntityTypeConfiguration}
      */
-   get entityType() {
-       if (!this[builderProperty].hasEntity(this[entityTypeProperty])) {
-        return this[builderProperty].addEntity(this[entityTypeProperty]);
-       }
-       return this[builderProperty].getEntity(this[entityTypeProperty]);
-   }
+    get entityType() {
+        if (!this[builderProperty].hasEntity(this[entityTypeProperty])) {
+            return this[builderProperty].addEntity(this[entityTypeProperty]);
+        }
+        return this[builderProperty].getEntity(this[entityTypeProperty]);
+    }
 
 }
 
@@ -341,7 +338,7 @@ export class ODataModelBuilder extends ConfigurationStrategy {
      */
     hasEntitySet(name) {
         return _.findIndex(this[entityContainerProperty], (x) => {
-           return x.name === name;
+            return x.name === name;
         })>=0;
     }
 
@@ -521,18 +518,18 @@ export class ODataModelBuilder extends ConfigurationStrategy {
                          * @param {EntitySetConfiguration} child
                          */
                         (child) => {
-                        const childElement = doc.createElement(child.kind);
-                        childElement.setAttribute("Name", child.name);
-                        if ((child.kind === EntitySetKind.EntitySet) || (child.kind === EntitySetKind.Singleton)) {
-                            childElement.setAttribute("EntityType", schema.namespace.concat(".", child.entityType.name));
-                        }
-                        const childAnnotation = doc.createElement("Annotation");
-                        childAnnotation.setAttribute("Term", "Org.OData.Core.V1.ResourcePath");
-                        childAnnotation.setAttribute("String", child.getUrl());
-                        childElement.appendChild(childAnnotation);
-                        //append Schema > EntityContainer > (EntitySet, Singleton, FunctionImport)
-                        entityContainerElement.appendChild(childElement);
-                    });
+                            const childElement = doc.createElement(child.kind);
+                            childElement.setAttribute("Name", child.name);
+                            if ((child.kind === EntitySetKind.EntitySet) || (child.kind === EntitySetKind.Singleton)) {
+                                childElement.setAttribute("EntityType", schema.namespace.concat(".", child.entityType.name));
+                            }
+                            const childAnnotation = doc.createElement("Annotation");
+                            childAnnotation.setAttribute("Term", "Org.OData.Core.V1.ResourcePath");
+                            childAnnotation.setAttribute("String", child.getUrl());
+                            childElement.appendChild(childAnnotation);
+                            //append Schema > EntityContainer > (EntitySet, Singleton, FunctionImport)
+                            entityContainerElement.appendChild(childElement);
+                        });
 
                     //append Schema > EntityContainer
                     schemaElement.appendChild(entityContainerElement);

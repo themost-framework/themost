@@ -7,9 +7,8 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
-import {_} from 'lodash';
+import _ from 'lodash';
 import Q from 'q';
 import sprintf from 'sprintf';
 import async from 'async';
@@ -31,7 +30,6 @@ import {DataModelView} from './view';
 import {DataFilterResolver} from './filter-resolver';
 import {ModelClassLoaderStrategy} from "./config";
 import {ModuleLoaderStrategy} from "@themost/common/config";
-
 
 /**
  * @memberOf DataModel
@@ -558,8 +556,8 @@ export class DataModel extends SequentialEventEmitter {
                         arrExpr.forEach(function(y) {
                             const joinExpr = $joinExpressions.find(function(x) {
                                 if (x.$entity && x.$entity.$as) {
-                                        return (x.$entity.$as === y.$entity.$as);
-                                    }
+                                    return (x.$entity.$as === y.$entity.$as);
+                                }
                                 return false;
                             });
                             if (_.isNil(joinExpr))
@@ -575,13 +573,13 @@ export class DataModel extends SequentialEventEmitter {
             if (typeof self.resolveMember === 'function')
                 self.resolveMember.call(self, member, cb);
             else
-                DataFilterResolver.prototype.resolveMember.call(self, member, cb);
+                DataFilterResolver.prototype.resolveMember.bind(self)(member, cb);
         };
         parser.resolveMethod = function(name, args, cb) {
             if (typeof self.resolveMethod === 'function')
-                self.resolveMethod.call(self, name, args, cb);
+                self.resolveMethod.bind(self)(name, args, cb);
             else
-                DataFilterResolver.prototype.resolveMethod.call(self, name, args, cb);
+                DataFilterResolver.prototype.resolveMethod.bind(self)(name, args, cb);
         };
         let filter;
 
@@ -1041,7 +1039,7 @@ export class DataModel extends SequentialEventEmitter {
      * @returns {*} - Returns an object which is going to be against the underlying database.
      */
     cast(obj, state) {
-       return cast_.call(this, obj, state);
+        return cast_.call(this, obj, state);
     }
 
     /**
@@ -1141,14 +1139,14 @@ export class DataModel extends SequentialEventEmitter {
     save(obj, callback) {
         if (typeof callback !== 'function') {
             const d = Q.defer();
-            save_.call(this, obj, function(err, result) {
+            save_.bind(this)(obj, function(err, result) {
                 if (err) { return d.reject(err); }
                 d.resolve(result);
             });
             return d.promise;
         }
         else {
-            return save_.call(this, obj, callback);
+            return save_.bind(this)(obj, callback);
         }
     }
 
@@ -1199,14 +1197,14 @@ export class DataModel extends SequentialEventEmitter {
     update(obj, callback) {
         if (typeof callback !== 'function') {
             const d = Q.defer();
-            update_.call(this, obj, function(err, result) {
+            update_.bind(this)(obj, function(err, result) {
                 if (err) { return d.reject(err); }
                 d.resolve(result);
             });
             return d.promise;
         }
         else {
-            return update_.call(this, obj, callback);
+            return update_.bind(this)(obj, callback);
         }
     }
 
@@ -1219,14 +1217,14 @@ export class DataModel extends SequentialEventEmitter {
     insert(obj, callback) {
         if (typeof callback !== 'function') {
             const d = Q.defer();
-            insert_.call(this, obj, function(err, result) {
+            insert_.bind(this)(obj, function(err, result) {
                 if (err) { return d.reject(err); }
                 d.resolve(result);
             });
             return d.promise;
         }
         else {
-            return insert_.call(this, obj, callback);
+            return insert_.bind(this)(obj, callback);
         }
     }
 
@@ -1247,7 +1245,7 @@ export class DataModel extends SequentialEventEmitter {
     remove(obj, callback) {
         if (typeof callback !== 'function') {
             const d = Q.defer();
-            remove_.call(this, obj, function(err, result) {
+            remove_.bind(this)(obj, function(err, result) {
                 if (err) { return d.reject(err); }
                 d.resolve(result);
             });
@@ -1291,7 +1289,7 @@ export class DataModel extends SequentialEventEmitter {
         const conf = self.context.getConfiguration();
         conf.cache = conf.cache || {};
         conf.cache[self.name] = conf.cache[self.name] || { };
-        if (conf.cache[self.name].version==self.version) {
+        if (conf.cache[self.name].version===self.version) {
             //model has already been migrated, so do nothing
             return callback();
         }
@@ -1344,12 +1342,12 @@ export class DataModel extends SequentialEventEmitter {
                     //get parent model
                     const parentModel = self.context.model(mapping.parentModel), attr = parentModel.getAttribute(mapping.parentField);
                     if (attr) {
-                            if (attr.type === 'Counter') {
-                                x.type = 'Integer';
-                            }
-                            else {
-                                x.type = attr.type;
-                            }
+                        if (attr.type === 'Counter') {
+                            x.type = 'Integer';
+                        }
+                        else {
+                            x.type = attr.type;
+                        }
 
                     }
                 }
@@ -1581,7 +1579,7 @@ export class DataModel extends SequentialEventEmitter {
             {
                 if (typeof field.many === 'boolean' && field.many) {
                     //validate primitive type mapping
-                    const tagMapping = inferTagMapping_.call(self, field);
+                    const tagMapping = inferTagMapping_.bind(self)(field);
                     if (tagMapping) {
                         //apply data association mapping to definition
                         const definitionField = conf.fields.find(function(x) {
@@ -1596,7 +1594,7 @@ export class DataModel extends SequentialEventEmitter {
             //in this case we have two possible associations. Junction or Foreign Key association
             //try to find a field that belongs to the associated model and holds the foreign key of this model.
             const associatedField = associatedModel.attributes.find(function(x) {
-               return x.type === self.name;
+                return x.type === self.name;
             });
             if (associatedField)
             {
@@ -1682,7 +1680,7 @@ export class DataModel extends SequentialEventEmitter {
     validateForUpdate(obj, callback) {
         if (typeof callback !== 'function') {
             const d = Q.defer();
-            validate_.call(this, obj, 2, function(err, result) {
+            validate_.bind(this)(obj, 2, function(err, result) {
                 if (err) { return d.reject(err); }
                 d.resolve(result);
             });
@@ -1704,14 +1702,14 @@ export class DataModel extends SequentialEventEmitter {
     validateForInsert(obj, callback) {
         if (typeof callback !== 'function') {
             const d = Q.defer();
-            validate_.call(this, obj, 1, function(err, result) {
+            validate_.bind(this)(obj, 1, function(err, result) {
                 if (err) { return d.reject(err); }
                 d.resolve(result);
             });
             return d.promise;
         }
         else {
-            return validate_.call(this, obj, callback);
+            return validate_.bind(this)(obj, callback);
         }
     }
 
@@ -1761,17 +1759,17 @@ export class DataModel extends SequentialEventEmitter {
                 .select("model")
                 .groupBy("model")
                 .all().then(function(result) {
-                const conf = self.context.getConfiguration(), arr = [];
-                result.forEach(function(x) {
-                    const m = conf.getModelDefinition(x.model);
-                    if (m && m.inherits === self.name) {
-                        arr.push(m.name);
-                    }
+                    const conf = self.context.getConfiguration(), arr = [];
+                    result.forEach(function(x) {
+                        const m = conf.getModelDefinition(x.model);
+                        if (m && m.inherits === self.name) {
+                            arr.push(m.name);
+                        }
+                    });
+                    return d.resolve(arr);
+                }).catch(function(err) {
+                    return d.reject(err)
                 });
-                return d.resolve(arr);
-            }).catch(function(err) {
-                return d.reject(err)
-            });
         });
         return d.promise;
     }
@@ -1850,7 +1848,7 @@ function registerListeners_() {
      * @type {DataModel|*}
      */
     const self = this;
-   //register system event listeners
+    //register system event listeners
     self.removeAllListeners('before.save');
     self.removeAllListeners('after.save');
     self.removeAllListeners('before.remove');
@@ -1859,78 +1857,78 @@ function registerListeners_() {
     self.removeAllListeners('after.execute');
     self.removeAllListeners('after.upgrade');
 
-   //0. Permission Event Listener
-   const perms = require('./permission');
-   //1. State validator listener
+    //0. Permission Event Listener
+    const perms = require('./permission');
+    //1. State validator listener
     self.on('before.save', DataStateValidatorListener.prototype.beforeSave);
     self.on('before.remove', DataStateValidatorListener.prototype.beforeRemove);
-   //2. Default values Listener
+    //2. Default values Listener
     self.on('before.save', DefaultValueListener.prototype.beforeSave);
-   //3. Calculated values listener
+    //3. Calculated values listener
     self.on('before.save', CalculatedValueListener.prototype.beforeSave);
 
-   //register before execute caching
-   if (self.caching==='always' || self.caching==='conditional') {
-       self.on('before.execute', DataCachingListener.prototype.beforeExecute);
-       self.on('after.execute', DataCachingListener.prototype.afterExecute);
-   }
+    //register before execute caching
+    if (self.caching==='always' || self.caching==='conditional') {
+        self.on('before.execute', DataCachingListener.prototype.beforeExecute);
+        self.on('after.execute', DataCachingListener.prototype.afterExecute);
+    }
 
-   //migration listeners
+    //migration listeners
     self.on('after.upgrade',DataModelCreateViewListener.prototype.afterUpgrade);
     self.on('after.upgrade',DataModelSeedListener.prototype.afterUpgrade);
 
-   /**
+    /**
     * change:8-Jun 2015
     * description: Set lookup default listeners as obsolete.
     */
-   ////register lookup model listeners
-   //if (this.type === 'lookup') {
-   //    //after save (clear lookup caching)
-   //    this.on('after.save', DataModelLookupCachingListener.afterSave);
-   //    //after remove (clear lookup caching)
-   //    this.on('after.remove', DataModelLookupCachingListener.afterRemove);
-   //}
-   //register configuration listeners
-   if (self.eventListeners) {
-       for (let i = 0; i < self.eventListeners.length; i++) {
-           const listener = self.eventListeners[i];
-           //get listener type (e.g. type: require('./custom-listener.js'))
-           if (listener.type && !listener.disabled)
-           {
-               /**
+    ////register lookup model listeners
+    //if (this.type === 'lookup') {
+    //    //after save (clear lookup caching)
+    //    this.on('after.save', DataModelLookupCachingListener.afterSave);
+    //    //after remove (clear lookup caching)
+    //    this.on('after.remove', DataModelLookupCachingListener.afterRemove);
+    //}
+    //register configuration listeners
+    if (self.eventListeners) {
+        for (let i = 0; i < self.eventListeners.length; i++) {
+            const listener = self.eventListeners[i];
+            //get listener type (e.g. type: require('./custom-listener.js'))
+            if (listener.type && !listener.disabled)
+            {
+                /**
                 * Load event listener from the defined type
                 * @type DataEventListener
                 */
-               const m = self.context.getApplication().getConfiguration().getStrategy(ModuleLoaderStrategy).require(listener.type);
-               //if listener exports beforeSave function then register this as before.save event listener
-               if (typeof m.beforeSave === 'function')
-                   self.on('before.save', m.beforeSave);
-               //if listener exports afterSave then register this as after.save event listener
-               if (typeof m.afterSave === 'function')
-                   self.on('after.save', m.afterSave);
-               //if listener exports beforeRemove then register this as before.remove event listener
-               if (typeof m.beforeRemove === 'function')
-                   self.on('before.remove', m.beforeRemove);
-               //if listener exports afterRemove then register this as after.remove event listener
-               if (typeof m.afterRemove === 'function')
-                   self.on('after.remove', m.afterRemove);
-               //if listener exports beforeExecute then register this as before.execute event listener
-               if (typeof m.beforeExecute === 'function')
-                   self.on('before.execute', m.beforeExecute);
-               //if listener exports afterExecute then register this as after.execute event listener
-               if (typeof m.afterExecute === 'function')
-                   self.on('after.execute', m.afterExecute);
-               //if listener exports afterUpgrade then register this as after.upgrade event listener
-               if (typeof m.afterUpgrade === 'function')
-                   self.on('after.upgrade', m.afterUpgrade);
-           }
-       }
-   }
-   //before execute
+                const m = self.context.getApplication().getConfiguration().getStrategy(ModuleLoaderStrategy).require(listener.type);
+                //if listener exports beforeSave function then register this as before.save event listener
+                if (typeof m.beforeSave === 'function')
+                    self.on('before.save', m.beforeSave);
+                //if listener exports afterSave then register this as after.save event listener
+                if (typeof m.afterSave === 'function')
+                    self.on('after.save', m.afterSave);
+                //if listener exports beforeRemove then register this as before.remove event listener
+                if (typeof m.beforeRemove === 'function')
+                    self.on('before.remove', m.beforeRemove);
+                //if listener exports afterRemove then register this as after.remove event listener
+                if (typeof m.afterRemove === 'function')
+                    self.on('after.remove', m.afterRemove);
+                //if listener exports beforeExecute then register this as before.execute event listener
+                if (typeof m.beforeExecute === 'function')
+                    self.on('before.execute', m.beforeExecute);
+                //if listener exports afterExecute then register this as after.execute event listener
+                if (typeof m.afterExecute === 'function')
+                    self.on('after.execute', m.afterExecute);
+                //if listener exports afterUpgrade then register this as after.upgrade event listener
+                if (typeof m.afterUpgrade === 'function')
+                    self.on('after.upgrade', m.afterUpgrade);
+            }
+        }
+    }
+    //before execute
     self.on('before.execute', perms.DataPermissionEventListener.prototype.beforeExecute);
-   //before save (validate permissions)
+    //before save (validate permissions)
     self.on('before.save', perms.DataPermissionEventListener.prototype.beforeSave);
-   //before remove (validate permissions)
+    //before remove (validate permissions)
     self.on('before.remove', perms.DataPermissionEventListener.prototype.beforeRemove);
 }
 
@@ -1965,7 +1963,7 @@ function convertInternal_(obj) {
                         if (associatedModel) {
                             if (typeof value === 'object') {
                                 //set associated key value (e.g. primary key value)
-                                convertInternal_.call(associatedModel, value);
+                                convertInternal_.bind(associatedModel)(value);
                             }
                             else {
                                 const field = associatedModel.field(mapping.parentField);
@@ -2066,7 +2064,7 @@ function castForValidation_(obj, state) {
         self.attributes.filter(function(x) {
             if (x.model!==self.name) {
                 if (ParserUtils.parseBoolean(x.cloned) === false)
-                        return false;
+                    return false;
             }
             return (!x.readonly) ||
                 (x.readonly && (typeof x.calculation!=='undefined') && state===2) ||
@@ -2108,9 +2106,8 @@ function castForValidation_(obj, state) {
  */
 function save_(obj, callback) {
     const self = this;
-    if (typeof obj=='undefined' || obj === null) {
-        callback.call(self, null);
-        return;
+    if (_.isNil(obj)) {
+        return callback();
     }
     //ensure migration
     self.migrate(function(err) {
@@ -2127,24 +2124,22 @@ function save_(obj, callback) {
         let res = [];
         db.executeInTransaction(function(cb) {
             async.eachSeries(arr, function(item, saveCallback) {
-                saveSingleObject_.call(self, item, function(err, result) {
+                saveSingleObject_.bind(self)(item, function(err, result) {
                     if (err) {
-                        saveCallback.call(self, err);
-                        return;
+                        return saveCallback(err);
                     }
                     res.push(result.insertedId);
-                    saveCallback.call(self, null);
+                    return saveCallback();
                 });
             }, function(err) {
                 if (err) {
                     res = null;
-                    cb(err);
-                    return;
+                    return cb(err);
                 }
-                cb(null);
+                return cb();
             });
         }, function(err) {
-            callback.call(self, err, res);
+            return callback(err, res);
         });
     });
 }
@@ -2160,19 +2155,18 @@ function saveBaseObject_(obj, callback) {
     const self = this, base = self.base();
     //if obj is an array of objects throw exception (invoke callback with error)
     if (_.isArray(obj)) {
-        callback.call(self, new Error('Invalid argument. Base object cannot be an array.'));
-        return 0;
+        return callback(new Error('Invalid argument. Base object cannot be an array.'));
     }
     //if current model does not have a base model
-    if (base==null) {
+    if (_.isNil(base)) {
         //exit operation
-        callback.call(self, null);
+        return callback();
     }
     else {
         base.silent();
         //perform operation
-        saveSingleObject_.call(base, obj, function(err, result) {
-            callback.call(self, err, result);
+        saveSingleObject_.bind(base)(obj, function(err, result) {
+            return callback(err, result);
         });
     }
 }
@@ -2182,167 +2176,164 @@ function saveBaseObject_(obj, callback) {
  * @private
  */
 function saveSingleObject_(obj, callback) {
-   const self = this;
-   callback = callback || function() {};
-   if (obj==null) {
-       callback.call(self);
-       return;
-   }
-   if (_.isArray(obj)) {
-       callback.call(self, new Error('Invalid argument. Source object cannot be an array.'));
-       return 0;
-   }
-   if (obj.$state === 4) {
-       return removeSingleObject_.call(self, obj, callback);
-   }
-   //get object state before any other operation
-   const state = obj.$state ? obj.$state : (obj[self.primaryKey]!=null ? 2 : 1);
-   const e = {
-       model: self,
-       target: obj,
-       state:state
-   };
-   //register nested objects listener (before save)
-   self.once('before.save', DataNestedObjectListener.prototype.beforeSave);
-   //register data association listener (before save)
-   self.once('before.save', DataObjectAssociationListener.prototype.beforeSave);
-   //register data association listener
-   self.once('after.save', DataObjectAssociationListener.prototype.afterSave);
-   //register unique constraint listener at the end of listeners collection (before emit)
-   self.once('before.save', UniqueConstraintListener.prototype.beforeSave);
-   //register data validators at the end of listeners collection (before emit)
-   self.once('before.save', DataValidatorListener.prototype.beforeSave);
-   //register not null listener at the end of listeners collection (before emit)
-   self.once('before.save', NotNullConstraintListener.prototype.beforeSave);
-   //execute before update events
-   self.emit('before.save', e, function(err) {
-       //if an error occured
-       if (err) {
-           //invoke callback with error
-           callback.call(self, err);
-       }
-       //otherwise execute save operation
-       else {
-           //save base object if any
-           saveBaseObject_.call(self, e.target, function(err, result) {
-               if (err) {
-                   callback.call(self, err);
-                   return;
-               }
-               //if result is defined
-               if (result!==undefined)
-               //sync original object
-                   _.assign(e.target, result);
-               //get db context
-               const db = self.context.db;
-               //create insert query
-               const target = self.cast(e.target, e.state);
-               let q = null;
-               const key = target[self.primaryKey];
-               if (e.state==1) {
-                   //create insert statement
-                   q = QueryExpression.create().insert(target).into(self.sourceAdapter);
-               }
-               else
-               {
-                   //create update statement
-                   if (key)
-                       delete target[self.primaryKey];
-                   if (Object.keys(target).length>0)
-                       q = QueryExpression.create().update(self.sourceAdapter).set(target).where(self.primaryKey).equal(e.target[self.primaryKey]);
-                   else
-                       //object does not have any properties other than primary key. do nothing
-                       q = new EmptyQueryExpression();
-               }
-               if (q instanceof EmptyQueryExpression) {
-                   if (key)
-                       target[self.primaryKey] = key;
-                   //get updated object
-                   self.recast(e.target, target, function(err) {
-                       if (err) {
-                           //and return error
-                           callback.call(self, err);
-                       }
-                       else {
-                           //execute after update events
-                           self.emit('after.save',e, function(err) {
-                               //and return
-                               return callback.call(self, err, e.target);
-                           });
-                       }
-                   });
-               }
-               else {
-                   const pm = e.model.field(self.primaryKey);
-                   let nextIdentity;
-                   const adapter = e.model.sourceAdapter;
-                   //search if adapter has a nextIdentity function (also primary key must be a counter and state equal to insert)
-                   if (pm.type === 'Counter' && typeof db.nextIdentity === 'function' && e.state==1) {
-                       nextIdentity = db.nextIdentity;
-                   }
-                   else {
-                       //otherwise use a dummy nextIdentity function
-                       nextIdentity = function(a, b, callback) { return callback(); }
-                   }
-                   nextIdentity.call(db, adapter, pm.name, function(err, insertedId) {
-                       if (err) { return callback.call(self, err); }
-                       if (insertedId) {
-                           //get object to insert
-                           if (q.$insert) {
-                               const o = q.$insert[adapter];
-                               if (o) {
-                                   //set the generated primary key
-                                   o[pm.name] = insertedId;
-                               }
-                           }
-                       }
-                       db.execute(q, null, function(err, result) {
-                           if (err) {
-                               callback.call(self, err);
-                           }
-                           else {
-                               if (key)
-                                   target[self.primaryKey] = key;
-                               //get updated object
-                               self.recast(e.target, target, function(err) {
-                                   if (err) {
-                                       callback.call(self, err);
-                                   }
-                                   else {
-                                       if (pm.type==='Counter' && typeof db.nextIdentity !== 'function' && e.state==1) {
-                                           //if data adapter contains lastIdentity function
-                                           const lastIdentity = db.lastIdentity || function(lastCallback) {
-                                                   if (_.isNil(result))
-                                                       lastCallback(null, { insertId: null});
-                                                   lastCallback(null, result);
-                                               };
-                                           lastIdentity.call(db, function(err, lastResult) {
-                                               if (lastResult)
-                                                   if (lastResult.insertId)
-                                                       e.target[self.primaryKey] = lastResult.insertId;
-                                               //raise after save listeners
-                                               self.emit('after.save',e, function(err) {
-                                                   //invoke callback
-                                                   callback.call(self, err, e.target);
-                                               });
-                                           });
-                                       }
-                                       else {
-                                           //raise after save listeners
-                                           self.emit('after.save',e, function(err) {
-                                               //invoke callback
-                                               callback.call(self, err, e.target);
-                                           });
-                                       }
-                                   }
-                               });
-                           }
-                       });
-                   });
-               }
-           });
-       }
-   });
+    const self = this;
+    callback = callback || function() {};
+    if (_.isNil(obj)) {
+        return callback();
+    }
+    if (_.isArray(obj)) {
+        return callback(new Error('Invalid argument. Source object cannot be an array.'));
+    }
+    if (obj.$state === 4) {
+        return removeSingleObject_.call(self, obj, callback);
+    }
+    //get object state before any other operation
+    const state = obj.$state ? obj.$state : (obj[self.primaryKey]!==null ? 2 : 1);
+    const e = {
+        model: self,
+        target: obj,
+        state:state
+    };
+    //register nested objects listener (before save)
+    self.once('before.save', DataNestedObjectListener.prototype.beforeSave);
+    //register data association listener (before save)
+    self.once('before.save', DataObjectAssociationListener.prototype.beforeSave);
+    //register data association listener
+    self.once('after.save', DataObjectAssociationListener.prototype.afterSave);
+    //register unique constraint listener at the end of listeners collection (before emit)
+    self.once('before.save', UniqueConstraintListener.prototype.beforeSave);
+    //register data validators at the end of listeners collection (before emit)
+    self.once('before.save', DataValidatorListener.prototype.beforeSave);
+    //register not null listener at the end of listeners collection (before emit)
+    self.once('before.save', NotNullConstraintListener.prototype.beforeSave);
+    //execute before update events
+    self.emit('before.save', e, function(err) {
+        //if an error occurred
+        if (err) {
+            //invoke callback with error
+            return callback(err);
+        }
+        //otherwise execute save operation
+        else {
+            //save base object if any
+            saveBaseObject_.bind(self)(e.target, function(err, result) {
+                if (err) {
+                    return callback(err);
+                }
+                //if result is defined
+                if (result!==undefined)
+                //sync original object
+                    _.assign(e.target, result);
+                //get db context
+                const db = self.context.db;
+                //create insert query
+                const target = self.cast(e.target, e.state);
+                let q = null;
+                const key = target[self.primaryKey];
+                if (e.state===1) {
+                    //create insert statement
+                    q = QueryExpression.create().insert(target).into(self.sourceAdapter);
+                }
+                else
+                {
+                    //create update statement
+                    if (key)
+                        delete target[self.primaryKey];
+                    if (Object.keys(target).length>0)
+                        q = QueryExpression.create().update(self.sourceAdapter).set(target).where(self.primaryKey).equal(e.target[self.primaryKey]);
+                    else
+                    //object does not have any properties other than primary key. do nothing
+                        q = new EmptyQueryExpression();
+                }
+                if (q instanceof EmptyQueryExpression) {
+                    if (key)
+                        target[self.primaryKey] = key;
+                    //get updated object
+                    self.recast(e.target, target, function(err) {
+                        if (err) {
+                            //and return error
+                            return callback(err);
+                        }
+                        else {
+                            //execute after update events
+                            self.emit('after.save',e, function(err) {
+                                //and return
+                                return callback.call(self, err, e.target);
+                            });
+                        }
+                    });
+                }
+                else {
+                    const pm = e.model.field(self.primaryKey);
+                    let nextIdentity;
+                    const adapter = e.model.sourceAdapter;
+                    //search if adapter has a nextIdentity function (also primary key must be a counter and state equal to insert)
+                    if (pm.type === 'Counter' && typeof db.nextIdentity === 'function' && e.state===1) {
+                        nextIdentity = db.nextIdentity;
+                    }
+                    else {
+                        //otherwise use a dummy nextIdentity function
+                        nextIdentity = function(a, b, callback) { return callback(); }
+                    }
+                    nextIdentity.bind(db)(adapter, pm.name, function(err, insertedId) {
+                        if (err) { return callback(err); }
+                        if (insertedId) {
+                            //get object to insert
+                            if (q.$insert) {
+                                const o = q.$insert[adapter];
+                                if (o) {
+                                    //set the generated primary key
+                                    o[pm.name] = insertedId;
+                                }
+                            }
+                        }
+                        db.execute(q, null, function(err, result) {
+                            if (err) {
+                                return callback(err);
+                            }
+                            else {
+                                if (key)
+                                    target[self.primaryKey] = key;
+                                //get updated object
+                                self.recast(e.target, target, function(err) {
+                                    if (err) {
+                                        callback.call(self, err);
+                                    }
+                                    else {
+                                        if (pm.type==='Counter' && typeof db.nextIdentity !== 'function' && e.state===1) {
+                                            //if data adapter contains lastIdentity function
+                                            const lastIdentity = db.lastIdentity || function(lastCallback) {
+                                                if (_.isNil(result))
+                                                    lastCallback(null, { insertId: null});
+                                                lastCallback(null, result);
+                                            };
+                                            lastIdentity.bind(db)(function(err, lastResult) {
+                                                if (lastResult)
+                                                    if (lastResult.insertId)
+                                                        e.target[self.primaryKey] = lastResult.insertId;
+                                                //raise after save listeners
+                                                self.emit('after.save',e, function(err) {
+                                                    //invoke callback
+                                                    return callback(err, e.target);
+                                                });
+                                            });
+                                        }
+                                        else {
+                                            //raise after save listeners
+                                            self.emit('after.save',e, function(err) {
+                                                //invoke callback
+                                                return callback(err, e.target);
+                                            });
+                                        }
+                                    }
+                                });
+                            }
+                        });
+                    });
+                }
+            });
+        }
+    });
 }
 
 /**
@@ -2354,8 +2345,8 @@ function update_(obj, callback) {
     const self = this;
     //ensure callback
     callback = callback || function() {};
-    if ((obj==null) || obj === undefined) {
-        callback.call(self, null);
+    if (_.isNil(obj)) {
+        return callback();
     }
     //set state
     if (_.isArray(obj)) {
@@ -2376,8 +2367,8 @@ function insert_(obj, callback) {
     const self = this;
     //ensure callback
     callback = callback || function() {};
-    if ((obj==null) || obj === undefined) {
-        callback.call(self, null);
+    if (_.isNil(obj)) {
+        return callback();
     }
     //set state
     if (_.isArray(obj)) {
@@ -2397,10 +2388,9 @@ function insert_(obj, callback) {
  */
 function remove_(obj, callback) {
     const self = this;
-    if (obj==null)
+    if (_.isNil(obj))
     {
-        callback.call(self, null);
-        return;
+        return callback();
     }
 
     self.migrate(function(err) {
@@ -2416,22 +2406,20 @@ function remove_(obj, callback) {
         const db = self.context.db;
         db.executeInTransaction(function(cb) {
             async.eachSeries(arr, function(item, removeCallback) {
-                removeSingleObject_.call(self, item, function(err) {
+                removeSingleObject_.bind(self)(item, function(err) {
                     if (err) {
-                        removeCallback.call(self, err);
-                        return;
+                        return removeCallback(err);
                     }
-                    removeCallback.call(self, null);
+                    return removeCallback();
                 });
             }, function(err) {
                 if (err) {
-                    cb(err);
-                    return;
+                    return cb(err);
                 }
-                cb(null);
+                return cb();
             });
         }, function(err) {
-            callback.call(self, err);
+            return callback(err);
         });
     });
 }
@@ -2442,57 +2430,55 @@ function remove_(obj, callback) {
  * @private
  */
 function removeSingleObject_(obj, callback) {
-   const self = this;
-   callback = callback || function() {};
-   if (obj==null) {
-       callback.call(self);
-       return;
-   }
-   if (_.isArray(obj)) {
-       callback.call(self, new Error('Invalid argument. Object cannot be an array.'));
-       return 0;
-   }
-   const e = {
-       model: self,
-       target: obj,
-       state: 4
-   };
-   //register nested objects listener
-   self.once('before.remove', DataNestedObjectListener.prototype.beforeRemove);
-   //register data association listener
-   self.once('before.remove', DataObjectAssociationListener.prototype.afterSave);
-   //execute before update events
-   self.emit('before.remove', e, function(err) {
-       //if an error occurred
-       if (err) {
-           //invoke callback with error
-           return callback(err);
-       }
-       //get db context
-       const db = self.context.db;
-       //create delete query
-       const q = QueryExpression.create().delete(self.sourceAdapter).where(self.primaryKey).equal(obj[self.primaryKey]);
-       //execute delete query
-       db.execute(q, null, function(err) {
-           if (err) {
-               return callback(err);
-           }
-           //remove base object
-           removeBaseObject_.call(self, e.target, function(err, result) {
-               if (err) {
-                   return callback(err);
-               }
-               if (typeof result !== 'undefined' && result !== null) {
-                   _.assign(e.target, result);
-               }
-               //execute after remove events
-               self.emit('after.remove',e, function(err) {
-                   //invoke callback
-                   return callback(err, e.target);
-               });
-           });
-       });
-   });
+    const self = this;
+    callback = callback || function() {};
+    if (_.isNil(obj)) {
+        return callback();
+    }
+    if (_.isArray(obj)) {
+        return callback(new Error('Invalid argument. Object cannot be an array.'));
+    }
+    const e = {
+        model: self,
+        target: obj,
+        state: 4
+    };
+    //register nested objects listener
+    self.once('before.remove', DataNestedObjectListener.prototype.beforeRemove);
+    //register data association listener
+    self.once('before.remove', DataObjectAssociationListener.prototype.afterSave);
+    //execute before update events
+    self.emit('before.remove', e, function(err) {
+        //if an error occurred
+        if (err) {
+            //invoke callback with error
+            return callback(err);
+        }
+        //get db context
+        const db = self.context.db;
+        //create delete query
+        const q = QueryExpression.create().delete(self.sourceAdapter).where(self.primaryKey).equal(obj[self.primaryKey]);
+        //execute delete query
+        db.execute(q, null, function(err) {
+            if (err) {
+                return callback(err);
+            }
+            //remove base object
+            removeBaseObject_.bind(self)(e.target, function(err, result) {
+                if (err) {
+                    return callback(err);
+                }
+                if (typeof result !== 'undefined' && result !== null) {
+                    _.assign(e.target, result);
+                }
+                //execute after remove events
+                self.emit('after.remove',e, function(err) {
+                    //invoke callback
+                    return callback(err, e.target);
+                });
+            });
+        });
+    });
 
 }
 
@@ -2507,19 +2493,18 @@ function removeBaseObject_(obj, callback) {
     const self = this, base = self.base();
     //if obj is an array of objects throw exception (invoke callback with error)
     if (_.isArray(obj)) {
-        callback.call(self, new Error('Invalid argument. Object cannot be an array.'));
-        return 0;
+        return callback(new Error('Invalid argument. Object cannot be an array.'));
     }
     //if current model does not have a base model
     if (_.isNil(base)) {
         //exit operation
-        callback.call(self, null);
+        return callback();
     }
     else {
         base.silent();
         //perform operation
-        removeSingleObject_.call(base, obj, function(err, result) {
-            callback.call(self, err, result);
+        removeSingleObject_.bind(base)(obj, function(err, result) {
+            return callback(err, result);
         });
     }
 }
@@ -2539,27 +2524,27 @@ DataModel.PluralExpression = /([a-zA-Z]+?)([e']s|[^aiou]s)$/;
  * @private
  */
 function cacheMapping_(field, mapping) {
-  if (_.isNil(field))
-      return;
-  //cache mapping
-  const cachedModel = this.getConfiguration().models[this.name];
-  if (cachedModel) {
-      let cachedField = cachedModel.fields.find(function(x) { return x.name === field.name });
-      if (typeof cachedField === 'undefined') {
-          //search in attributes
-          cachedField = this.attributes.find(function(x) { return x.name === field.name });
-          if (cachedField) {
-              //add overriden field
-              cachedModel.fields.push(_.assign({ }, cachedField));
-              cachedField = cachedModel.fields[cachedModel.fields.length-1];
-              //clear attributes
-              this._clearAttributes();
-          }
-      }
-      if (cachedField)
-      //add mapping
-          cachedField.mapping = mapping;
-  }
+    if (_.isNil(field))
+        return;
+    //cache mapping
+    const cachedModel = this.getConfiguration().models[this.name];
+    if (cachedModel) {
+        let cachedField = cachedModel.fields.find(function(x) { return x.name === field.name });
+        if (typeof cachedField === 'undefined') {
+            //search in attributes
+            cachedField = this.attributes.find(function(x) { return x.name === field.name });
+            if (cachedField) {
+                //add overridden field
+                cachedModel.fields.push(_.assign({ }, cachedField));
+                cachedField = cachedModel.fields[cachedModel.fields.length-1];
+                //clear attributes
+                this._clearAttributes();
+            }
+        }
+        if (cachedField)
+        //add mapping
+            cachedField.mapping = mapping;
+    }
 }
 
 
@@ -2587,15 +2572,15 @@ function validate_(obj, state, callback) {
                 return false;
         }
         return (!x.readonly) ||
-            (x.readonly && (typeof x.calculation!=='undefined') && state==2) ||
-            (x.readonly && (typeof x.value!=='undefined') && state==1) ||
-            (x.readonly && (typeof x.calculation!=='undefined') && state==1);
+            (x.readonly && (typeof x.calculation!=='undefined') && state===2) ||
+            (x.readonly && (typeof x.value!=='undefined') && state===1) ||
+            (x.readonly && (typeof x.calculation!=='undefined') && state===1);
     }).filter(function(y) {
-        return (state==2) ? (y.hasOwnProperty("editable") ? y.editable : true) : true;
+        return (state===2) ? (y.hasOwnProperty("editable") ? y.editable : true) : true;
     });
 
     async.eachSeries(attributes, function(attr, cb) {
-        let validator, validationResult;
+        let validationResult;
         //get value
         const value = objCopy[attr.name];
         //build validators array
@@ -2603,10 +2588,10 @@ function validate_(obj, state, callback) {
         //-- RequiredValidator
         if (attr.hasOwnProperty('nullable') && !attr.nullable)
         {
-            if (state==1 && !attr.primary) {
+            if (state===1 && !attr.primary) {
                 arrValidators.push(new RequiredValidator());
             }
-            else if (state==2 && !attr.primary && objCopy.hasOwnProperty(attr.name)) {
+            else if (state===2 && !attr.primary && objCopy.hasOwnProperty(attr.name)) {
                 arrValidators.push(new RequiredValidator());
             }
         }

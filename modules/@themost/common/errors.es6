@@ -6,9 +6,8 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
-
+import _ from 'lodash';
 
 /**
  * @class
@@ -57,7 +56,7 @@ export class HttpError extends Error {
         super(message);
         const errors = require('./resources/http-error-codes.json');
         const hstatus = (typeof status==='undefined' || status === null) ? 500 : parseInt(status);
-        const err = errors.find(function(x) { return x.status === hstatus; });
+        const err = _.find(errors,function(x) { return x.status === hstatus; });
         if (err) {
             this.title = err.title;
             this.message = message || err.message;

@@ -7,9 +7,8 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
-import {_} from 'lodash';
+import _ from 'lodash';
 import sprintf from 'sprintf';
 import {SequentialEventEmitter} from "@themost/common/emitter";
 import {DataError} from "@themost/common/errors";
@@ -364,24 +363,24 @@ export class DataObject extends SequentialEventEmitter {
                         });
                     }
                     else {
-                        if (model.constraints.length==0) {
+                        if (model.constraints.length===0) {
                             callback(new Error(sprintf.sprintf('The value of property [%s] cannot be retrieved. The target data model has no constraints defined.', name)));
                         }
                         else {
                             const arr = _.filter(model.constraints, function(x) {
                                 let valid = true;
-                                if (x.fields.length==0)
+                                if (x.fields.length===0)
                                     return false;
                                 for (let i = 0; i < x.fields.length; i++) {
                                     const field = x.fields[i];
-                                    if (self.hasOwnProperty(field)==false) {
+                                    if (self.hasOwnProperty(field)===false) {
                                         valid = false;
                                         break;
                                     }
                                 }
                                 return valid;
                             });
-                            if (arr.length==0) {
+                            if (arr.length===0) {
                                 callback(new Error( sprintf.sprintf('The value of property [%s] cannot be retrieved. The target data model has constraints but the required properties are missing.', name)));
                             }
                             else {
@@ -392,7 +391,7 @@ export class DataObject extends SequentialEventEmitter {
                                 for (let i = 0; i < constraint.fields.length; i++) {
                                     const attr = constraint.fields[i];
                                     const value = self[attr];
-                                    if (q==null)
+                                    if (_.isNil(q))
                                         q = model.where(attr).equal(value);
                                     else
                                         q.and(attr).equal(value);
@@ -562,7 +561,7 @@ export class DataObject extends SequentialEventEmitter {
 
     /**
      * Gets an instance of data object which represents the additional typed object as this is defined in additionalType attribute.
-     * @returns {Promise<DataObject>}
+     * @returns {Promise<DataObject>|*}
      * @example
      //get a place and afterwards get the country associated with it
      var places = context.model("Place");
@@ -654,7 +653,7 @@ function attrOf_(name, callback) {
             return callback(null, self[name]);
         }
         else {
-         return model.where(model.primaryKey).equal(self[model.primaryKey]).select(name).value(function(err, result) {
+            return model.where(model.primaryKey).equal(self[model.primaryKey]).select(name).value(function(err, result) {
                 if (err) { return callback(err); }
                 self[name] = result;
                 return callback(null, result);
@@ -666,11 +665,11 @@ function attrOf_(name, callback) {
         //if object has already this property
         if (self.hasOwnProperty(name)) {
             //if property is an object
-            if (typeof self[name] === 'object' && self[name] != null) {
+            if (typeof self[name] === 'object' && self[name] !== null) {
                 //return the defined parent field
                 callback(null, self[name][mapping.parentField]);
             }
-            else if (self[name] == null) {
+            else if (self[name] === null) {
                 callback();
             }
             else {

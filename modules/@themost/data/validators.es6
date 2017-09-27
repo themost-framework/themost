@@ -7,9 +7,8 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
-import {_} from 'lodash';
+import _ from 'lodash';
 import sprintf from 'sprintf';
 import {DataConfigurationStrategy} from './config'
 
@@ -564,11 +563,11 @@ export class RangeValidator extends DataValidator {
             return;
         }
         let minValidator, maxValidator, minValidation, maxValidation;
-        if (typeof this.minValue !== 'undefined' && this.minValue != null) {
+        if (typeof this.minValue !== 'undefined' && this.minValue !== null) {
             minValidator = new MinValueValidator(this.minValue);
             minValidation = minValidator.validateSync(val);
         }
-        if (typeof this.maxValue !== 'undefined' && this.maxValue != null) {
+        if (typeof this.maxValue !== 'undefined' && this.maxValue !== null) {
             maxValidator = new MaxValueValidator(this.maxValue);
             maxValidation = maxValidator.validateSync(val);
         }

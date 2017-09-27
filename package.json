@@ -56,6 +56,7 @@
   },
   "devDependencies": {
     "babel-cli": "^6.22.2",
+    "babel-eslint": "^8.0.1",
     "babel-plugin-transform-async-to-generator": "^6.22.0",
     "babel-plugin-transform-builtin-extend": "^1.1.0",
     "babel-plugin-transform-decorators-legacy": "^1.3.4",
@@ -87,5 +88,21 @@
       "it",
       "angular"
     ]
+  },
+  "eslintConfig": {
+    "parser": "babel-eslint",
+    "env": {
+      "browser": true,
+      "node": true,
+      "es6": true,
+      "jquery": true
+    },
+    "rules": {
+      "no-undef": "error",
+      "no-unused-vars": "warn",
+      "no-var": [ "error" ],
+      "strict": [2, "never"],
+      "indent": [1, 4]
+    }
   }
 }
