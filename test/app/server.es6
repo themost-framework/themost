@@ -28,9 +28,10 @@ app.any((context)=> {
 });
 
 app.useAuthentication()
-    .useQuerystring()
+    .useJsonContent()
+    .usePostContent()
+    .useMultipartContent()
     .useFormatterStrategy()
     .useStaticContent("./test/app/app")
-    .useViewContent()
-    ;
+    .useViewContent();
 app.start();

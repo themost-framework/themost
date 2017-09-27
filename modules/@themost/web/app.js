@@ -7,6 +7,7 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -144,6 +145,18 @@ var ActiveModuleLoaderStrategy = _config2.ActiveModuleLoaderStrategy;
 var _config3 = require('./config');
 
 var HttpConfiguration = _config3.HttpConfiguration;
+
+var _post = require('./consumers/post');
+
+var PostContentConsumer = _post.PostContentConsumer;
+
+var _multipart = require('./consumers/multipart');
+
+var MultipartContentConsumer = _multipart.MultipartContentConsumer;
+
+var _json = require('./consumers/json');
+
+var JsonContentConsumer = _json.JsonContentConsumer;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -451,6 +464,8 @@ var HttpApplication = exports.HttpApplication = function () {
         }
         //change module loader strategy
         this[configProperty] = config;
+        //load default consumers
+        this.useQuerystring();
     }
     /**
      * @param {string=} executionPath
@@ -781,6 +796,39 @@ var HttpApplication = exports.HttpApplication = function () {
         key: 'useQuerystring',
         value: function useQuerystring() {
             return this.any(new QuerystringConsumer());
+        }
+
+        /**
+         * Enables HTTP application/x-www-form-urlencoded request processing
+         * @returns {HttpApplication}
+         */
+
+    }, {
+        key: 'usePostContent',
+        value: function usePostContent() {
+            return this.any(new PostContentConsumer());
+        }
+
+        /**
+         * Enables HTTP multipart/form-data request processing
+         * @returns {HttpApplication}
+         */
+
+    }, {
+        key: 'useMultipartContent',
+        value: function useMultipartContent() {
+            return this.any(new MultipartContentConsumer());
+        }
+
+        /**
+         * Enables HTTP application/json request processing
+         * @returns {HttpApplication}
+         */
+
+    }, {
+        key: 'useJsonContent',
+        value: function useJsonContent() {
+            return this.any(new JsonContentConsumer());
         }
 
         /**

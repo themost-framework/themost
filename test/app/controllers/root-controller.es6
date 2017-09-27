@@ -1,8 +1,19 @@
 
 'use strict';
+import Q from 'q';
 import {HttpController} from '../../../modules/@themost/web/mvc';
 import {httpAction, httpAuthorize, httpGet, httpParam} from '../../../modules/@themost/web/decorators';
+import {HttpConsumer} from "../../../modules/@themost/web/consumers";
+import {HttpError} from "../../../modules/@themost/common/errors";
 
+function httpNotImplemented() {
+    return function (target, key, descriptor) {
+        descriptor.value.notImplemented = new HttpConsumer(()=> {
+            return Q.reject(new HttpError(501));
+        });
+        return descriptor;
+    }
+}
 
 /**
  * @class
@@ -54,6 +65,7 @@ class RootController extends HttpController {
     /* jshint ignore:start*/
     @httpGet()
     @httpAction('helloVash')
+    @httpNotImplemented()
     /* jshint ignore:end */
     getHelloVash() {
         return this.view({ "name": "George"});

@@ -182,7 +182,7 @@ function HttpParamAttributeOptions() {
 }
 
 /**
- * @param {HttpParamAttributeOptions=} options
+ * @param {*=} options
  * @returns {Function}
  */
 function httpParam(options) {

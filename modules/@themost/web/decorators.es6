@@ -105,7 +105,7 @@ function HttpParamAttributeOptions() {
 }
 
 /**
- * @param {HttpParamAttributeOptions=} options
+ * @param {*=} options
  * @returns {Function}
  */
 export function httpParam(options) {

@@ -7,6 +7,8 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+
+
 'use strict';
 import 'source-map-support/register';
 import url from 'url';
@@ -35,6 +37,9 @@ import {FormatterStrategy, DefaultFormatterStrategy} from "./formatters";
 import {QuerystringConsumer} from "./consumers/querystring";
 import {ConfigurationBase, ModuleLoaderStrategy, ActiveModuleLoaderStrategy} from "@themost/common/config";
 import {HttpConfiguration} from "./config";
+import {PostContentConsumer} from "./consumers/post";
+import {MultipartContentConsumer} from "./consumers/multipart";
+import {JsonContentConsumer} from "./consumers/json";
 
 const HTTP_SERVER_DEFAULT_BIND = '127.0.0.1';
 const HTTP_SERVER_DEFAULT_PORT = 3000;
@@ -337,6 +342,8 @@ export class HttpApplication {
         }
         //change module loader strategy
         this[configProperty] = config;
+        //load default consumers
+        this.useQuerystring();
     }
     /**
      * @param {string=} executionPath
@@ -597,6 +604,30 @@ export class HttpApplication {
      */
     useQuerystring() {
         return this.any(new QuerystringConsumer());
+    }
+
+    /**
+     * Enables HTTP application/x-www-form-urlencoded request processing
+     * @returns {HttpApplication}
+     */
+    usePostContent() {
+        return this.any(new PostContentConsumer());
+    }
+
+    /**
+     * Enables HTTP multipart/form-data request processing
+     * @returns {HttpApplication}
+     */
+    useMultipartContent() {
+        return this.any(new MultipartContentConsumer());
+    }
+
+    /**
+     * Enables HTTP application/json request processing
+     * @returns {HttpApplication}
+     */
+    useJsonContent() {
+        return this.any(new JsonContentConsumer());
     }
 
     /**

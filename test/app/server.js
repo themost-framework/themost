@@ -46,6 +46,6 @@ app.any(function (context) {
     return Q(new HttpNextResult());
 });
 
-app.useAuthentication().useQuerystring().useFormatterStrategy().useStaticContent("./test/app/app").useViewContent();
+app.useAuthentication().useJsonContent().usePostContent().useMultipartContent().useFormatterStrategy().useStaticContent("./test/app/app").useViewContent();
 app.start();
 //# sourceMappingURL=server.js.map
