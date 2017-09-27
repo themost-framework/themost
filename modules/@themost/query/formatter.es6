@@ -7,11 +7,10 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
 import {SqlUtils} from './utils';
 import sprintf from 'sprintf';
-import {_} from 'lodash';
+import _ from 'lodash';
 import {QueryExpression,QueryField} from './query';
 import {Args} from "@themost/common/utils";
 
@@ -96,21 +95,21 @@ export class SqlFormatter {
             if (compares.length===0)
                 return '(%s IS NULL)';
             else {
-                const arr = [], op = '=';
+                const arr = [];
                 for (let i = 0; i < compares.length; i++) {
                     let key = compares[i];
                     if (QueryExpression.ComparisonOperators[key]===undefined)
                         throw new Error(sprintf.sprintf('Unknown operator %s.', key));
                     const escapedValue = this.escape(comparison[key]);
                     switch (key) {
-                        case '$eq': arr.push('(%s'.concat('=',escapedValue,')'));break;
-                        case '$lt': arr.push('(%s'.concat('<',escapedValue,')'));break;
-                        case '$lte': arr.push('(%s'.concat('<=',escapedValue,')'));break;
-                        case '$gt': arr.push('(%s'.concat('>',escapedValue,')'));break;
-                        case '$gte': arr.push('(%s'.concat('>=',escapedValue,')'));break;
-                        case '$ne': arr.push('(NOT %s'.concat('=',escapedValue,')'));break;
-                        case '$in': arr.push('(%s'.concat('(',escapedValue,'))'));break;
-                        case '$nin':arr.push('(NOT %s'.concat('(',escapedValue,'))'));break;
+                    case '$eq': arr.push('(%s'.concat('=',escapedValue,')'));break;
+                    case '$lt': arr.push('(%s'.concat('<',escapedValue,')'));break;
+                    case '$lte': arr.push('(%s'.concat('<=',escapedValue,')'));break;
+                    case '$gt': arr.push('(%s'.concat('>',escapedValue,')'));break;
+                    case '$gte': arr.push('(%s'.concat('>=',escapedValue,')'));break;
+                    case '$ne': arr.push('(NOT %s'.concat('=',escapedValue,')'));break;
+                    case '$in': arr.push('(%s'.concat('(',escapedValue,'))'));break;
+                    case '$nin':arr.push('(NOT %s'.concat('(',escapedValue,'))'));break;
                     }
                 }
                 //join expression
@@ -183,145 +182,145 @@ export class SqlFormatter {
         //get property value
         const propertyValue = where[property];
         switch (property) {
-            case '$not':
-                return '(NOT ' + self.formatWhere(propertyValue) + ')';
-                break;
-            case '$and':
-            case '$or':
-                const separator = property==='$or' ? ' OR ' : ' AND ';
-                //property value must be an array
-                if (!_.isArray(propertyValue))
-                    throw new Error('Invalid query argument. A logical expression must contain one or more comparison expressions.');
-                if (propertyValue.length===0)
-                    return '';
-                return '(' + _.map(propertyValue, function(x) {
-                    return self.formatWhere(x);
-                }).join(separator) + ')';
-                break;
-            default:
-                let comparison = propertyValue;
-                let op =  null, sql = null;
-                if (isQueryField_(comparison)) {
-                    op = '$eq';
-                    comparison = {$eq:propertyValue};
+        case '$not':
+            return '(NOT ' + self.formatWhere(propertyValue) + ')';
+            break;
+        case '$and':
+        case '$or':
+            const separator = property==='$or' ? ' OR ' : ' AND ';
+            //property value must be an array
+            if (!_.isArray(propertyValue))
+                throw new Error('Invalid query argument. A logical expression must contain one or more comparison expressions.');
+            if (propertyValue.length===0)
+                return '';
+            return '(' + _.map(propertyValue, function(x) {
+                return self.formatWhere(x);
+            }).join(separator) + ')';
+            break;
+        default:
+            let comparison = propertyValue;
+            let op =  null, sql = null;
+            if (isQueryField_(comparison)) {
+                op = '$eq';
+                comparison = {$eq:propertyValue};
+            }
+            else if (typeof comparison === 'object' && comparison !== null) {
+                //get comparison operator
+                op = _.keys(comparison)[0];
+            }
+            else {
+                //set default comparison operator to equal
+                op = '$eq';
+                comparison = {$eq:propertyValue};
+            }
+            //escape property name
+            const escapedProperty = this.escapeName(property);
+            switch (op) {
+            case '$text':
+                return self.$text({ $name:property}, comparison.$text.$search);
+            case '$eq':
+                if (_.isNil(comparison.$eq))
+                    return sprintf.sprintf('(%s IS NULL)', escapedProperty);
+                return sprintf.sprintf('(%s=%s)', escapedProperty, self.escape(comparison.$eq));
+            case '$gt':
+                return sprintf.sprintf('(%s>%s)', escapedProperty, self.escape(comparison.$gt));
+            case '$gte':
+                return sprintf.sprintf('(%s>=%s)', escapedProperty, self.escape(comparison.$gte));
+            case '$lt':
+                return sprintf.sprintf('(%s<%s)', escapedProperty, self.escape(comparison.$lt));
+            case '$lte':
+                return sprintf.sprintf('(%s<=%s)', escapedProperty, self.escape(comparison.$lte));
+            case '$ne':
+                if (_.isNil(comparison.$ne))
+                    return sprintf.sprintf('(NOT %s IS NULL)', escapedProperty);
+                if (comparison!==null)
+                    return sprintf.sprintf('(NOT %s=%s)', escapedProperty, self.escape(comparison.$ne));
+                else
+                    return sprintf.sprintf('(NOT %s IS NULL)', escapedProperty);
+            case '$regex':
+                return this.$regex({ $name:property} , comparison.$regex);
+            case '$in':
+                if (_.isArray(comparison.$in)) {
+                    if (comparison.$in.length===0)
+                        return sprintf.sprintf('(%s IN (NULL))', escapedProperty);
+                    sql = '('.concat(escapedProperty,' IN (',_.map(comparison.$in, function (x) {
+                        return self.escape(x!==null ? x: null)
+                    }).join(', '),'))');
+                    return sql;
                 }
-                else if (typeof comparison === 'object' && comparison !== null) {
-                    //get comparison operator
-                    op = _.keys(comparison)[0];
+                else if (typeof comparison.$in === 'object') {
+                    //try to validate if comparison.$in is a select query expression (sub-query support)
+                    let sq = _.assign(new QueryExpression(), comparison.$in);
+                    if (sq.$select) {
+                        //if sub query is a select expression
+                        return sprintf.sprintf('(%s IN (%s))', escapedProperty, self.format(sq));
+                    }
                 }
-                else {
-                    //set default comparison operator to equal
-                    op = '$eq';
-                    comparison = {$eq:propertyValue};
+                //otherwise throw error
+                throw new Error('Invalid query argument. An in statement must contain one or more values.');
+            case '$nin':
+                if (_.isArray(comparison.$nin)) {
+                    if (comparison.$nin.length===0)
+                        return sprintf.sprintf('(NOT %s IN (NULL))', escapedProperty);
+                    sql = '(NOT '.concat(escapedProperty,' IN (',_.map(comparison.$nin, function (x) {
+                        return self.escape(x!==null ? x: null)
+                    }).join(', '),'))');
+                    return sql;
                 }
-                //escape property name
-                const escapedProperty = this.escapeName(property);
-                switch (op) {
-                    case '$text':
-                        return self.$text({ $name:property}, comparison.$text.$search);
-                    case '$eq':
-                        if (_.isNil(comparison.$eq))
-                            return sprintf.sprintf('(%s IS NULL)', escapedProperty);
-                        return sprintf.sprintf('(%s=%s)', escapedProperty, self.escape(comparison.$eq));
-                    case '$gt':
-                        return sprintf.sprintf('(%s>%s)', escapedProperty, self.escape(comparison.$gt));
-                    case '$gte':
-                        return sprintf.sprintf('(%s>=%s)', escapedProperty, self.escape(comparison.$gte));
-                    case '$lt':
-                        return sprintf.sprintf('(%s<%s)', escapedProperty, self.escape(comparison.$lt));
-                    case '$lte':
-                        return sprintf.sprintf('(%s<=%s)', escapedProperty, self.escape(comparison.$lte));
-                    case '$ne':
-                        if (_.isNil(comparison.$ne))
-                            return sprintf.sprintf('(NOT %s IS NULL)', escapedProperty);
-                        if (comparison!==null)
-                            return sprintf.sprintf('(NOT %s=%s)', escapedProperty, self.escape(comparison.$ne));
-                        else
-                            return sprintf.sprintf('(NOT %s IS NULL)', escapedProperty);
-                    case '$regex':
-                        return this.$regex({ $name:property} , comparison.$regex);
-                    case '$in':
-                        if (_.isArray(comparison.$in)) {
-                            if (comparison.$in.length===0)
-                                return sprintf.sprintf('(%s IN (NULL))', escapedProperty);
-                            sql = '('.concat(escapedProperty,' IN (',_.map(comparison.$in, function (x) {
-                                return self.escape(x!==null ? x: null)
-                            }).join(', '),'))');
-                            return sql;
+                else if (typeof comparison.$in === 'object') {
+                    //try to validate if comparison.$nin is a select query expression (sub-query support)
+                    let sq = _.assign(new QueryExpression(), comparison.$in);
+                    if (sq.$select) {
+                        //if sub query is a select expression
+                        return sprintf.sprintf('(NOT %s IN (%s))', escapedProperty, self.format(sq));
+                    }
+                }
+                //otherwise throw error
+                throw new Error('Invalid query argument. An in statement must contain one or more values.');
+            default :
+                //search if current operator (arithmetic, evaluation etc) exists as a formatter function (e.g. function $add(p1,p2) { ... } )
+                //in this case the first parameter is the defined property e.g. Price
+                // and the property value contains an array of all others parameters (if any) and the comparison operator
+                // e.g. { Price: { $add: [5, { $gt:100} ]} } where we are trying to find elements that meet the following query expression: (Price+5)>100
+                // The identifier <Price> is the first parameter, the constant 5 is the second
+                const fn = this[op], p1 = comparison[op];
+                if (typeof fn === 'function')
+                {
+                    const args = [];
+                    let argn = null;
+                    //push identifier
+                    args.push({ $name:property });
+                    if (_.isArray(p1)) {
+                        //push other parameters
+                        for (let j = 0; j < p1.length-1; j++) {
+                            args.push(p1[j]);
                         }
-                        else if (typeof comparison.$in === 'object') {
-                            //try to validate if comparison.$in is a select query expression (sub-query support)
-                            let sq = _.assign(new QueryExpression(), comparison.$in);
-                            if (sq.$select) {
-                                //if sub query is a select expression
-                                return sprintf.sprintf('(%s IN (%s))', escapedProperty, self.format(sq));
-                            }
-                        }
-                        //otherwise throw error
-                        throw new Error('Invalid query argument. An in statement must contain one or more values.');
-                    case '$nin':
-                        if (_.isArray(comparison.$nin)) {
-                            if (comparison.$nin.length===0)
-                                return sprintf.sprintf('(NOT %s IN (NULL))', escapedProperty);
-                            sql = '(NOT '.concat(escapedProperty,' IN (',_.map(comparison.$nin, function (x) {
-                                return self.escape(x!==null ? x: null)
-                            }).join(', '),'))');
-                            return sql;
-                        }
-                        else if (typeof comparison.$in === 'object') {
-                            //try to validate if comparison.$nin is a select query expression (sub-query support)
-                            let sq = _.assign(new QueryExpression(), comparison.$in);
-                            if (sq.$select) {
-                                //if sub query is a select expression
-                                return sprintf.sprintf('(NOT %s IN (%s))', escapedProperty, self.format(sq));
-                            }
-                        }
-                        //otherwise throw error
-                        throw new Error('Invalid query argument. An in statement must contain one or more values.');
-                    default :
-                        //search if current operator (arithmetic, evaluation etc) exists as a formatter function (e.g. function $add(p1,p2) { ... } )
-                        //in this case the first parameter is the defined property e.g. Price
-                        // and the property value contains an array of all others parameters (if any) and the comparison operator
-                        // e.g. { Price: { $add: [5, { $gt:100} ]} } where we are trying to find elements that meet the following query expression: (Price+5)>100
-                        // The identifier <Price> is the first parameter, the constant 5 is the second
-                        const fn = this[op], p0 = property, p1 = comparison[op];
-                        if (typeof fn === 'function')
-                        {
-                            const args = [];
-                            let argn = null;
-                            //push identifier
-                            args.push({ $name:property });
-                            if (_.isArray(p1)) {
-                                //push other parameters
-                                for (let j = 0; j < p1.length-1; j++) {
-                                    args.push(p1[j]);
-                                }
-                                //get comparison argument (last item of the arguments' array)
-                                argn = p1[p1.length-1];
-                            }
-                            else {
-                                if (self.isComparison(p1)) {
-                                    argn = p1;
-                                }
-                                else {
-                                    //get comparison argument (equal)
-                                    argn = { $eq: p1.valueOf() };
-                                }
-
-                            }
-                            //call formatter function
-                            const f0 = fn.apply(this, args);
-                            return self.formatComparison(argn).replace(/%s/g, f0.replace('$','\$'));
+                        //get comparison argument (last item of the arguments' array)
+                        argn = p1[p1.length-1];
+                    }
+                    else {
+                        if (self.isComparison(p1)) {
+                            argn = p1;
                         }
                         else {
-                            //equal expression
-                            if (typeof p1 !== 'undefined' && p1!==null)
-                                return sprintf.sprintf('(%s=%s)', property, self.escape(p1));
-                            else
-                                return sprintf.sprintf('(%s IS NULL)', property);
+                            //get comparison argument (equal)
+                            argn = { $eq: p1.valueOf() };
                         }
 
+                    }
+                    //call formatter function
+                    const f0 = fn.apply(this, args);
+                    return self.formatComparison(argn).replace(/%s/g, f0.replace('$','\$'));
                 }
+                else {
+                    //equal expression
+                    if (typeof p1 !== 'undefined' && p1!==null)
+                        return sprintf.sprintf('(%s=%s)', property, self.escape(p1));
+                    else
+                        return sprintf.sprintf('(%s IS NULL)', property);
+                }
+
+            }
         }
     }
 
@@ -927,36 +926,36 @@ export class SqlFormatter {
             const name = expr[prop];
             let s;
             switch (prop) {
-                case '$count':
-                    s= sprintf.sprintf('COUNT(%s)',this.escapeName(name));
-                    break;
-                case '$min':
-                    s= sprintf.sprintf('MIN(%s)',this.escapeName(name));
-                    break;
-                case '$max':
-                    s= sprintf.sprintf('MAX(%s)',this.escapeName(name));
-                    break;
-                case '$avg':
-                    s= sprintf.sprintf('AVG(%s)',this.escapeName(name));
-                    break;
-                case '$sum':
-                    s= sprintf.sprintf('SUM(%s)',this.escapeName(name));
-                    break;
-                case '$value':
-                    s= this.escapeConstant(name);
-                    break;
-                default :
-                    const fn = this[prop];
-                    if (typeof fn === 'function') {
-                        /**
+            case '$count':
+                s= sprintf.sprintf('COUNT(%s)',this.escapeName(name));
+                break;
+            case '$min':
+                s= sprintf.sprintf('MIN(%s)',this.escapeName(name));
+                break;
+            case '$max':
+                s= sprintf.sprintf('MAX(%s)',this.escapeName(name));
+                break;
+            case '$avg':
+                s= sprintf.sprintf('AVG(%s)',this.escapeName(name));
+                break;
+            case '$sum':
+                s= sprintf.sprintf('SUM(%s)',this.escapeName(name));
+                break;
+            case '$value':
+                s= this.escapeConstant(name);
+                break;
+            default :
+                const fn = this[prop];
+                if (typeof fn === 'function') {
+                    /**
                          * get method arguments
                          * @type {Array}
                          */
-                        const args = expr[prop];
-                        s = fn.apply(this,args);
-                    }
-                    else
-                        throw new Error('The specified function is not yet implemented.');
+                    const args = expr[prop];
+                    s = fn.apply(this,args);
+                }
+                else
+                    throw new Error('The specified function is not yet implemented.');
             }
             return useAlias ? s.concat(' AS ', this.escapeName(alias)) : s;
         }

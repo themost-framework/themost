@@ -7,10 +7,9 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
 import sprintf from 'sprintf';
-import {ArithmeticExpression, ComparisonExpression, LiteralExpression, LogicalExpression, MemberExpression,
+import {ArithmeticExpression, ComparisonExpression, LogicalExpression, MemberExpression,
     MethodCallExpression
 } from './expressions'; 
 
@@ -68,15 +67,15 @@ export class OpenDataParser {
         Object.defineProperty(this,'previousToken', {
             get:function() {
                 return ((self.offset > 0) && (self.tokens.length>0)) ? self.tokens[self.offset-1] : null;
-        },
-        configurable:false, enumerable:false
+            },
+            configurable:false, enumerable:false
         });
 
         Object.defineProperty(this,'currentToken', {
             get:function() {
                 return (self.offset < self.tokens.length) ? self.tokens[self.offset] : null;
-        },
-        configurable:false, enumerable:false
+            },
+            configurable:false, enumerable:false
         });
 
     }
@@ -93,22 +92,22 @@ export class OpenDataParser {
         if (token.type===Token.TokenType.Identifier) {
             switch (token.identifier)
             {
-                case "and": return Token.Operator.And;
-                case "or": return Token.Operator.Or;
-                case "eq": return Token.Operator.Eq;
-                case "ne": return Token.Operator.Ne;
-                case "lt": return Token.Operator.Lt;
-                case "le": return Token.Operator.Le;
-                case "gt": return Token.Operator.Gt;
-                case "ge": return Token.Operator.Ge;
-                case "in": return Token.Operator.In;
-                case "nin": return Token.Operator.NotIn;
-                case "add": return Token.Operator.Add;
-                case "sub": return Token.Operator.Sub;
-                case "mul": return Token.Operator.Mul;
-                case "div": return Token.Operator.Div;
-                case "mod": return Token.Operator.Mod;
-                case "not": return Token.Operator.Not;
+            case "and": return Token.Operator.And;
+            case "or": return Token.Operator.Or;
+            case "eq": return Token.Operator.Eq;
+            case "ne": return Token.Operator.Ne;
+            case "lt": return Token.Operator.Lt;
+            case "le": return Token.Operator.Le;
+            case "gt": return Token.Operator.Gt;
+            case "ge": return Token.Operator.Ge;
+            case "in": return Token.Operator.In;
+            case "nin": return Token.Operator.NotIn;
+            case "add": return Token.Operator.Add;
+            case "sub": return Token.Operator.Sub;
+            case "mul": return Token.Operator.Mul;
+            case "div": return Token.Operator.Div;
+            case "mod": return Token.Operator.Mod;
+            case "not": return Token.Operator.Not;
             }
         }
         return null;
@@ -166,7 +165,7 @@ export class OpenDataParser {
     }
 
     moveNext() {
-       this.offset++;
+        this.offset++;
     }
 
     /**
@@ -285,8 +284,8 @@ export class OpenDataParser {
             return ArithmeticExpression.create(left, operator, right);
         }
         else if ((left instanceof ArithmeticExpression) || (left instanceof MethodCallExpression) || (left instanceof MemberExpression))  {
-                expr = ComparisonExpression.create(left, operator, right);
-                return expr;
+            expr = ComparisonExpression.create(left, operator, right);
+            return expr;
         }
         else if (ComparisonExpression.isComparisonOperator(operator)) {
             return ComparisonExpression.create(left,operator, right);
@@ -309,65 +308,65 @@ export class OpenDataParser {
             return;
         }
         switch (this.currentToken.type) {
-            case Token.TokenType.Identifier:
-                //if next token is an open parenthesis token and the current token is not an operator. current=indexOf, next=(
-                if ((self.nextToken.syntax===SyntaxToken.ParenOpen.syntax) && (self.getOperator(self.currentToken)===null))
-                {
-                    //then parse method call
-                    self.parseMethodCall(callback);
-                }
-                else if (self.getOperator(self.currentToken) === Token.Operator.Not)
-                {
-                    callback.call(self,new Error('Not operator is not yet implemented.'));
-                    return;
-                }
-                else
-                {
-                    self.parseMember(function(err, result) {
-                        if (err) {
-                            callback.call(self,err);
+        case Token.TokenType.Identifier:
+            //if next token is an open parenthesis token and the current token is not an operator. current=indexOf, next=(
+            if ((self.nextToken.syntax===SyntaxToken.ParenOpen.syntax) && (self.getOperator(self.currentToken)===null))
+            {
+                //then parse method call
+                self.parseMethodCall(callback);
+            }
+            else if (self.getOperator(self.currentToken) === Token.Operator.Not)
+            {
+                callback.call(self,new Error('Not operator is not yet implemented.'));
+                return;
+            }
+            else
+            {
+                self.parseMember(function(err, result) {
+                    if (err) {
+                        callback.call(self,err);
+                    }
+                    else {
+                        while (!self.atEnd() && self.currentToken.syntax===SyntaxToken.Slash.syntax) {
+                            //self.moveNext();
+                            //self.parseMembers(callback)
+                            callback.call(self,new Error('Slash syntax is not yet implemented.'));
                         }
-                        else {
-                            while (!self.atEnd() && self.currentToken.syntax===SyntaxToken.Slash.syntax) {
-                                //self.moveNext();
-                                //self.parseMembers(callback)
-                                callback.call(self,new Error('Slash syntax is not yet implemented.'));
-                            }
-                        }
-                        self.moveNext();
-                        callback.call(self, null, result);
-                    });
-
-                }
-                break;
-            case Token.TokenType.Literal:
-                const value = self.currentToken.value;
-                self.moveNext();
-                callback.call(self, null, value);
-                break;
-            case Token.TokenType.Syntax:
-                if (self.currentToken.syntax === SyntaxToken.Negative.syntax) {
-                    callback.call(self,new Error('Negative syntax is not yet implemented.'));
-                    return;
-                }
-                if (self.currentToken.syntax === SyntaxToken.ParenOpen.syntax) {
+                    }
                     self.moveNext();
-                    self.parseCommon(function(err, result) {
-                        if (err) {
-                            callback.call(self, err);
-                        }
-                        else {
-                            self.expect(SyntaxToken.ParenClose);
-                            callback.call(self, null, result);
-                        }
-                    });
-                }
-                else {
-                    callback.call(self,new Error('Expected syntax.'));
-                    return;
-                }
-                break;
-            default:break;
+                    callback.call(self, null, result);
+                });
+
+            }
+            break;
+        case Token.TokenType.Literal:
+            const value = self.currentToken.value;
+            self.moveNext();
+            callback.call(self, null, value);
+            break;
+        case Token.TokenType.Syntax:
+            if (self.currentToken.syntax === SyntaxToken.Negative.syntax) {
+                callback.call(self,new Error('Negative syntax is not yet implemented.'));
+                return;
+            }
+            if (self.currentToken.syntax === SyntaxToken.ParenOpen.syntax) {
+                self.moveNext();
+                self.parseCommon(function(err, result) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    else {
+                        self.expect(SyntaxToken.ParenClose);
+                        callback.call(self, null, result);
+                    }
+                });
+            }
+            else {
+                callback.call(self,new Error('Expected syntax.'));
+                return;
+            }
+            break;
+        default:break;
         }
 
     }
@@ -391,15 +390,15 @@ export class OpenDataParser {
                 }
                 else {
                     self.resolveMethod(method, args, function(err, expr) {
-                       if (err) {
-                           callback.call(self, err);
-                       }
-                       else {
-                           if (typeof expr === 'undefined' || expr === null)
-                               callback.call(self, null, MethodCallExpression.create(method, args));
-                           else
-                               callback.call(self, null, expr);
-                       }
+                        if (err) {
+                            callback.call(self, err);
+                        }
+                        else {
+                            if (typeof expr === 'undefined' || expr === null)
+                                callback.call(self, null, MethodCallExpression.create(method, args));
+                            else
+                                callback.call(self, null, expr);
+                        }
                     });
 
                 }
@@ -548,30 +547,30 @@ export class OpenDataParser {
         const c = _source.charAt(_current);
         switch (c)
         {
-            case '-':
-                return this.parseSign();
+        case '-':
+            return this.parseSign();
 
-            case '\'':
-                return this.parseString(0);
+        case '\'':
+            return this.parseString(0);
 
-            case '(':
-            case ')':
-            case ',':
-            case '/':
-                return this.parseSyntax();
-            default:
-                if (OpenDataParser.isDigit(c))
-                {
-                    return this.parseNumeric();
-                }
-                else if (OpenDataParser.isIdentifierStartChar(c))
-                {
-                    return this.parseIdentifier(false);
-                }
-                else
-                {
-                    throw new Error(sprintf.sprintf('Unexpecter character "%s" at offset %s.', c , _current));
-                }
+        case '(':
+        case ')':
+        case ',':
+        case '/':
+            return this.parseSyntax();
+        default:
+            if (OpenDataParser.isDigit(c))
+            {
+                return this.parseNumeric();
+            }
+            else if (OpenDataParser.isIdentifierStartChar(c))
+            {
+                return this.parseIdentifier(false);
+            }
+            else
+            {
+                throw new Error(sprintf.sprintf('Unexpecter character "%s" at offset %s.', c , _current));
+            }
         }
     }
 
@@ -585,11 +584,11 @@ export class OpenDataParser {
         let token = null;
         switch (this.source.charAt(this.current))
         {
-            case '(': token = SyntaxToken.ParenOpen; break;
-            case ')': token = SyntaxToken.ParenClose; break;
-            case '/': token = SyntaxToken.Slash; break;
-            case ',': token = SyntaxToken.Comma; break;
-            default : throw new Error('Unknown token');
+        case '(': token = SyntaxToken.ParenOpen; break;
+        case ')': token = SyntaxToken.ParenClose; break;
+        case '/': token = SyntaxToken.Slash; break;
+        case ',': token = SyntaxToken.Comma; break;
+        default : throw new Error('Unknown token');
         }
         this.offset = this.current + 1;
 
@@ -617,59 +616,59 @@ export class OpenDataParser {
         _offset = _current;
         switch (name)
         {
-            case "INF":
-                this.current = _current;this.offset=_offset;
-                return LiteralToken.PositiveInfinity;
+        case "INF":
+            this.current = _current;this.offset=_offset;
+            return LiteralToken.PositiveInfinity;
 
-            case "-INF":
-                this.current = _current;this.offset=_offset;
-                return LiteralToken.NegativeInfinity;
+        case "-INF":
+            this.current = _current;this.offset=_offset;
+            return LiteralToken.NegativeInfinity;
 
-            case "Nan":
-                this.current = _current;this.offset=_offset;
-                return LiteralToken.NaN;
+        case "Nan":
+            this.current = _current;this.offset=_offset;
+            return LiteralToken.NaN;
 
-            case "true":
-                this.current = _current;this.offset=_offset;
-                return LiteralToken.True;
+        case "true":
+            this.current = _current;this.offset=_offset;
+            return LiteralToken.True;
 
-            case "false":
-                this.current = _current;this.offset=_offset;
-                return LiteralToken.False;
+        case "false":
+            this.current = _current;this.offset=_offset;
+            return LiteralToken.False;
 
-            case "null":
-                this.current = _current;this.offset=_offset;
-                return LiteralToken.Null;
+        case "null":
+            this.current = _current;this.offset=_offset;
+            return LiteralToken.Null;
 
-            case "-":
+        case "-":
+            this.current = _current;this.offset=_offset;
+            return SyntaxToken.Negative;
+
+        default:
+            if (minus) {
+                // Reset the offset.
+                _offset = lastOffset + 1;
                 this.current = _current;this.offset=_offset;
                 return SyntaxToken.Negative;
-
-            default:
-                if (minus) {
-                    // Reset the offset.
-                    _offset = lastOffset + 1;
-                    this.current = _current;this.offset=_offset;
-                    return SyntaxToken.Negative;
-                }
-                this.current = _current;this.offset=_offset;
-                break;
+            }
+            this.current = _current;this.offset=_offset;
+            break;
         }
         if ((_offset < _source.length) && (_source.charAt(_offset) === '\''))
         {
             let stringType;
             switch (name)
             {
-                case "X": stringType = LiteralToken.StringType.Binary; break;
-                case "binary": stringType = LiteralToken.StringType.Binary; break;
-                case "datetime": stringType = LiteralToken.StringType.DateTime; break;
-                case "guid": stringType = LiteralToken.StringType.Guid; break;
-                case "time": stringType = LiteralToken.StringType.Time; break;
-                case "datetimeoffset": LiteralToken.StringType = StringType.DateTimeOffset; break;
-                default: stringType = LiteralToken.StringType.None; break;
+            case "X": stringType = LiteralToken.StringType.Binary; break;
+            case "binary": stringType = LiteralToken.StringType.Binary; break;
+            case "datetime": stringType = LiteralToken.StringType.DateTime; break;
+            case "guid": stringType = LiteralToken.StringType.Guid; break;
+            case "time": stringType = LiteralToken.StringType.Time; break;
+            case "datetimeoffset": stringType = LiteralToken.StringType.DateTimeOffset; break;
+            default: stringType = LiteralToken.StringType.None; break;
             }
 
-            if (stringType !== LiteralToken.StringType.None && _source.charAt(_offset) == '\'')
+            if (stringType !== LiteralToken.StringType.None && _source.charAt(_offset) === '\'')
             {
                 const content = this.parseString();
                 return this.parseSpecialString(content.value, stringType);
@@ -687,7 +686,7 @@ export class OpenDataParser {
             throw new Error(sprintf.sprintf('Invalid argument at %s.', this.offset));
         if (value.match(OpenDataParser.GuidRegex)!==null)
             throw new Error(sprintf.sprintf('Guid format is invalid at %s.', this.offset));
-        return new LiteralToken(value, LiteralType.Guid);
+        return new LiteralToken(value, LiteralToken.LiteralType.Guid);
     }
 
     /**
@@ -702,7 +701,7 @@ export class OpenDataParser {
         {
             const negative = (match[1] === "-");
             const year = match[2].length > 0 ? parseInt(match[2]) : 0, month = match[3].length > 0 ? parseInt(match[3]) : 0, day = match[4].length > 0 ? parseInt(match[4]) : 0, hour = match[5].length > 0 ? parseInt(match[5]) : 0, minute = match[6].length > 0 ? parseInt(match[6]) : 0, second = match[7].length > 0 ? parseFloat(match[7]) : 0;
-            return new LiteralToken(new TimeSpan(!negative, year, month, day, hour, minute, second), LiteralType.Duration);
+            return new LiteralToken(new TimeSpan(!negative, year, month, day, hour, minute, second), LiteralToken.LiteralType.Duration);
         }
         else
         {
@@ -739,14 +738,14 @@ export class OpenDataParser {
         const match = value.match(OpenDataParser.DateTimeRegex);
         if (match!==null)
         {
-            const year = parseInt(match[1]),
-                month = parseInt(match[2]),
-                day = parseInt(match[3]),
-                hour = parseInt(match[4]),
-                minute = parseInt(match[5]),
-                second = match[6].length > 0 ? parseInt(match[6]) : 0,
-                nanoSecond = match[7].length > 0 ? parseInt(match[7]) : 0;
-            return new LiteralToken(new Date(year, month, day, hour, minute, second), LiteralType.DateTime);
+            const year = parseInt(match[1]);
+            const month = parseInt(match[2]);
+            const day = parseInt(match[3]);
+            const hour = parseInt(match[4]);
+            const minute = parseInt(match[5]);
+            const second = match[6].length > 0 ? parseInt(match[6]) : 0;
+            //const nanoSecond = match[7].length > 0 ? parseInt(match[7]) : 0;
+            return new LiteralToken(new Date(year, month, day, hour, minute, second), LiteralToken.LiteralType.DateTime);
         }
         else
         {
@@ -760,23 +759,23 @@ export class OpenDataParser {
     parseSpecialString(value, stringType) {
         switch (stringType)
         {
-            case LiteralToken.StringType.Binary:
-                return this.parseBinaryString(value);
+        case LiteralToken.StringType.Binary:
+            return this.parseBinaryString(value);
 
-            case LiteralToken.StringType.DateTime:
-                return this.parseDateTimeString(value);
+        case LiteralToken.StringType.DateTime:
+            return this.parseDateTimeString(value);
 
-            case LiteralToken.StringType.DateTimeOffset:
-                return this.parseDateTimeOffsetString(value);
+        case LiteralToken.StringType.DateTimeOffset:
+            return this.parseDateTimeOffsetString(value);
 
-            case LiteralToken.StringType.Guid:
-                return this.parseGuidString(value);
+        case LiteralToken.StringType.Guid:
+            return this.parseGuidString(value);
 
-            case LiteralToken.StringType.Time:
-                return this.parseTimeString(value);
+        case LiteralToken.StringType.Time:
+            return this.parseTimeString(value);
 
-            default:
-                throw new Error('Argument stringType was out of range.');
+        default:
+            throw new Error('Argument stringType was out of range.');
         }
     }
 
@@ -821,7 +820,7 @@ export class OpenDataParser {
     }
 
     skipDigits(current) {
-        const _source = this.source, _offset = this.offset;
+        const _source = this.source;
         if (!OpenDataParser.isDigit(_source.charAt(current)))
             return null;
         current++;
@@ -890,46 +889,46 @@ export class OpenDataParser {
 
             switch (c)
             {
-                case 'F':
-                case 'f':
-                    value = parseFloat(text);
-                    type = LiteralToken.LiteralType.Single;
-                    _current++;
-                    break;
+            case 'F':
+            case 'f':
+                value = parseFloat(text);
+                type = LiteralToken.LiteralType.Single;
+                _current++;
+                break;
 
-                case 'D':
-                case 'd':
+            case 'D':
+            case 'd':
+                value = parseFloat(text);
+                type = LiteralToken.LiteralType.Double;
+                _current++;
+                break;
+
+            case 'M':
+            case 'm':
+                value = parseFloat(text);
+                type = LiteralToken.LiteralType.Decimal;
+                _current++;
+                break;
+
+            case 'L':
+            case 'l':
+                value = parseInt(text);
+                type = LiteralToken.LiteralType.Long;
+                _current++;
+                break;
+
+            default:
+                if (floating || haveExponent)
+                {
                     value = parseFloat(text);
                     type = LiteralToken.LiteralType.Double;
-                    _current++;
-                    break;
-
-                case 'M':
-                case 'm':
-                    value = parseFloat(text);
-                    type = LiteralToken.LiteralType.Decimal;
-                    _current++;
-                    break;
-
-                case 'L':
-                case 'l':
+                }
+                else
+                {
                     value = parseInt(text);
-                    type = LiteralToken.LiteralType.Long;
-                    _current++;
-                    break;
-
-                default:
-                    if (floating || haveExponent)
-                    {
-                        value = parseFloat(text);
-                        type = LiteralToken.LiteralType.Double;
-                    }
-                    else
-                    {
-                        value = parseInt(text);
-                        type = LiteralToken.LiteralType.Int;
-                    }
-                    break;
+                    type = LiteralToken.LiteralType.Int;
+                }
+                break;
             }
         }
         else
