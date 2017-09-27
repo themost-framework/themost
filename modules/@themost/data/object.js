@@ -1,12 +1,3 @@
-/**
- * @license
- * MOST Web Framework 2.0 Codename Blueshift
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- *                     Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Use of this source code is governed by an BSD-3-Clause license that can be
- * found in the LICENSE file at https://themost.io/license
- */
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -22,7 +13,7 @@ require('source-map-support/register');
 
 var _lodash = require('lodash');
 
-var _ = _lodash._;
+var _ = _interopRequireDefault(_lodash).default;
 
 var _sprintf = require('sprintf');
 
@@ -49,7 +40,16 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * @license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * MOST Web Framework 2.0 Codename Blueshift
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *                     Anthi Oikonomou anthioikonomou@gmail.com
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Use of this source code is governed by an BSD-3-Clause license that can be
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * found in the LICENSE file at https://themost.io/license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
+
 
 /**
  * @ignore
@@ -439,22 +439,22 @@ var DataObject = function (_SequentialEventEmitt) {
                                 callback(null, value);
                             });
                         } else {
-                            if (model.constraints.length == 0) {
+                            if (model.constraints.length === 0) {
                                 callback(new Error(sprintf.sprintf('The value of property [%s] cannot be retrieved. The target data model has no constraints defined.', name)));
                             } else {
                                 var arr = _.filter(model.constraints, function (x) {
                                     var valid = true;
-                                    if (x.fields.length == 0) return false;
+                                    if (x.fields.length === 0) return false;
                                     for (var i = 0; i < x.fields.length; i++) {
                                         var _field = x.fields[i];
-                                        if (self.hasOwnProperty(_field) == false) {
+                                        if (self.hasOwnProperty(_field) === false) {
                                             valid = false;
                                             break;
                                         }
                                     }
                                     return valid;
                                 });
-                                if (arr.length == 0) {
+                                if (arr.length === 0) {
                                     callback(new Error(sprintf.sprintf('The value of property [%s] cannot be retrieved. The target data model has constraints but the required properties are missing.', name)));
                                 } else {
                                     //get first constraint
@@ -464,7 +464,7 @@ var DataObject = function (_SequentialEventEmitt) {
                                     for (var i = 0; i < constraint.fields.length; i++) {
                                         var attr = constraint.fields[i];
                                         var value = self[attr];
-                                        if (q == null) q = model.where(attr).equal(value);else q.and(attr).equal(value);
+                                        if (_.isNil(q)) q = model.where(attr).equal(value);else q.and(attr).equal(value);
                                     }
                                     q.select(name).first(function (err, result) {
                                         if (err) {
@@ -652,7 +652,7 @@ var DataObject = function (_SequentialEventEmitt) {
 
         /**
          * Gets an instance of data object which represents the additional typed object as this is defined in additionalType attribute.
-         * @returns {Promise<DataObject>}
+         * @returns {Promise<DataObject>|*}
          * @example
          //get a place and afterwards get the country associated with it
          var places = context.model("Place");
@@ -785,10 +785,10 @@ function attrOf_(name, callback) {
         //if object has already this property
         if (self.hasOwnProperty(name)) {
             //if property is an object
-            if (_typeof(self[name]) === 'object' && self[name] != null) {
+            if (_typeof(self[name]) === 'object' && self[name] !== null) {
                 //return the defined parent field
                 callback(null, self[name][mapping.parentField]);
-            } else if (self[name] == null) {
+            } else if (self[name] === null) {
                 callback();
             } else {
                 callback(null, self[name]);

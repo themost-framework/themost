@@ -1,12 +1,3 @@
-/**
- * @license
- * MOST Web Framework 2.0 Codename Blueshift
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- *                     Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Use of this source code is governed by an BSD-3-Clause license that can be
- * found in the LICENSE file at https://themost.io/license
- */
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -33,7 +24,7 @@ var DataAssociationMapping = _types.DataAssociationMapping;
 
 var _lodash = require('lodash');
 
-var _ = _lodash._;
+var _ = _interopRequireDefault(_lodash).default;
 
 var _queryable = require('./queryable');
 
@@ -61,7 +52,16 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * @license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * MOST Web Framework 2.0 Codename Blueshift
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *                     Anthi Oikonomou anthioikonomou@gmail.com
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Use of this source code is governed by an BSD-3-Clause license that can be
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * found in the LICENSE file at https://themost.io/license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
+
 
 var parentProperty = Symbol('parent');
 var modelProperty = Symbol('model');
@@ -176,8 +176,8 @@ var DataObjectAssociationListener = exports.DataObjectAssociationListener = func
                     keys.forEach(function (x) {
                         if (e.target.hasOwnProperty(x) && _typeof(e.target[x]) === 'object' && e.target[x] !== null) {
                             //try to find field mapping, if any
-                            var _mapping = e.model.inferMapping(x);
-                            if (_mapping && _mapping.associationType === 'association' && _mapping.childModel === e.model.name) mappings.push(_mapping);
+                            var mapping = e.model.inferMapping(x);
+                            if (mapping && mapping.associationType === 'association' && mapping.childModel === e.model.name) mappings.push(mapping);
                         }
                     });
                     async.eachSeries(mappings,
@@ -188,10 +188,10 @@ var DataObjectAssociationListener = exports.DataObjectAssociationListener = func
                     function (mapping, cb) {
                         if (mapping.associationType === 'association' && mapping.childModel === e.model.name) {
                             /**
-                             * @type {DataField|*}
-                             */
-                            var field = e.model.field(mapping.childField),
-                                childField = field.property || field.name;
+                            * @type {DataField|*}
+                            */
+                            var field = e.model.field(mapping.childField);
+                            var childField = field.property || field.name;
                             //foreign key association
                             if (_typeof(e.target[childField]) !== 'object') {
                                 return cb();
@@ -250,7 +250,7 @@ var DataObjectAssociationListener = exports.DataObjectAssociationListener = func
         key: 'afterSave',
         value: function afterSave(event, callback) {
             try {
-                if (typeof event.target === 'undefined' || event.target == null) {
+                if (typeof event.target === 'undefined' || event.target === null) {
                     callback(null);
                 } else {
                     var keys = Object.keys(event.target);
@@ -260,9 +260,9 @@ var DataObjectAssociationListener = exports.DataObjectAssociationListener = func
                             /**
                              * @type DataAssociationMapping
                              */
-                            var _mapping2 = event.model.inferMapping(x);
-                            if (_mapping2) if (_mapping2.associationType == 'junction') {
-                                mappings.push({ name: x, mapping: _mapping2 });
+                            var mapping = event.model.inferMapping(x);
+                            if (mapping) if (mapping.associationType === 'junction') {
+                                mappings.push({ name: x, mapping: mapping });
                             }
                         }
                     });
@@ -272,29 +272,28 @@ var DataObjectAssociationListener = exports.DataObjectAssociationListener = func
                      * @param {Function} cb
                      */
                     function (x, cb) {
-                        if (x.mapping.associationType == 'junction') {
-                            var _obj = event.model.convert(event.target);
+                        if (x.mapping.associationType === 'junction') {
+                            var obj = event.model.convert(event.target);
 
                             /**
-                             * @type {*|{deleted:Array}}
+                             * @type {*}
                              */
-                            var childs = _obj[x.name];
+                            var childs = obj[x.name];
 
                             var junction = void 0;
                             if (!_.isArray(childs)) {
                                 return cb();
                             }
                             if (x.mapping.childModel === event.model.name) {
-                                var HasParentJunction = require('./has-parent-junction').HasParentJunction;
-                                junction = new HasParentJunction(_obj, x.mapping);
+                                junction = new HasManyToManyAssociation(obj, x.mapping);
                                 if (event.model.$silent) {
                                     junction.getBaseModel().silent();
                                 }
-                                if (event.state == 1 || event.state == 2) {
+                                if (event.state === 1 || event.state === 2) {
                                     var toBeRemoved = [],
                                         toBeInserted = [];
                                     _.forEach(childs, function (x) {
-                                        if (x.$state == 4) {
+                                        if (x.$state === 4) {
                                             toBeRemoved.push(x);
                                         } else {
                                             toBeInserted.push(x);
@@ -316,29 +315,26 @@ var DataObjectAssociationListener = exports.DataObjectAssociationListener = func
                                 }
                             } else if (x.mapping.parentModel === event.model.name) {
 
-                                if (event.state == 1 || event.state == 2) {
-                                    var DataObjectJunction = require('./data-object-junction').DataObjectJunction,
-                                        _HasTagAssociation = require('./data-object-tag').HasTagAssociation;
-
+                                if (event.state === 1 || event.state === 2) {
                                     if (typeof x.mapping.childModel === 'undefined') {
                                         /**
                                          * @type {HasTagAssociation}
                                          */
-                                        var tags = new _HasTagAssociation(_obj, x.mapping);
+                                        var tags = new HasTagAssociation(obj, x.mapping);
                                         if (event.model.$silent) {
                                             tags.getBaseModel().silent();
                                         }
                                         return tags.silent().all().then(function (result) {
 
-                                            var toBeRemoved = result.filter(function (x) {
+                                            var toBeRemoved = _.filter(result, function (x) {
                                                 return childs.indexOf(x) < 0;
                                             });
-                                            var toBeInserted = childs.filter(function (x) {
+                                            var toBeInserted = _.filter(childs, function (x) {
                                                 return result.indexOf(x) < 0;
                                             });
                                             if (toBeRemoved.length > 0) {
                                                 return tags.remove(toBeRemoved).then(function () {
-                                                    if (toBeInserted.length == 0) {
+                                                    if (toBeInserted.length === 0) {
                                                         return cb();
                                                     }
                                                     return tags.insert(toBeInserted).then(function () {
@@ -348,7 +344,7 @@ var DataObjectAssociationListener = exports.DataObjectAssociationListener = func
                                                     return cb(err);
                                                 });
                                             }
-                                            if (toBeInserted.length == 0) {
+                                            if (toBeInserted.length === 0) {
                                                 return cb();
                                             }
                                             return tags.insert(toBeInserted).then(function () {
@@ -358,7 +354,7 @@ var DataObjectAssociationListener = exports.DataObjectAssociationListener = func
                                             return cb(err);
                                         });
                                     } else {
-                                        junction = new DataObjectJunction(_obj, x.mapping);
+                                        junction = new HasManyToManyAssociation(obj, x.mapping);
                                         if (event.model.$silent) {
                                             junction.getBaseModel().silent();
                                         }
@@ -369,7 +365,7 @@ var DataObjectAssociationListener = exports.DataObjectAssociationListener = func
                                             var toBeRemoved = [],
                                                 toBeInserted = [];
                                             _.forEach(childs, function (x) {
-                                                if (x.$state == 4) {
+                                                if (x.$state === 4) {
                                                     toBeRemoved.push(x);
                                                 } else {
                                                     toBeInserted.push(x);
@@ -505,9 +501,9 @@ var HasOneToManyAssociation = exports.HasOneToManyAssociation = function (_HasAs
         key: 'model',
         get: function get() {
             if (_.isNil(this[modelProperty])) {
-                var _mapping3 = this.getMapping();
-                Args.check(_.isObject(_mapping3), new DataError('Data association mapping cannot be empty at this context.'));
-                this[modelProperty] = this.getParent().getContext().model(_mapping3.childModel);
+                var mapping = this.getMapping();
+                Args.check(_.isObject(mapping), new DataError('Data association mapping cannot be empty at this context.'));
+                this[modelProperty] = this.getParent().getContext().model(mapping.childModel);
             }
             return this[modelProperty];
         }
@@ -520,12 +516,12 @@ var HasOneToManyAssociation = exports.HasOneToManyAssociation = function (_HasAs
         key: 'query',
         get: function get() {
             if (_.isNil(this[queryProperty])) {
-                var _mapping4 = this.getMapping();
-                Args.check(_.isObject(_mapping4), new DataError('Data association cannot be empty at this context.'));
+                var mapping = this.getMapping();
+                Args.check(_.isObject(mapping), new DataError('Data association cannot be empty at this context.'));
                 //prepare query by selecting the foreign key of the related object
                 var parent = this.getParent();
                 Args.check(_.isObject(parent), new DataError('Parent object cannot be empty at this context.'));
-                this[queryProperty] = QueryExpression.create(this.model.getViewAdapter()).where(_mapping4.childField).equal(parent[_mapping4.parentField]).prepare();
+                this[queryProperty] = QueryExpression.create(this.model.getViewAdapter()).where(mapping.childField).equal(parent[mapping.parentField]).prepare();
             }
             return this[queryProperty];
         }
@@ -601,12 +597,12 @@ var HasManyToOneAssociation = exports.HasManyToOneAssociation = function (_HasAs
         key: 'query',
         get: function get() {
             if (_.isNil(this[queryProperty])) {
-                var _mapping5 = this.getMapping();
-                Args.check(_.isObject(_mapping5), new DataError('Data association cannot be empty at this context.'));
+                var mapping = this.getMapping();
+                Args.check(_.isObject(mapping), new DataError('Data association cannot be empty at this context.'));
                 //prepare query by selecting the foreign key of the related object
                 var parent = this.getParent();
                 Args.check(_.isObject(parent), new DataError('Parent object cannot be empty at this context.'));
-                this[queryProperty] = QueryExpression.create(this.model.getViewAdapter()).where(_mapping5.parentField).equal(parent[_mapping5.childField]).prepare();
+                this[queryProperty] = QueryExpression.create(this.model.getViewAdapter()).where(mapping.parentField).equal(parent[mapping.childField]).prepare();
             }
             return this[queryProperty];
         }
@@ -619,9 +615,9 @@ var HasManyToOneAssociation = exports.HasManyToOneAssociation = function (_HasAs
         key: 'model',
         get: function get() {
             if (_.isNil(this[modelProperty])) {
-                var _mapping6 = this.getMapping();
-                Args.check(_.isObject(_mapping6), new DataError('Data association mapping cannot be empty at this context.'));
-                this[modelProperty] = this.getParent().getContext().model(_mapping6.parentModel);
+                var mapping = this.getMapping();
+                Args.check(_.isObject(mapping), new DataError('Data association mapping cannot be empty at this context.'));
+                this[modelProperty] = this.getParent().getContext().model(mapping.parentModel);
             }
             return this[modelProperty];
         }
@@ -753,7 +749,7 @@ var HasManyToManyAssociation = exports.HasManyToManyAssociation = function (_Has
                 if (err) {
                     return callback(err);
                 }
-                executeFunc.call(self, callback);
+                executeFunc.bind(self)(callback);
             });
         }
 
@@ -794,7 +790,7 @@ var HasManyToManyAssociation = exports.HasManyToManyAssociation = function (_Has
             if (typeof callback !== 'function') {
                 var Q = require('q'),
                     deferred = Q.defer();
-                insert_.call(self, obj, function (err) {
+                insert_.bind(self)(obj, function (err) {
                     if (err) {
                         return deferred.reject(err);
                     }
@@ -832,7 +828,7 @@ var HasManyToManyAssociation = exports.HasManyToManyAssociation = function (_Has
             if (typeof callback !== 'function') {
                 var Q = require('q'),
                     deferred = Q.defer();
-                remove_.call(self, obj, function (err) {
+                remove_.bind(self)(obj, function (err) {
                     if (err) {
                         return deferred.reject(err);
                     }
@@ -852,12 +848,12 @@ var HasManyToManyAssociation = exports.HasManyToManyAssociation = function (_Has
         key: 'model',
         get: function get() {
             if (_.isNil(this[modelProperty])) {
-                var _mapping7 = this.getMapping(),
+                var mapping = this.getMapping(),
                     parentObjectModel = this.getParent().getModel();
-                if (_mapping7.parentModel === parentObjectModel.name) {
-                    this[modelProperty] = this.getParent().getContext().model(_mapping7.childModel);
-                } else if (_mapping7.childModel === parentObjectModel.name) {
-                    this[modelProperty] = this.getParent().getContext().model(_mapping7.parentModel);
+                if (mapping.parentModel === parentObjectModel.name) {
+                    this[modelProperty] = this.getParent().getContext().model(mapping.childModel);
+                } else if (mapping.childModel === parentObjectModel.name) {
+                    this[modelProperty] = this.getParent().getContext().model(mapping.parentModel);
                 } else {
                     //throw association error
                     throw new DataError('Data association model cannot be found or is mispelled');
@@ -869,10 +865,10 @@ var HasManyToManyAssociation = exports.HasManyToManyAssociation = function (_Has
         key: 'query',
         get: function get() {
             if (_.isNil(this[queryProperty])) {
-                var _mapping8 = this.getMapping(),
+                var mapping = this.getMapping(),
                     parentObject = this.getParent(),
                     parentObjectModel = parentObject.getModel();
-                Args.check(_.isObject(_mapping8), new DataError('Data association mapping cannot be empty at this context'));
+                Args.check(_.isObject(mapping), new DataError('Data association mapping cannot be empty at this context'));
                 //initialize query
                 this[queryProperty] = QueryExpression.create(this.model.getViewAdapter());
                 //get association adapter
@@ -884,15 +880,15 @@ var HasManyToManyAssociation = exports.HasManyToManyAssociation = function (_Has
                 var parentField = QueryFieldUtils.select('parentId').from(baseModelAdapter).getName(),
                     childField = QueryFieldUtils.select('valueId').from(baseModelAdapter).getName();
                 //find parent field
-                if (_mapping8.parentModel === parentObjectModel.name) {
-                    left[modelAdapter] = [_mapping8.childField];
+                if (mapping.parentModel === parentObjectModel.name) {
+                    left[modelAdapter] = [mapping.childField];
                     right[baseModelAdapter] = [childField];
-                    this[queryProperty].join(baseModelAdapter, []).with([left, right]).where(parentField).equal(parentObject[_mapping8.parentField]).prepare();
+                    this[queryProperty].join(baseModelAdapter, []).with([left, right]).where(parentField).equal(parentObject[mapping.parentField]).prepare();
                     return this[queryProperty];
-                } else if (_mapping8.childModel === parentObjectModel.name) {
-                    left[modelAdapter] = [_mapping8.parentField];
+                } else if (mapping.childModel === parentObjectModel.name) {
+                    left[modelAdapter] = [mapping.parentField];
                     right[baseModelAdapter] = [parentField];
-                    this[queryProperty].join(baseModelAdapter, []).with([left, right]).where(childField).equal(parentObject[_mapping8.childField]).prepare();
+                    this[queryProperty].join(baseModelAdapter, []).with([left, right]).where(childField).equal(parentObject[mapping.childField]).prepare();
                     return this[queryProperty];
                 }
                 //throw association error
@@ -905,20 +901,20 @@ var HasManyToManyAssociation = exports.HasManyToManyAssociation = function (_Has
         get: function get() {
             if (_.isNil(this[baseModelProperty])) {
                 var conf = this.getParent().getContext().getConfiguration();
-                var _mapping9 = this.getMapping();
-                Args.check(_.isObject(_mapping9), new DataError('Data association mapping cannot be empty at this context'));
+                var mapping = this.getMapping();
+                Args.check(_.isObject(mapping), new DataError('Data association mapping cannot be empty at this context'));
                 //search in cache (configuration.current.cache)
-                var baseModelDefinition = conf.getModelDefinition(_mapping9.associationAdapter);
+                var baseModelDefinition = conf.getModelDefinition(mapping.associationAdapter);
                 if (_.isObject(baseModelDefinition)) {
                     this[baseModelProperty] = this.getParent().getContext().model(this.getMapping().associationAdapter);
                     return this[baseModelProperty];
                 }
                 //otherwise create model
                 var parentModel = this.getParent().getModel();
-                var parentField = parentModel.field(_mapping9.parentField);
-                var childModel = this.getParent().getContext().model(_mapping9.childModel);
-                var childField = childModel.field(_mapping9.childField);
-                var adapter = _mapping9.associationAdapter;
+                var parentField = parentModel.field(mapping.parentField);
+                var childModel = this.getParent().getContext().model(mapping.childModel);
+                var childField = childModel.field(mapping.childField);
+                var adapter = mapping.associationAdapter;
                 //set model definition
                 conf.setModelDefinition({
                     name: adapter, title: adapter, sealed: false, hidden: true, type: "hidden",
@@ -940,7 +936,7 @@ var HasManyToManyAssociation = exports.HasManyToManyAssociation = function (_Has
                     }],
                     "privileges": [{ "mask": 15, "type": "global" }]
                 });
-                this[baseModelProperty] = this.getParent().getContext().model(_mapping9.associationAdapter);
+                this[baseModelProperty] = this.getParent().getContext().model(mapping.associationAdapter);
             }
             return this[baseModelProperty];
         }
@@ -970,7 +966,6 @@ function insertSingleObject_(obj, callback) {
     if (self.model.name === mapping.parentModel) {
         //get parent id
         return parent.property(mapping.parentField).value().then(function (parentId) {
-            "use strict";
 
             if (_.isNil(parentId)) {
                 return callback(new DataNotFoundError('Parent object cannot be found.'));
@@ -992,8 +987,6 @@ function insertSingleObject_(obj, callback) {
                 return callback(new DataNotFoundError('Parent object cannot be found.'));
             }
             return parent.property(mapping.childField).value().then(function (valueId) {
-                "use strict";
-
                 if (_.isNil(parentId)) {
                     return callback(new DataNotFoundError('Child object cannot be found.'));
                 }
@@ -1019,6 +1012,7 @@ function insert_(obj, callback) {
      * @type {HasAssociation|*}
      */
     var self = this;
+    var mapping = self.getMapping();
     var arr = [];
     if (_.isArray(obj)) arr = obj;else {
         arr.push(obj);
@@ -1057,7 +1051,6 @@ function removeSingleObject_(obj, callback) {
     if (self.model.name === mapping.parentModel) {
         //get parent id
         return parent.property(mapping.parentField).value().then(function (parentId) {
-            "use strict";
 
             if (_.isNil(parentId)) {
                 return callback(new DataNotFoundError('Parent object cannot be found.'));
@@ -1079,7 +1072,6 @@ function removeSingleObject_(obj, callback) {
                 return callback(new DataNotFoundError('Parent object cannot be found.'));
             }
             return parent.property(mapping.childField).value().then(function (valueId) {
-                "use strict";
 
                 if (_.isNil(parentId)) {
                     return callback(new DataNotFoundError('Child object cannot be found.'));
@@ -1106,6 +1098,7 @@ function remove_(obj, callback) {
      * @type {HasAssociation|*}
      */
     var self = this;
+    var mapping = self.getMapping();
     var arr = [];
     if (_.isArray(obj)) arr = obj;else {
         arr.push(obj);
@@ -1225,6 +1218,11 @@ var HasTagAssociation = exports.HasTagAssociation = function (_HasAssociation4) 
 
 
     _createClass(HasTagAssociation, [{
+        key: 'getBaseModel',
+        value: function getBaseModel() {
+            return this.baseModel;
+        }
+    }, {
         key: 'migrate',
 
 
@@ -1327,7 +1325,7 @@ var HasTagAssociation = exports.HasTagAssociation = function (_HasAssociation4) 
             if (typeof callback !== 'function') {
                 var Q = require('q'),
                     deferred = Q.defer();
-                HasTagAssociation_Clear_.call(self, function (err) {
+                HasTagAssociation_Clear_.bind(self)(function (err) {
                     if (err) {
                         return deferred.reject(err);
                     }
@@ -1391,26 +1389,26 @@ var HasTagAssociation = exports.HasTagAssociation = function (_HasAssociation4) 
 
             if (_.isNil(this[baseModelProperty])) {
                 var conf = this.getParent().getContext().getConfiguration();
-                var _mapping10 = this.getMapping();
-                Args.check(_.isObject(_mapping10), new DataError('Data association mapping cannot be empty at this context'));
+                var mapping = this.getMapping();
+                Args.check(_.isObject(mapping), new DataError('Data association mapping cannot be empty at this context'));
                 //search in cache (configuration.current.cache)
-                var baseModelDefinition = conf.getModelDefinition(_mapping10.associationAdapter);
+                var baseModelDefinition = conf.getModelDefinition(mapping.associationAdapter);
                 if (_.isObject(baseModelDefinition)) {
-                    this[baseModelProperty] = this.getParent().getContext().model(_mapping10.associationAdapter);
+                    this[baseModelProperty] = this.getParent().getContext().model(mapping.associationAdapter);
                     return this[baseModelProperty];
                 }
                 //otherwise create model
                 var parentModel = this.getParent().getModel();
-                var refersToType = parentModel.getAttribute(_mapping10.refersTo).type;
-                var parentFieldType = parentModel.getAttribute(_mapping10.parentField).type;
+                var refersToType = parentModel.getAttribute(mapping.refersTo).type;
+                var parentFieldType = parentModel.getAttribute(mapping.parentField).type;
                 if (parentFieldType === 'Counter') {
                     parentFieldType = 'Integer';
                 }
                 var definition = {
-                    "name": _mapping10.associationAdapter,
+                    "name": mapping.associationAdapter,
                     "hidden": true,
-                    "source": _mapping10.associationAdapter,
-                    "view": _mapping10.associationAdapter,
+                    "source": mapping.associationAdapter,
+                    "view": mapping.associationAdapter,
                     "version": "1.0",
                     "fields": [{
                         "name": "id", "type": "Counter", "nullable": false, "primary": true
@@ -1426,7 +1424,7 @@ var HasTagAssociation = exports.HasTagAssociation = function (_HasAssociation4) 
                 };
                 conf.setModelDefinition(definition);
 
-                this[baseModelProperty] = this.getParent().getContext().model(_mapping10.associationAdapter);
+                this[baseModelProperty] = this.getParent().getContext().model(mapping.associationAdapter);
             }
             return this[baseModelProperty];
         }
@@ -1434,11 +1432,9 @@ var HasTagAssociation = exports.HasTagAssociation = function (_HasAssociation4) 
         key: 'query',
         get: function get() {
             if (_.isNil(this[queryProperty])) {
-
-                var _mapping11 = this.getMapping(),
-                    parentObject = this.getParent(),
-                    parentObjectModel = parentObject.getModel();
-                Args.check(_.isObject(_mapping11), new DataError('Data association mapping cannot be empty at this context'));
+                var mapping = this.getMapping(),
+                    parentObject = this.getParent();
+                Args.check(_.isObject(mapping), new DataError('Data association mapping cannot be empty at this context'));
                 //get model adapter
                 var modelAdapter = this.model.getViewAdapter();
                 //initialize query
@@ -1450,10 +1446,10 @@ var HasTagAssociation = exports.HasTagAssociation = function (_HasAssociation4) 
                     right = {};
                 //get parent object adapter
                 var parentAdapter = parentObject.getModel().getViewAdapter();
-                left[parentAdapter] = [_mapping11.parentField];
+                left[parentAdapter] = [mapping.parentField];
                 right[modelAdapter] = [QueryFieldUtils.select("object").from(modelAdapter).getName()];
                 var objectField = QueryFieldUtils.select("object").from(modelAdapter).$name;
-                this[queryProperty].join(parentAdapter, []).with([left, right]).where(objectField).equal(obj[_mapping11.parentField]).prepare(false);
+                this[queryProperty].join(parentAdapter, []).with([left, right]).where(objectField).equal(parentObject[mapping.parentField]).prepare(false);
             }
             return this[queryProperty];
         }

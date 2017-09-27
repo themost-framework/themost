@@ -37,6 +37,16 @@ function _isPromise(f) {
     return (typeof f.then === 'function') && (typeof f.catch === 'function');
 }
 
+/**
+ * @method dasherize
+ * @memberOf _
+ */
+
+/**
+ * @method isPromise
+ * @memberOf _
+ */
+
 if (typeof _.dasherize !== 'function') {
     _.mixin({'dasherize' : _dasherize});
 }

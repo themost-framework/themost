@@ -6,7 +6,6 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import pagedown from 'pagedown';
 import fs from 'fs';
 import {Extra} from './pagedown/pagedown-extra';
@@ -58,10 +57,10 @@ export default class MarkdownEngine {
                 return;
             }
             fs.readFile(physicalPath, 'utf8', (err, data) => {
-               if (err) {
-                   //throw error
-                   return callback(err);
-               }
+                if (err) {
+                    //throw error
+                    return callback(err);
+                }
                 try {
                     /**
                      * @type {Markdown.Converter|*}

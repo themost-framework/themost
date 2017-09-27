@@ -1,12 +1,3 @@
-/**
- * @license
- * MOST Web Framework 2.0 Codename Blueshift
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- *                     Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Use of this source code is governed by an BSD-3-Clause license that can be
- * found in the LICENSE file at https://themost.io/license
- */
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -16,7 +7,16 @@ exports.DataQueryable = exports.DataAttributeResolver = undefined;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * MOST Web Framework 2.0 Codename Blueshift
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *                     Anthi Oikonomou anthioikonomou@gmail.com
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Use of this source code is governed by an BSD-3-Clause license that can be
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * found in the LICENSE file at https://themost.io/license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
 
 require('source-map-support/register');
 
@@ -30,7 +30,7 @@ var sprintf = _interopRequireDefault(_sprintf).default;
 
 var _lodash = require('lodash');
 
-var _ = _lodash._;
+var _ = _interopRequireDefault(_lodash).default;
 
 var _q = require('q');
 
@@ -562,7 +562,7 @@ var DataQueryable = exports.DataQueryable = function () {
 
         /**
          * Clones the current DataQueryable instance.
-         * @returns {DataQuerable|*} - The cloned object.
+         * @returns {DataQueryable|*} - The cloned object.
          */
         value: function clone() {
             var result = new DataQueryable(this.model);
@@ -590,7 +590,7 @@ var DataQueryable = exports.DataQueryable = function () {
     }, {
         key: 'ensureContext',
         value: function ensureContext() {
-            if (this.model != null) if (this.model.context != null) return this.model.context;
+            if (this.model !== null) if (this.model.context !== null) return this.model.context;
             return null;
         }
 
@@ -723,9 +723,9 @@ var DataQueryable = exports.DataQueryable = function () {
             //validate joined model
             if (_.isNil(joinModel)) throw new Error(sprintf.sprintf("The %s model cannot be found", model));
             var arr = self.model.attributes.filter(function (x) {
-                return x.type == joinModel.name;
+                return x.type === joinModel.name;
             });
-            if (arr.length == 0) throw new Error(sprintf.sprintf("An internal error occured. The association between %s and %s cannot be found", this.model.name, model));
+            if (arr.length === 0) throw new Error(sprintf.sprintf("An internal error occured. The association between %s and %s cannot be found", this.model.name, model));
             var mapping = self.model.inferMapping(arr[0].name);
             var expr = QueryExpression.create();
             expr.where(self.resolveField(mapping.childField)).equal(joinModel.resolveField(mapping.parentField));
@@ -1542,17 +1542,17 @@ var DataQueryable = exports.DataQueryable = function () {
             if (_.isArray(arg)) {
                 for (var i = 0; i < arg.length; i++) {
                     var x = arg[i];
-                    if (DataAttributeResolver.prototype.testNestedAttribute.call(this, x)) {
+                    if (DataAttributeResolver.prototype.testNestedAttribute.bind(this)(x)) {
                         //nested group by
-                        arr.push(DataAttributeResolver.prototype.orderByNestedAttribute.call(this, x));
+                        arr.push(DataAttributeResolver.prototype.orderByNestedAttribute.bind(this)(x));
                     } else {
                         arr.push(this.resolveField(x));
                     }
                 }
             } else {
-                if (DataAttributeResolver.prototype.testNestedAttribute.call(this, arg)) {
+                if (DataAttributeResolver.prototype.testNestedAttribute.bind(this)(arg)) {
                     //nested group by
-                    arr.push(DataAttributeResolver.prototype.orderByNestedAttribute.call(this, arg));
+                    arr.push(DataAttributeResolver.prototype.orderByNestedAttribute.bind(this)(arg));
                 } else {
                     arr.push(this.resolveField(arg));
                 }
@@ -1573,7 +1573,7 @@ var DataQueryable = exports.DataQueryable = function () {
         key: 'thenBy',
         value: function thenBy(attr) {
             if (typeof attr === 'string' && /\//.test(attr)) {
-                this.query.thenBy(DataAttributeResolver.prototype.orderByNestedAttribute.call(this, attr));
+                this.query.thenBy(DataAttributeResolver.prototype.orderByNestedAttribute.bind(this)(attr));
                 return this;
             }
             this.query.thenBy(this.resolveField(attr));
@@ -1590,7 +1590,7 @@ var DataQueryable = exports.DataQueryable = function () {
         key: 'orderByDescending',
         value: function orderByDescending(attr) {
             if (typeof attr === 'string' && /\//.test(attr)) {
-                this.query.orderByDescending(DataAttributeResolver.prototype.orderByNestedAttribute.call(this, attr));
+                this.query.orderByDescending(DataAttributeResolver.prototype.orderByNestedAttribute.bind(this)(attr));
                 return this;
             }
             this.query.orderByDescending(this.resolveField(attr));
@@ -1607,7 +1607,7 @@ var DataQueryable = exports.DataQueryable = function () {
         key: 'thenByDescending',
         value: function thenByDescending(attr) {
             if (typeof attr === 'string' && /\//.test(attr)) {
-                this.query.thenByDescending(DataAttributeResolver.prototype.orderByNestedAttribute.call(this, attr));
+                this.query.thenByDescending(DataAttributeResolver.prototype.orderByNestedAttribute.bind(this)(attr));
                 return this;
             }
             this.query.thenByDescending(this.resolveField(attr));
@@ -1789,7 +1789,7 @@ var DataQueryable = exports.DataQueryable = function () {
         value: function list(callback) {
             if (typeof callback !== 'function') {
                 var d = Q.defer();
-                listInternal.call(this, function (err, result) {
+                listInternal.bind(this)(function (err, result) {
                     if (err) {
                         return d.reject(err);
                     }
@@ -1947,7 +1947,7 @@ var DataQueryable = exports.DataQueryable = function () {
         value: function average(attr, callback) {
             if (typeof callback !== 'function') {
                 var d = Q.defer();
-                averageInternal_.call(this, attr, function (err, result) {
+                averageInternal_.bind(this)(attr, function (err, result) {
                     if (err) {
                         return d.reject(err);
                     }
@@ -1955,7 +1955,7 @@ var DataQueryable = exports.DataQueryable = function () {
                 });
                 return d.promise;
             } else {
-                return averageInternal_.call(this, attr, callback);
+                return averageInternal_.bind(this)(attr, callback);
             }
         }
 
@@ -2658,7 +2658,7 @@ var DataQueryable = exports.DataQueryable = function () {
         value: function value(callback) {
             if (typeof callback !== 'function') {
                 var d = Q.defer();
-                valueInternal.call(this, function (err, result) {
+                valueInternal.bind(this)(function (err, result) {
                     if (err) {
                         return d.reject(err);
                     }
@@ -2666,7 +2666,7 @@ var DataQueryable = exports.DataQueryable = function () {
                 });
                 return d.promise;
             } else {
-                return valueInternal.call(this, callback);
+                return valueInternal.bind(this)(callback);
             }
         }
 
@@ -3280,9 +3280,7 @@ function afterExecute_(result, callback) {
      * @type {DataQueryable|*}
      */
     var self = this;
-    var field = void 0,
-        parentField = void 0,
-        junction = void 0;
+    var field = void 0;
     if (self.$expand) {
         //get distinct values
         var expands = _.uniqBy(self.$expand, function (x) {

@@ -7,7 +7,6 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
 import {_} from 'lodash';
 import path from 'path';
@@ -54,7 +53,7 @@ export class LocalizationStrategy extends HttpApplicationService {
     hasCulture(culture) {
         Args.notString(culture,'Culture');
         return typeof _.find(this.getCultures(), function(x) {
-            return x==culture;
+            return x===culture;
         }) === 'string';
     }
 

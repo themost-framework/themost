@@ -7,11 +7,10 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
-import {TraceUtils,Args} from '@themost/common/utils';
+import {Args} from '@themost/common/utils';
 import {AbstractMethodError,AbstractClassError} from '@themost/common/errors';
-import {_} from 'lodash';
+import _ from 'lodash';
 import url from 'url';
 import {HttpApplicationService} from '../interfaces';
 import {HttpConsumer} from '../consumers';
@@ -104,7 +103,7 @@ export class HttpRoute {
         }
         const str = this.route.url.replace(re, "([\\w-]+)"), matcher = new RegExp("^" + str + "$", "ig");
         match = matcher.exec(str1);
-        if (typeof match === 'undefined' || match == null) {
+        if (typeof match === 'undefined' || match === null) {
             return false;
         }
         for (let i = 0; i < params.length; i++) {

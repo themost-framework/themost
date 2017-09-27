@@ -8,7 +8,6 @@
  * found in the LICENSE file at https://themost.io/license
  */
 
-'use strict';
 import 'source-map-support/register';
 import _ from 'lodash';
 import Q from 'q';
@@ -17,7 +16,7 @@ import {HttpConsumer} from './consumers';
 import {HttpUnauthorizedError} from "@themost/common/errors";
 import {TraceUtils} from "@themost/common/utils";
 import {LangUtils} from "@themost/common/utils";
-import {DataTypeValidator,MaxLengthValidator,MinLengthValidator,PatternValidator,RequiredValidator} from '@themost/data/validators';
+import {DataTypeValidator,MinValueValidator, MaxValueValidator,MaxLengthValidator,MinLengthValidator,PatternValidator,RequiredValidator} from '@themost/data/validators';
 import {Args} from "@themost/common/utils";
 
 /**
@@ -101,7 +100,7 @@ export function httpAction(name) {
 * @constructor
 */
 function HttpParamAttributeOptions() {
-    "use strict";
+    //
 }
 
 /**
@@ -121,7 +120,6 @@ export function httpParam(options) {
         if (typeof descriptor.value.httpParam === 'undefined') {
             descriptor.value.httpParam = new HttpConsumer((context)=> {
                 const httpParamValidationFailedCallback = function httpParamValidationFailedCallback(context, httpParam, validationResult) {
-                    "use strict";
                     TraceUtils.log(_.assign(validationResult, {
                         "param":httpParam,
                         "request": {

@@ -6,7 +6,6 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import jade from 'jade';
 import fs from 'fs';
 
@@ -66,8 +65,8 @@ class JadeEngine {
                     const fn = jade.compile(source);
                     data = data || { };
                     Object.defineProperty(data, 'context', {
-                         get: function() {
-                             return self.context;
+                        get: function() {
+                            return self.context;
                         },
                         enumerable:false, configurable:false
                     });

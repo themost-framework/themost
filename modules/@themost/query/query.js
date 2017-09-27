@@ -1,12 +1,3 @@
-/**
- * @license
- * MOST Web Framework 2.0 Codename Blueshift
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- *                     Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Use of this source code is governed by an BSD-3-Clause license that can be
- * found in the LICENSE file at https://themost.io/license
- */
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -30,7 +21,16 @@ var _ = _interopRequireDefault(_lodash).default;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } } /**
+                                                                                                                                                           * @license
+                                                                                                                                                           * MOST Web Framework 2.0 Codename Blueshift
+                                                                                                                                                           * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
+                                                                                                                                                           *                     Anthi Oikonomou anthioikonomou@gmail.com
+                                                                                                                                                           *
+                                                                                                                                                           * Use of this source code is governed by an BSD-3-Clause license that can be
+                                                                                                                                                           * found in the LICENSE file at https://themost.io/license
+                                                                                                                                                           */
+
 
 function _empty(obj) {
     if (typeof obj === 'undefined' || obj === null) {
@@ -976,7 +976,6 @@ var QueryExpression = exports.QueryExpression = function () {
         key: 'startsWith',
         value: function startsWith(value) {
             var p0 = this.prop();
-            var r = void 0;
             if (p0) {
                 if (!_.isString(value)) {
                     throw new Error('Invalid argument. Expected string.');

@@ -7,13 +7,12 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
 import Q from 'q';
-import {_} from 'lodash';
+import _ from 'lodash';
 import {HttpController} from '../mvc';
 import {httpGet,httpAction} from '../decorators';
-import {HttpError,HttpMethodNotAllowedError,HttpBadRequestError,HttpNotFoundError,HttpServerError} from '@themost/common/errors';
+import {HttpError,HttpBadRequestError,HttpNotFoundError,HttpServerError} from '@themost/common/errors';
 import {TraceUtils} from '@themost/common/utils';
 import {httpPut, httpPost, httpDelete} from "../decorators";
 import {DataExpandResolver} from '@themost/data/expand-resolver';
@@ -293,12 +292,12 @@ class HttpDataController extends HttpController {
     }
     /**
      * Handles data object post (e.g. /user/1/edit.html, /user/1/edit.json etc)
-     * @param {*} id
+     * @param {*} data
      * @returns {Promise|*}
      */
     @httpPost()
     @httpAction('edit')
-    postItem(id) {
+    postItem(data) {
         const self = this;
         return Q.nfbind((callback) => {
             const target = self.model.convert(data, true);
@@ -321,13 +320,13 @@ class HttpDataController extends HttpController {
 
     /**
      * Handles data object put (e.g. /user/1/edit.html, /user/1/edit.json etc)
-     * @param {*} id
+     * @param {*} data
      * @returns {Promise|*}
      */
     @httpPut()
     @httpAction('edit')
-    putItem(id) {
-        return this.postItem(id);
+    putItem(data) {
+        return this.postItem(data);
     }
 
     /**
@@ -341,11 +340,11 @@ class HttpDataController extends HttpController {
         const self = this;
         return self.model.where(self.model.getPrimaryKey()).equal(id).first()
             .then((x)=> {
-           if (_.isObject(x)) {
-               return self.model.remove(x);
-           }
-           return Q.reject(HttpNotFoundError());
-        });
+                if (_.isObject(x)) {
+                    return self.model.remove(x);
+                }
+                return Q.reject(HttpNotFoundError());
+            });
     }
 
     /**
@@ -378,7 +377,7 @@ class HttpDataController extends HttpController {
              * @param {Error} err
              * @param {DataQueryable} q
              */
-             function (err, q) {
+            function (err, q) {
                 try {
                     if (err) {
                         return callback(err);
@@ -435,7 +434,7 @@ class HttpDataController extends HttpController {
                     }
                 }
                 catch (e) {
-                   callback(e);
+                    callback(e);
                 }
             });
     }
@@ -467,7 +466,7 @@ class HttpDataController extends HttpController {
                         }
                         //apply as array parameter
                         q.asArray(asArray);
-                         if (first) {
+                        if (first) {
                             return q.first().then(function(result) {
                                 return callback(null, result);
                             }).catch(function(err) {

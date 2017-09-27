@@ -1,12 +1,3 @@
-/**
- * @license
- * MOST Web Framework 2.0 Codename Blueshift
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- *                     Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Use of this source code is governed by an BSD-3-Clause license that can be
- * found in the LICENSE file at https://themost.io/license
- */
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -16,7 +7,16 @@ exports.SqlFormatter = undefined;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * MOST Web Framework 2.0 Codename Blueshift
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *                     Anthi Oikonomou anthioikonomou@gmail.com
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Use of this source code is governed by an BSD-3-Clause license that can be
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * found in the LICENSE file at https://themost.io/license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
 
 require('source-map-support/register');
 
@@ -30,7 +30,7 @@ var sprintf = _interopRequireDefault(_sprintf).default;
 
 var _lodash = require('lodash');
 
-var _ = _lodash._;
+var _ = _interopRequireDefault(_lodash).default;
 
 var _query = require('./query');
 
@@ -132,8 +132,7 @@ var SqlFormatter = exports.SqlFormatter = function () {
                     if (comparison.hasOwnProperty(key)) compares.push(key);
                 }
                 if (compares.length === 0) return '(%s IS NULL)';else {
-                    var arr = [],
-                        op = '=';
+                    var arr = [];
                     for (var i = 0; i < compares.length; i++) {
                         var _key = compares[i];
                         if (QueryExpression.ComparisonOperators[_key] === undefined) throw new Error(sprintf.sprintf('Unknown operator %s.', _key));
@@ -315,7 +314,6 @@ var SqlFormatter = exports.SqlFormatter = function () {
                             // e.g. { Price: { $add: [5, { $gt:100} ]} } where we are trying to find elements that meet the following query expression: (Price+5)>100
                             // The identifier <Price> is the first parameter, the constant 5 is the second
                             var fn = this[op],
-                                p0 = property,
                                 p1 = comparison[op];
                             if (typeof fn === 'function') {
                                 var args = [];
@@ -1021,9 +1019,9 @@ var SqlFormatter = exports.SqlFormatter = function () {
                         var fn = this[prop];
                         if (typeof fn === 'function') {
                             /**
-                             * get method arguments
-                             * @type {Array}
-                             */
+                                 * get method arguments
+                                 * @type {Array}
+                                 */
                             var args = expr[prop];
                             s = fn.apply(this, args);
                         } else throw new Error('The specified function is not yet implemented.');

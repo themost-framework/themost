@@ -7,9 +7,8 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
-import {_} from 'lodash';
+import _ from 'lodash';
 import {Args} from '@themost/common/utils';
 import {AbstractMethodError,AbstractClassError} from '@themost/common/errors';
 
@@ -66,7 +65,7 @@ export class HttpViewEngine {
      * @param {Function} callback
      */
     render(url, options, callback) {
-        throw new AbstractMethodError();
+      callback(new AbstractMethodError());
     }
 
 }

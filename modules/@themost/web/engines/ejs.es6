@@ -7,12 +7,11 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
 import {HttpViewContext} from '../mvc';
 import {HttpNotFoundError} from '@themost/common/errors';
 import {LangUtils} from '@themost/common/utils';
-import {_} from 'lodash';
+import _ from 'lodash';
 import ejs from 'ejs';
 import path from 'path';
 import fs from 'fs';

@@ -1,12 +1,3 @@
-/**
- * @license
- * MOST Web Framework 2.0 Codename Blueshift
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- *                     Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Use of this source code is governed by an BSD-3-Clause license that can be
- * found in the LICENSE file at https://themost.io/license
- */
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -14,13 +5,24 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.DataExpandResolver = undefined;
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * MOST Web Framework 2.0 Codename Blueshift
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *                     Anthi Oikonomou anthioikonomou@gmail.com
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Use of this source code is governed by an BSD-3-Clause license that can be
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * found in the LICENSE file at https://themost.io/license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
 
 require('source-map-support/register');
 
 var _lodash = require('lodash');
 
-var _ = _lodash._;
+var _ = _interopRequireDefault(_lodash).default;
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -47,7 +49,7 @@ function testSplitExpandExpr_(s) {
                 match[0] = s.substr(lastSplitIndex, ix - lastSplitIndex);
                 paren = 0;
             }
-            if (ix1 == -1) {
+            if (ix1 === -1) {
                 ix1 = ix;
             }
             hasParen = true;
@@ -58,18 +60,18 @@ function testSplitExpandExpr_(s) {
             }
         } else if (charAt === '\'') {
             isLiteral = !isLiteral;
-        } else if (charAt === ',' && paren == -1) {
-            if (match == null) {
+        } else if (charAt === ',' && paren === -1) {
+            if (match === null) {
                 matches.push([s.substr(lastSplitIndex, ix - lastSplitIndex)]);
             }
             lastSplitIndex = ix + 1;
             hasParen = false;
         }
 
-        if (ix === s.length - 1 && paren == -1) {
+        if (ix === s.length - 1 && paren === -1) {
             matches.push([s.substr(lastSplitIndex, ix - lastSplitIndex + 1)]);
             match = null;
-        } else if (paren == 0) {
+        } else if (paren === 0) {
             match = match || [];
             match[1] = s.substr(ix1 + 1, ix - ix1 - 1);
             matches.push(match);

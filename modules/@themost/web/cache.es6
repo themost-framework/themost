@@ -7,7 +7,6 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
 import {_} from 'lodash';
 import Q from 'q';
@@ -152,16 +151,16 @@ export class DefaultCacheStrategy extends CacheStrategy  {
         const self = this;
         Args.check(_.isFunction(fn),'Invalid argument. Expected function.');
         return self.get(key).then((res) => {
-           if (_.isNil(res)) {
-               let source = fn();
-               Args.check(typeof source.then !== 'function', 'Invalid argument. Expected a valid observable.');
-               return source.then((res) => {
-                   if (_.isNil(res)) {
-                       return Q();
-                   }
-                   return self.add(key,res,absoluteExpiration);
-               });
-           }
+            if (_.isNil(res)) {
+                let source = fn();
+                Args.check(typeof source.then !== 'function', 'Invalid argument. Expected a valid observable.');
+                return source.then((res) => {
+                    if (_.isNil(res)) {
+                        return Q();
+                    }
+                    return self.add(key,res,absoluteExpiration);
+                });
+            }
             return Q(res);
         });
     }

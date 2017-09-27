@@ -1,12 +1,3 @@
-/**
- * @license
- * MOST Web Framework 2.0 Codename Blueshift
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- *                     Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Use of this source code is governed by an BSD-3-Clause license that can be
- * found in the LICENSE file at https://themost.io/license
- */
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -17,7 +8,16 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _dec, _dec2, _dec3, _dec4, _dec5, _dec6, _dec7, _dec8, _dec9, _dec10, _dec11, _dec12, _dec13, _dec14, _dec15, _dec16, _dec17, _dec18, _dec19, _dec20, _dec21, _dec22, _dec23, _dec24, _dec25, _dec26, _dec27, _dec28, _desc, _value, _class;
+var _dec, _dec2, _dec3, _dec4, _dec5, _dec6, _dec7, _dec8, _dec9, _dec10, _dec11, _dec12, _dec13, _dec14, _dec15, _dec16, _dec17, _dec18, _dec19, _dec20, _dec21, _dec22, _dec23, _dec24, _dec25, _dec26, _dec27, _dec28, _desc, _value, _class; /**
+                                                                                                                                                                                                                                                  * @license
+                                                                                                                                                                                                                                                  * MOST Web Framework 2.0 Codename Blueshift
+                                                                                                                                                                                                                                                  * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
+                                                                                                                                                                                                                                                  *                     Anthi Oikonomou anthioikonomou@gmail.com
+                                                                                                                                                                                                                                                  *
+                                                                                                                                                                                                                                                  * Use of this source code is governed by an BSD-3-Clause license that can be
+                                                                                                                                                                                                                                                  * found in the LICENSE file at https://themost.io/license
+                                                                                                                                                                                                                                                  */
+
 
 require('source-map-support/register');
 
@@ -27,7 +27,7 @@ var Q = _interopRequireDefault(_q).default;
 
 var _lodash = require('lodash');
 
-var _ = _lodash._;
+var _ = _interopRequireDefault(_lodash).default;
 
 var _mvc = require('../mvc');
 
@@ -44,7 +44,6 @@ var httpDelete = _decorators.httpDelete;
 var _errors = require('@themost/common/errors');
 
 var HttpError = _errors.HttpError;
-var HttpMethodNotAllowedError = _errors.HttpMethodNotAllowedError;
 var HttpBadRequestError = _errors.HttpBadRequestError;
 var HttpNotFoundError = _errors.HttpNotFoundError;
 var HttpServerError = _errors.HttpServerError;
@@ -374,13 +373,13 @@ var HttpDataController = (_dec = httpGet(), _dec2 = httpAction('new'), _dec3 = h
         }
         /**
          * Handles data object post (e.g. /user/1/edit.html, /user/1/edit.json etc)
-         * @param {*} id
+         * @param {*} data
          * @returns {Promise|*}
          */
 
     }, {
         key: 'postItem',
-        value: function postItem(id) {
+        value: function postItem(data) {
             var self = this;
             return Q.nfbind(function (callback) {
                 var target = self.model.convert(data, true);
@@ -400,14 +399,14 @@ var HttpDataController = (_dec = httpGet(), _dec2 = httpAction('new'), _dec3 = h
 
         /**
          * Handles data object put (e.g. /user/1/edit.html, /user/1/edit.json etc)
-         * @param {*} id
+         * @param {*} data
          * @returns {Promise|*}
          */
 
     }, {
         key: 'putItem',
-        value: function putItem(id) {
-            return this.postItem(id);
+        value: function putItem(data) {
+            return this.postItem(data);
         }
 
         /**

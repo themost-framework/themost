@@ -7,14 +7,13 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
-import {HttpUnauthorizedError,HttpBadRequestError} from '@themost/common/errors';
+import {HttpUnauthorizedError} from '@themost/common/errors';
 import {TraceUtils} from '@themost/common/utils';
 import {HttpApplicationService} from '../interfaces';
 import {HttpNextResult} from '../results';
 import {HttpConsumer} from '../consumers';
-import {_} from 'lodash';
+import _ from 'lodash';
 import Q from 'q';
 import url from 'url';
 /**
@@ -30,8 +29,6 @@ class LocationSetting {
     }
 }
 
-const applicationProperty = Symbol('application');
-
 
 /**
  * @class
@@ -41,7 +38,7 @@ export class RestrictAccessService extends HttpApplicationService{
      * @param {HttpApplication} app
      */
     constructor(app) {
-       super(app);
+        super(app);
     }
 
     /**
@@ -49,43 +46,43 @@ export class RestrictAccessService extends HttpApplicationService{
      * @returns {Promise}
      */
     isNotRestricted(requestURL) {
-       try {
-           if (_.isNil(requestURL)) {
-               return Q(true);
-           }
-           const uri = url.parse(requestURL);
-           const conf = this.getApplication().getConfiguration();
-           if (_.isObject(conf.settings)
+        try {
+            if (_.isNil(requestURL)) {
+                return Q(true);
+            }
+            const uri = url.parse(requestURL);
+            const conf = this.getApplication().getConfiguration();
+            if (_.isObject(conf.settings)
                && _.isObject(conf.settings.auth)
                && _.isArray(conf.settings.auth.locations)) {
-               /**
+                /**
                 * @type {Array}
                 */
-               const locations = conf.settings.auth.locations;
-               for (let i = 0; i < locations.length; i++) {
-                   /**
+                const locations = conf.settings.auth.locations;
+                for (let i = 0; i < locations.length; i++) {
+                    /**
                     * @type {*|LocationSetting}
                     */
-                   const location = locations[i];
-                   if (/\*$/.test(location.path)) {
-                       //wildcard search /something/*
-                       if ((uri.pathname.indexOf(location.path.replace(/\*$/,''))===0) && (location.allow==='*')) {
-                           return Q(true);
-                       }
-                   }
-                   else {
-                       if ((uri.pathname===location.path) && (location.allow==='*')) {
-                           return Q(true);
-                       }
-                   }
-               }
-               return Q(false);
-           }
-           return Q(true);
-       }
-       catch(err) {
-           return Q.reject(err);
-       }
+                    const location = locations[i];
+                    if (/\*$/.test(location.path)) {
+                        //wildcard search /something/*
+                        if ((uri.pathname.indexOf(location.path.replace(/\*$/,''))===0) && (location.allow==='*')) {
+                            return Q(true);
+                        }
+                    }
+                    else {
+                        if ((uri.pathname===location.path) && (location.allow==='*')) {
+                            return Q(true);
+                        }
+                    }
+                }
+                return Q(false);
+            }
+            return Q(true);
+        }
+        catch(err) {
+            return Q.reject(err);
+        }
     }
     /**
      * @param {string} requestURL
@@ -93,14 +90,13 @@ export class RestrictAccessService extends HttpApplicationService{
      */
     isRestricted(requestURL) {
         return this.isNotRestricted(requestURL).then((res)=> {
-           return Q(!res);
+            return Q(!res);
         });
     }
 }
 
 /**
  * @class
- * @augments HttpHandler
  */
 class RestrictHandler {
     /**

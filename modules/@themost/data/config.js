@@ -1,18 +1,9 @@
-/**
- * @license
- * MOST Web Framework 2.0 Codename Blueshift
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- *                     Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Use of this source code is governed by an BSD-3-Clause license that can be
- * found in the LICENSE file at https://themost.io/license
- */
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.DefaultModelClassLoaderStrategy = exports.ModelClassLoaderStrategy = exports.DefaultSchemaLoaderStrategy = exports.SchemaLoaderStrategy = exports.DataConfigurationStrategy = exports.AuthSettings = undefined;
+exports.DefaultModelClassLoaderStrategy = exports.ModelClassLoaderStrategy = exports.DefaultSchemaLoaderStrategy = exports.SchemaLoaderStrategy = exports.DefaultDataConfigurationStrategy = exports.DataConfigurationStrategy = exports.AuthSettings = undefined;
 
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
@@ -31,11 +22,6 @@ var PathUtils = _utils.PathUtils;
 var Args = _utils.Args;
 var RandomUtils = _utils.RandomUtils;
 
-var _errors = require('@themost/common/errors');
-
-var AbstractClassError = _errors.AbstractClassError;
-var AbstractMethodError = _errors.AbstractMethodError;
-
 var _config = require('@themost/common/config');
 
 var ConfigurationStrategy = _config.ConfigurationStrategy;
@@ -47,7 +33,16 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } } /**
+                                                                                                                                                           * @license
+                                                                                                                                                           * MOST Web Framework 2.0 Codename Blueshift
+                                                                                                                                                           * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
+                                                                                                                                                           *                     Anthi Oikonomou anthioikonomou@gmail.com
+                                                                                                                                                           *
+                                                                                                                                                           * Use of this source code is governed by an BSD-3-Clause license that can be
+                                                                                                                                                           * found in the LICENSE file at https://themost.io/license
+                                                                                                                                                           */
+
 
 /**
  *
@@ -59,6 +54,12 @@ function _dasherize(s) {
     if (_.isString(s)) return _.trim(s).replace(/[_\s]+/g, '-').replace(/([A-Z])/g, '-$1').replace(/-+/g, '-').replace(/^-/, '').toLowerCase();
     return s;
 }
+
+/**
+ * @method dasherize
+ * @memberOf _
+ */
+
 if (typeof _.dasherize !== 'function') {
     _.mixin({ 'dasherize': _dasherize });
 }
@@ -91,7 +92,7 @@ var adapterTypesProperty = Symbol('adapterTypes');
 /**
  * @classdesc Holds the configuration of data modeling infrastructure
  * @class
- * @property {DataConfigurationAuth} auth
+ * @property {AuthSettings} auth
  * @extends ConfigurationStrategy
  *
  */
@@ -176,7 +177,7 @@ var DataConfigurationStrategy = exports.DataConfigurationStrategy = function (_C
     }
 
     /**
-     * @returns {AuthSettings}
+     * @returns {AuthSettings|*}
      */
 
 
@@ -249,10 +250,10 @@ var DataConfigurationStrategy = exports.DataConfigurationStrategy = function (_C
          * Sets a data model definition in application storage.
          * Use this method in order to override default model loading process.
          * @param {*} data - A generic object which represents a model definition
-         * @returns {DataConfiguration}
+         * @returns {DataConfigurationStrategy}
          * @example
-         var most = require("most-data");
-         most.cfg.getCurrent().setModelDefinition({
+         import {DataConfigurationStrategy} from '@themost/data/config';
+         DataConfigurationStrategy.getCurrent().setModelDefinition({
                 "name":"UserColor",
                 "version":"1.1",
                 "title":"User Colors",
@@ -328,6 +329,29 @@ var DataConfigurationStrategy = exports.DataConfigurationStrategy = function (_C
     return DataConfigurationStrategy;
 }(ConfigurationStrategy);
 
+/**
+ * @classdesc Represents the default data configuration strategy
+ * @class
+ * @extends DataConfigurationStrategy
+ */
+
+
+var DefaultDataConfigurationStrategy = exports.DefaultDataConfigurationStrategy = function (_DataConfigurationStr) {
+    _inherits(DefaultDataConfigurationStrategy, _DataConfigurationStr);
+
+    /**
+     * @constructor
+     * @param {ConfigurationBase} config
+     */
+    function DefaultDataConfigurationStrategy(config) {
+        _classCallCheck(this, DefaultDataConfigurationStrategy);
+
+        return _possibleConstructorReturn(this, (DefaultDataConfigurationStrategy.__proto__ || Object.getPrototypeOf(DefaultDataConfigurationStrategy)).call(this, config));
+    }
+
+    return DefaultDataConfigurationStrategy;
+}(DataConfigurationStrategy);
+
 var modelsProperty = Symbol('models');
 
 var SchemaLoaderStrategy = exports.SchemaLoaderStrategy = function (_ConfigurationStrateg2) {
@@ -335,21 +359,21 @@ var SchemaLoaderStrategy = exports.SchemaLoaderStrategy = function (_Configurati
 
     /**
      *
-     * @param {DataConfiguration} config
+     * @param {ConfigurationBase} config
      */
     function SchemaLoaderStrategy(config) {
         _classCallCheck(this, SchemaLoaderStrategy);
 
-        var _this2 = _possibleConstructorReturn(this, (SchemaLoaderStrategy.__proto__ || Object.getPrototypeOf(SchemaLoaderStrategy)).call(this, config));
+        var _this3 = _possibleConstructorReturn(this, (SchemaLoaderStrategy.__proto__ || Object.getPrototypeOf(SchemaLoaderStrategy)).call(this, config));
 
-        _this2[modelsProperty] = new Map();
-        _this2.setModelDefinition({
+        _this3[modelsProperty] = new Map();
+        _this3.setModelDefinition({
             "name": "Migration", "title": "Data Model Migrations", "id": 14,
             "source": "migrations", "view": "migrations", "hidden": true, "sealed": true,
             "fields": [{ "name": "id", "type": "Counter", "primary": true }, { "name": "appliesTo", "type": "Text", "size": 180, "nullable": false }, { "name": "model", "type": "Text", "size": 120 }, { "name": "description", "type": "Text", "size": 512 }, { "name": "version", "type": "Text", "size": 40, "nullable": false }],
             "constraints": [{ "type": "unique", "fields": ["appliesTo", "version"] }]
         });
-        return _this2;
+        return _this3;
     }
 
     /**
@@ -410,6 +434,11 @@ var SchemaLoaderStrategy = exports.SchemaLoaderStrategy = function (_Configurati
 var filesProperty = Symbol('files');
 var modelPathProperty = Symbol('modelPath');
 
+/**
+ * @class
+ * @extends SchemaLoaderStrategy
+ */
+
 var DefaultSchemaLoaderStrategy = exports.DefaultSchemaLoaderStrategy = function (_SchemaLoaderStrategy) {
     _inherits(DefaultSchemaLoaderStrategy, _SchemaLoaderStrategy);
 
@@ -420,10 +449,10 @@ var DefaultSchemaLoaderStrategy = exports.DefaultSchemaLoaderStrategy = function
     function DefaultSchemaLoaderStrategy(config) {
         _classCallCheck(this, DefaultSchemaLoaderStrategy);
 
-        var _this3 = _possibleConstructorReturn(this, (DefaultSchemaLoaderStrategy.__proto__ || Object.getPrototypeOf(DefaultSchemaLoaderStrategy)).call(this, config));
+        var _this4 = _possibleConstructorReturn(this, (DefaultSchemaLoaderStrategy.__proto__ || Object.getPrototypeOf(DefaultSchemaLoaderStrategy)).call(this, config));
 
-        _this3[modelPathProperty] = PathUtils.join(config.getConfigurationPath(), 'models');
-        return _this3;
+        _this4[modelPathProperty] = PathUtils.join(config.getConfigurationPath(), 'models');
+        return _this4;
     }
 
     /**
@@ -460,8 +489,7 @@ var DefaultSchemaLoaderStrategy = exports.DefaultSchemaLoaderStrategy = function
     }, {
         key: 'getModelDefinition',
         value: function getModelDefinition(name) {
-            var self = this,
-                getModelDefinitionSuper = _get(DefaultSchemaLoaderStrategy.prototype.__proto__ || Object.getPrototypeOf(DefaultSchemaLoaderStrategy.prototype), 'getModelDefinition', this);
+            var getModelDefinitionSuper = _get(DefaultSchemaLoaderStrategy.prototype.__proto__ || Object.getPrototypeOf(DefaultSchemaLoaderStrategy.prototype), 'getModelDefinition', this);
             var i = void 0;
             if (typeof name !== 'string') return;
             //exclude registered data types
@@ -505,8 +533,7 @@ var DefaultSchemaLoaderStrategy = exports.DefaultSchemaLoaderStrategy = function
                     //build model file path
                     var finalPath = PathUtils.join(modelPath, files[i]);
                     //get model
-                    var result = require(finalPath),
-                        finalName = result.name;
+                    var result = require(finalPath);
                     //set definition
                     this.setModelDefinition(result);
                     //and finally return this definition
@@ -519,12 +546,19 @@ var DefaultSchemaLoaderStrategy = exports.DefaultSchemaLoaderStrategy = function
     return DefaultSchemaLoaderStrategy;
 }(SchemaLoaderStrategy);
 
+/**
+ * @classdesc Represents a model class loader strategy
+ * @class
+ * @extends ConfigurationBase
+ */
+
+
 var ModelClassLoaderStrategy = exports.ModelClassLoaderStrategy = function (_ConfigurationStrateg3) {
     _inherits(ModelClassLoaderStrategy, _ConfigurationStrateg3);
 
     /**
      *
-     * @param {DataConfiguration} config
+     * @param {ConfigurationBase} config
      */
     function ModelClassLoaderStrategy(config) {
         _classCallCheck(this, ModelClassLoaderStrategy);
@@ -535,12 +569,19 @@ var ModelClassLoaderStrategy = exports.ModelClassLoaderStrategy = function (_Con
     return ModelClassLoaderStrategy;
 }(ConfigurationStrategy);
 
+/**
+ * @classdesc Represents the default model class loader strategy.
+ * @class
+ * @extends ConfigurationBase
+ */
+
+
 var DefaultModelClassLoaderStrategy = exports.DefaultModelClassLoaderStrategy = function (_ConfigurationStrateg4) {
     _inherits(DefaultModelClassLoaderStrategy, _ConfigurationStrateg4);
 
     /**
      *
-     * @param {DataConfiguration} config
+     * @param {ConfigurationBase} config
      */
     function DefaultModelClassLoaderStrategy(config) {
         _classCallCheck(this, DefaultModelClassLoaderStrategy);

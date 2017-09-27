@@ -1,13 +1,3 @@
-/**
- * @license
- * MOST Web Framework 2.0 Codename Blueshift
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- *                     Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Use of this source code is governed by an BSD-3-Clause license that can be
- * found in the LICENSE file at https://themost.io/license
- */
-
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -53,6 +43,8 @@ var Args = _utils.Args;
 var _validators = require('@themost/data/validators');
 
 var DataTypeValidator = _validators.DataTypeValidator;
+var MinValueValidator = _validators.MinValueValidator;
+var MaxValueValidator = _validators.MaxValueValidator;
 var MaxLengthValidator = _validators.MaxLengthValidator;
 var MinLengthValidator = _validators.MinLengthValidator;
 var PatternValidator = _validators.PatternValidator;
@@ -89,7 +81,15 @@ function _extendableBuiltin(cls) {
     }
 
     return ExtendableBuiltin;
-}
+} /**
+   * @license
+   * MOST Web Framework 2.0 Codename Blueshift
+   * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
+   *                     Anthi Oikonomou anthioikonomou@gmail.com
+   *
+   * Use of this source code is governed by an BSD-3-Clause license that can be
+   * found in the LICENSE file at https://themost.io/license
+   */
 
 /**
  * @class
@@ -177,9 +177,9 @@ function httpAction(name) {
 * @property {string} message
 * @constructor
 */
-function HttpParamAttributeOptions() {
-    "use strict";
-}
+function HttpParamAttributeOptions() {}
+//
+
 
 /**
  * @param {*=} options
@@ -202,8 +202,6 @@ function httpParam(options) {
         if (typeof descriptor.value.httpParam === 'undefined') {
             descriptor.value.httpParam = new HttpConsumer(function (context) {
                 var httpParamValidationFailedCallback = function httpParamValidationFailedCallback(context, httpParam, validationResult) {
-                    "use strict";
-
                     TraceUtils.log(_.assign(validationResult, {
                         "param": httpParam,
                         "request": {

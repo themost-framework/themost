@@ -1,12 +1,3 @@
-/**
- * @license
- * MOST Web Framework 2.0 Codename Blueshift
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- *                     Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Use of this source code is governed by an BSD-3-Clause license that can be
- * found in the LICENSE file at https://themost.io/license
- */
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -20,7 +11,7 @@ require('source-map-support/register');
 
 var _lodash = require('lodash');
 
-var _ = _lodash._;
+var _ = _interopRequireDefault(_lodash).default;
 
 var _sprintf = require('sprintf');
 
@@ -36,7 +27,16 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } } /**
+                                                                                                                                                           * @license
+                                                                                                                                                           * MOST Web Framework 2.0 Codename Blueshift
+                                                                                                                                                           * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
+                                                                                                                                                           *                     Anthi Oikonomou anthioikonomou@gmail.com
+                                                                                                                                                           *
+                                                                                                                                                           * Use of this source code is governed by an BSD-3-Clause license that can be
+                                                                                                                                                           * found in the LICENSE file at https://themost.io/license
+                                                                                                                                                           */
+
 
 /**
  * @class
@@ -676,11 +676,11 @@ var RangeValidator = exports.RangeValidator = function (_DataValidator6) {
                 maxValidator = void 0,
                 minValidation = void 0,
                 maxValidation = void 0;
-            if (typeof this.minValue !== 'undefined' && this.minValue != null) {
+            if (typeof this.minValue !== 'undefined' && this.minValue !== null) {
                 minValidator = new MinValueValidator(this.minValue);
                 minValidation = minValidator.validateSync(val);
             }
-            if (typeof this.maxValue !== 'undefined' && this.maxValue != null) {
+            if (typeof this.maxValue !== 'undefined' && this.maxValue !== null) {
                 maxValidator = new MaxValueValidator(this.maxValue);
                 maxValidation = maxValidator.validateSync(val);
             }

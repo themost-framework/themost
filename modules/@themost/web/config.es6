@@ -7,9 +7,8 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
-import {_} from 'lodash';
-import {ConfigurationStrategy,ConfigurationBase} from '@themost/common/config';
+import _ from 'lodash';
+import {ConfigurationBase} from '@themost/common/config';
 import {PathUtils} from "@themost/common/utils";
 import {TraceUtils} from "@themost/common/utils";
 

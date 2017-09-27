@@ -7,9 +7,8 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
-import {_} from 'lodash';
+import _ from 'lodash';
 import Q from 'q';
 import fs from 'fs';
 import util from 'util';
@@ -58,7 +57,7 @@ export class HttpContentResult extends HttpAnyResult {
             else {
                 response.writeHead(200, { 'Content-Type': self.contentType });
                 response.write(self.data,self.contentEncoding, function(err) {
-                   return callback(err);
+                    return callback(err);
                 });
             }
         });
@@ -352,7 +351,7 @@ export class HttpFileResult extends HttpAnyResult {
  * @private
  */
 function queryDefaultViewPath(controller, view, extension, callback) {
-   return queryAbsoluteViewPath.call(this, this.getApplication().mapExecutionPath('views'), controller, view, extension, callback);
+    return queryAbsoluteViewPath.call(this, this.getApplication().mapExecutionPath('views'), controller, view, extension, callback);
 }
 /**
  * @param view
@@ -432,7 +431,7 @@ export class HttpViewResult extends HttpAnyResult {
     execute(context) {
         const self = this;
 
-   return Q.nfcall(function(callback) {
+        return Q.nfcall(function(callback) {
             /**
              * @type ServerResponse
              * */
@@ -631,7 +630,7 @@ export class HttpController {
      * @returns HttpContentResult
      * */
     content(content) {
-         return new HttpContentResult(content);
+        return new HttpContentResult(content);
     }
 
     /**
@@ -794,33 +793,33 @@ export class HttpViewContext {
     static HtmlViewHelper($view) {
         let doc;
         return {
-        antiforgery: function() {
+            antiforgery: function() {
             //create token
-            const context = $view.context, value = context.application.encrypt(JSON.stringify({ id: Math.floor(Math.random() * 1000000), url:context.request.url, date:new Date() }));
-            //try to set cookie
-            context.response.setHeader('Set-Cookie','.CSRF='.concat(value));
-            return $view.writer.writeAttribute('type', 'hidden')
-                .writeAttribute('id', '_CSRFToken')
-                .writeAttribute('name', '_CSRFToken')
-                .writeAttribute('value', value)
-                .writeFullBeginTag('input')
-                .toString();
-        },
-        element: function(obj) {
-            if (typeof doc === 'undefined') { doc = $view.context.application.document(); }
-            return doc.parentWindow.angular.element(obj);
-        },
-        lang: function() {
-            const context = $view.context, c= context.culture();
-            if (typeof c === 'string') {
-                if (c.length>=2) {
-                    return c.toLowerCase().substring(0,2);
+                const context = $view.context, value = context.application.encrypt(JSON.stringify({ id: Math.floor(Math.random() * 1000000), url:context.request.url, date:new Date() }));
+                //try to set cookie
+                context.response.setHeader('Set-Cookie','.CSRF='.concat(value));
+                return $view.writer.writeAttribute('type', 'hidden')
+                    .writeAttribute('id', '_CSRFToken')
+                    .writeAttribute('name', '_CSRFToken')
+                    .writeAttribute('value', value)
+                    .writeFullBeginTag('input')
+                    .toString();
+            },
+            element: function(obj) {
+                if (typeof doc === 'undefined') { doc = $view.context.application.document(); }
+                return doc.parentWindow.angular.element(obj);
+            },
+            lang: function() {
+                const context = $view.context, c= context.getCulture();
+                if (typeof c === 'string') {
+                    if (c.length>=2) {
+                        return c.toLowerCase().substring(0,2);
+                    }
                 }
+                //in all cases return default culture
+                return 'en';
             }
-            //in all cases return default culture
-            return 'en';
-        }
-    };
+        };
     }
 }
 
@@ -872,7 +871,7 @@ export class HtmlViewHelper {
 
     lang() {
         const $view = this.parent;
-        const context = $view.context, c= context.culture();
+        const context = $view.context, c= context.getCulture();
         if (typeof c === 'string') {
             if (c.length>=2) {
                 return c.toLowerCase().substring(0,2);

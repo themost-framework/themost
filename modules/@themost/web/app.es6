@@ -8,14 +8,11 @@
  * found in the LICENSE file at https://themost.io/license
  */
 
-
-'use strict';
 import 'source-map-support/register';
 import url from 'url';
-import {_} from 'lodash';
+import _ from 'lodash';
 import async from 'async';
-import crypto from 'crypto';
-import {Args, TraceUtils, RandomUtils} from '@themost/common/utils';
+import {Args, TraceUtils} from '@themost/common/utils';
 import {HttpError, HttpNotFoundError, HttpMethodNotAllowedError} from '@themost/common/errors';
 import {HttpNextResult,HttpResult,HttpAnyResult} from './results';
 import {AuthConsumer, BasicAuthConsumer, EncryptionStrategy, DefaultEncyptionStrategy, AuthStrategy} from './consumers/auth';
@@ -31,11 +28,10 @@ import Q from 'q';
 import path from 'path';
 import http from 'http';
 import https from 'https';
-import {HttpApplicationService} from "./interfaces";
 import {ViewConsumer} from "./consumers/view";
 import {FormatterStrategy, DefaultFormatterStrategy} from "./formatters";
 import {QuerystringConsumer} from "./consumers/querystring";
-import {ConfigurationBase, ModuleLoaderStrategy, ActiveModuleLoaderStrategy} from "@themost/common/config";
+import {ModuleLoaderStrategy, ActiveModuleLoaderStrategy} from "@themost/common/config";
 import {HttpConfiguration} from "./config";
 import {PostContentConsumer} from "./consumers/post";
 import {MultipartContentConsumer} from "./consumers/multipart";
@@ -48,7 +44,7 @@ const HTTP_SERVER_DEFAULT_PORT = 3000;
  * Starts current application
  * @private
  * @static
- * @param {ApplicationOptions|*} options
+ * @param {*} options
  */
 function startInternal(options) {
     /**
@@ -163,7 +159,7 @@ function processRequestInternal(context, callback) {
                 return cb(err);
             }
 
-    }, (finalRes) => {
+        }, (finalRes) => {
             if (_.isNil(finalRes)) {
                 //get otherwise consumer
                 const otherWiseConsumer = self[otherwiseConsumerProperty];
@@ -231,7 +227,7 @@ function processRequestInternal(context, callback) {
             //throw exception
             return callback(new HttpMethodNotAllowedError());
 
-    });
+        });
 }
 
 
@@ -242,17 +238,13 @@ function processRequestInternal(context, callback) {
  * @param {Function} callback
  */
 function processErrorInternal(context, error, callback) {
-    /**
-     * @type {HttpApplication|*}
-     */
-    const self = this,
-        /**
-         * @type {Array}
-         */
-        errorConsumers = context.getApplication()[errorConsumersProperty];
-        if (errorConsumers.length===0) {
-            return callback(error);
-        }
+  /**
+   * @type {Array}
+   */
+  const errorConsumers = context.getApplication()[errorConsumersProperty];
+    if (errorConsumers.length===0) {
+        return callback(error);
+    }
     return async.eachSeries(errorConsumers, (consumer, cb) => {
         consumer.callable.call(context, error).then(result=> {
             if (result instanceof HttpNextResult) {
@@ -279,13 +271,13 @@ function createRequestInternal(options) {
     request.url = (opt.url) ? opt.url : '/';
     request.httpVersion = '1.1';
     request.headers = (opt.headers) ? opt.headers : {
-            host: 'localhost',
-            'user-agent': 'Mozilla/5.0 (X11; Linux i686; rv:10.0) Gecko/20100101 Firefox/22.0',
-            accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'accept-language': 'en-US,en;q=0.5',
-            'accept-encoding': 'gzip, deflate',
-            connection: 'keep-alive',
-            'cache-control': 'max-age=0' };
+        host: 'localhost',
+        'user-agent': 'Mozilla/5.0 (X11; Linux i686; rv:10.0) Gecko/20100101 Firefox/22.0',
+        accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'accept-language': 'en-US,en;q=0.5',
+        'accept-encoding': 'gzip, deflate',
+        connection: 'keep-alive',
+        'cache-control': 'max-age=0' };
     if (opt.cookie)
         request.headers.cookie = opt.cookie;
     request.cookies = (opt.cookies) ? opt.cookies : {};
@@ -429,9 +421,9 @@ export class HttpApplication {
         if (typeof consumerConstructor !== 'function') {
             return false;
         }
-       return _.findIndex(this[consumersProperty],(x)=> {
-           return x instanceof consumerConstructor;
-       })>=0;
+        return _.findIndex(this[consumersProperty],(x)=> {
+            return x instanceof consumerConstructor;
+        })>=0;
     }
 
     /**
@@ -676,7 +668,7 @@ export class HttpApplication {
      * @returns {HttpContext}
      */
     createContext(request, response) {
-       return new HttpContext(this, request, response);
+        return new HttpContext(this, request, response);
     }
 
     /**
@@ -718,8 +710,8 @@ export class HttpApplication {
         const self = this;
         return Q.nfcall(function(callback) {
             //create context
-            const request = createRequestInternal.call(self),
-                response = createResponseInternal.call(self,request);
+            const request = createRequestInternal.bind(self)(),
+                response = createResponseInternal.bind(self)(request);
             let context = self.createContext(request, response);
             //get unattended execution account
             if (this.hasService(AuthStrategy)) {
@@ -811,8 +803,8 @@ export class HttpApplication {
             }
             else {
                 //create request and response
-                const request = createRequestInternal.call(this,requestOptions),
-                    response = createResponseInternal.call(this,request);
+                const request = createRequestInternal.bind(this)(requestOptions),
+                    response = createResponseInternal.bind(this)(request);
                 //set content length header to -1 (for backward compatibility issues)
                 response.setHeader('Content-Length',-1);
                 //create context

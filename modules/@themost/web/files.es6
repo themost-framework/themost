@@ -7,7 +7,6 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
 import {_} from 'lodash';
 import fs from 'fs';
@@ -164,28 +163,28 @@ export class FileSystemStorage extends FileStorage {
             else {
                 //check directory existence
                 fs.exists(self.root, function(exists) {
-                   if (exists) {
-                       self._initialized = true;
-                       callback();
-                   }
+                    if (exists) {
+                        self._initialized = true;
+                        callback();
+                    }
                     else {
-                       fs.mkdir(self.root,function(err) {
-                          if (err) {
-                              TraceUtils.log(err);
-                              callback(new Error('An error occured while trying to initialize file system storage.'));
-                          }
-                           else {
-                              const Db = require('tingodb')().Db, db = new Db(self.root, {nativeObjectID:true});
-                              //Fetch a collection to insert document into
-                              const collection = db.collection("fs");
-                              db.close(function() {
-                                  //initialization was completed, so exit with no error
-                                  self._initialized = true;
-                                  callback();
-                              });
-                          }
-                       });
-                   }
+                        fs.mkdir(self.root,function(err) {
+                            if (err) {
+                                TraceUtils.log(err);
+                                callback(new Error('An error occured while trying to initialize file system storage.'));
+                            }
+                            else {
+                                const Db = require('tingodb')().Db, db = new Db(self.root, {nativeObjectID:true});
+                                //Fetch a collection to insert document into
+                                const collection = db.collection("fs");
+                                db.close(function() {
+                                    //initialization was completed, so exit with no error
+                                    self._initialized = true;
+                                    callback();
+                                });
+                            }
+                        });
+                    }
                 });
             }
         };
@@ -196,7 +195,7 @@ export class FileSystemStorage extends FileStorage {
                 const Db = require('tingodb')().Db, db = new Db(physicalPath, { nativeObjectID:true });
                 fn(db, function(err, result) {
                     db.close(function() {
-                       callback(err, result);
+                        callback(err, result);
                     });
                 });
             }
@@ -370,7 +369,7 @@ export class FileSystemStorage extends FileStorage {
     /***
      * @param {HttpContext} context
      * @param {*} item
-     * @param {function(Boolean)} callback
+     * @param {Function} callback
      */
     exists(context, item, callback) {
         callback  = callback || function() {};
@@ -438,41 +437,41 @@ export class FileSystemStorage extends FileStorage {
                 attrs.filename = attrs.filename || filename;
                 //check source file
                 fs.exists(src, function(exists) {
-                   if (!exists) {
-                       callback(new Error('The source file cannot be found'));
-                   }
+                    if (!exists) {
+                        callback(new Error('The source file cannot be found'));
+                    }
                     else {
-                       //save attributes
-                       //insert item attributes
-                       self.save(context, attrs, function(err) {
-                           if (err) {
-                               callback(err);
-                           }
-                           else {
-                               //file operation (save to folder)
-                               const file = TextUtils.toBase26(attrs._id);
-                               fs.exists(path.join(self.root, file.substr(0,1)), function(exists) {
-                                   if (exists) {
-                                       copyFile(src,path.join(self.root, file.substr(0,1), file), function(err) {
-                                          callback(err);
-                                       });
-                                   }
-                                   else {
-                                       fs.mkdir(path.join(self.root, file.substr(0,1)), function(err) {
-                                          if (err) {
-                                              callback(err);
-                                          }
-                                           else {
-                                              copyFile(src,path.join(self.root, file.substr(0,1), file), function(err) {
-                                                  callback(err);
-                                              });
-                                          }
-                                       });
-                                   }
-                               });
-                           }
-                       });
-                   }
+                        //save attributes
+                        //insert item attributes
+                        self.save(context, attrs, function(err) {
+                            if (err) {
+                                callback(err);
+                            }
+                            else {
+                                //file operation (save to folder)
+                                const file = TextUtils.toBase26(attrs._id);
+                                fs.exists(path.join(self.root, file.substr(0,1)), function(exists) {
+                                    if (exists) {
+                                        copyFile(src,path.join(self.root, file.substr(0,1), file), function(err) {
+                                            callback(err);
+                                        });
+                                    }
+                                    else {
+                                        fs.mkdir(path.join(self.root, file.substr(0,1)), function(err) {
+                                            if (err) {
+                                                callback(err);
+                                            }
+                                            else {
+                                                copyFile(src,path.join(self.root, file.substr(0,1), file), function(err) {
+                                                    callback(err);
+                                                });
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    }
                 });
 
             }
@@ -481,7 +480,7 @@ export class FileSystemStorage extends FileStorage {
 
     /**
      * @param {HttpContext} context
-     * @param {string|*} item
+     * @param {*} item
      * @param {string} dest
      * @param {Function} callback
      */
@@ -491,28 +490,28 @@ export class FileSystemStorage extends FileStorage {
         if (_.isNil(item)) {
             callback(new Error('The source item cannot be empty at this context'));
             self.findOne(context, item, function(err, result) {
-               if (err) {
+                if (err) {
                     callback(err);
-               }
+                }
                 else {
-                   if (_.isNil(result)) {
-                       callback(new Error('The source item cannot be found.'));
-                   }
-                   else {
-                       const file = TextUtils.toBase26(result._id), src = path.join(self.root, file.substr(0,1), file);
-                       fs.exists(src, function(exists) {
-                          if (!exists) {
-                              callback(new Error('The source file cannot be found.'));
-                          }
-                           else {
-                              const destFile = path.join(dest, result.filename);
-                              copyFile(src, destFile, function(err) {
-                                  callback(err, destFile);
-                              });
-                          }
-                       });
-                   }
-               }
+                    if (_.isNil(result)) {
+                        callback(new Error('The source item cannot be found.'));
+                    }
+                    else {
+                        const file = TextUtils.toBase26(result._id), src = path.join(self.root, file.substr(0,1), file);
+                        fs.exists(src, function(exists) {
+                            if (!exists) {
+                                callback(new Error('The source file cannot be found.'));
+                            }
+                            else {
+                                const destFile = path.join(dest, result.filename);
+                                copyFile(src, destFile, function(err) {
+                                    callback(err, destFile);
+                                });
+                            }
+                        });
+                    }
+                }
             });
         }
     }
@@ -898,7 +897,7 @@ function copyFile(src, dest, callback) {
     //copy file
     source.pipe(destination);
     source.on('end', function() {
-            callback();
+        callback();
     });
     source.on('error', function(err) {
         callback(err);

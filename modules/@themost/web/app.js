@@ -1,13 +1,3 @@
-/**
- * @license
- * MOST Web Framework 2.0 Codename Blueshift
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- *                     Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Use of this source code is governed by an BSD-3-Clause license that can be
- * found in the LICENSE file at https://themost.io/license
- */
-
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -17,7 +7,15 @@ exports.HttpApplication = undefined;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * MOST Web Framework 2.0 Codename Blueshift
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *                     Anthi Oikonomou anthioikonomou@gmail.com
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Use of this source code is governed by an BSD-3-Clause license that can be
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * found in the LICENSE file at https://themost.io/license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
 
 require('source-map-support/register');
 
@@ -27,21 +25,16 @@ var url = _interopRequireDefault(_url).default;
 
 var _lodash = require('lodash');
 
-var _ = _lodash._;
+var _ = _interopRequireDefault(_lodash).default;
 
 var _async = require('async');
 
 var async = _interopRequireDefault(_async).default;
 
-var _crypto = require('crypto');
-
-var crypto = _interopRequireDefault(_crypto).default;
-
 var _utils = require('@themost/common/utils');
 
 var Args = _utils.Args;
 var TraceUtils = _utils.TraceUtils;
-var RandomUtils = _utils.RandomUtils;
 
 var _errors = require('@themost/common/errors');
 
@@ -119,10 +112,6 @@ var _https = require('https');
 
 var https = _interopRequireDefault(_https).default;
 
-var _interfaces = require('./interfaces');
-
-var HttpApplicationService = _interfaces.HttpApplicationService;
-
 var _view = require('./consumers/view');
 
 var ViewConsumer = _view.ViewConsumer;
@@ -138,7 +127,6 @@ var QuerystringConsumer = _querystring.QuerystringConsumer;
 
 var _config2 = require('@themost/common/config');
 
-var ConfigurationBase = _config2.ConfigurationBase;
 var ModuleLoaderStrategy = _config2.ModuleLoaderStrategy;
 var ActiveModuleLoaderStrategy = _config2.ActiveModuleLoaderStrategy;
 
@@ -169,7 +157,7 @@ var HTTP_SERVER_DEFAULT_PORT = 3000;
  * Starts current application
  * @private
  * @static
- * @param {ApplicationOptions|*} options
+ * @param {*} options
  */
 function startInternal(options) {
     /**
@@ -362,14 +350,9 @@ function processRequestInternal(context, callback) {
  */
 function processErrorInternal(context, error, callback) {
     /**
-     * @type {HttpApplication|*}
-     */
-    var self = this,
-
-    /**
      * @type {Array}
      */
-    errorConsumers = context.getApplication()[errorConsumersProperty];
+    var errorConsumers = context.getApplication()[errorConsumersProperty];
     if (errorConsumers.length === 0) {
         return callback(error);
     }
@@ -932,8 +915,8 @@ var HttpApplication = exports.HttpApplication = function () {
             var self = this;
             return Q.nfcall(function (callback) {
                 //create context
-                var request = createRequestInternal.call(self),
-                    response = createResponseInternal.call(self, request);
+                var request = createRequestInternal.bind(self)(),
+                    response = createResponseInternal.bind(self)(request);
                 var context = self.createContext(request, response);
                 //get unattended execution account
                 if (this.hasService(AuthStrategy)) {
@@ -1023,8 +1006,8 @@ var HttpApplication = exports.HttpApplication = function () {
                     });
                 } else {
                     //create request and response
-                    var request = createRequestInternal.call(_this, requestOptions),
-                        response = createResponseInternal.call(_this, request);
+                    var request = createRequestInternal.bind(_this)(requestOptions),
+                        response = createResponseInternal.bind(_this)(request);
                     //set content length header to -1 (for backward compatibility issues)
                     response.setHeader('Content-Length', -1);
                     //create context
