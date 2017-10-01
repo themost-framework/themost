@@ -362,8 +362,9 @@ export class ODataModelBuilder extends ConfigurationStrategy {
      */
     getEntitySet(name) {
         Args.notString(name, 'EntitySet Name');
+        const re = new RegExp("^" + name + "$","ig");
         return _.find(this[entityContainerProperty], (x)=> {
-            return x.name === name;
+            return re.test(x.name);
         });
     }
 
@@ -714,11 +715,11 @@ export class ODataConventionModelBuilder extends ODataModelBuilder {
                 if (_.isObject(self[edmProperty])) {
                     return resolve(self[edmProperty]);
                 }
-                return superGetEdm.bind(self)().then((result) => {
-                    self[edmProperty] = result;
-                    return resolve(self[edmProperty]);
-                }).catch((err)=> {
-                    return reject(err);
+                return self.initialize().then(()=> {
+                    return superGetEdm.bind(self)().then((result) => {
+                        self[edmProperty] = result;
+                        return resolve(self[edmProperty]);
+                    });
                 });
             }
             catch(err) {
@@ -728,6 +729,6 @@ export class ODataConventionModelBuilder extends ODataModelBuilder {
     }
 }
 
-export class ODataJsonFormatter {
+export class ODataMediaTypeFormatter {
 
 }

@@ -18,4 +18,3 @@ function bootstrap(angular) {
         };
     });
 }
-//# sourceMappingURL=server-directives.js.map

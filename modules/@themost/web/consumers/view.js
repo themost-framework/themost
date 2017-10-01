@@ -65,6 +65,19 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+function getOwnPropertyNames_(obj) {
+    if (typeof obj === 'undefined' || obj === null) {
+        return [];
+    }
+    var ownPropertyNames = [];
+    var proto = Object.getPrototypeOf(obj);
+    while (proto) {
+        ownPropertyNames.push.apply(ownPropertyNames, Object.getOwnPropertyNames(proto));
+        proto = Object.getPrototypeOf(proto);
+    }
+    return ownPropertyNames;
+}
+
 /**
  *
  * @param s
@@ -313,12 +326,12 @@ var ViewHandler = function () {
             var controllerPrototype = Object.getPrototypeOf(controller);
             if (controllerPrototype) {
                 //query controller methods that support current http request
-                var protoActionMethods = _.filter(Object.getOwnPropertyNames(controllerPrototype), function (x) {
+                var protoActionMethod = _.find(getOwnPropertyNames_(controller), function (x) {
                     return typeof controller[x] === 'function' && controller[x].httpAction === action && controller[x][httpMethodDecorator] === true;
                 });
                 //if an action was found for the given criteria
-                if (protoActionMethods.length === 1) {
-                    return controller[protoActionMethods[0]];
+                if (protoActionMethod) {
+                    return controller[protoActionMethod];
                 }
             }
             //if an action with the given name is a method of current controller

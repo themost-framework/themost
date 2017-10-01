@@ -757,8 +757,8 @@ var DataModel = exports.DataModel = function (_SequentialEventEmitt) {
                             }
                             if (expand) {
 
-                                var resolver = require("./expand-resolver");
-                                var matches = resolver.testExpandExpression(expand);
+                                var DataExpandResolver = require("./expand-resolver").DataExpandResolver;
+                                var matches = DataExpandResolver.testExpandExpression(expand);
                                 if (matches && matches.length > 0) {
                                     _q.expand.apply(_q, matches);
                                 }

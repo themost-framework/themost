@@ -6,10 +6,10 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-import {PathUtils} from "../../modules/@themost/common/utils";
+import DataServiceController from "../../../modules/@themost/web/controllers/service";
 
-describe('Common Tests', () => {
-    it('should use path utils', () => {
-        console.log(PathUtils.join(process.cwd(),'.'));
-    });
-});
+export default class ApiController extends DataServiceController {
+    constructor(context) {
+        super(context);
+    }
+}

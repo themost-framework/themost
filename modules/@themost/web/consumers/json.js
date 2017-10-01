@@ -121,11 +121,7 @@ var JsonContentConsumer = exports.JsonContentConsumer = function (_HttpConsumer)
     function JsonContentConsumer() {
         _classCallCheck(this, JsonContentConsumer);
 
-        return _possibleConstructorReturn(this, (JsonContentConsumer.__proto__ || Object.getPrototypeOf(JsonContentConsumer)).call(this, function () {
-            /**
-             * @type {HttpContext}
-             */
-            var context = this;
+        return _possibleConstructorReturn(this, (JsonContentConsumer.__proto__ || Object.getPrototypeOf(JsonContentConsumer)).call(this, function (context) {
             try {
                 var handler = new JsonHandler();
                 return Q.nfbind(handler.beginRequest)(context).then(function () {

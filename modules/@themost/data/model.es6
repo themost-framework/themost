@@ -652,8 +652,8 @@ export class DataModel extends SequentialEventEmitter {
                         }
                         if (expand) {
 
-                            const resolver = require("./expand-resolver");
-                            const matches = resolver.testExpandExpression(expand);
+                            const DataExpandResolver = require("./expand-resolver").DataExpandResolver;
+                            const matches = DataExpandResolver.testExpandExpression(expand);
                             if (matches && matches.length>0) {
                                 q.expand.apply(q, matches);
                             }

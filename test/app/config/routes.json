@@ -1,4 +1,6 @@
 [
+    { "url":"/api/v4", "controller":"api", "action":"index" },
+    { "url":"/api/v4/:action", "controller":"api" },
     { "url":"/", "controller":"root", "action":"index" },
     { "url":"/locale/:resource.js", "controller":"root", "action":"locale", "mime":"application/javascript" },
     { "url":"/:action", "controller":"root" },

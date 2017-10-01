@@ -260,11 +260,7 @@ var StaticContentConsumer = exports.StaticContentConsumer = function (_HttpConsu
     function StaticContentConsumer(rootDir) {
         _classCallCheck(this, StaticContentConsumer);
 
-        return _possibleConstructorReturn(this, (StaticContentConsumer.__proto__ || Object.getPrototypeOf(StaticContentConsumer)).call(this, function () {
-            /**
-             * @type {HttpContext}
-             */
-            var context = this;
+        return _possibleConstructorReturn(this, (StaticContentConsumer.__proto__ || Object.getPrototypeOf(StaticContentConsumer)).call(this, function (context) {
             try {
                 var handler = new StaticHandler(rootDir);
                 return Q.nfbind(handler.mapRequest.bind(handler))(context).then(function (res) {

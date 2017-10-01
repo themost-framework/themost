@@ -184,7 +184,6 @@ export class SqlFormatter {
         switch (property) {
         case '$not':
             return '(NOT ' + self.formatWhere(propertyValue) + ')';
-            break;
         case '$and':
         case '$or':
             const separator = property==='$or' ? ' OR ' : ' AND ';
@@ -196,7 +195,6 @@ export class SqlFormatter {
             return '(' + _.map(propertyValue, function(x) {
                 return self.formatWhere(x);
             }).join(separator) + ')';
-            break;
         default:
             let comparison = propertyValue;
             let op =  null, sql = null;

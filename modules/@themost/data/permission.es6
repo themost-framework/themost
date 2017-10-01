@@ -663,7 +663,7 @@ export class DataPermissionEventListener {
                             }
                             q.join(perms1).with(expr);
                             const pqAlias = 'pq' + RandomUtils.randomInt(100000,999999).toString();
-                            event.query.join(q.as(pqAlias)).with(QueryExpression.create().where(entity.select(model.primaryKey)).equal(QueryEntity.entity(pqAlias).select(model.primaryKey)));
+                            event.query.join(q.as(pqAlias)).with(QueryExpression.create().where(entity.select(model.primaryKey)).equal(QueryEntity.create(pqAlias).select(model.primaryKey)));
                             return callback();
                         });
                     }

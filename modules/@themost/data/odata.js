@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.ODataJsonFormatter = exports.ODataConventionModelBuilder = exports.ODataModelBuilder = exports.EntitySetConfiguration = exports.EntityTypeConfiguration = exports.EntitySetKind = exports.EdmMultiplicity = exports.EdmType = undefined;
+exports.ODataMediaTypeFormatter = exports.ODataConventionModelBuilder = exports.ODataModelBuilder = exports.EntitySetConfiguration = exports.EntityTypeConfiguration = exports.EntitySetKind = exports.EdmMultiplicity = exports.EdmType = undefined;
 
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
@@ -477,8 +477,9 @@ var ODataModelBuilder = exports.ODataModelBuilder = function (_ConfigurationStra
         key: 'getEntitySet',
         value: function getEntitySet(name) {
             Args.notString(name, 'EntitySet Name');
+            var re = new RegExp("^" + name + "$", "ig");
             return _.find(this[entityContainerProperty], function (x) {
-                return x.name === name;
+                return re.test(x.name);
             });
         }
 
@@ -871,11 +872,11 @@ var ODataConventionModelBuilder = exports.ODataConventionModelBuilder = function
                     if (_.isObject(self[edmProperty])) {
                         return resolve(self[edmProperty]);
                     }
-                    return superGetEdm.bind(self)().then(function (result) {
-                        self[edmProperty] = result;
-                        return resolve(self[edmProperty]);
-                    }).catch(function (err) {
-                        return reject(err);
+                    return self.initialize().then(function () {
+                        return superGetEdm.bind(self)().then(function (result) {
+                            self[edmProperty] = result;
+                            return resolve(self[edmProperty]);
+                        });
                     });
                 } catch (err) {
                     return reject(err);
@@ -887,7 +888,7 @@ var ODataConventionModelBuilder = exports.ODataConventionModelBuilder = function
     return ODataConventionModelBuilder;
 }(ODataModelBuilder);
 
-var ODataJsonFormatter = exports.ODataJsonFormatter = function ODataJsonFormatter() {
-    _classCallCheck(this, ODataJsonFormatter);
+var ODataMediaTypeFormatter = exports.ODataMediaTypeFormatter = function ODataMediaTypeFormatter() {
+    _classCallCheck(this, ODataMediaTypeFormatter);
 };
 //# sourceMappingURL=odata.js.map

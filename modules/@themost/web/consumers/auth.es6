@@ -64,11 +64,7 @@ class AuthHandler {
 
 export class AuthConsumer extends HttpConsumer {
     constructor() {
-        super(function() {
-            /**
-             * @type {HttpContext}
-             */
-            const context = this;
+        super(function(context) {
             try {
                 let handler = new AuthHandler();
                 return Q.nfbind(handler.authenticateRequest)(context)
@@ -154,11 +150,7 @@ BasicAuthHandler.USERNAME_REGEXP = /^[a-zA-Z0-9.@_-]{1,255}$/;
 
 export class BasicAuthConsumer extends HttpConsumer {
     constructor() {
-        super(function() {
-            /**
-             * @type {HttpContext}
-             */
-            const context = this;
+        super(function(context) {
             try {
                 let handler = new BasicAuthHandler();
                 return Q.nfbind(handler.authenticateRequest)(context)

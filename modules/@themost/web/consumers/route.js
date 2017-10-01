@@ -82,16 +82,16 @@ var HttpRoute = exports.HttpRoute = function () {
 
         this.patterns = {
             int: function int() {
-                return "^[1-9]([0-9]*)$";
+                return "^[+-]?[1-9]([0-9]*)$";
             },
             boolean: function boolean() {
                 return "^true|false$";
             },
             decimal: function decimal() {
-                return "^\d*\.?\d*$";
+                return "^[+-]?\\d*\\.?\\d*$";
             },
             float: function float() {
-                return "^\d*\.?\d*$";
+                return "^[+-]?\\d*\\.?\\*$";
             },
             guid: function guid() {
                 return "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$";
@@ -119,7 +119,7 @@ var HttpRoute = exports.HttpRoute = function () {
                 patternMatch = void 0;
             var k = urlToMatch.indexOf('?');
             if (k >= 0) str1 = urlToMatch.substr(0, k);
-            var re = /(\{([\w\[\]]+)(?::\s*((?:[^{}\\]+|\\.|\{(?:[^{}\\]+|\\.)*})+))?})|((:)([\w\[\]]+))/ig;
+            var re = /(\{([\w[\]]+)(?::\s*((?:[^{}\\]+|\\.|\{(?:[^{}\\]+|\\.)*})+))?})|((:)([\w[\]]+))/ig;
             var match = re.exec(this.route.url);
             var params = [];
             while (match) {
@@ -145,7 +145,7 @@ var HttpRoute = exports.HttpRoute = function () {
                 }
                 match = re.exec(this.route.url);
             }
-            var str = this.route.url.replace(re, "([\\w-]+)"),
+            var str = this.route.url.replace(re, "([\\$_\\w-]+)"),
                 matcher = new RegExp("^" + str + "$", "ig");
             match = matcher.exec(str1);
             if (typeof match === 'undefined' || match === null) {
@@ -361,11 +361,7 @@ var RouteConsumer = exports.RouteConsumer = function (_HttpConsumer) {
     function RouteConsumer() {
         _classCallCheck(this, RouteConsumer);
 
-        return _possibleConstructorReturn(this, (RouteConsumer.__proto__ || Object.getPrototypeOf(RouteConsumer)).call(this, function () {
-            /**
-             * @type {HttpContext}
-             */
-            var context = this;
+        return _possibleConstructorReturn(this, (RouteConsumer.__proto__ || Object.getPrototypeOf(RouteConsumer)).call(this, function (context) {
             try {
                 var handler = new RouteHandler();
                 return Q.nfbind(handler.mapRequest)(context).then(function () {

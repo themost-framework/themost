@@ -125,11 +125,7 @@ var AuthConsumer = exports.AuthConsumer = function (_HttpConsumer) {
     function AuthConsumer() {
         _classCallCheck(this, AuthConsumer);
 
-        return _possibleConstructorReturn(this, (AuthConsumer.__proto__ || Object.getPrototypeOf(AuthConsumer)).call(this, function () {
-            /**
-             * @type {HttpContext}
-             */
-            var context = this;
+        return _possibleConstructorReturn(this, (AuthConsumer.__proto__ || Object.getPrototypeOf(AuthConsumer)).call(this, function (context) {
             try {
                 var handler = new AuthHandler();
                 return Q.nfbind(handler.authenticateRequest)(context).then(function () {
@@ -231,11 +227,7 @@ var BasicAuthConsumer = exports.BasicAuthConsumer = function (_HttpConsumer2) {
     function BasicAuthConsumer() {
         _classCallCheck(this, BasicAuthConsumer);
 
-        return _possibleConstructorReturn(this, (BasicAuthConsumer.__proto__ || Object.getPrototypeOf(BasicAuthConsumer)).call(this, function () {
-            /**
-             * @type {HttpContext}
-             */
-            var context = this;
+        return _possibleConstructorReturn(this, (BasicAuthConsumer.__proto__ || Object.getPrototypeOf(BasicAuthConsumer)).call(this, function (context) {
             try {
                 var handler = new BasicAuthHandler();
                 return Q.nfbind(handler.authenticateRequest)(context).then(function () {

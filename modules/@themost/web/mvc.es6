@@ -200,6 +200,27 @@ export class HttpXmlResult extends HttpAnyResult {
         else
             this.data=data;
     }
+    /**
+     * @param context
+     * @returns {Promise}
+     */
+    execute(context) {
+        const self = this;
+        return Q.nfcall(function(callback) {
+            /**
+             * @type ServerResponse
+             * */
+            const response = context.response;
+            if (_.isNil(self.data)) {
+                response.writeHead(204);
+                return callback();
+            }
+            response.writeHead(200, { 'Content-Type': self.contentType });
+            response.write(self.data,self.contentEncoding, function(err) {
+                return callback(err);
+            });
+        });
+    }
 }
 
 /**

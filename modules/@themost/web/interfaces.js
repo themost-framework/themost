@@ -18,10 +18,6 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 require('source-map-support/register');
 
-var _lodash = require('lodash');
-
-var _ = _interopRequireDefault(_lodash).default;
-
 var _utils = require('@themost/common/utils');
 
 var Args = _utils.Args;
@@ -30,8 +26,6 @@ var _errors = require('@themost/common/errors');
 
 var AbstractMethodError = _errors.AbstractMethodError;
 var AbstractClassError = _errors.AbstractClassError;
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 

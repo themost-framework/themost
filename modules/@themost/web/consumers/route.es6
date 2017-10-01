@@ -37,16 +37,16 @@ export class HttpRoute {
 
         this.patterns = {
             int:function() {
-                return "^[1-9]([0-9]*)$";
+                return "^[+-]?[1-9]([0-9]*)$";
             },
             boolean:function() {
                 return "^true|false$"
             },
             decimal:function() {
-                return "^\d*\.?\d*$";
+                return "^[+-]?\\d*\\.?\\d*$";
             },
             float:function() {
-                return "^\d*\.?\d*$";
+                return "^[+-]?\\d*\\.?\\*$";
             },
             guid:function() {
                 return "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$";
@@ -73,7 +73,7 @@ export class HttpRoute {
         const k = urlToMatch.indexOf('?');
         if (k >= 0)
             str1 = urlToMatch.substr(0, k);
-        const re = /(\{([\w\[\]]+)(?::\s*((?:[^{}\\]+|\\.|\{(?:[^{}\\]+|\\.)*})+))?})|((:)([\w\[\]]+))/ig;
+        const re = /(\{([\w[\]]+)(?::\s*((?:[^{}\\]+|\\.|\{(?:[^{}\\]+|\\.)*})+))?})|((:)([\w[\]]+))/ig;
         let match = re.exec(this.route.url);
         const params = [];
         while(match) {
@@ -101,7 +101,7 @@ export class HttpRoute {
             }
             match = re.exec(this.route.url);
         }
-        const str = this.route.url.replace(re, "([\\w-]+)"), matcher = new RegExp("^" + str + "$", "ig");
+        const str = this.route.url.replace(re, "([\\$_\\w-]+)"), matcher = new RegExp("^" + str + "$", "ig");
         match = matcher.exec(str1);
         if (typeof match === 'undefined' || match === null) {
             return false;
@@ -257,11 +257,7 @@ export class DefaultRoutingStrategy extends RoutingStrategy {
  */
 export class RouteConsumer extends HttpConsumer {
     constructor() {
-        super(function() {
-            /**
-             * @type {HttpContext}
-             */
-            const context = this;
+        super(function(context) {
             try {
                 let handler = new RouteHandler();
                 return Q.nfbind(handler.mapRequest)(context)

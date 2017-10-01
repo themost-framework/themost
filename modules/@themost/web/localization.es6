@@ -62,6 +62,7 @@ export class LocalizationStrategy extends HttpApplicationService {
      * @param {string} locale - The target locale
      * @param {string} str - The string or key which is going to be localized
      * @param {string=} library - The library which contains the given text
+     * @abstract
      */
     getLocaleString(locale, str, library) {
         throw new AbstractMethodError();

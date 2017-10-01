@@ -12,7 +12,6 @@ import _ from 'lodash';
 /**
  * @private
  */
-const HTML_START_CHAR = '<';
 const HTML_END_CHAR = '>';
 const HTML_FULL_END_STRING = ' />';
 const HTML_SPACE_CHAR = ' ';

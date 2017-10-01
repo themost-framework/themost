@@ -8,7 +8,6 @@
  * found in the LICENSE file at https://themost.io/license
  */
 import 'source-map-support/register';
-import _ from 'lodash';
 import {Args} from '@themost/common/utils';
 import {AbstractMethodError,AbstractClassError} from '@themost/common/errors';
 

@@ -79,11 +79,7 @@ class JsonHandler {
  */
 export class JsonContentConsumer extends HttpConsumer {
     constructor() {
-        super(function() {
-            /**
-             * @type {HttpContext}
-             */
-            const context = this;
+        super(function(context) {
             try {
                 let handler = new JsonHandler();
                 return Q.nfbind(handler.beginRequest)(context)

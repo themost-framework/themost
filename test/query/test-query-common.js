@@ -11,4 +11,3 @@
 describe('Query Common Tests', function () {
   //
 });
-//# sourceMappingURL=test-query-common.js.map

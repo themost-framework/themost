@@ -111,6 +111,7 @@ var LocalizationStrategy = exports.LocalizationStrategy = function (_HttpApplica
          * @param {string} locale - The target locale
          * @param {string} str - The string or key which is going to be localized
          * @param {string=} library - The library which contains the given text
+         * @abstract
          */
 
     }, {

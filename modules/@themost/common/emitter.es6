@@ -144,7 +144,7 @@ export class SequentialEventEmitter {
             self.removeListener(type, g);
             if (!fired) {
                 fired = true;
-                listener.apply(this, arguments);
+                listener.apply(self, arguments);
             }
         }
         g.listener = listener;

@@ -28,7 +28,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 /**
  * @private
  */
-var HTML_START_CHAR = '<';
 var HTML_END_CHAR = '>';
 var HTML_FULL_END_STRING = ' />';
 var HTML_SPACE_CHAR = ' ';

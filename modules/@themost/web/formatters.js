@@ -160,7 +160,6 @@ var DefaultFormatterStrategy = exports.DefaultFormatterStrategy = function (_For
     _createClass(DefaultFormatterStrategy, [{
         key: "find",
         value: function find(context) {
-            var formatters = this[formattersProperty];
             var mimeType = context.getApplication().getMimeType(path.extname(url.parse(context.request.url).pathname));
             if (typeof mimeType === 'undefined') {
                 //get available formatters (as array of types)

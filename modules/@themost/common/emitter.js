@@ -184,7 +184,7 @@ var SequentialEventEmitter = exports.SequentialEventEmitter = function () {
                 self.removeListener(type, g);
                 if (!fired) {
                     fired = true;
-                    listener.apply(this, arguments);
+                    listener.apply(self, arguments);
                 }
             }
             g.listener = listener;

@@ -311,6 +311,32 @@ var HttpXmlResult = exports.HttpXmlResult = function (_HttpAnyResult5) {
         if ((typeof data === 'undefined' ? 'undefined' : _typeof(data)) === 'object') _this5.data = xml.serialize(data).outerXML();else _this5.data = data;
         return _this5;
     }
+    /**
+     * @param context
+     * @returns {Promise}
+     */
+
+
+    _createClass(HttpXmlResult, [{
+        key: 'execute',
+        value: function execute(context) {
+            var self = this;
+            return Q.nfcall(function (callback) {
+                /**
+                 * @type ServerResponse
+                 * */
+                var response = context.response;
+                if (_.isNil(self.data)) {
+                    response.writeHead(204);
+                    return callback();
+                }
+                response.writeHead(200, { 'Content-Type': self.contentType });
+                response.write(self.data, self.contentEncoding, function (err) {
+                    return callback(err);
+                });
+            });
+        }
+    }]);
 
     return HttpXmlResult;
 }(HttpAnyResult);

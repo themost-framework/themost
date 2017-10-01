@@ -206,11 +206,7 @@ export class StaticContentConsumer extends HttpConsumer {
      * @constructor
      */
     constructor(rootDir) {
-        super(function() {
-            /**
-             * @type {HttpContext}
-             */
-            const context = this;
+        super(function(context) {
             try {
                 let handler = new StaticHandler(rootDir);
                 return Q.nfbind(handler.mapRequest.bind(handler))(context)

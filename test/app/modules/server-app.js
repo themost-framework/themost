@@ -28,4 +28,3 @@ function bootstrap(angular) {
     angular.module('server-extensions', []).directive('helloUser', helloUser);
     return angular.module('server', ['server-extensions', 'server-directives']);
 }
-//# sourceMappingURL=server-app.js.map

@@ -1,4 +1,3 @@
-
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -7,7 +6,15 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _dec, _dec2, _dec3, _dec4, _dec5, _dec6, _dec7, _dec8, _dec9, _dec10, _dec11, _dec12, _dec13, _dec14, _desc, _value, _class;
+var _dec, _dec2, _dec3, _dec4, _dec5, _dec6, _dec7, _dec8, _dec9, _dec10, _dec11, _dec12, _dec13, _dec14, _desc, _value, _class; /**
+                                                                                                                                  * @license
+                                                                                                                                  * MOST Web Framework 2.0 Codename Blueshift
+                                                                                                                                  * Copyright (c) 2017, THEMOST LP All rights reserved
+                                                                                                                                  *
+                                                                                                                                  * Use of this source code is governed by an BSD-3-Clause license that can be
+                                                                                                                                  * found in the LICENSE file at https://themost.io/license
+                                                                                                                                  */
+
 
 var _q = require('q');
 
@@ -20,7 +27,6 @@ var HttpController = _mvc.HttpController;
 var _decorators = require('../../../modules/@themost/web/decorators');
 
 var httpAction = _decorators.httpAction;
-var httpAuthorize = _decorators.httpAuthorize;
 var httpGet = _decorators.httpGet;
 var httpParam = _decorators.httpParam;
 
@@ -156,4 +162,3 @@ var RootController = (_dec = httpGet(), _dec2 = httpGet(), _dec3 = httpAction('h
 
 exports.default = RootController;
 module.exports = exports['default'];
-//# sourceMappingURL=root-controller.js.map
