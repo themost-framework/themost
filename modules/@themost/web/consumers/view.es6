@@ -477,11 +477,7 @@ function queryController(requestUri) {
 
 export class ViewConsumer extends HttpConsumer {
     constructor() {
-        super(function() {
-            /**
-             * @type {HttpContext}
-             */
-            const context = this;
+        super(function(context) {
             try {
                 let handler = new ViewHandler();
                 //execute mapRequest

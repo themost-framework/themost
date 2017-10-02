@@ -289,11 +289,7 @@ var MapStaticContentConsumer = exports.MapStaticContentConsumer = function (_Htt
     function MapStaticContentConsumer(whenDir, rootDir) {
         _classCallCheck(this, MapStaticContentConsumer);
 
-        return _possibleConstructorReturn(this, (MapStaticContentConsumer.__proto__ || Object.getPrototypeOf(MapStaticContentConsumer)).call(this, function () {
-            /**
-             * @type {HttpContext}
-             */
-            var context = this;
+        return _possibleConstructorReturn(this, (MapStaticContentConsumer.__proto__ || Object.getPrototypeOf(MapStaticContentConsumer)).call(this, function (context) {
             try {
                 var handler = new StaticHandler(rootDir);
                 handler.whenDir = whenDir;

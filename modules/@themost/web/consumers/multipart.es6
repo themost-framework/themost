@@ -76,11 +76,7 @@ class MultipartHandler {
  */
 export class MultipartContentConsumer extends HttpConsumer {
     constructor() {
-        super(function() {
-            /**
-             * @type {HttpContext}
-             */
-            const context = this;
+        super(function(context) {
             try {
                 const handler = new MultipartHandler();
                 return Q.nfbind(handler.beginRequest)(context)

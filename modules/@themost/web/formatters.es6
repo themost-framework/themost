@@ -80,7 +80,7 @@ export class DefaultFormatterStrategy extends FormatterStrategy {
     /**
      * Finds a formatter for the given HTTP context
      * @param context
-     * @returns {OutputFormatter}
+     * @returns {OutputFormatter|*}
      */
     find(context) {
         const mimeType = context.getApplication().getMimeType(path.extname(url.parse(context.request.url).pathname));

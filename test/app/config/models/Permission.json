@@ -9,8 +9,8 @@
         { "name": "target", "title": "Target object", "description":"The target object.", "type": "Text", "size":128, "nullable": true,"value":"javascript:return '0';"  },
         { "name": "mask", "title": "Mask", "description":"The permission mask.", "type": "Integer", "nullable": false },
         { "name": "sealed", "title": "Mask", "description":"Indicates whether this permission is sealed and cannot be edited.", "type": "Boolean", "nullable": true },
-        { "name": "dateCreated", "title": "Date Created", "description":"The date and time when this item was created.", "type": "Date", "readonly":true, "nullable": true, "value":"javascript:return (new Date());" },
-        { "name": "dateModified", "title": "Date Modified", "description":"The date and time when this item was modified.", "type": "Date", "readonly":true, "nullable": true, "value":"javascript:return (new Date());", "calculation":"javascript:return (new Date());" },
+        { "name": "dateCreated", "title": "Date Created", "description":"The date and time when this item was created.", "type": "DateTime", "readonly":true, "nullable": true, "value":"javascript:return (new Date());" },
+        { "name": "dateModified", "title": "Date Modified", "description":"The date and time when this item was modified.", "type": "DateTime", "readonly":true, "nullable": true, "value":"javascript:return (new Date());", "calculation":"javascript:return (new Date());" },
         { "name": "createdBy", "title": "Created By", "description":"The user who created this item.", "type": "User", "readonly":true, "nullable": true, "value":"javascript:return this.user();" },
         { "name": "modifiedBy", "title": "Modified By", "description":"The user who modified this item.", "type": "User", "readonly":true, "nullable": true, "value":"javascript:return this.user();", "calculation":"javascript:return this.user();" }
     ],

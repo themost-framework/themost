@@ -120,11 +120,7 @@ var PostContentConsumer = exports.PostContentConsumer = function (_HttpConsumer)
     function PostContentConsumer() {
         _classCallCheck(this, PostContentConsumer);
 
-        return _possibleConstructorReturn(this, (PostContentConsumer.__proto__ || Object.getPrototypeOf(PostContentConsumer)).call(this, function () {
-            /**
-             * @type {HttpContext}
-             */
-            var context = this;
+        return _possibleConstructorReturn(this, (PostContentConsumer.__proto__ || Object.getPrototypeOf(PostContentConsumer)).call(this, function (context) {
             try {
                 var handler = new PostHandler();
                 return Q.nfbind(handler.beginRequest)(context).then(function () {

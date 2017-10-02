@@ -26,4 +26,15 @@ app.useAuthentication()
     .useFormatterStrategy()
     .useStaticContent("./test/app/app");
 app.useViewContent();
-app.start();
+
+const builder = app.getConfiguration().getStrategy(ODataModelBuilder);
+builder.hasContextLink(function(context) {
+    const req = context.request;
+    const protocol = req.protocol || "http";
+    return `${protocol}://${req.headers.host}/api/v4/`;
+});
+builder.initialize().then(function() {
+    app.start();
+});
+
+

@@ -1,6 +1,8 @@
 [
     { "url":"/api/v4", "controller":"api", "action":"index" },
-    { "url":"/api/v4/:action", "controller":"api" },
+    { "url":"/api/v4/\\$metadata", "controller":"api", "action":"metadata" },
+    { "url":"/api/v4/:entity", "controller":"api", "action":"items" },
+    { "url":"/api/v4/:entity\\(:id\\)", "controller":"api", "action":"item" },
     { "url":"/", "controller":"root", "action":"index" },
     { "url":"/locale/:resource.js", "controller":"root", "action":"locale", "mime":"application/javascript" },
     { "url":"/:action", "controller":"root" },

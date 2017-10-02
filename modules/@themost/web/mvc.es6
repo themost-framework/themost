@@ -55,7 +55,7 @@ export class HttpContentResult extends HttpAnyResult {
                 return callback();
             }
             else {
-                response.writeHead(200, { 'Content-Type': self.contentType });
+                response.writeHead(200, _.assign(self.headers, { 'Content-Type': self.contentType }));
                 response.write(self.data,self.contentEncoding, function(err) {
                     return callback(err);
                 });
@@ -77,7 +77,7 @@ export class HttpEmptyResult extends HttpAnyResult {
      */
     execute(context) {
         //do nothing
-        context.response.writeHead(204);
+        context.response.writeHead(204, self.headers);
         return Q();
     }
 }
@@ -129,7 +129,7 @@ export class HttpJsonResult extends HttpAnyResult {
                 response.writeHead(204);
                 return callback();
             }
-            response.writeHead(200, { 'Content-Type': self.contentType });
+            response.writeHead(200, _.assign(self.headers, { 'Content-Type': self.contentType }));
             response.write(self.data,self.contentEncoding, function(err) {
                 return callback(err);
             });
@@ -171,7 +171,7 @@ export class HttpJavascriptResult extends HttpAnyResult {
                 response.writeHead(204);
                 return callback();
             }
-            response.writeHead(200, { 'Content-Type': self.contentType });
+            response.writeHead(200, _.assign(self.headers, { 'Content-Type': self.contentType }));
             response.write(self.data,self.contentEncoding, function(err) {
                 return callback(err);
             });
@@ -215,7 +215,7 @@ export class HttpXmlResult extends HttpAnyResult {
                 response.writeHead(204);
                 return callback();
             }
-            response.writeHead(200, { 'Content-Type': self.contentType });
+            response.writeHead(200, _.assign(self.headers, { 'Content-Type': self.contentType }));
             response.write(self.data,self.contentEncoding, function(err) {
                 return callback(err);
             });
@@ -334,10 +334,10 @@ export class HttpFileResult extends HttpAnyResult {
                                         //create read stream
                                         const source = fs.createReadStream(physicalPath);
                                         //add Content-Disposition: attachment; filename="<file name.ext>"
-                                        context.response.writeHead(200, {
+                                        context.response.writeHead(200, _.assign(self.headers, {
                                             'Content-Type': contentType + (contentEncoding ? ';charset=' + contentEncoding : ''),
                                             'ETag': responseETag
-                                        });
+                                        }));
                                         //copy file
                                         source.pipe(context.response);
                                         source.on('end', function() {
@@ -540,7 +540,7 @@ export class HttpViewResult extends HttpAnyResult {
                                 return callback(err);
                             }
                             else {
-                                response.writeHead(200, {"Content-Type": self.contentType});
+                                response.writeHead(200, _.assign(self.headers, {"Content-Type": self.contentType}));
                                 response.write(result, self.contentEncoding);
                                 return callback();
                             }
@@ -656,6 +656,7 @@ export class HttpController {
 
     /**
      * Creates a JSON result object by using the specified data.
+     * @param {*} data
      * @returns HttpJsonResult
      * */
     json(data) {

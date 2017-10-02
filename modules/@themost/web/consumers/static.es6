@@ -231,11 +231,7 @@ export class MapStaticContentConsumer extends HttpConsumer {
      * @constructor
      */
     constructor(whenDir, rootDir) {
-        super(function() {
-            /**
-             * @type {HttpContext}
-             */
-            const context = this;
+        super(function(context) {
             try {
                 let handler = new StaticHandler(rootDir);
                 handler.whenDir = whenDir;

@@ -153,7 +153,7 @@ var DefaultFormatterStrategy = exports.DefaultFormatterStrategy = function (_For
     /**
      * Finds a formatter for the given HTTP context
      * @param context
-     * @returns {OutputFormatter}
+     * @returns {OutputFormatter|*}
      */
 
 

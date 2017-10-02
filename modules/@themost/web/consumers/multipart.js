@@ -126,11 +126,7 @@ var MultipartContentConsumer = exports.MultipartContentConsumer = function (_Htt
     function MultipartContentConsumer() {
         _classCallCheck(this, MultipartContentConsumer);
 
-        return _possibleConstructorReturn(this, (MultipartContentConsumer.__proto__ || Object.getPrototypeOf(MultipartContentConsumer)).call(this, function () {
-            /**
-             * @type {HttpContext}
-             */
-            var context = this;
+        return _possibleConstructorReturn(this, (MultipartContentConsumer.__proto__ || Object.getPrototypeOf(MultipartContentConsumer)).call(this, function (context) {
             try {
                 var handler = new MultipartHandler();
                 return Q.nfbind(handler.beginRequest)(context).then(function () {

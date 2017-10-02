@@ -32,5 +32,14 @@ app.getConfiguration().useStrategy(ODataModelBuilder, ODataConventionModelBuilde
 
 app.useAuthentication().useJsonContent().usePostContent().useMultipartContent().useFormatterStrategy().useStaticContent("./test/app/app");
 app.useViewContent();
-app.start();
+
+var builder = app.getConfiguration().getStrategy(ODataModelBuilder);
+builder.hasContextLink(function (context) {
+    var req = context.request;
+    var protocol = req.protocol || "http";
+    return protocol + '://' + req.headers.host + '/api/v4/';
+});
+builder.initialize().then(function () {
+    app.start();
+});
 //# sourceMappingURL=server.js.map

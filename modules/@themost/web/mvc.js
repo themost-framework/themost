@@ -118,7 +118,7 @@ var HttpContentResult = exports.HttpContentResult = function (_HttpAnyResult) {
                     response.writeHead(204);
                     return callback();
                 } else {
-                    response.writeHead(200, { 'Content-Type': self.contentType });
+                    response.writeHead(200, _.assign(self.headers, { 'Content-Type': self.contentType }));
                     response.write(self.data, self.contentEncoding, function (err) {
                         return callback(err);
                     });
@@ -155,7 +155,7 @@ var HttpEmptyResult = exports.HttpEmptyResult = function (_HttpAnyResult2) {
          */
         value: function execute(context) {
             //do nothing
-            context.response.writeHead(204);
+            context.response.writeHead(204, self.headers);
             return Q();
         }
     }]);
@@ -220,7 +220,7 @@ var HttpJsonResult = exports.HttpJsonResult = function (_HttpAnyResult3) {
                     response.writeHead(204);
                     return callback();
                 }
-                response.writeHead(200, { 'Content-Type': self.contentType });
+                response.writeHead(200, _.assign(self.headers, { 'Content-Type': self.contentType }));
                 response.write(self.data, self.contentEncoding, function (err) {
                     return callback(err);
                 });
@@ -275,7 +275,7 @@ var HttpJavascriptResult = exports.HttpJavascriptResult = function (_HttpAnyResu
                     response.writeHead(204);
                     return callback();
                 }
-                response.writeHead(200, { 'Content-Type': self.contentType });
+                response.writeHead(200, _.assign(self.headers, { 'Content-Type': self.contentType }));
                 response.write(self.data, self.contentEncoding, function (err) {
                     return callback(err);
                 });
@@ -330,7 +330,7 @@ var HttpXmlResult = exports.HttpXmlResult = function (_HttpAnyResult5) {
                     response.writeHead(204);
                     return callback();
                 }
-                response.writeHead(200, { 'Content-Type': self.contentType });
+                response.writeHead(200, _.assign(self.headers, { 'Content-Type': self.contentType }));
                 response.write(self.data, self.contentEncoding, function (err) {
                     return callback(err);
                 });
@@ -474,10 +474,10 @@ var HttpFileResult = exports.HttpFileResult = function (_HttpAnyResult7) {
                                             //create read stream
                                             var source = fs.createReadStream(physicalPath);
                                             //add Content-Disposition: attachment; filename="<file name.ext>"
-                                            context.response.writeHead(200, {
+                                            context.response.writeHead(200, _.assign(self.headers, {
                                                 'Content-Type': contentType + (contentEncoding ? ';charset=' + contentEncoding : ''),
                                                 'ETag': responseETag
-                                            });
+                                            }));
                                             //copy file
                                             source.pipe(context.response);
                                             source.on('end', function () {
@@ -699,7 +699,7 @@ var HttpViewResult = exports.HttpViewResult = function (_HttpAnyResult8) {
                                 if (err) {
                                     return callback(err);
                                 } else {
-                                    response.writeHead(200, { "Content-Type": self.contentType });
+                                    response.writeHead(200, _.assign(self.headers, { "Content-Type": self.contentType }));
                                     response.write(result, self.contentEncoding);
                                     return callback();
                                 }
@@ -834,6 +834,7 @@ var HttpController = function () {
 
         /**
          * Creates a JSON result object by using the specified data.
+         * @param {*} data
          * @returns HttpJsonResult
          * */
 

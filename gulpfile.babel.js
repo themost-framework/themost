@@ -3,6 +3,7 @@ var gulp = require('gulp');
 var gutil = require('gulp-util');
 var sourcemaps = require('gulp-sourcemaps');
 var babel = require('gulp-babel');
+var duration = require('gulp-duration');
 var eslint = require('gulp-eslint');
 
 var commonModule = [
@@ -35,12 +36,17 @@ function lint(files, options) {
 
 function build(files) {
   return function () {
+
+      var bundleTimer = duration('bundle time');
+
     return gulp.src(files)
+       // .once('data', bundleTimer.start)
       .pipe(eslint())
       .pipe(eslint.format())
       .pipe(sourcemaps.init())
       .pipe(babel())
       .pipe(sourcemaps.write('.'))
+      //  .pipe(bundleTimer)
       .pipe(gulp.dest(function (file) {
         return file.base;
       }));
@@ -87,6 +93,6 @@ gulp.task('debug', ['build'], function () {
   });
 });
 
-gulp.task('default', ['clean'], () => {
+gulp.task('default', ['clean'], function() {
   gulp.start('build');
 });

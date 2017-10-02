@@ -529,11 +529,7 @@ var ViewConsumer = exports.ViewConsumer = function (_HttpConsumer) {
     function ViewConsumer() {
         _classCallCheck(this, ViewConsumer);
 
-        return _possibleConstructorReturn(this, (ViewConsumer.__proto__ || Object.getPrototypeOf(ViewConsumer)).call(this, function () {
-            /**
-             * @type {HttpContext}
-             */
-            var context = this;
+        return _possibleConstructorReturn(this, (ViewConsumer.__proto__ || Object.getPrototypeOf(ViewConsumer)).call(this, function (context) {
             try {
                 var handler = new ViewHandler();
                 //execute mapRequest

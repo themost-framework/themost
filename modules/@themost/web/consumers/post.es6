@@ -75,11 +75,7 @@ class PostHandler {
  */
 export class PostContentConsumer extends HttpConsumer {
     constructor() {
-        super(function() {
-            /**
-             * @type {HttpContext}
-             */
-            const context = this;
+        super(function(context) {
             try {
                 const handler = new PostHandler();
                 return Q.nfbind(handler.beginRequest)(context)

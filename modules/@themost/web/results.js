@@ -56,9 +56,23 @@ var HttpResult = exports.HttpResult = function () {
         if (new.target === HttpResult) {
             throw new TypeError("Cannot construct abstract instances directly");
         }
+        this.headers = {};
     }
 
+    /**
+     * @param {string} name
+     * @param {string} value
+     * @returns {HttpResult|*}
+     */
+
+
     _createClass(HttpResult, [{
+        key: 'setHeader',
+        value: function setHeader(name, value) {
+            this.headers[name] = value;
+            return this;
+        }
+    }, {
         key: 'toPromise',
         value: function toPromise() {
             return Q(this);

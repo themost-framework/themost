@@ -85,7 +85,7 @@ var EdmType = exports.EdmType = function EdmType() {
 EdmType.EdmBinary = "Edm.Binary";
 EdmType.EdmBoolean = "Edm.Boolean";
 EdmType.EdmByte = "Edm.Byte";
-EdmType.EdmBoolean = "Edm.Date";
+EdmType.EdmDate = "Edm.Date";
 EdmType.EdmDateTimeOffset = "Edm.DateTimeOffset";
 EdmType.EdmDouble = "Edm.Double";
 EdmType.EdmDecimal = "Edm.Decimal";
@@ -368,9 +368,79 @@ var EntitySetConfiguration = exports.EntitySetConfiguration = function () {
         }
 
         /**
+         * @returns {ODataModelBuilder}
+         */
+
+    }, {
+        key: 'getBuilder',
+        value: function getBuilder() {
+            return this[builderProperty];
+        }
+
+        /**
+         * @returns {Array}
+         */
+
+    }, {
+        key: 'getEntityTypeProperty',
+        value: function getEntityTypeProperty() {
+            var result = [];
+            Array.prototype.push.apply(result, this.entityType.property);
+            var baseEntityType = this.getBuilder().getEntity(this.entityType.baseType);
+            while (baseEntityType) {
+                Array.prototype.push.apply(result, baseEntityType.property);
+                baseEntityType = this.getBuilder().getEntity(baseEntityType.baseType);
+            }
+            return result;
+        }
+
+        /**
          * @returns {EntityTypeConfiguration}
          */
 
+    }, {
+        key: 'hasContextLink',
+
+
+        /**
+         * @param contextLinkFunc
+         */
+        value: function hasContextLink(contextLinkFunc) {
+            this.getContextLink = contextLinkFunc;
+        }
+
+        /**
+         *
+         * @param {Function} idLinkFunc
+         */
+
+    }, {
+        key: 'hasIdLink',
+        value: function hasIdLink(idLinkFunc) {
+            this.getIdLink = idLinkFunc;
+        }
+
+        /**
+         *
+         * @param {Function} readLinkFunc
+         */
+
+    }, {
+        key: 'hasReadLink',
+        value: function hasReadLink(readLinkFunc) {
+            this.getReadLink = readLinkFunc;
+        }
+
+        /**
+         *
+         * @param {Function} editLinkFunc
+         */
+
+    }, {
+        key: 'hasEditLink',
+        value: function hasEditLink(editLinkFunc) {
+            this.getEditLink = editLinkFunc;
+        }
     }, {
         key: 'entityType',
         get: function get() {
@@ -386,6 +456,7 @@ var EntitySetConfiguration = exports.EntitySetConfiguration = function () {
 
 /**
  * @classdesc Represents the OData model builder of an HTTP application
+ * @property {string} serviceRoot - Gets or sets the service root URI
  * @class
  */
 
@@ -411,13 +482,16 @@ var ODataModelBuilder = exports.ODataModelBuilder = function (_ConfigurationStra
     /**
      * Gets a registered entity type
      * @param {string} name
-     * @returns {EntityTypeConfiguration}
+     * @returns {EntityTypeConfiguration|*}
      */
 
 
     _createClass(ODataModelBuilder, [{
         key: 'getEntity',
         value: function getEntity(name) {
+            if (_.isNil(name)) {
+                return;
+            }
             Args.notString(name, 'Entity type name');
             return this[entityTypesProperty][name];
         }
@@ -673,6 +747,16 @@ var ODataModelBuilder = exports.ODataModelBuilder = function (_ConfigurationStra
                 }
             });
         }
+
+        /**
+         * @param {Function} contextLinkFunc
+         */
+
+    }, {
+        key: 'hasContextLink',
+        value: function hasContextLink(contextLinkFunc) {
+            this.getContextLink = contextLinkFunc;
+        }
     }]);
 
     return ODataModelBuilder;
@@ -767,6 +851,9 @@ var ODataConventionModelBuilder = exports.ODataConventionModelBuilder = function
                 if (definition) {
                     var model = new DataModel(definition, new EntityDataContext(strategy));
                     var inheritedAttributes = [];
+                    var primaryKey = _.find(model.attributes, function (x) {
+                        return x.primary;
+                    });
                     if (model.inherits) {
                         //add base entity
                         self.addEntitySet(model.inherits, pluralize(model.inherits));
@@ -804,6 +891,36 @@ var ODataConventionModelBuilder = exports.ODataConventionModelBuilder = function
                             }
                         }
                     });
+                    //add link function
+                    if (typeof self.getContextLink === 'function') {
+                        modelEntitySet.hasContextLink(function (context) {
+                            return self.getContextLink(context).concat("$metadata#", modelEntitySet.name);
+                        });
+                    }
+                    //add id link
+                    if (typeof self.getContextLink === 'function') {
+                        if (primaryKey) {
+                            modelEntitySet.hasIdLink(function (context, instance) {
+                                //get parent model
+                                if (_.isNil(instance[primaryKey.name])) {
+                                    return;
+                                }
+                                return self.getContextLink(context).concat(modelEntitySet.name, "(", instance[primaryKey.name], ")");
+                            });
+                        }
+                    }
+                    //add read link
+                    if (typeof self.getContextLink === 'function') {
+                        if (primaryKey) {
+                            modelEntitySet.hasReadLink(function (context, instance) {
+                                //get parent model
+                                if (_.isNil(instance[primaryKey.name])) {
+                                    return;
+                                }
+                                return self.getContextLink(context).concat(modelEntitySet.name, "(", instance[primaryKey.name], ")");
+                            });
+                        }
+                    }
                 }
                 return modelEntitySet;
             }

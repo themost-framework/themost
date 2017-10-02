@@ -50,7 +50,7 @@
         "name": "dateCreated",
         "title": "Date Created",
         "description": "The date on which this item was created.",
-        "type": "Date",
+        "type": "DateTime",
         "value":"javascript:return (new Date());"
     }],
     "privileges":[

@@ -138,11 +138,7 @@ class RestrictHandler {
 
 export class RestrictAccessConsumer extends HttpConsumer {
     constructor() {
-        super(function() {
-            /**
-             * @type {HttpContext}
-             */
-            const context = this;
+        super(function(context) {
             try {
                 let handler = new RestrictHandler();
                 return Q.nfbind(handler.authorizeRequest)(context)

@@ -206,11 +206,7 @@ var RestrictAccessConsumer = exports.RestrictAccessConsumer = function (_HttpCon
     function RestrictAccessConsumer() {
         _classCallCheck(this, RestrictAccessConsumer);
 
-        return _possibleConstructorReturn(this, (RestrictAccessConsumer.__proto__ || Object.getPrototypeOf(RestrictAccessConsumer)).call(this, function () {
-            /**
-             * @type {HttpContext}
-             */
-            var context = this;
+        return _possibleConstructorReturn(this, (RestrictAccessConsumer.__proto__ || Object.getPrototypeOf(RestrictAccessConsumer)).call(this, function (context) {
             try {
                 var handler = new RestrictHandler();
                 return Q.nfbind(handler.authorizeRequest)(context).then(function () {
