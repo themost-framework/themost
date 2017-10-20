@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.DirectiveHandler = exports.AngularServerModule = undefined;
+exports.DirectiveHandler = exports.PostExecuteResultArgs = exports.AngularServerModule = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -15,7 +15,7 @@ var domino = _interopRequireDefault(_domino).default;
 
 var _lodash = require('lodash');
 
-var _ = _lodash._;
+var _ = _interopRequireDefault(_lodash).default;
 
 var _interfaces = require('../interfaces');
 
@@ -312,7 +312,7 @@ function HttpInternalProvider($context, $async, $q) {
             method: 'get',
             cookie: $context.request.headers.cookie
         };
-        angular.extend(config, requestConfig);
+        _.assign(config, requestConfig);
         var deferred = $q.defer(),
             promise = deferred.promise;
 
@@ -348,7 +348,7 @@ function HttpInternalProvider($context, $async, $q) {
 
     ['get', 'delete', 'head', 'jsonp'].forEach(function (name) {
         $http[name] = function (url, config) {
-            return $http(angular.extend(config || {}, {
+            return $http(_.assign(config || {}, {
                 method: name,
                 url: url
             }));
@@ -357,7 +357,7 @@ function HttpInternalProvider($context, $async, $q) {
 
     ['post', 'put'].forEach(function (name) {
         $http[name] = function (url, data, config) {
-            return $http(angular.extend(config || {}, {
+            return $http(_.assign(config || {}, {
                 method: name,
                 url: url,
                 data: data
@@ -370,7 +370,20 @@ function HttpInternalProvider($context, $async, $q) {
 
 /**
  * @class
+ * @property {HttpContext} context
+ * @property {HttpResult|*} target
  */
+
+var PostExecuteResultArgs = exports.PostExecuteResultArgs = function PostExecuteResultArgs() {
+    //
+
+    _classCallCheck(this, PostExecuteResultArgs);
+};
+
+/**
+ * @class
+ */
+
 
 var DirectiveHandler = exports.DirectiveHandler = function () {
     function DirectiveHandler() {
@@ -381,7 +394,7 @@ var DirectiveHandler = exports.DirectiveHandler = function () {
         key: 'postExecuteResult',
 
         /**
-         * @param {{context: HttpContext, target: HttpResult}} args
+         * @param {PostExecuteResultArgs} args
          * @param callback
          */
         value: function postExecuteResult(args, callback) {
@@ -415,10 +428,9 @@ var DirectiveHandler = exports.DirectiveHandler = function () {
                 //process result
                 var document = angularServer.createDocument(view.body);
                 //create server module
-                var _angular = document.parentWindow.angular;
+                var angular = document.parentWindow.angular;
 
-                var app = angularServer[bootstrapMethod](_angular);
-
+                var app = angularServer[bootstrapMethod](angular);
                 /**
                  * @type {Array}
                  */
@@ -454,28 +466,36 @@ var DirectiveHandler = exports.DirectiveHandler = function () {
                 });
                 app.service('$http', HttpInternalProvider);
                 //copy application directives
-                Object.keys(angularServer.directives).forEach(function (name) {
+
+                _.forEach(_.keys(angularServer.directives), function (name) {
                     app.directive(name, angularServer.directives[name]);
                 });
                 //copy application services
-                Object.keys(angularServer.services).forEach(function (name) {
+                _.forEach(_.keys(angularServer.services), function (name) {
                     app.service(name, angularServer.services[name]);
                 });
                 //copy application filters
-                Object.keys(angularServer.filters).forEach(function (name) {
+                _.forEach(_.keys(angularServer.filters), function (name) {
                     app.filter(name, angularServer.filters[name]);
                 });
                 //copy application controllers
-                Object.keys(angularServer.controllers).forEach(function (name) {
+                _.forEach(_.keys(angularServer.controllers), function (name) {
                     app.controller(name, angularServer.controllers[name]);
                 });
                 //get application element
-                var appElement = _angular.element(document).find('*[server-app=\'server\']').get(0);
+                var appElement = angular.element(document).find('*[server-app=\'server\']').get(0);
                 if (appElement) {
                     //get $q
-                    var $q = _angular.injector(['ng']).get('$q');
+                    var $q = angular.injector(['ng']).get('$q');
+                    //set $rootScope
+                    app.run(function ($rootScope) {
+                        if (_.isObject(view.data)) {
+                            _.assign($rootScope, view.data);
+                        }
+                    });
+
                     //initialize app element
-                    _angular.bootstrap(appElement, ['server']);
+                    angular.bootstrap(appElement, ['server']);
                     //wait for promises
                     $q.all(promises).then(function () {
                         view.body = document.innerHTML;

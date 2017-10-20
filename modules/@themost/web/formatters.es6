@@ -83,7 +83,7 @@ export class DefaultFormatterStrategy extends FormatterStrategy {
      * @returns {OutputFormatter|*}
      */
     find(context) {
-        const mimeType = context.getApplication().getMimeType(path.extname(url.parse(context.request.url).pathname));
+        const mimeType = context.getApplication().getMimeType(context.getFormat());
         if (typeof mimeType === 'undefined') {
             //get available formatters (as array of types)
             const types = _.map(this[formattersProperty], (x) => {

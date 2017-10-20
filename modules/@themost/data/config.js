@@ -242,9 +242,6 @@ var DataConfigurationStrategy = exports.DataConfigurationStrategy = function (_C
             var schemaLoader = this.getConfiguration().getStrategy(SchemaLoaderStrategy);
             return schemaLoader.getModelDefinition(name);
         }
-    }, {
-        key: 'setModelDefinition',
-
 
         /**
          * Sets a data model definition in application storage.
@@ -271,6 +268,9 @@ var DataConfigurationStrategy = exports.DataConfigurationStrategy = function (_C
                     ]
             });
          */
+
+    }, {
+        key: 'setModelDefinition',
         value: function setModelDefinition(data) {
             /**
              * @type {SchemaLoaderStrategy}
@@ -279,14 +279,14 @@ var DataConfigurationStrategy = exports.DataConfigurationStrategy = function (_C
             schemaLoader.setModelDefinition(data);
             return this;
         }
-    }, {
-        key: 'model',
-
 
         /**
          * @returns {*}
          * @param name {string}
          */
+
+    }, {
+        key: 'model',
         value: function model(name) {
             return this.getModelDefinition(name);
         }

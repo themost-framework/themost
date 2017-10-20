@@ -26,7 +26,6 @@ import {DataConfigurationStrategy} from '@themost/data/config';
 import Q from 'q';
 import path from 'path';
 import http from 'http';
-import https from 'https';
 import {ViewConsumer} from "./consumers/view";
 import {FormatterStrategy, DefaultFormatterStrategy} from "./formatters";
 import {QuerystringConsumer} from "./consumers/querystring";
@@ -40,6 +39,7 @@ const HTTP_SERVER_DEFAULT_BIND = '127.0.0.1';
 const HTTP_SERVER_DEFAULT_PORT = 3000;
 
 /**
+ * @this HttpApplication
  * Starts current application
  * @private
  * @static
@@ -72,7 +72,7 @@ function startInternal(options) {
                     if (context.response) { context.response.end(); }
                 });
             }).catch((err)=> {
-                return Q.nbind(processErrorInternal,self)(context, err).then((res)=> {
+                return Q.nbind(processErrorInternal,self)(context, err).then(()=> {
                     context.finalize(function() {
                         if (context.response) { context.response.end(); }
                     });
@@ -115,6 +115,7 @@ function startInternal(options) {
 }
 
 /**
+ * @this HttpApplication
  * Processes an HTTP request under current application
  * @private
  * @static
@@ -385,7 +386,12 @@ export class HttpApplication {
     }
 
     getMimeType(extension) {
-        return _.find(this.getConfiguration().getSourceAt('mimes'),function(x) {
+        return _.find(this.getConfiguration().getSourceAt('mimes'),
+            /**
+             * @param {{extension:string}} x
+             * @returns {boolean}
+             */
+            function(x) {
             return (x.extension===extension) || (x.extension==='.'+extension);
         });
     }
@@ -713,8 +719,8 @@ export class HttpApplication {
                 response = createResponseInternal.bind(self)(request);
             let context = self.createContext(request, response);
             //get unattended execution account
-            if (this.hasService(AuthStrategy)) {
-                const account = this.getService(AuthStrategy).getUnattendedExecutionAccount();
+            if (self.hasService(AuthStrategy)) {
+                const account = self.getService(AuthStrategy).getUnattendedExecutionAccount();
                 if (_.isEmpty(account)) {
                     context.user = { name: account, authenticationType: 'Basic'};
                 }

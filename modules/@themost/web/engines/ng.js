@@ -13,13 +13,13 @@ var _fs = require('fs');
 
 var fs = _interopRequireDefault(_fs).default;
 
+var _lodash = require('lodash');
+
+var _ = _interopRequireDefault(_lodash).default;
+
 var _errors = require('@themost/common/errors');
 
 var HttpNotFoundError = _errors.HttpNotFoundError;
-
-var _context = require('../context');
-
-var HttpContext = _context.HttpContext;
 
 var _interfaces = require('../interfaces');
 
@@ -32,6 +32,7 @@ var HttpViewContext = _mvc.HttpViewContext;
 var _module = require('../angular/module');
 
 var DirectiveHandler = _module.DirectiveHandler;
+var PostExecuteResultArgs = _module.PostExecuteResultArgs;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -92,8 +93,12 @@ var NgEngine = function (_HttpViewEngine) {
                     }
                     var viewContext = new HttpViewContext(self.getContext());
                     viewContext.body = str;
+                    viewContext.data = data;
                     var directiveHandler = new DirectiveHandler();
-                    var args = { context: self.getContext(), target: viewContext };
+                    var args = _.assign(new PostExecuteResultArgs(), {
+                        "context": self.getContext(),
+                        "target": viewContext
+                    });
                     directiveHandler.postExecuteResult(args, function (err) {
                         if (err) {
                             return callback(err);

@@ -22,7 +22,7 @@ function testSplitExpandExpr_(s) {
     let ix1 = -1;
     let isLiteral = false;
     let lastSplitIndex = 0;
-    let hasParen = false;
+    //let hasParen = false;
     const matches = [];
     let match = null;
     while(ix<s.length) {
@@ -34,7 +34,7 @@ function testSplitExpandExpr_(s) {
                 paren = 0;
             }
             if (ix1===-1) { ix1 = ix; }
-            hasParen = true;
+            //hasParen = true;
             paren += 1;
         }
         else if ((charAt===')') && !isLiteral) {
@@ -48,7 +48,7 @@ function testSplitExpandExpr_(s) {
                 matches.push([s.substr(lastSplitIndex, ix-lastSplitIndex)]);
             }
             lastSplitIndex = ix+1;
-            hasParen = false;
+            //hasParen = false;
         }
 
         if ((ix === s.length - 1) && (paren === -1)) {

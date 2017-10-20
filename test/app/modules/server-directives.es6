@@ -1,7 +1,6 @@
 /**
  * Created by kbarbounakis on 15/02/2017.
  */
-'use strict';
 
 export function bootstrap(angular) {
 

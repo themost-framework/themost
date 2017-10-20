@@ -33,7 +33,6 @@ var AbstractMethodError = _errors.AbstractMethodError;
 var _utils = require('@themost/common/utils');
 
 var Args = _utils.Args;
-var TraceUtils = _utils.TraceUtils;
 var LangUtils = _utils.LangUtils;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -79,6 +78,7 @@ var CacheStrategy = exports.CacheStrategy = function (_HttpApplicationServi) {
      * @param {number=} absoluteExpiration - An absolute expiration time in seconds. This parameter is optional.
      * @returns {Promise}
      */
+    // eslint-disable-next-line no-unused-vars
 
 
     _createClass(CacheStrategy, [{
@@ -93,6 +93,7 @@ var CacheStrategy = exports.CacheStrategy = function (_HttpApplicationServi) {
          * @param {string} key - A string that represents the key of the cached value to be removed
          * @returns {Promise}
          */
+        // eslint-disable-next-line no-unused-vars
 
     }, {
         key: 'remove',
@@ -115,6 +116,7 @@ var CacheStrategy = exports.CacheStrategy = function (_HttpApplicationServi) {
          * @param {string} key
          * @returns {Promise}
          */
+        // eslint-disable-next-line no-unused-vars
 
     }, {
         key: 'get',
@@ -128,6 +130,7 @@ var CacheStrategy = exports.CacheStrategy = function (_HttpApplicationServi) {
          * @param {number=} absoluteExpiration - An absolute expiration time in seconds. This parameter is optional.
          * @returns {Promise}
          */
+        // eslint-disable-next-line no-unused-vars
 
     }, {
         key: 'getOrDefault',

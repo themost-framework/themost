@@ -20,10 +20,6 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 require('source-map-support/register');
 
-var _types = require('./types');
-
-var ParserUtils = _types.ParserUtils;
-
 var _sprintf = require('sprintf');
 
 var sprintf = _interopRequireDefault(_sprintf).default;
@@ -32,17 +28,9 @@ var _async = require('async');
 
 var async = _interopRequireDefault(_async).default;
 
-var _moment = require('moment');
-
-var moment = _interopRequireDefault(_moment).default;
-
 var _lodash = require('lodash');
 
 var _ = _lodash._;
-
-var _q = require('q');
-
-var Q = _interopRequireDefault(_q).default;
 
 var _utils = require('@themost/common/utils');
 
@@ -482,6 +470,8 @@ var DataCachingListener = exports.DataCachingListener = function () {
                                     TraceUtils.log(sprintf.sprintf('Cache (Execution Time:%sms):%s', new Date().getTime() - logTime, key));
                                 }
                             } catch (err) {}
+                            //
+
                             //exit
                             return callback();
                         } else {

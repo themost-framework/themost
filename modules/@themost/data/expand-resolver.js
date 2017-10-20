@@ -38,7 +38,7 @@ function testSplitExpandExpr_(s) {
     var ix1 = -1;
     var isLiteral = false;
     var lastSplitIndex = 0;
-    var hasParen = false;
+    //let hasParen = false;
     var matches = [];
     var match = null;
     while (ix < s.length) {
@@ -52,7 +52,7 @@ function testSplitExpandExpr_(s) {
             if (ix1 === -1) {
                 ix1 = ix;
             }
-            hasParen = true;
+            //hasParen = true;
             paren += 1;
         } else if (charAt === ')' && !isLiteral) {
             if (paren > 0) {
@@ -65,7 +65,7 @@ function testSplitExpandExpr_(s) {
                 matches.push([s.substr(lastSplitIndex, ix - lastSplitIndex)]);
             }
             lastSplitIndex = ix + 1;
-            hasParen = false;
+            //hasParen = false;
         }
 
         if (ix === s.length - 1 && paren === -1) {

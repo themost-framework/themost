@@ -1,3 +1,9 @@
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.bootstrap = bootstrap;
 /**
  * @license
  * MOST Web Framework 2.0 Codename Blueshift
@@ -7,12 +13,6 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.bootstrap = bootstrap;
 function bootstrap(angular) {
     var serverDirectives = require('./server-directives');
     serverDirectives.bootstrap(angular);
@@ -28,3 +28,4 @@ function bootstrap(angular) {
     angular.module('server-extensions', []).directive('helloUser', helloUser);
     return angular.module('server', ['server-extensions', 'server-directives']);
 }
+//# sourceMappingURL=server-app.js.map

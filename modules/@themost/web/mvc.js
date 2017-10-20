@@ -423,9 +423,10 @@ var HttpFileResult = exports.HttpFileResult = function (_HttpAnyResult7) {
         key: 'execute',
         value: function execute(context) {
 
+            var self = this;
             return Q.nfcall(function (callback) {
-                var physicalPath = this.physicalPath,
-                    fileName = this.fileName;
+                var physicalPath = self.physicalPath,
+                    fileName = self.fileName;
                 fs.exists(physicalPath, function (exists) {
                     if (!exists) {
                         callback(new HttpNotFoundError());
@@ -503,6 +504,7 @@ var HttpFileResult = exports.HttpFileResult = function (_HttpAnyResult7) {
 }(HttpAnyResult);
 
 /**
+ * @this HttpContext
  * @param controller
  * @param view
  * @param extension
@@ -516,6 +518,7 @@ function queryDefaultViewPath(controller, view, extension, callback) {
     return queryAbsoluteViewPath.call(this, this.getApplication().mapExecutionPath('views'), controller, view, extension, callback);
 }
 /**
+ * @this HttpContext
  * @param view
  * @param extension
  * @param callback

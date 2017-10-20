@@ -9,11 +9,11 @@
  */
 import 'source-map-support/register';
 import fs from 'fs';
+import _ from 'lodash';
 import {HttpNotFoundError} from '@themost/common/errors';
-import {HttpContext} from '../context';
 import {HttpViewEngine} from "../interfaces";
 import {HttpViewContext} from "../mvc";
-import {DirectiveHandler} from "../angular/module";
+import {DirectiveHandler,PostExecuteResultArgs} from "../angular/module";
 
 /**
  * @class
@@ -49,8 +49,12 @@ export default class NgEngine extends HttpViewEngine {
                 }
                 const viewContext = new HttpViewContext(self.getContext());
                 viewContext.body = str;
+                viewContext.data = data;
                 const directiveHandler = new DirectiveHandler();
-                const args = { context: self.getContext(), target:viewContext };
+                const args = _.assign(new PostExecuteResultArgs(), {
+                    "context": self.getContext(),
+                    "target":viewContext
+                });
                 directiveHandler.postExecuteResult(args, function(err) {
                     if (err) { return callback(err); }
                     return callback(null, viewContext.body);

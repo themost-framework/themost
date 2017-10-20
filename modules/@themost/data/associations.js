@@ -959,6 +959,7 @@ function insertSingleObject_(obj, callback) {
     /**
      * @type {HasManyToManyAssociation|*}
      */
+    // eslint-disable-next-line no-invalid-this
     var self = this;
     var mapping = self.getMapping();
     var parent = self.getParent();
@@ -1011,6 +1012,7 @@ function insert_(obj, callback) {
      *
      * @type {HasAssociation|*}
      */
+    // eslint-disable-next-line no-invalid-this
     var self = this;
     var mapping = self.getMapping();
     var arr = [];
@@ -1044,6 +1046,7 @@ function removeSingleObject_(obj, callback) {
     /**
      * @type {HasManyToManyAssociation|*}
      */
+    // eslint-disable-next-line no-invalid-this
     var self = this;
     var mapping = self.getMapping();
     var parent = self.getParent();
@@ -1097,6 +1100,7 @@ function remove_(obj, callback) {
      *
      * @type {HasAssociation|*}
      */
+    // eslint-disable-next-line no-invalid-this
     var self = this;
     var mapping = self.getMapping();
     var arr = [];
@@ -1498,7 +1502,7 @@ function HasTagAssociation_Clear_(callback) {
             return callback(err);
         }
         if (self.$silent) {
-            this.getBaseModel().silent();
+            self.getBaseModel().silent();
         }
         self.getBaseModel().where("object").equal(self.parent[self.mapping.parentField]).select("id").all().then(function (result) {
             if (result.length === 0) {

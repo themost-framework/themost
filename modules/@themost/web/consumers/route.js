@@ -145,7 +145,7 @@ var HttpRoute = exports.HttpRoute = function () {
                 }
                 match = re.exec(this.route.url);
             }
-            var str = this.route.url.replace(re, "([\\$_\\w-]+)"),
+            var str = this.route.url.replace(re, "([\\$_\\-0-9\\w-]+)"),
                 matcher = new RegExp("^" + str + "$", "ig");
             match = matcher.exec(str1);
             if (typeof match === 'undefined' || match === null) {

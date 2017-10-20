@@ -8,12 +8,9 @@
  * found in the LICENSE file at https://themost.io/license
  */
 import 'source-map-support/register';
-import {ParserUtils} from './types';
 import sprintf from 'sprintf';
 import async from 'async';
-import moment from 'moment';
 import {_} from 'lodash';
-import Q from 'q';
 import {TraceUtils, TextUtils} from "@themost/common/utils";
 import {NotNullError,UniqueConstraintError,DataError} from '@themost/common/errors';
 import {QueryField, QueryExpression} from "@themost/query/query";
@@ -406,7 +403,9 @@ export class DataCachingListener {
                                 TraceUtils.log(sprintf.sprintf('Cache (Execution Time:%sms):%s', (new Date()).getTime()-logTime, key));
                             }
                         }
-                        catch(err) { }
+                        catch(err) {
+                            //
+                        }
                         //exit
                         return callback();
                     }

@@ -6,14 +6,14 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _dec, _dec2, _dec3, _dec4, _dec5, _dec6, _dec7, _dec8, _dec9, _dec10, _dec11, _dec12, _dec13, _dec14, _desc, _value, _class; /**
-                                                                                                                                  * @license
-                                                                                                                                  * MOST Web Framework 2.0 Codename Blueshift
-                                                                                                                                  * Copyright (c) 2017, THEMOST LP All rights reserved
-                                                                                                                                  *
-                                                                                                                                  * Use of this source code is governed by an BSD-3-Clause license that can be
-                                                                                                                                  * found in the LICENSE file at https://themost.io/license
-                                                                                                                                  */
+var _dec, _dec2, _dec3, _dec4, _dec5, _dec6, _dec7, _dec8, _dec9, _dec10, _dec11, _dec12, _dec13, _dec14, _dec15, _dec16, _desc, _value, _class; /**
+                                                                                                                                                  * @license
+                                                                                                                                                  * MOST Web Framework 2.0 Codename Blueshift
+                                                                                                                                                  * Copyright (c) 2017, THEMOST LP All rights reserved
+                                                                                                                                                  *
+                                                                                                                                                  * Use of this source code is governed by an BSD-3-Clause license that can be
+                                                                                                                                                  * found in the LICENSE file at https://themost.io/license
+                                                                                                                                                  */
 
 
 var _q = require('q');
@@ -87,7 +87,7 @@ function httpNotImplemented() {
 /**
  * @class
  */
-var RootController = (_dec = httpGet(), _dec2 = httpGet(), _dec3 = httpAction('hello'), _dec4 = httpParam({ "name": "name", "required": true, "pattern": /^\w+$/ }), _dec5 = httpParam({ "name": "message", "required": false, "pattern": /^\w+$/ }), _dec6 = httpGet(), _dec7 = httpAction('helloMarkdown'), _dec8 = httpGet(), _dec9 = httpAction('helloJade'), _dec10 = httpGet(), _dec11 = httpAction('helloAngular'), _dec12 = httpGet(), _dec13 = httpAction('helloVash'), _dec14 = httpNotImplemented(), (_class = function (_HttpController) {
+var RootController = (_dec = httpGet(), _dec2 = httpGet(), _dec3 = httpAction('hello'), _dec4 = httpParam({ "name": "name", "required": true, "pattern": /^\w+$/ }), _dec5 = httpParam({ "name": "message", "required": false, "pattern": /^\w+$/ }), _dec6 = httpGet(), _dec7 = httpAction('helloMarkdown'), _dec8 = httpGet(), _dec9 = httpAction('helloJade'), _dec10 = httpGet(), _dec11 = httpAction('helloEjs'), _dec12 = httpGet(), _dec13 = httpAction('helloAngular'), _dec14 = httpGet(), _dec15 = httpAction('helloVash'), _dec16 = httpNotImplemented(), (_class = function (_HttpController) {
     _inherits(RootController, _HttpController);
 
     function RootController() {
@@ -137,11 +137,24 @@ var RootController = (_dec = httpGet(), _dec2 = httpGet(), _dec3 = httpAction('h
         /* jshint ignore:start*/
 
     }, {
+        key: 'getHelloEjs',
+
+        /* jshint ignore:end */
+        value: function getHelloEjs() {
+            return this.view({
+                givenName: 'Peter'
+            });
+        }
+        /* jshint ignore:start*/
+
+    }, {
         key: 'getHelloAngular',
 
         /* jshint ignore:end */
         value: function getHelloAngular() {
-            return this.view();
+            return this.view({
+                message: "This a conditional message from server"
+            });
         }
         /* decorators */
         /* jshint ignore:start*/
@@ -156,9 +169,10 @@ var RootController = (_dec = httpGet(), _dec2 = httpGet(), _dec3 = httpAction('h
     }]);
 
     return RootController;
-}(HttpController), (_applyDecoratedDescriptor(_class.prototype, 'index', [_dec], Object.getOwnPropertyDescriptor(_class.prototype, 'index'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'getHello', [_dec2, _dec3, _dec4, _dec5], Object.getOwnPropertyDescriptor(_class.prototype, 'getHello'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'getHelloMarkdown', [_dec6, _dec7], Object.getOwnPropertyDescriptor(_class.prototype, 'getHelloMarkdown'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'getHelloJade', [_dec8, _dec9], Object.getOwnPropertyDescriptor(_class.prototype, 'getHelloJade'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'getHelloAngular', [_dec10, _dec11], Object.getOwnPropertyDescriptor(_class.prototype, 'getHelloAngular'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'getHelloVash', [_dec12, _dec13, _dec14], Object.getOwnPropertyDescriptor(_class.prototype, 'getHelloVash'), _class.prototype)), _class));
+}(HttpController), (_applyDecoratedDescriptor(_class.prototype, 'index', [_dec], Object.getOwnPropertyDescriptor(_class.prototype, 'index'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'getHello', [_dec2, _dec3, _dec4, _dec5], Object.getOwnPropertyDescriptor(_class.prototype, 'getHello'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'getHelloMarkdown', [_dec6, _dec7], Object.getOwnPropertyDescriptor(_class.prototype, 'getHelloMarkdown'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'getHelloJade', [_dec8, _dec9], Object.getOwnPropertyDescriptor(_class.prototype, 'getHelloJade'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'getHelloEjs', [_dec10, _dec11], Object.getOwnPropertyDescriptor(_class.prototype, 'getHelloEjs'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'getHelloAngular', [_dec12, _dec13], Object.getOwnPropertyDescriptor(_class.prototype, 'getHelloAngular'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'getHelloVash', [_dec14, _dec15, _dec16], Object.getOwnPropertyDescriptor(_class.prototype, 'getHelloVash'), _class.prototype)), _class));
 
 //noinspection JSUnusedGlobalSymbols
 
 exports.default = RootController;
 module.exports = exports['default'];
+//# sourceMappingURL=root-controller.js.map

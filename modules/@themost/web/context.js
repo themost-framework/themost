@@ -209,10 +209,12 @@ var HttpContext = exports.HttpContext = function (_DefaultDataContext) {
                 return result.substr(1).toLowerCase();
             } else {
                 //get mime type
-                var mime = self.mime;
-                if (mime) {
-                    //and return the extension associated with this mime
-                    return mime.extension.substr(1).toLowerCase();
+                if (this.request.route && this.request.route.route && this.request.route.route.format) {
+                    var mime = this.getApplication().getMimeType(this.request.route.route.format);
+                    if (mime) {
+                        //and return the extension associated with this mime
+                        return mime.extension.substr(1).toLowerCase();
+                    }
                 }
             }
         }

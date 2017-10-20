@@ -134,7 +134,7 @@ export class DataCache extends SequentialEventEmitter {
     /**
      * Gets a cached value defined by the given key.
      * @param {string|*} key
-     * @returns {Observable}
+     * @returns {Promise}
      */
     get(key) {
         const self = this;
@@ -184,6 +184,7 @@ export class NoDataCache {
      * @param {string|*} key
      * @returns {Promise}
      */
+// eslint-disable-next-line no-unused-vars
     get(key) {
         return Q();
     }
@@ -193,6 +194,7 @@ export class NoDataCache {
      * @param {string} key - A string that represents the key of the cached value to be removed
      * @returns {Promise}
      */
+// eslint-disable-next-line no-unused-vars
     remove(key) {
         return Q();
     }
@@ -206,6 +208,7 @@ export class NoDataCache {
      * @param {number=} absoluteExpiration - An absolute expiration time in seconds. This parameter is optional.
      * @returns {Promise}
      */
+// eslint-disable-next-line no-unused-vars
     add(key, value, absoluteExpiration) {
         return Q();
     }
@@ -225,6 +228,7 @@ export class NoDataCache {
      * @param {number=} absoluteExpiration - An absolute expiration time in seconds. This parameter is optional.
      * @returns {Promise}
      */
+// eslint-disable-next-line no-unused-vars
     getOrDefault(key, fn, absoluteExpiration) {
         Args.check(_.isFunction(fn),'Invalid argument. Expected function.');
         let source = fn();

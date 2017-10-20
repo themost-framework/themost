@@ -27,7 +27,7 @@ export class QueryOptionsResolver {
             Args.check(/^[+-]?[0-9]*$/.test(option), new TypeError('Top query option must be an integer'));
             const $top = LangUtils.parseInt(option);
             q.take($top<=0 ? -1 : $top);
-            return resolve()
+            return resolve();
         });
     }
 
@@ -44,14 +44,6 @@ export class QueryOptionsResolver {
             q.skip(LangUtils.parseInt(option));
             return resolve()
         });
-    }
-
-    /**
-     * @param {DataQueryable} q
-     * @param params
-     */
-    static resolveCountQueryOption(q, params) {
-
     }
 
 }

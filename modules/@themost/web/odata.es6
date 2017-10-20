@@ -14,8 +14,6 @@ import {EntitySetConfiguration} from "@themost/data/odata";
 import {Args,LangUtils} from "@themost/common/utils";
 import {EdmType} from "@themost/data/odata";
 
-
-
 /**
  * @class
  * @extends HttpResult
@@ -64,29 +62,30 @@ export class ODataJsonResult extends HttpResult {
                 res.writeHead(204);
                 return resolve();
             }
-            const eachValue = function(x) {
+            const mapValue = function(x) {
                 //add id link
+                const y = {};
                 if (typeof entitySet.getIdLink === 'function') {
                     const idLink = entitySet.getIdLink(context, x);
                     if (idLink) {
-                        x["@odata.id"] = idLink;
+                        y["@odata.id"] = idLink;
                     }
                 }
                 //add edit link
                 if (typeof entitySet.getEditLink === 'function') {
                     const editLink = entitySet.getEditLink(context, x);
                     if (editLink) {
-                        x["@odata.editLink"] = editLink;
+                        y["@odata.editLink"] = editLink;
                     }
                 }
                 //add read link
                 if (typeof entitySet.getReadLink === 'function') {
                     const readLink = entitySet.getReadLink(context, x);
                     if (readLink) {
-                        x["@odata.readLink"] = readLink;
+                        y["@odata.readLink"] = readLink;
                     }
                 }
-                return x;
+                return _.assign(y,x);
             };
             const json_odata_replacer = function(key, value) {
                 if (value===null)
@@ -110,36 +109,35 @@ export class ODataJsonResult extends HttpResult {
                 }
                 return value;
             };
-            const entityProperties = {};
-            _.forEach(entitySet.getEntityTypeProperty(), function(x) {
-                entityProperties[x.name] = x;
-            });
+            const entityProperties = entitySet.getEntityTypePropertyList();
             let contextLink;
+            let finalData;
             if (data && data.hasOwnProperty('value')) {
                 res.writeHead(200, _.assign(headers, { 'Content-Type': contentType }));
                 //search for boolean
                 if (_.isArray(data.value)) {
                     //map array
-                    _.forEach(data.value, eachValue);
+                    data.value = _.map(data.value, mapValue);
+                    finalData = data;
                 }
                 else {
-                    eachValue(data);
+                    finalData = mapValue(data);
                     //add context attribute
                     contextLink = entitySet.getContextLink(context);
                     if (contextLink) {
-                        data["@odata.context"] = contextLink.concat("/$entity");
+                        finalData["@odata.context"] = contextLink.concat("/$entity");
                     }
                 }
             }
             else if (_.isObject(data)) {
-                eachValue(data);
+                finalData = mapValue(data);
                 //add context attribute
                 contextLink = entitySet.getContextLink(context);
                 if (contextLink) {
-                    data["@odata.context"] = contextLink.concat("/$entity");
+                    finalData["@odata.context"] = contextLink.concat("/$entity");
                 }
             }
-            res.write(JSON.stringify(data, json_odata_replacer.bind(entityProperties)),contentEncoding, function(err) {
+            res.write(JSON.stringify(finalData, json_odata_replacer.bind(entityProperties)),contentEncoding, function(err) {
                 return resolve(err);
             });
 

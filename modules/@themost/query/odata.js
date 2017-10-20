@@ -257,19 +257,19 @@ var OpenDataParser = exports.OpenDataParser = function () {
                 if (err) {
                     callback.call(self, err);
                 } else {
-                    if (this.atEnd()) {
+                    if (self.atEnd()) {
                         callback.call(self, null, result);
                     }
                     //method call exception for [,] or [)] tokens e.g indexOf(Title,'...')
-                    else if (this.currentToken.syntax === SyntaxToken.Comma.syntax || this.currentToken.syntax === SyntaxToken.ParenClose.syntax) {
+                    else if (self.currentToken.syntax === SyntaxToken.Comma.syntax || self.currentToken.syntax === SyntaxToken.ParenClose.syntax) {
                             callback.call(self, null, result);
                         } else {
-                            var op = this.getOperator(self.currentToken);
+                            var op = self.getOperator(self.currentToken);
                             if (op === null) {
                                 callback.call(self, new Error('Expected operator.'));
                             } else {
-                                this.moveNext();
-                                this.parseCommonItem(function (err, right) {
+                                self.moveNext();
+                                self.parseCommonItem(function (err, right) {
                                     if (err) {
                                         callback.call(self, err);
                                     } else {
@@ -374,10 +374,12 @@ var OpenDataParser = exports.OpenDataParser = function () {
                     }
                     break;
                 case Token.TokenType.Literal:
-                    var value = self.currentToken.value;
-                    self.moveNext();
-                    callback.call(self, null, value);
-                    break;
+                    {
+                        var value = self.currentToken.value;
+                        self.moveNext();
+                        callback.call(self, null, value);
+                        break;
+                    }
                 case Token.TokenType.Syntax:
                     if (self.currentToken.syntax === SyntaxToken.Negative.syntax) {
                         callback.call(self, new Error('Negative syntax is not yet implemented.'));

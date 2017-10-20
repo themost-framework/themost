@@ -62,10 +62,21 @@ class RootController extends HttpController {
     }
     /* jshint ignore:start*/
     @httpGet()
+    @httpAction('helloEjs')
+    /* jshint ignore:end */
+    getHelloEjs() {
+        return this.view({
+            givenName:'Peter'
+        });
+    }
+    /* jshint ignore:start*/
+    @httpGet()
     @httpAction('helloAngular')
     /* jshint ignore:end */
     getHelloAngular() {
-        return this.view();
+        return this.view({
+            message:"This a conditional message from server"
+        });
     }
     /* decorators */
     /* jshint ignore:start*/

@@ -134,10 +134,12 @@ export class HttpContext extends DefaultDataContext {
         }
         else {
             //get mime type
-            let mime = self.mime;
-            if (mime) {
-                //and return the extension associated with this mime
-                return mime.extension.substr(1).toLowerCase();
+            if (this.request.route  && this.request.route.route && this.request.route.route.format) {
+                let mime = this.getApplication().getMimeType(this.request.route.route.format);
+                if (mime) {
+                    //and return the extension associated with this mime
+                    return mime.extension.substr(1).toLowerCase();
+                }
             }
         }
     }

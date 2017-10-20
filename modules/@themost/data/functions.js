@@ -15,6 +15,8 @@ var _createClass = function () { function defineProperties(target, props) { for 
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       * found in the LICENSE file at https://themost.io/license
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       */
 
+// eslint-disable-next-line no-unused-vars
+
 
 require('source-map-support/register');
 
@@ -116,7 +118,7 @@ var FunctionContext = exports.FunctionContext = function () {
                     callback(err);
                 }
             } else {
-                console.log(sprintf.sprintf('Cannot evaluate %s.', expr1));
+                TraceUtils.log(sprintf.sprintf('Cannot evaluate %s.', expr1));
                 callback(new Error('Cannot evaluate expression.'));
             }
         }

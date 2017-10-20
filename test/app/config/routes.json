@@ -1,24 +1,15 @@
 [
-    { "url":"/api/v4", "controller":"api", "action":"index" },
-    { "url":"/api/v4/\\$metadata", "controller":"api", "action":"metadata" },
-    { "url":"/api/v4/:entity", "controller":"api", "action":"items" },
-    { "url":"/api/v4/:entity\\(:id\\)", "controller":"api", "action":"item" },
+    { "url":"/api/v4/", "controller":"api", "action":"index", "format":"json" },
+    { "url":"/api/v4/\\$metadata", "controller":"api", "action":"metadata", "format":"json" },
+    { "url":"/api/v4/:entity", "controller":"api", "action":"items", "format":"json" },
+    { "url":"/api/v4/:entity\\(:id\\)", "controller":"api", "action":"item", "mime":"application/json" },
+    { "url":"/api/v4/:entity\\(:id\\)/:property", "controller":"api", "action":"property", "mime":"application/json" },
     { "url":"/", "controller":"root", "action":"index" },
     { "url":"/locale/:resource.js", "controller":"root", "action":"locale", "mime":"application/javascript" },
     { "url":"/:action", "controller":"root" },
     { "url":"/:action.html", "controller":"root" },
-    { "url":"/:action.json", "controller":"root" },
-    { "url":"/Invoice/:id/print", "mime":"application/pdf", "controller":"Invoice", "action":"print" },
-    { "url":"/mailbox/message/:message/read.html", "mime":"text/html", "controller":"mailbox", "action":"read" },
-    { "url":"/Order/delivered.json", "mime":"application/json", "controller":"Order", "action":"index",
-        "params": { "$select":"delivered" } },
-    { "url":"/:controller/:action.html", "mime":"text/html", "static":true },
     { "url":"/:controller/:action.json", "mime":"application/json" },
-    { "url":"/:controller/:action.csv", "mime":"application/csv" },
-    { "url":"/:controller/:action.xml", "mime":"text/xml" },
-    { "url":"/:controller/:id/:action.html", "mime":"text/html", "static":true },
-    { "url":"/:controller/:id/:action.xml", "mime":"text/xml" },
-    { "url":"/:controller/:id/:action.json", "mime":"application/json" },
-    { "url":"/:controller/:parent/:model/index.json", "mime":"application/json", "action":"association" }
-    
+    { "url":"/:controller/:action.html", "mime":"text/html", "static":true },
+    { "url":"/:controller/:id/:action.html", "mime":"text/html", "static":true }
+
 ]

@@ -206,7 +206,7 @@ export class DataConfigurationStrategy extends ConfigurationStrategy {
          */
         const schemaLoader = this.getConfiguration().getStrategy(SchemaLoaderStrategy);
         return schemaLoader.getModelDefinition(name);
-    };
+    }
 
     /**
      * Sets a data model definition in application storage.
@@ -240,7 +240,7 @@ export class DataConfigurationStrategy extends ConfigurationStrategy {
         const schemaLoader = this.getConfiguration().getStrategy(SchemaLoaderStrategy);
         schemaLoader.setModelDefinition(data);
         return this;
-    };
+    }
 
     /**
      * @returns {*}

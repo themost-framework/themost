@@ -83,3 +83,4 @@ var RootController = (_dec = httpGet(), _dec2 = httpGet(), (_class = function (_
 }(HttpController), (_applyDecoratedDescriptor(_class.prototype, 'index', [_dec], Object.getOwnPropertyDescriptor(_class.prototype, 'index'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'person', [_dec2], Object.getOwnPropertyDescriptor(_class.prototype, 'person'), _class.prototype)), _class));
 exports.default = RootController;
 module.exports = exports['default'];
+//# sourceMappingURL=root-controller.js.map

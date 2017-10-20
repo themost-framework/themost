@@ -10,6 +10,7 @@
 import 'source-map-support/register';
 import {ParserUtils} from './types';
 import sprintf from 'sprintf';
+// eslint-disable-next-line no-unused-vars
 import moment from 'moment';
 import _ from 'lodash';
 import Q from 'q';
@@ -86,7 +87,7 @@ export class FunctionContext {
             }
         }
         else {
-            console.log(sprintf.sprintf('Cannot evaluate %s.', expr1));
+            TraceUtils.log(sprintf.sprintf('Cannot evaluate %s.', expr1));
             callback(new Error('Cannot evaluate expression.'));
         }
     }

@@ -101,7 +101,7 @@ export class HttpRoute {
             }
             match = re.exec(this.route.url);
         }
-        const str = this.route.url.replace(re, "([\\$_\\w-]+)"), matcher = new RegExp("^" + str + "$", "ig");
+        const str = this.route.url.replace(re, "([\\$_\\-0-9\\w-]+)"), matcher = new RegExp("^" + str + "$", "ig");
         match = matcher.exec(str1);
         if (typeof match === 'undefined' || match === null) {
             return false;

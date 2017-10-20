@@ -58,12 +58,9 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 */
 
 
-var contextProperty = Symbol('context');
-
 /**
  * @class
  */
-
 var EjsEngine = function (_HttpViewEngine) {
     _inherits(EjsEngine, _HttpViewEngine);
 
@@ -126,11 +123,24 @@ var EjsEngine = function (_HttpViewEngine) {
                             }
                             //create view context
                             var viewContext = new HttpViewContext(self.getContext());
-                            //extend view context with page properties
-                            _.assign(viewContext, properties || {});
-                            //set view context data
-                            viewContext.data = data;
                             var partial = false;
+                            var model = _.assign(properties, data, {
+                                getContext: function getContext() {
+                                    return self.getContext();
+                                },
+                                getViewContext: function getViewContext() {
+                                    return viewContext;
+                                }
+                            });
+                            _.assign(model, properties || {});
+                            //for backward compatibility issues add locals.context property
+                            //this property is going to be deprecated (use locals.getContext() instead)
+                            Object.defineProperty(model, 'context', {
+                                get: function get() {
+                                    return self.getContext();
+                                },
+                                enumerable: false, configurable: false
+                            });
                             if (self.getContext() && self.getContext().request.route) partial = LangUtils.parseBoolean(self.getContext().request.route['partial']);
                             if (properties.layout && !partial) {
                                 var layout = void 0;
@@ -141,8 +151,10 @@ var EjsEngine = function (_HttpViewEngine) {
                                     //relative to view file path e.g. ./../master.html.html.ejs
                                     layout = path.resolve(filename, properties.layout);
                                 }
-                                //set current view buffer (after rendering)
-                                viewContext.body = ejs.render(str, viewContext);
+
+                                viewContext.body = ejs.render(str, {
+                                    model: model
+                                });
                                 //render master layout
                                 fs.readFile(layout, 'utf-8', function (err, layoutData) {
                                     try {
@@ -152,14 +164,18 @@ var EjsEngine = function (_HttpViewEngine) {
                                             }
                                             return callback(err);
                                         }
-                                        var result = ejs.render(layoutData, viewContext);
+                                        var result = ejs.render(layoutData, {
+                                            model: model
+                                        });
                                         callback(null, result);
                                     } catch (e) {
                                         callback(e);
                                     }
                                 });
                             } else {
-                                var result = ejs.render(str, viewContext);
+                                var result = ejs.render(str, {
+                                    model: model
+                                });
                                 callback(null, result);
                             }
                         }

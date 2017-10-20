@@ -116,6 +116,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 
 /**
+ * @this DataModel
  * @memberOf DataModel
  * @param {DataField} field
  * @private
@@ -1641,7 +1642,7 @@ var DataModel = exports.DataModel = function (_SequentialEventEmitt) {
         key: 'getDataView',
         value: function getDataView(name) {
             var self = this;
-            var re = new RegExp('^' + name.replace('$', '\$') + '$', 'ig');
+            var re = new RegExp('^' + name.replace('$', '\\$') + '$', 'ig');
             var view = _.find(self.views, function (x) {
                 return re.test(x.name);
             });
@@ -2046,6 +2047,7 @@ var DataModel = exports.DataModel = function (_SequentialEventEmitt) {
 }(SequentialEventEmitter);
 
 /**
+ * @this DataModel
  * @memberOf DataModel
  * @private
  */
@@ -2136,6 +2138,7 @@ function registerListeners_() {
 
 /**
  * @memberOf DataModel
+ * @this DataModel
  * @private
  * @param {*} obj
  */
@@ -2182,6 +2185,7 @@ function convertInternal_(obj) {
 }
 
 /**
+ * @this DataModel
  * @param {*} obj
  * @param {number=} state
  * @returns {*}
@@ -2229,6 +2233,7 @@ function cast_(obj, state) {
 }
 
 /**
+ * @this DataModel
  * @param {*} obj
  * @param {number=} state
  * @returns {*}
@@ -2276,7 +2281,7 @@ function castForValidation_(obj, state) {
 }
 
 /**
- *
+ * @this DataModel
  * @param {*|Array} obj
  * @param {Function} callback
  * @private
@@ -2323,6 +2328,7 @@ function save_(obj, callback) {
 }
 
 /**
+ * @this DataModel
  * @param {*} obj
  * @param {Function} callback
  * @private
@@ -2349,6 +2355,7 @@ function saveBaseObject_(obj, callback) {
     }
 }
 /**
+ * @this DataModel
  * @param {*} obj
  * @param {Function} callback
  * @private
@@ -2503,6 +2510,7 @@ function saveSingleObject_(obj, callback) {
 }
 
 /**
+ * @this DataModel
  * @param {*|Array} obj
  * @param {Function} callback
  * @private
@@ -2526,6 +2534,7 @@ function update_(obj, callback) {
 }
 
 /**
+ * @this DataModel
  * @param {*|Array} obj
  * @param {Function} callback
  * @private
@@ -2549,7 +2558,7 @@ function insert_(obj, callback) {
 }
 
 /**
- *
+ * @this DataModel
  * @param {*|Array} obj
  * @param {Function} callback
  * @private
@@ -2593,6 +2602,7 @@ function remove_(obj, callback) {
 }
 
 /**
+ * @this DataModel
  * @param {Object} obj
  * @param {Function} callback
  * @private
@@ -2650,6 +2660,7 @@ function removeSingleObject_(obj, callback) {
 }
 
 /**
+ * @this DataModel
  * @param {*} obj
  * @param {Function} callback
  * @private
@@ -2685,38 +2696,7 @@ function removeBaseObject_(obj, callback) {
 DataModel.PluralExpression = /([a-zA-Z]+?)([e']s|[^aiou]s)$/;
 
 /**
- * @param {DataField|*} field
- * @param {DataAssociationMapping|*} mapping
- * @private
- */
-function cacheMapping_(field, mapping) {
-    if (_.isNil(field)) return;
-    //cache mapping
-    var cachedModel = this.getConfiguration().models[this.name];
-    if (cachedModel) {
-        var cachedField = cachedModel.fields.find(function (x) {
-            return x.name === field.name;
-        });
-        if (typeof cachedField === 'undefined') {
-            //search in attributes
-            cachedField = this.attributes.find(function (x) {
-                return x.name === field.name;
-            });
-            if (cachedField) {
-                //add overridden field
-                cachedModel.fields.push(_.assign({}, cachedField));
-                cachedField = cachedModel.fields[cachedModel.fields.length - 1];
-                //clear attributes
-                this._clearAttributes();
-            }
-        }
-        if (cachedField)
-            //add mapping
-            cachedField.mapping = mapping;
-    }
-}
-
-/**
+ * @this DataModel
  * @function
  * @param {*} obj
  * @param {number} state

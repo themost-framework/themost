@@ -54,6 +54,7 @@ var QueryEntity = _query.QueryEntity;
 var _utils = require('@themost/common/utils');
 
 var TextUtils = _utils.TextUtils;
+var TraceUtils = _utils.TraceUtils;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -670,13 +671,14 @@ var DataQueryable = exports.DataQueryable = function () {
                 return self;
             }
             var re = /("(.*?)")|(\w+)/g;
-            var match = void 0;
-            while (match = re.exec(text)) {
+            var match = re.exec(text);
+            while (match) {
                 if (match[2]) {
                     terms.push(match[2]);
                 } else {
                     terms.push(match[0]);
                 }
+                match = re.exec(text);
             }
             if (terms.length === 0) {
                 return self;
@@ -2881,6 +2883,14 @@ var DataQueryable = exports.DataQueryable = function () {
     return DataQueryable;
 }();
 
+/**
+ * @this DataQueryable
+ * @param arg
+ * @returns {*}
+ * @private
+ */
+
+
 function select_(arg) {
     var self = this;
     if (typeof arg === 'string' && arg.length === 0) {
@@ -2905,6 +2915,7 @@ function select_(arg) {
 }
 
 /**
+ * @this DataQueryable
  * @private
  * @param {Function} callback
  */
@@ -2921,6 +2932,7 @@ function firstInternal(callback) {
 }
 
 /**
+ * @this DataQueryable
  * @private
  * @param {Function} callback
  */
@@ -2939,6 +2951,7 @@ function allInternal(callback) {
 }
 
 /**
+ * @this DataQueryable
  * @private
  * @param {Number} n - Defines the number of items to take
  * @param {function=} callback
@@ -2957,6 +2970,7 @@ function takeInternal(n, callback) {
 }
 
 /**
+ * @this DataQueryable
  * @private
  * @param {Function} callback
  */
@@ -2993,6 +3007,7 @@ function listInternal(callback) {
 }
 
 /**
+ * @this DataQueryable
  * @private
  * @param callback {Function}
  * @returns {*} - A collection of objects that meet the query provided
@@ -3025,6 +3040,7 @@ function countInternal(callback) {
 }
 
 /**
+ * @this DataQueryable
  * @private
  * @param {string} attr
  * @param callback {Function}
@@ -3042,6 +3058,7 @@ function maxInternal(attr, callback) {
 }
 
 /**
+ * @this DataQueryable
  * @private
  * @param attr {String}
  * @param callback {Function}
@@ -3059,6 +3076,7 @@ function minInternal(attr, callback) {
 }
 
 /**
+ * @this DataQueryable
  * @private
  * @param {string} attr
  * @param {Function} callback
@@ -3103,6 +3121,7 @@ function executeCount_(callback) {
 }
 
 /**
+ * @this DataQueryable
  * Executes the underlying query statement.
  * @param {function(Error,*=)} callback
  * @private
@@ -3210,6 +3229,7 @@ function execute_(callback) {
 }
 
 /**
+ * @this DataQueryable
  * @private
  * @param {*} e
  * @param {Function} callback
@@ -3271,6 +3291,7 @@ function finalExecuteInternal_(e, callback) {
 }
 
 /**
+ * @this DataQueryable
  * @param {*} result
  * @param {Function} callback
  * @private
@@ -3394,7 +3415,7 @@ function afterExecute_(result, callback) {
                     return cb(new Error("Not yet implemented"));
                 }
             } else {
-                console.log(sprintf.sprintf('Data assocication mapping (%s) for %s cannot be found or the association between these two models defined more than once.', expand, self.model.title));
+                TraceUtils.log(sprintf.sprintf('Data association mapping (%s) for %s cannot be found or the association between these two models defined more than once.', expand, self.model.title));
                 return cb(null);
             }
         }, function (err) {
@@ -3410,6 +3431,7 @@ function afterExecute_(result, callback) {
 }
 
 /**
+ * @this DataQueryable
  * @private
  * @param {Array|*} result
  * @param {Function} callback
@@ -3441,6 +3463,7 @@ function toArrayCallback(result, callback) {
 }
 
 /**
+ * @this DataQueryable
  * @private
  * @param {Function} callback
  */

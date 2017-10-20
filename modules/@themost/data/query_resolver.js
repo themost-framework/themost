@@ -77,15 +77,6 @@ var QueryOptionsResolver = exports.QueryOptionsResolver = function () {
                 return resolve();
             });
         }
-
-        /**
-         * @param {DataQueryable} q
-         * @param params
-         */
-
-    }, {
-        key: 'resolveCountQueryOption',
-        value: function resolveCountQueryOption(q, params) {}
     }]);
 
     return QueryOptionsResolver;
