@@ -1,0 +1,23 @@
+{
+  "name": "@themost/client",
+  "version": "2.0.0-alpha.2",
+  "description": "MOST Web Framework 2.0 - client module",
+  "module": "index.js",
+  "peerDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kbarbounakis/themost.git"
+  },
+  "author": "Kyriakos Barbounakis <k.barbounakis@gmail.com>",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/kbarbounakis/themost/issues"
+  },
+  "homepage": "https://github.com/kbarbounakis/themost#readme",
+  "dependencies": {
+
+  },
+  "devDependencies": {
+
+  }
+}
