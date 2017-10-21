@@ -1,11 +1,3 @@
-/**
- * @license
- * MOST Web Framework 2.0 Codename Blueshift
- * Copyright (c) 2017, THEMOST LP All rights reserved
- *
- * Use of this source code is governed by an BSD-3-Clause license that can be
- * found in the LICENSE file at https://themost.io/license
- */
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -13,7 +5,15 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.SequentialEventEmitter = undefined;
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * MOST Web Framework 2.0 Codename Blueshift
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Copyright (c) 2017, THEMOST LP All rights reserved
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Use of this source code is governed by an BSD-3-Clause license that can be
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * found in the LICENSE file at https://themost.io/license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
 
 require('source-map-support/register');
 
@@ -99,7 +99,7 @@ var SequentialEventEmitter = exports.SequentialEventEmitter = function () {
 
                 if (index > -1) {
                     listeners.splice(index, 1);
-                    this[listenersProperty].set(type, listeners);
+                    //this[listenersProperty].set(type, listeners);
                     return this;
                 }
             }
@@ -157,17 +157,22 @@ var SequentialEventEmitter = exports.SequentialEventEmitter = function () {
             //get listeners
             var listeners = self[listenersProperty].get(event);
             if (typeof listeners === 'undefined') {
-                return callback.call(self);
+                return callback.bind(self)();
             }
             //validate listeners
             if (listeners.length === 0) {
                 //exit emitter
-                return callback.call(self);
+                return callback.bind(self)();
             }
             //apply each series
-            async.applyEachSeries(listeners, args, function (err) {
-                callback.call(self, err);
-            });
+            try {
+                //apply each series
+                async.applyEachSeries(listeners, args, function (err) {
+                    callback.call(self, err);
+                });
+            } catch (err) {
+                return callback.bind(self)(err);
+            }
         }
     }, {
         key: 'once',
@@ -179,7 +184,7 @@ var SequentialEventEmitter = exports.SequentialEventEmitter = function () {
                 self.removeListener(type, g);
                 if (!fired) {
                     fired = true;
-                    listener.apply(this, arguments);
+                    listener.apply(self, arguments);
                 }
             }
             g.listener = listener;

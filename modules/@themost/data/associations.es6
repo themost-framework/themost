@@ -7,11 +7,10 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
 import async from 'async';
 import {ParserUtils, DataAssociationMapping} from './types';
-import {_} from 'lodash';
+import _ from 'lodash';
 import {DataQueryable} from './queryable';
 import {Args} from "@themost/common/utils";
 import {QueryExpression, QueryFieldUtils} from "@themost/query/query";
@@ -104,10 +103,10 @@ export class DataObjectAssociationListener {
                 const mappings = [];
                 keys.forEach(function(x) {
                     if (e.target.hasOwnProperty(x) && typeof e.target[x] === 'object' && e.target[x] !== null) {
-                            //try to find field mapping, if any
-                            const mapping = e.model.inferMapping(x);
-                            if (mapping && mapping.associationType==='association' && mapping.childModel===e.model.name)
-                                mappings.push(mapping);
+                        //try to find field mapping, if any
+                        const mapping = e.model.inferMapping(x);
+                        if (mapping && mapping.associationType==='association' && mapping.childModel===e.model.name)
+                            mappings.push(mapping);
                     }
                 });
                 async.eachSeries(mappings,
@@ -118,9 +117,10 @@ export class DataObjectAssociationListener {
                     function(mapping, cb) {
                         if (mapping.associationType==='association' && mapping.childModel===e.model.name) {
                             /**
-                             * @type {DataField|*}
-                             */
-                            const field = e.model.field(mapping.childField), childField = field.property || field.name;
+                           * @type {DataField|*}
+                           */
+                            const field = e.model.field(mapping.childField);
+                            const childField = field.property || field.name;
                             //foreign key association
                             if (typeof e.target[childField] !== 'object') {
                                 return cb();
@@ -163,7 +163,7 @@ export class DataObjectAssociationListener {
                             });
                         }
                         else {
-                           cb();
+                            cb();
                         }
 
                     }, function(err) {
@@ -184,7 +184,7 @@ export class DataObjectAssociationListener {
      */
     afterSave(event, callback) {
         try {
-            if (typeof event.target === 'undefined' || event.target==null) {
+            if (typeof event.target === 'undefined' || event.target === null) {
                 callback(null);
             }
             else {
@@ -197,7 +197,7 @@ export class DataObjectAssociationListener {
                          */
                         const mapping = event.model.inferMapping(x);
                         if (mapping)
-                            if (mapping.associationType=='junction') {
+                            if (mapping.associationType==='junction') {
                                 mappings.push({ name:x, mapping:mapping });
                             }
                     }
@@ -208,26 +208,25 @@ export class DataObjectAssociationListener {
                      * @param {Function} cb
                      */
                     function(x, cb) {
-                        if (x.mapping.associationType=='junction') {
+                        if (x.mapping.associationType==='junction') {
                             const obj = event.model.convert(event.target);
 
                             /**
-                             * @type {*|{deleted:Array}}
+                             * @type {*}
                              */
                             const childs = obj[x.name];
 
                             let junction;
                             if (!_.isArray(childs)) { return cb(); }
                             if (x.mapping.childModel===event.model.name) {
-                                const HasParentJunction = require('./has-parent-junction').HasParentJunction;
-                                junction = new HasParentJunction(obj, x.mapping);
+                                junction = new HasManyToManyAssociation(obj, x.mapping);
                                 if (event.model.$silent) {
                                     junction.getBaseModel().silent();
                                 }
-                                if (event.state==1 || event.state==2) {
+                                if (event.state===1 || event.state===2) {
                                     const toBeRemoved = [], toBeInserted = [];
                                     _.forEach(childs, function(x) {
-                                        if (x.$state == 4) {
+                                        if (x.$state === 4) {
                                             toBeRemoved.push(x);
                                         }
                                         else {
@@ -248,9 +247,7 @@ export class DataObjectAssociationListener {
                             }
                             else if (x.mapping.parentModel===event.model.name) {
 
-                                if (event.state==1 || event.state==2) {
-                                    const DataObjectJunction = require('./data-object-junction').DataObjectJunction, HasTagAssociation = require('./data-object-tag').HasTagAssociation;
-
+                                if (event.state===1 || event.state===2) {
                                     if (typeof x.mapping.childModel === 'undefined') {
                                         /**
                                          * @type {HasTagAssociation}
@@ -259,11 +256,15 @@ export class DataObjectAssociationListener {
                                         if (event.model.$silent) { tags.getBaseModel().silent(); }
                                         return tags.silent().all().then(function(result) {
 
-                                            const toBeRemoved = result.filter(function(x) { return childs.indexOf(x)<0; });
-                                            const toBeInserted = childs.filter(function(x) { return result.indexOf(x)<0; });
+                                            const toBeRemoved = _.filter(result,function(x) {
+                                                return childs.indexOf(x)<0;
+                                            });
+                                            const toBeInserted = _.filter(childs, function(x) {
+                                                return result.indexOf(x)<0;
+                                            });
                                             if (toBeRemoved.length>0) {
                                                 return tags.remove(toBeRemoved).then(function() {
-                                                    if (toBeInserted.length==0) { return cb(); }
+                                                    if (toBeInserted.length===0) { return cb(); }
                                                     return tags.insert(toBeInserted).then(function() {
                                                         return cb();
                                                     });
@@ -271,7 +272,7 @@ export class DataObjectAssociationListener {
                                                     return cb(err);
                                                 });
                                             }
-                                            if (toBeInserted.length==0) { return cb(); }
+                                            if (toBeInserted.length===0) { return cb(); }
                                             return tags.insert(toBeInserted).then(function() {
                                                 return cb();
                                             });
@@ -280,13 +281,13 @@ export class DataObjectAssociationListener {
                                         });
                                     }
                                     else {
-                                        junction = new DataObjectJunction(obj, x.mapping);
+                                        junction = new HasManyToManyAssociation(obj, x.mapping);
                                         if (event.model.$silent) { junction.getBaseModel().silent(); }
                                         junction.insert(childs, function(err) {
                                             if (err) { return cb(err); }
                                             const toBeRemoved = [], toBeInserted = [];
                                             _.forEach(childs, function(x) {
-                                                if (x.$state == 4) {
+                                                if (x.$state === 4) {
                                                     toBeRemoved.push(x);
                                                 }
                                                 else {
@@ -618,7 +619,7 @@ export class HasManyToOneAssociation extends HasAssociation {
 export class HasManyToManyAssociation extends HasAssociation {
     constructor(obj, association) {
         super(obj, association);
-        }
+    }
 
     /**
      * @returns {DataModel}
@@ -689,7 +690,7 @@ export class HasManyToManyAssociation extends HasAssociation {
         const self = this;
         self.migrate(function(err) {
             if (err) { return callback(err); }
-            executeFunc.call(self, callback);
+            executeFunc.bind(self)(callback);
         });
     }
 
@@ -773,7 +774,7 @@ export class HasManyToManyAssociation extends HasAssociation {
         const self = this;
         if (typeof callback !== 'function') {
             const Q = require('q'), deferred = Q.defer();
-            insert_.call(self, obj, function(err) {
+            insert_.bind(self)(obj, function(err) {
                 if (err) { return deferred.reject(err); }
                 deferred.resolve(null);
             });
@@ -806,7 +807,7 @@ export class HasManyToManyAssociation extends HasAssociation {
         const self = this;
         if (typeof callback !== 'function') {
             const Q = require('q'), deferred = Q.defer();
-            remove_.call(self, obj, function(err) {
+            remove_.bind(self)(obj, function(err) {
                 if (err) { return deferred.reject(err); }
                 deferred.resolve(null);
             });
@@ -835,6 +836,7 @@ function insertSingleObject_(obj, callback) {
     /**
      * @type {HasManyToManyAssociation|*}
      */
+    // eslint-disable-next-line no-invalid-this
     const self = this;
     const mapping = self.getMapping();
     const parent = self.getParent();
@@ -842,7 +844,7 @@ function insertSingleObject_(obj, callback) {
     if (self.model.name === mapping.parentModel) {
         //get parent id
         return parent.property(mapping.parentField).value().then(function(parentId) {
-            "use strict";
+            
             if (_.isNil(parentId)) {
                 return callback(new DataNotFoundError('Parent object cannot be found.'))
             }
@@ -864,7 +866,6 @@ function insertSingleObject_(obj, callback) {
                 return callback(new DataNotFoundError('Parent object cannot be found.'))
             }
             return parent.property(mapping.childField).value().then(function(valueId) {
-                "use strict";
                 if (_.isNil(parentId)) {
                     return callback(new DataNotFoundError('Child object cannot be found.'))
                 }
@@ -890,7 +891,9 @@ function insert_(obj, callback) {
      *
      * @type {HasAssociation|*}
      */
+    // eslint-disable-next-line no-invalid-this
     const self = this;
+    const mapping = self.getMapping();
     let arr = [];
     if (_.isArray(obj))
         arr = obj;
@@ -927,6 +930,7 @@ function removeSingleObject_(obj, callback) {
     /**
      * @type {HasManyToManyAssociation|*}
      */
+// eslint-disable-next-line no-invalid-this
     const self = this;
     const mapping = self.getMapping();
     const parent = self.getParent();
@@ -934,7 +938,7 @@ function removeSingleObject_(obj, callback) {
     if (self.model.name === mapping.parentModel) {
         //get parent id
         return parent.property(mapping.parentField).value().then(function(parentId) {
-            "use strict";
+            
             if (_.isNil(parentId)) {
                 return callback(new DataNotFoundError('Parent object cannot be found.'))
             }
@@ -956,7 +960,7 @@ function removeSingleObject_(obj, callback) {
                 return callback(new DataNotFoundError('Parent object cannot be found.'))
             }
             return parent.property(mapping.childField).value().then(function(valueId) {
-                "use strict";
+                
                 if (_.isNil(parentId)) {
                     return callback(new DataNotFoundError('Child object cannot be found.'))
                 }
@@ -982,7 +986,9 @@ function remove_(obj, callback) {
      *
      * @type {HasAssociation|*}
      */
+// eslint-disable-next-line no-invalid-this
     const self = this;
+    const mapping = self.getMapping();
     let arr = [];
     if (_.isArray(obj))
         arr = obj;
@@ -1156,12 +1162,14 @@ export class HasTagAssociation extends HasAssociation {
         return this[baseModelProperty];
     }
 
+    getBaseModel() {
+        return this.baseModel;
+    }
+
     get query() {
         if (_.isNil(this[queryProperty])) {
-
             const mapping = this.getMapping(),
-                parentObject = this.getParent(),
-                parentObjectModel = parentObject.getModel();
+                parentObject = this.getParent();
             Args.check(_.isObject(mapping), new DataError('Data association mapping cannot be empty at this context'));
             //get model adapter
             const modelAdapter = this.model.getViewAdapter();
@@ -1176,7 +1184,7 @@ export class HasTagAssociation extends HasAssociation {
             left[ parentAdapter ] = [ mapping.parentField ];
             right[ modelAdapter ] = [ QueryFieldUtils.select("object").from(modelAdapter).getName() ];
             const objectField = QueryFieldUtils.select("object").from(modelAdapter).$name;
-            this[queryProperty].join(parentAdapter, []).with([left, right]).where(objectField).equal(obj[mapping.parentField]).prepare(false);
+            this[queryProperty].join(parentAdapter, []).with([left, right]).where(objectField).equal(parentObject[mapping.parentField]).prepare(false);
         }
         return this[queryProperty];
     }
@@ -1263,7 +1271,7 @@ export class HasTagAssociation extends HasAssociation {
         const self = this;
         if (typeof callback !== 'function') {
             const Q = require('q'), deferred = Q.defer();
-            HasTagAssociation_Clear_.call(self, function(err) {
+            HasTagAssociation_Clear_.bind(self)(function(err) {
                 if (err) { return deferred.reject(err); }
                 deferred.resolve();
             });
@@ -1345,7 +1353,7 @@ function HasTagAssociation_Clear_(callback) {
         if (err) {
             return callback(err);
         }
-        if (self.$silent) { this.getBaseModel().silent(); }
+        if (self.$silent) { self.getBaseModel().silent(); }
         self.getBaseModel().where("object").equal(self.parent[self.mapping.parentField]).select("id").all().then(function(result) {
             if (result.length===0) { return callback(); }
             return self.getBaseModel().remove(result).then(function () {

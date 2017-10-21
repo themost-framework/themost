@@ -1,12 +1,3 @@
-/**
- * @license
- * MOST Web Framework 2.0 Codename Blueshift
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- *                     Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Use of this source code is governed by an BSD-3-Clause license that can be
- * found in the LICENSE file at https://themost.io/license
- */
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -14,7 +5,16 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.SyntaxToken = exports.IdentifierToken = exports.LiteralToken = exports.Token = exports.OpenDataParser = undefined;
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * MOST Web Framework 2.0 Codename Blueshift
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *                     Anthi Oikonomou anthioikonomou@gmail.com
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Use of this source code is governed by an BSD-3-Clause license that can be
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * found in the LICENSE file at https://themost.io/license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
 
 require('source-map-support/register');
 
@@ -26,7 +26,6 @@ var _expressions = require('./expressions');
 
 var ArithmeticExpression = _expressions.ArithmeticExpression;
 var ComparisonExpression = _expressions.ComparisonExpression;
-var LiteralExpression = _expressions.LiteralExpression;
 var LogicalExpression = _expressions.LogicalExpression;
 var MemberExpression = _expressions.MemberExpression;
 var MethodCallExpression = _expressions.MethodCallExpression;
@@ -258,19 +257,19 @@ var OpenDataParser = exports.OpenDataParser = function () {
                 if (err) {
                     callback.call(self, err);
                 } else {
-                    if (this.atEnd()) {
+                    if (self.atEnd()) {
                         callback.call(self, null, result);
                     }
                     //method call exception for [,] or [)] tokens e.g indexOf(Title,'...')
-                    else if (this.currentToken.syntax === SyntaxToken.Comma.syntax || this.currentToken.syntax === SyntaxToken.ParenClose.syntax) {
+                    else if (self.currentToken.syntax === SyntaxToken.Comma.syntax || self.currentToken.syntax === SyntaxToken.ParenClose.syntax) {
                             callback.call(self, null, result);
                         } else {
-                            var op = this.getOperator(self.currentToken);
+                            var op = self.getOperator(self.currentToken);
                             if (op === null) {
                                 callback.call(self, new Error('Expected operator.'));
                             } else {
-                                this.moveNext();
-                                this.parseCommonItem(function (err, right) {
+                                self.moveNext();
+                                self.parseCommonItem(function (err, right) {
                                     if (err) {
                                         callback.call(self, err);
                                     } else {
@@ -375,10 +374,12 @@ var OpenDataParser = exports.OpenDataParser = function () {
                     }
                     break;
                 case Token.TokenType.Literal:
-                    var value = self.currentToken.value;
-                    self.moveNext();
-                    callback.call(self, null, value);
-                    break;
+                    {
+                        var value = self.currentToken.value;
+                        self.moveNext();
+                        callback.call(self, null, value);
+                        break;
+                    }
                 case Token.TokenType.Syntax:
                     if (self.currentToken.syntax === SyntaxToken.Negative.syntax) {
                         callback.call(self, new Error('Negative syntax is not yet implemented.'));
@@ -388,7 +389,7 @@ var OpenDataParser = exports.OpenDataParser = function () {
                         self.moveNext();
                         self.parseCommon(function (err, result) {
                             if (err) {
-                                callback.call(self, err);
+                                return callback(err);
                             } else {
                                 self.expect(SyntaxToken.ParenClose);
                                 callback.call(self, null, result);
@@ -694,12 +695,12 @@ var OpenDataParser = exports.OpenDataParser = function () {
                     case "time":
                         stringType = LiteralToken.StringType.Time;break;
                     case "datetimeoffset":
-                        LiteralToken.StringType = StringType.DateTimeOffset;break;
+                        stringType = LiteralToken.StringType.DateTimeOffset;break;
                     default:
                         stringType = LiteralToken.StringType.None;break;
                 }
 
-                if (stringType !== LiteralToken.StringType.None && _source.charAt(_offset) == '\'') {
+                if (stringType !== LiteralToken.StringType.None && _source.charAt(_offset) === '\'') {
                     var content = this.parseString();
                     return this.parseSpecialString(content.value, stringType);
                 }
@@ -717,7 +718,7 @@ var OpenDataParser = exports.OpenDataParser = function () {
         value: function parseGuidString(value) {
             if (typeof value !== 'string') throw new Error(sprintf.sprintf('Invalid argument at %s.', this.offset));
             if (value.match(OpenDataParser.GuidRegex) !== null) throw new Error(sprintf.sprintf('Guid format is invalid at %s.', this.offset));
-            return new LiteralToken(value, LiteralType.Guid);
+            return new LiteralToken(value, LiteralToken.LiteralType.Guid);
         }
 
         /**
@@ -738,7 +739,7 @@ var OpenDataParser = exports.OpenDataParser = function () {
                     hour = match[5].length > 0 ? parseInt(match[5]) : 0,
                     minute = match[6].length > 0 ? parseInt(match[6]) : 0,
                     second = match[7].length > 0 ? parseFloat(match[7]) : 0;
-                return new LiteralToken(new TimeSpan(!negative, year, month, day, hour, minute, second), LiteralType.Duration);
+                return new LiteralToken(new TimeSpan(!negative, year, month, day, hour, minute, second), LiteralToken.LiteralType.Duration);
             } else {
                 throw new Error(sprintf.sprintf('Duration format is invalid at %s.', this.offset));
             }
@@ -780,14 +781,14 @@ var OpenDataParser = exports.OpenDataParser = function () {
             if (typeof value === 'undefined' || value === null) return null;
             var match = value.match(OpenDataParser.DateTimeRegex);
             if (match !== null) {
-                var year = parseInt(match[1]),
-                    month = parseInt(match[2]),
-                    day = parseInt(match[3]),
-                    hour = parseInt(match[4]),
-                    minute = parseInt(match[5]),
-                    second = match[6].length > 0 ? parseInt(match[6]) : 0,
-                    nanoSecond = match[7].length > 0 ? parseInt(match[7]) : 0;
-                return new LiteralToken(new Date(year, month, day, hour, minute, second), LiteralType.DateTime);
+                var year = parseInt(match[1]);
+                var month = parseInt(match[2]);
+                var day = parseInt(match[3]);
+                var hour = parseInt(match[4]);
+                var minute = parseInt(match[5]);
+                var second = match[6].length > 0 ? parseInt(match[6]) : 0;
+                //const nanoSecond = match[7].length > 0 ? parseInt(match[7]) : 0;
+                return new LiteralToken(new Date(year, month, day, hour, minute, second), LiteralToken.LiteralType.DateTime);
             } else {
                 throw new Error(sprintf.sprintf('Datetime format is invalid at %s.', this.offset));
             }
@@ -859,8 +860,7 @@ var OpenDataParser = exports.OpenDataParser = function () {
     }, {
         key: 'skipDigits',
         value: function skipDigits(current) {
-            var _source = this.source,
-                _offset = this.offset;
+            var _source = this.source;
             if (!OpenDataParser.isDigit(_source.charAt(current))) return null;
             current++;
             while (current < _source.length && OpenDataParser.isDigit(_source.charAt(current))) {

@@ -58,7 +58,7 @@
         "name": "dateCreated",
         "title": "Date Created",
         "description": "The date on which this item was created.",
-        "type": "Date",
+        "type": "DateTime",
         "value":"javascript:return (new Date());",
         "readonly":true
     },
@@ -66,7 +66,7 @@
         "name": "dateModified",
         "title": "Date Modified",
         "description": "The date on which this item was most recently modified.",
-        "type": "Date",
+        "type": "DateTime",
         "readonly":true,
         "value":"javascript:return (new Date());",
         "calculation":"javascript:return (new Date());"

@@ -1,11 +1,3 @@
-/**
- * @license
- * MOST Web Framework 2.0 Codename Blueshift
- * Copyright (c) 2017, THEMOST LP All rights reserved
- *
- * Use of this source code is governed by an BSD-3-Clause license that can be
- * found in the LICENSE file at https://themost.io/license
- */
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -13,7 +5,15 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.PathUtils = exports.LangUtils = exports.RandomUtils = exports.TraceUtils = exports.TextUtils = exports.NumberUtils = exports.Args = undefined;
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * MOST Web Framework 2.0 Codename Blueshift
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Copyright (c) 2017, THEMOST LP All rights reserved
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Use of this source code is governed by an BSD-3-Clause license that can be
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * found in the LICENSE file at https://themost.io/license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
 
 require('source-map-support/register');
 
@@ -23,7 +23,7 @@ var winston = _interopRequireDefault(_winston).default;
 
 var _lodash = require('lodash');
 
-var _ = _lodash._;
+var _ = _interopRequireDefault(_lodash).default;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -96,7 +96,7 @@ var Args = exports.Args = function () {
     }, {
         key: 'notNull',
         value: function notNull(arg, name) {
-            if (typeof arg === 'undefined' || arg == null) {
+            if (typeof arg === 'undefined' || arg === null) {
                 var err = new Error(name + " may not be null or undefined");
                 err.code = "ENULL";
                 throw err;
@@ -288,7 +288,7 @@ var TextUtils = exports.TextUtils = function () {
          */
         value: function toMD5(value) {
 
-            if (typeof value === 'undefined' || value == null) {
+            if (typeof value === 'undefined' || value === null) {
                 return;
             }
             //browser implementation
@@ -365,7 +365,7 @@ var TextUtils = exports.TextUtils = function () {
             }
 
             var crypto = require('crypto');
-            if (typeof value === 'undefined' || value == null) {
+            if (typeof value === 'undefined' || value === null) {
                 return;
             }
             var sha256 = crypto.createHash('sha256');
@@ -402,7 +402,7 @@ var TextUtils = exports.TextUtils = function () {
             for (i = 0; i < 36; i++) {
                 if (!uuid[i]) {
                     r = 0 | Math.random() * 16;
-                    n = i == 19 ? r & 0x3 | 0x8 : r;
+                    n = i === 19 ? r & 0x3 | 0x8 : r;
                     uuid[i] = UUID_CHARS.substring(n, 1);
                 }
             }
@@ -433,7 +433,7 @@ var TraceUtils = exports.TraceUtils = function () {
          */
         value: function log(data) {
             var args = Array.prototype.slice.call(arguments);
-            if (args.length == 0) {
+            if (args.length === 0) {
                 return;
             }
             if (data instanceof Error) {
@@ -454,7 +454,7 @@ var TraceUtils = exports.TraceUtils = function () {
         key: 'error',
         value: function error(data) {
             var args = Array.prototype.slice.call(arguments);
-            if (args.length == 0) {
+            if (args.length === 0) {
                 return;
             }
             if (data instanceof Error) {
@@ -477,7 +477,7 @@ var TraceUtils = exports.TraceUtils = function () {
         key: 'info',
         value: function info(data) {
             var args = Array.prototype.slice.call(arguments);
-            if (args.length == 0) {
+            if (args.length === 0) {
                 return;
             }
             return logger.info.apply(logger, args);
@@ -493,7 +493,7 @@ var TraceUtils = exports.TraceUtils = function () {
         key: 'warn',
         value: function warn(data) {
             var args = Array.prototype.slice.call(arguments);
-            if (args.length == 0) {
+            if (args.length === 0) {
                 return;
             }
             return logger.warn.apply(logger, args);
@@ -509,7 +509,7 @@ var TraceUtils = exports.TraceUtils = function () {
         key: 'debug',
         value: function debug(data) {
             var args = Array.prototype.slice.call(arguments);
-            if (args.length == 0) {
+            if (args.length === 0) {
                 return;
             }
             return logger.debug.apply(logger, args);
@@ -613,7 +613,7 @@ var LangUtils = exports.LangUtils = function () {
         value: function convert(value) {
             var result = void 0;
             if (typeof value === 'string') {
-                if (value.length == 0) {
+                if (value.length === 0) {
                     result = value;
                 }
                 if (value.match(BooleanTrueRegex)) {
@@ -674,7 +674,7 @@ var LangUtils = exports.LangUtils = function () {
                     expr1 = expr.substr(match.index + match[1].length);
                     LangUtils.extend(descriptor, expr1, value);
                 }
-            } else if (expr.indexOf('[') == 0) {
+            } else if (expr.indexOf('[') === 0) {
                 //get property
                 var re = /\[(.*?)\]/g;
                 match = re.exec(expr);
@@ -686,7 +686,7 @@ var LangUtils = exports.LangUtils = function () {
                         //property is an array
                         if (!_.isArray(origin.value)) origin.value = [];
                     }
-                    if (expr1.length == 0) {
+                    if (expr1.length === 0) {
                         if (origin.value instanceof LangUtils) {
                             origin.value = {};
                         }
@@ -727,7 +727,7 @@ var LangUtils = exports.LangUtils = function () {
         key: 'parseForm',
         value: function parseForm(form) {
             var result = {};
-            if (typeof form === 'undefined' || form == null) return result;
+            if (typeof form === 'undefined' || form === null) return result;
             var keys = Object.keys(form);
             keys.forEach(function (key) {
                 if (form.hasOwnProperty(key)) {
@@ -798,12 +798,12 @@ var LangUtils = exports.LangUtils = function () {
     }, {
         key: 'parseBoolean',
         value: function parseBoolean(any) {
-            if (typeof any === 'undefined' || any == null) return false;else if (typeof any === 'number') return any != 0;else if (typeof any === 'string') {
+            if (typeof any === 'undefined' || any === null) return false;else if (typeof any === 'number') return any !== 0;else if (typeof any === 'string') {
                 if (any.match(LangUtils.IntegerRegex) || any.match(LangUtils.FloatRegex)) {
-                    return parseInt(any, 10) != 0;
+                    return parseInt(any, 10) !== 0;
                 } else if (any.match(LangUtils.BooleanTrueRegex)) return true;else if (any.match(LangUtils.BooleanFalseRegex)) return false;else if (/^yes$|^on$|^y$|^valid$/i.test(any)) return true;else if (/^no$|^off$|^n$|^invalid$/i.test(any)) return false;else return false;
             } else if (typeof any === 'boolean') return any;else {
-                return (parseInt(any) || 0) != 0;
+                return (parseInt(any) || 0) !== 0;
             }
         }
     }]);

@@ -7,9 +7,8 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
-import {_} from 'lodash';
+import _ from 'lodash';
 import Q from 'q';
 import async from 'async';
 import {RandomUtils} from '@themost/common/utils';
@@ -134,15 +133,15 @@ export class DataPermissionEventListener {
             callback();
             return;
         }
-        if (event.state == 0)
+        if (event.state === 0)
             requestMask = PermissionMask.Read;
-        else if (event.state==1)
+        else if (event.state===1)
             requestMask = PermissionMask.Create;
-        else if (event.state==2)
+        else if (event.state===2)
             requestMask = PermissionMask.Update;
-        else if (event.state==4)
+        else if (event.state===4)
             requestMask = PermissionMask.Delete;
-        else if (event.state==16)
+        else if (event.state===16)
             requestMask = PermissionMask.Execute;
         else {
             return callback(new Error('Target object has an invalid state.'));
@@ -181,8 +180,8 @@ export class DataPermissionEventListener {
 
             const permEnabled = model.privileges.filter(function(x) { return !x.disabled; }, model.privileges).length>0;
             //get all enabled privileges
-            const privileges = model.privileges.filter(function(x) { return !x.disabled && ((x.mask & requestMask) == requestMask) });
-            if (privileges.length==0) {
+            const privileges = model.privileges.filter(function(x) { return !x.disabled && ((x.mask & requestMask) === requestMask) });
+            if (privileges.length===0) {
                 if (event.throwError) {
                     //if the target model has privileges but it has no privileges with the requested mask
                     if (permEnabled) {
@@ -213,7 +212,7 @@ export class DataPermissionEventListener {
                         return;
                     }
                     //global
-                    if (item.type=='global') {
+                    if (item.type==='global') {
                         if (typeof item.account !== 'undefined') {
                             //check if a privilege is assigned by the model
                             if (item.account==='*') {
@@ -249,13 +248,13 @@ export class DataPermissionEventListener {
                                 }
                             });
                     }
-                    else if (item.type=='parent') {
+                    else if (item.type==='parent') {
                         const mapping = model.inferMapping(item.property);
                         if (!mapping) {
                             cb(null);
                             return;
                         }
-                        if (requestMask==PermissionMask.Create) {
+                        if (requestMask===PermissionMask.Create) {
                             permissions.where('privilege').equal(mapping.childModel).
                                 and('parentPrivilege').equal(mapping.parentModel).
                                 and('target').equal(event.target[mapping.childField]).
@@ -263,14 +262,14 @@ export class DataPermissionEventListener {
                                 and('account').in(accounts.map(function(x) { return x.id; })).
                                 and('mask').bit(requestMask).silent().count(function(err, count) {
                                     if (err) {
-                                        cb(err);
+                                        return cb(err);
                                     }
                                     else {
                                         if (count>=1) {
                                             cancel=true;
                                             event.result = true;
                                         }
-                                        cb(null);
+                                        return cb();
                                     }
                                 });
                         }
@@ -295,21 +294,21 @@ export class DataPermissionEventListener {
                                                     cancel=true;
                                                     event.result = true;
                                                 }
-                                                cb(null);
+                                                return cb();
                                             }
                                         });
                                 }
                                 else {
-                                    cb(null);
+                                    return cb();
                                 }
                             });
                         }
                     }
-                    else if (item.type=='item') {
+                    else if (item.type==='item') {
                         //if target object is a new object
-                        if (requestMask==PermissionMask.Create) {
+                        if (requestMask===PermissionMask.Create) {
                             //do nothing
-                            cb(null); return;
+                            return cb();
                         }
                         permissions.where('privilege').equal(model.name).
                             and('parentPrivilege').equal(null).
@@ -329,8 +328,8 @@ export class DataPermissionEventListener {
                                 }
                             });
                     }
-                    else if (item.type=='self') {
-                        if (requestMask==PermissionMask.Create) {
+                    else if (item.type==='self') {
+                        if (requestMask===PermissionMask.Create) {
                             const query = QueryExpression.create(model.viewAdapter);
                             const fields=[];
                             let field;
@@ -381,7 +380,7 @@ export class DataPermissionEventListener {
                                             cb(err);
                                         }
                                         else {
-                                            if (result.length==1) {
+                                            if (result.length===1) {
                                                 cancel=true;
                                                 event.result = true;
                                             }
@@ -454,7 +453,7 @@ export class DataPermissionEventListener {
         let requestMask = 1;
         const workspace = 1;
         let privilege = model.name;
-        let parentPrivilege=null;
+        let parentPrivilege;
         //get privilege from event arguments if it's defined (e.g. the operation requests execute permission User.ChangePassword where
         // privilege=ChangePassword and parentPrivilege=User)
         if (event.privilege) {
@@ -518,14 +517,14 @@ export class DataPermissionEventListener {
             //get model privileges
             const modelPrivileges = model.privileges || [];
             //if model has no privileges defined
-            if (modelPrivileges.length==0) {
+            if (modelPrivileges.length===0) {
                 //do nothing
                 return callback();
             }
             //tuning up operation
             //validate request mask permissions against all users privilege { mask:<requestMask>,disabled:false,account:"*" }
             const allUsersPrivilege = modelPrivileges.find(function(x) {
-                return (((x.mask & requestMask)==requestMask) && !x.disabled && (x.account==='*'));
+                return (((x.mask & requestMask)===requestMask) && !x.disabled && (x.account==='*'));
             });
             if (typeof allUsersPrivilege !== 'undefined') {
                 //do nothing
@@ -536,7 +535,7 @@ export class DataPermissionEventListener {
                 if (err) { callback(err); return; }
                 //get all enabled privileges
                 const privileges = modelPrivileges.filter(function(x) {
-                    return !x.disabled && ((x.mask & requestMask) == requestMask);
+                    return !x.disabled && ((x.mask & requestMask) === requestMask);
                 });
 
                 let cancel = false;
@@ -550,7 +549,7 @@ export class DataPermissionEventListener {
                         return cb();
                     }
                     try {
-                        if (item.type=='global') {
+                        if (item.type==='global') {
                             //check if a privilege is assigned by the model
                             if (item.account==='*') {
                                 //get permission and exit
@@ -571,24 +570,22 @@ export class DataPermissionEventListener {
                                 and('account').in(accounts.map(function(x) { return x.id; })).
                                 and('mask').bit(requestMask).silent().count(function(err, count) {
                                     if (err) {
-                                        cb(err);
+                                        return cb(err);
                                     }
-                                    else {
-                                        if (count>=1) {
-                                            assigned=true;
-                                            return cb(new EachSeriesCancelled());
-                                        }
-                                        cb();
+                                    if (count>=1) {
+                                        assigned=true;
+                                        return cb(new EachSeriesCancelled());
                                     }
+                                    return cb();
                                 });
                         }
-                        else if (item.type=='parent') {
+                        else if (item.type==='parent') {
                             //get field mapping
                             const mapping = model.inferMapping(item.property);
                             if (!mapping) {
                                 return cb();
                             }
-                            if (expr==null)
+                            if (expr===null)
                                 expr = QueryExpression.create();
                             expr.where(entity.select(mapping.childField)).equal(perms1.select('target')).
                                 and(perms1.select('privilege')).equal(mapping.childModel).
@@ -599,8 +596,8 @@ export class DataPermissionEventListener {
                             assigned=true;
                             cb();
                         }
-                        else if (item.type=='item') {
-                            if (expr==null)
+                        else if (item.type==='item') {
+                            if (_.isNil(expr))
                                 expr = QueryExpression.create();
                             expr.where(entity.select(model.primaryKey)).equal(perms1.select('target')).
                                 and(perms1.select('privilege')).equal(model.name).
@@ -611,7 +608,7 @@ export class DataPermissionEventListener {
                             assigned=true;
                             cb();
                         }
-                        else if (item.type=='self') {
+                        else if (item.type==='self') {
                             if (typeof item.filter === 'string' ) {
                                 model.filter(item.filter, function(err, q) {
                                     if (err) {
@@ -619,7 +616,7 @@ export class DataPermissionEventListener {
                                     }
                                     else {
                                         if (q.query.$prepared) {
-                                            if (expr==null)
+                                            if (_.isNil(expr))
                                                 expr = QueryExpression.create();
                                             expr.$where = q.query.$prepared;
                                             if (q.query.$expand) { expand = q.query.$expand; }
@@ -666,7 +663,7 @@ export class DataPermissionEventListener {
                             }
                             q.join(perms1).with(expr);
                             const pqAlias = 'pq' + RandomUtils.randomInt(100000,999999).toString();
-                            event.query.join(q.as(pqAlias)).with(QueryExpression.create().where(entity.select(model.primaryKey)).equal(QueryEntity.entity(pqAlias).select(model.primaryKey)));
+                            event.query.join(q.as(pqAlias)).with(QueryExpression.create().where(entity.select(model.primaryKey)).equal(QueryEntity.create(pqAlias).select(model.primaryKey)));
                             return callback();
                         });
                     }
@@ -682,11 +679,6 @@ export class DataPermissionEventListener {
     }
 }
 
-/**
- * @private
- * @type {string}
- */
-const ANONYMOUS_USER_CACHE_PATH = '/User/anonymous';
 /**
  * @param {DataContext} context
  * @param {Function} callback

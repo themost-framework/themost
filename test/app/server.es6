@@ -6,10 +6,10 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
+import 'source-map-support/register';
 import {HttpApplication} from './../../modules/@themost/web/app';
 import {AngularServerModule} from "../../modules/@themost/web/angular/module";
-import 'source-map-support/register';
+import {ODataConventionModelBuilder, ODataModelBuilder} from "../../modules/@themost/data/odata";
 //initialize application
 let app = new HttpApplication('./test/app');
 
@@ -17,9 +17,24 @@ app.useService(AngularServerModule)
     .getService(AngularServerModule)
     .useBootstrapModule(app.mapExecutionPath('./modules/server-app'));
 
+app.getConfiguration().useStrategy(ODataModelBuilder,ODataConventionModelBuilder);
+
 app.useAuthentication()
-    .useQuerystring()
+    .useJsonContent()
+    .usePostContent()
+    .useMultipartContent()
     .useFormatterStrategy()
-    .useStaticContent("./test/app/app")
-    .useViewContent();
-app.start();
+    .useStaticContent("./test/app/app");
+app.useViewContent();
+
+const builder = app.getConfiguration().getStrategy(ODataModelBuilder);
+builder.hasContextLink(function(context) {
+    const req = context.request;
+    const protocol = req.protocol || "http";
+    return `${protocol}://${req.headers.host}/api/v4/`;
+});
+builder.initialize().then(function() {
+    app.start();
+});
+
+

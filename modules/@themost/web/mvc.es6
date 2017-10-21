@@ -7,9 +7,8 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
-import {_} from 'lodash';
+import _ from 'lodash';
 import Q from 'q';
 import fs from 'fs';
 import util from 'util';
@@ -56,9 +55,9 @@ export class HttpContentResult extends HttpAnyResult {
                 return callback();
             }
             else {
-                response.writeHead(200, { 'Content-Type': self.contentType });
+                response.writeHead(200, _.assign(self.headers, { 'Content-Type': self.contentType }));
                 response.write(self.data,self.contentEncoding, function(err) {
-                   return callback(err);
+                    return callback(err);
                 });
             }
         });
@@ -78,7 +77,7 @@ export class HttpEmptyResult extends HttpAnyResult {
      */
     execute(context) {
         //do nothing
-        context.response.writeHead(204);
+        context.response.writeHead(204, self.headers);
         return Q();
     }
 }
@@ -130,7 +129,7 @@ export class HttpJsonResult extends HttpAnyResult {
                 response.writeHead(204);
                 return callback();
             }
-            response.writeHead(200, { 'Content-Type': self.contentType });
+            response.writeHead(200, _.assign(self.headers, { 'Content-Type': self.contentType }));
             response.write(self.data,self.contentEncoding, function(err) {
                 return callback(err);
             });
@@ -172,7 +171,7 @@ export class HttpJavascriptResult extends HttpAnyResult {
                 response.writeHead(204);
                 return callback();
             }
-            response.writeHead(200, { 'Content-Type': self.contentType });
+            response.writeHead(200, _.assign(self.headers, { 'Content-Type': self.contentType }));
             response.write(self.data,self.contentEncoding, function(err) {
                 return callback(err);
             });
@@ -200,6 +199,27 @@ export class HttpXmlResult extends HttpAnyResult {
             this.data= xml.serialize(data).outerXML();
         else
             this.data=data;
+    }
+    /**
+     * @param context
+     * @returns {Promise}
+     */
+    execute(context) {
+        const self = this;
+        return Q.nfcall(function(callback) {
+            /**
+             * @type ServerResponse
+             * */
+            const response = context.response;
+            if (_.isNil(self.data)) {
+                response.writeHead(204);
+                return callback();
+            }
+            response.writeHead(200, _.assign(self.headers, { 'Content-Type': self.contentType }));
+            response.write(self.data,self.contentEncoding, function(err) {
+                return callback(err);
+            });
+        });
     }
 }
 
@@ -258,9 +278,10 @@ export class HttpFileResult extends HttpAnyResult {
      */
     execute(context) {
 
+        const self = this;
         return Q.nfcall(function(callback) {
-            const physicalPath = this.physicalPath,
-                fileName = this.fileName;
+            const physicalPath = self.physicalPath,
+                fileName = self.fileName;
             fs.exists(physicalPath, function(exists) {
                 if (!exists) {
                     callback(new HttpNotFoundError());
@@ -314,10 +335,10 @@ export class HttpFileResult extends HttpAnyResult {
                                         //create read stream
                                         const source = fs.createReadStream(physicalPath);
                                         //add Content-Disposition: attachment; filename="<file name.ext>"
-                                        context.response.writeHead(200, {
+                                        context.response.writeHead(200, _.assign(self.headers, {
                                             'Content-Type': contentType + (contentEncoding ? ';charset=' + contentEncoding : ''),
                                             'ETag': responseETag
-                                        });
+                                        }));
                                         //copy file
                                         source.pipe(context.response);
                                         source.on('end', function() {
@@ -344,6 +365,7 @@ export class HttpFileResult extends HttpAnyResult {
 }
 
 /**
+ * @this HttpContext
  * @param controller
  * @param view
  * @param extension
@@ -352,9 +374,10 @@ export class HttpFileResult extends HttpAnyResult {
  * @private
  */
 function queryDefaultViewPath(controller, view, extension, callback) {
-   return queryAbsoluteViewPath.call(this, this.getApplication().mapExecutionPath('views'), controller, view, extension, callback);
+    return queryAbsoluteViewPath.call(this, this.getApplication().mapExecutionPath('views'), controller, view, extension, callback);
 }
 /**
+ * @this HttpContext
  * @param view
  * @param extension
  * @param callback
@@ -432,7 +455,7 @@ export class HttpViewResult extends HttpAnyResult {
     execute(context) {
         const self = this;
 
-   return Q.nfcall(function(callback) {
+        return Q.nfcall(function(callback) {
             /**
              * @type ServerResponse
              * */
@@ -520,7 +543,7 @@ export class HttpViewResult extends HttpAnyResult {
                                 return callback(err);
                             }
                             else {
-                                response.writeHead(200, {"Content-Type": self.contentType});
+                                response.writeHead(200, _.assign(self.headers, {"Content-Type": self.contentType}));
                                 response.write(result, self.contentEncoding);
                                 return callback();
                             }
@@ -631,11 +654,12 @@ export class HttpController {
      * @returns HttpContentResult
      * */
     content(content) {
-         return new HttpContentResult(content);
+        return new HttpContentResult(content);
     }
 
     /**
      * Creates a JSON result object by using the specified data.
+     * @param {*} data
      * @returns HttpJsonResult
      * */
     json(data) {
@@ -794,33 +818,33 @@ export class HttpViewContext {
     static HtmlViewHelper($view) {
         let doc;
         return {
-        antiforgery: function() {
+            antiforgery: function() {
             //create token
-            const context = $view.context, value = context.application.encrypt(JSON.stringify({ id: Math.floor(Math.random() * 1000000), url:context.request.url, date:new Date() }));
-            //try to set cookie
-            context.response.setHeader('Set-Cookie','.CSRF='.concat(value));
-            return $view.writer.writeAttribute('type', 'hidden')
-                .writeAttribute('id', '_CSRFToken')
-                .writeAttribute('name', '_CSRFToken')
-                .writeAttribute('value', value)
-                .writeFullBeginTag('input')
-                .toString();
-        },
-        element: function(obj) {
-            if (typeof doc === 'undefined') { doc = $view.context.application.document(); }
-            return doc.parentWindow.angular.element(obj);
-        },
-        lang: function() {
-            const context = $view.context, c= context.culture();
-            if (typeof c === 'string') {
-                if (c.length>=2) {
-                    return c.toLowerCase().substring(0,2);
+                const context = $view.context, value = context.application.encrypt(JSON.stringify({ id: Math.floor(Math.random() * 1000000), url:context.request.url, date:new Date() }));
+                //try to set cookie
+                context.response.setHeader('Set-Cookie','.CSRF='.concat(value));
+                return $view.writer.writeAttribute('type', 'hidden')
+                    .writeAttribute('id', '_CSRFToken')
+                    .writeAttribute('name', '_CSRFToken')
+                    .writeAttribute('value', value)
+                    .writeFullBeginTag('input')
+                    .toString();
+            },
+            element: function(obj) {
+                if (typeof doc === 'undefined') { doc = $view.context.application.document(); }
+                return doc.parentWindow.angular.element(obj);
+            },
+            lang: function() {
+                const context = $view.context, c= context.getCulture();
+                if (typeof c === 'string') {
+                    if (c.length>=2) {
+                        return c.toLowerCase().substring(0,2);
+                    }
                 }
+                //in all cases return default culture
+                return 'en';
             }
-            //in all cases return default culture
-            return 'en';
-        }
-    };
+        };
     }
 }
 
@@ -872,7 +896,7 @@ export class HtmlViewHelper {
 
     lang() {
         const $view = this.parent;
-        const context = $view.context, c= context.culture();
+        const context = $view.context, c= context.getCulture();
         if (typeof c === 'string') {
             if (c.length>=2) {
                 return c.toLowerCase().substring(0,2);

@@ -7,17 +7,31 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
+
 import 'source-map-support/register';
 import {TraceUtils, LangUtils} from '@themost/common/utils';
 import {HttpNextResult, HttpEndResult} from '../results';
 import {HttpConsumer} from '../consumers';
-import {_} from 'lodash';
+import _ from 'lodash';
 import url from 'url';
 import xml from 'most-xml';
 import Q from 'q';
+import async from 'async';
 import {ModuleLoaderStrategy} from "@themost/common/config";
 
+
+function getOwnPropertyNames_(obj) {
+    if (typeof obj === 'undefined' || obj === null) {
+        return [];
+    }
+    const ownPropertyNames = [];
+    let proto = Object.getPrototypeOf(obj);
+    while(proto) {
+        ownPropertyNames.push.apply(ownPropertyNames, Object.getOwnPropertyNames(proto));
+        proto = Object.getPrototypeOf(proto);
+    }
+    return ownPropertyNames;
+}
 
 /**
  *
@@ -31,8 +45,21 @@ function _dasherize(s) {
     return s;
 }
 function _isPromise(f) {
+    if (typeof f !== 'object') {
+        return false;
+    }
     return (typeof f.then === 'function') && (typeof f.catch === 'function');
 }
+
+/**
+ * @method dasherize
+ * @memberOf _
+ */
+
+/**
+ * @method isPromise
+ * @memberOf _
+ */
 
 if (typeof _.dasherize !== 'function') {
     _.mixin({'dasherize' : _dasherize});
@@ -167,7 +194,7 @@ class ViewHandler {
                 if (err) { return callback(err); }
                 let obj;
                 if (context.is('POST')) {
-                    if (context.format==='xml') {
+                    if (context.getFormat()==='xml') {
                         //get current model
                         if (context.request.body) {
                             //load xml
@@ -181,7 +208,7 @@ class ViewHandler {
                             }
                         }
                     }
-                    else if (context.format==='json') {
+                    else if (context.getFormat()==='json') {
                         if (typeof context.request.body === 'string') {
                             //parse json data
                             try {
@@ -311,14 +338,14 @@ class ViewHandler {
         const controllerPrototype = Object.getPrototypeOf(controller);
         if (controllerPrototype) {
             //query controller methods that support current http request
-            let protoActionMethods = _.filter(Object.getOwnPropertyNames(controllerPrototype), function(x) {
+            let protoActionMethod = _.find(getOwnPropertyNames_(controller), function(x) {
                 return (typeof controller[x] === 'function') &&
                     (controller[x].httpAction === action) &&
                     (controller[x][httpMethodDecorator] === true);
             });
             //if an action was found for the given criteria
-            if (protoActionMethods.length===1) {
-                return controller[protoActionMethods[0]];
+            if (protoActionMethod) {
+                return controller[protoActionMethod];
             }
         }
         //if an action with the given name is a method of current controller
@@ -359,25 +386,53 @@ class ViewHandler {
                     }
                     //enumerate params
                     const methodParams = LangUtils.getFunctionParams(actionMethod), params = [];
-                    /*
-                    * enumerate method parameters and check if a parameter with the same name
-                    * exists in request's parameters.
-                    * */
-                    if (methodParams.length>0) {
-                        let k=0;
-                        while (k<methodParams.length) {
-                            //get context parameter
-                            if (typeof context.params.attr === 'function')
-                                params.push(context.params.attr(methodParams[k]));
-                            else
-                                params.push(context.params[methodParams[k]]);
-                            k++;
+                    //execute action handler decorators
+                    const actionConsumers = _.filter(_.keys(actionMethod), (x) => {
+                        return (actionMethod[x] instanceof HttpConsumer);
+                    });
+                    return async.eachSeries(actionConsumers, (actionConsumer, cb) => {
+                        try {
+                            const source = actionMethod[actionConsumer].run(context);
+                            if (!_.isPromise(source)) {
+                                return cb(new Error("Invalid type. Action consumer result must be a promise."));
+                            }
+                            return source.then(()=> {
+                                return cb();
+                            }).catch((err)=> {
+                                return cb(err);
+                            });
                         }
-                    }
-                    return actionMethod.apply(controller, params).then((result) => {
-                        return callback(null, result);
-                    }).catch((err) => {
-                        return callback(err);
+                        catch(err) {
+                            return cb(err);
+                        }
+                    }, (err)=> {
+                        if (err) {
+                            return callback(err);
+                        }
+                        try {
+                            if (methodParams.length>0) {
+                                let k = 0;
+                                while (k < methodParams.length) {
+                                    if (typeof context.getParam === 'function') {
+                                        params.push(context.getParam(methodParams[k]));
+                                    }
+                                    else {
+                                        params.push(context.params[methodParams[k]]);
+                                    }
+                                    k+=1;
+                                }
+                            }
+                            //execute method
+                            const source = actionMethod.apply(controller, params);
+                            return source.then((result) => {
+                                return callback(null, result);
+                            }).catch((err) => {
+                                return callback(err);
+                            });
+                        }
+                        catch(err) {
+                            return callback(err);
+                        }
                     });
                 }
             }
@@ -422,11 +477,7 @@ function queryController(requestUri) {
 
 export class ViewConsumer extends HttpConsumer {
     constructor() {
-        super(function() {
-            /**
-             * @type {HttpContext}
-             */
-            const context = this;
+        super(function(context) {
             try {
                 let handler = new ViewHandler();
                 //execute mapRequest

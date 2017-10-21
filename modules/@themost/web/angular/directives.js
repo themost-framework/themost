@@ -1,12 +1,3 @@
-/**
- * @license
- * MOST Web Framework 2.0 Codename Blueshift
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- *                     Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Use of this source code is governed by an BSD-3-Clause license that can be
- * found in the LICENSE file at https://themost.io/license
- */
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -14,17 +5,32 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.AngularServerModuleDefaults = undefined;
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * MOST Web Framework 2.0 Codename Blueshift
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *                     Anthi Oikonomou anthioikonomou@gmail.com
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Use of this source code is governed by an BSD-3-Clause license that can be
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * found in the LICENSE file at https://themost.io/license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
 
 require('source-map-support/register');
 
 var _lodash = require('lodash');
 
-var _ = _lodash._;
+var _ = _interopRequireDefault(_lodash).default;
 
 var _permission = require('@themost/data/permission');
 
 var DataPermissionEventListener = _permission.DataPermissionEventListener;
+
+var _types = require('../../data/types');
+
+var DataEventArgs = _types.DataEventArgs;
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -70,14 +76,14 @@ var AngularServerModuleDefaults = exports.AngularServerModuleDefaults = function
          * @param {AngularServerModule} module
          */
         value: function applyDirectives(module) {
-            module.directive('serverInclude', function ($context, $async, $parse) {
+            module.directive('serverInclude', function ($context, $async, $parse, $window) {
                 return {
                     replace: true,
                     restrict: 'EA',
                     link: function link(scope, element, attrs) {
+                        //get angular instance
+                        var angular = $window.angular;
                         return $async(function (resolve, reject) {
-                            //get angular instance
-                            var angular = this.angular;
                             /**
                              * @ngdoc attrs
                              * @property {string} serverInclude
@@ -112,7 +118,7 @@ var AngularServerModuleDefaults = exports.AngularServerModuleDefaults = function
                         scope.$eval(attrs.serverInit);
                     }
                 };
-            }).directive('serverIf', function ($animate, $document) {
+            }).directive('serverIf', function ($animate, $window, $document) {
                 return {
                     transclude: 'element',
                     priority: 600,
@@ -148,7 +154,7 @@ var AngularServerModuleDefaults = exports.AngularServerModuleDefaults = function
                                     childScope = null;
                                 }
                                 if (block) {
-                                    previousElements = getBlockElements(angular, block.clone);
+                                    previousElements = getBlockElements($window.angular, block.clone);
                                     $animate.leave(previousElements, function () {
                                         previousElements = null;
                                     });
@@ -172,9 +178,13 @@ var AngularServerModuleDefaults = exports.AngularServerModuleDefaults = function
                                         if (_.isNil(scope.state)) {
                                             if (scope.mask) if (scope.mask === 1) scope.state = 0;else if (scope.mask === 2) scope.state = 1;else if (scope.mask === 4) scope.state = 2;else if (scope.mask === 8) scope.state = 4;else scope.state = scope.mask;
                                         }
-                                        var p = new DataPermissionEventListener(),
-                                            event = { model: targetModel, state: scope.state, throwError: false };
-                                        p.validate(event, function (err) {
+                                        var p = new DataPermissionEventListener();
+                                        var event = _.assign(new DataEventArgs(), {
+                                            model: targetModel,
+                                            state: scope.state,
+                                            throwError: false
+                                        });
+                                        p.validate(event, function () {
                                             if (event.result) {
                                                 var result = $compile(element.contents())(scope);
                                                 element.replaceWith(result);
@@ -189,7 +199,9 @@ var AngularServerModuleDefaults = exports.AngularServerModuleDefaults = function
                                     }
                                 });
                             },
-                            post: angular.noop
+                            post: function post() {
+                                //
+                            }
                         };
                     }
                 };
@@ -263,7 +275,9 @@ var AngularServerModuleDefaults = exports.AngularServerModuleDefaults = function
                                     }
                                 }
                             },
-                            post: angular.noop
+                            post: function post() {
+                                //
+                            }
                         };
                     }
                 };

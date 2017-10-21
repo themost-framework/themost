@@ -7,13 +7,10 @@
  * found in the LICENSE file at https://themost.io/license
  */
 
-'use strict';
 import _ from 'lodash';
 import Q from 'q';
 import {Args} from "@themost/common/utils";
 import {LangUtils} from "../common/utils";
-
-const TopQueryOption = "$top";
 
 export class QueryOptionsResolver {
 
@@ -30,7 +27,7 @@ export class QueryOptionsResolver {
             Args.check(/^[+-]?[0-9]*$/.test(option), new TypeError('Top query option must be an integer'));
             const $top = LangUtils.parseInt(option);
             q.take($top<=0 ? -1 : $top);
-            return resolve()
+            return resolve();
         });
     }
 
@@ -47,14 +44,6 @@ export class QueryOptionsResolver {
             q.skip(LangUtils.parseInt(option));
             return resolve()
         });
-    }
-
-    /**
-     * @param {DataQueryable} q
-     * @param params
-     */
-    static resolveCountQueryOption(q, params) {
-
     }
 
 }

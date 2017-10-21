@@ -7,18 +7,17 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
 import {HttpServerError,HttpNotFoundError,HttpForbiddenError} from '@themost/common/errors';
 import {TraceUtils} from '@themost/common/utils';
-import {_} from 'lodash';
+import _ from 'lodash';
 import Q from 'q';
 import fs from 'fs';
 import url from 'url';
 import path from 'path';
 import crypto from 'crypto';
 import {HttpConsumer} from '../consumers';
-import {HttpNextResult, HttpEndResult} from '../results';
+import {HttpNextResult} from '../results';
 
 /**
  * @classdesc Default static content handler (as it has been implemented for version 1.x of MOST Web Framework)
@@ -207,11 +206,7 @@ export class StaticContentConsumer extends HttpConsumer {
      * @constructor
      */
     constructor(rootDir) {
-        super(function() {
-            /**
-             * @type {HttpContext}
-             */
-            const context = this;
+        super(function(context) {
             try {
                 let handler = new StaticHandler(rootDir);
                 return Q.nfbind(handler.mapRequest.bind(handler))(context)
@@ -236,11 +231,7 @@ export class MapStaticContentConsumer extends HttpConsumer {
      * @constructor
      */
     constructor(whenDir, rootDir) {
-        super(function() {
-            /**
-             * @type {HttpContext}
-             */
-            const context = this;
+        super(function(context) {
             try {
                 let handler = new StaticHandler(rootDir);
                 handler.whenDir = whenDir;

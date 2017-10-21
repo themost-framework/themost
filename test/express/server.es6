@@ -1,4 +1,3 @@
-'use strict';
 import express from 'express';
 import {HttpApplication} from './../../modules/@themost/web/index';
 import 'source-map-support/register';

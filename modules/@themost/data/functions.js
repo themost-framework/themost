@@ -1,12 +1,3 @@
-/**
- * @license
- * MOST Web Framework 2.0 Codename Blueshift
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- *                     Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Use of this source code is governed by an BSD-3-Clause license that can be
- * found in the LICENSE file at https://themost.io/license
- */
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -14,7 +5,18 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.FunctionContext = undefined;
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * MOST Web Framework 2.0 Codename Blueshift
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *                     Anthi Oikonomou anthioikonomou@gmail.com
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Use of this source code is governed by an BSD-3-Clause license that can be
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * found in the LICENSE file at https://themost.io/license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
+// eslint-disable-next-line no-unused-vars
+
 
 require('source-map-support/register');
 
@@ -32,7 +34,7 @@ var moment = _interopRequireDefault(_moment).default;
 
 var _lodash = require('lodash');
 
-var _ = _lodash._;
+var _ = _interopRequireDefault(_lodash).default;
 
 var _q = require('q');
 
@@ -64,10 +66,10 @@ var FunctionContext = exports.FunctionContext = function () {
         */
         this.context = context;
         /**
-         * @type {DataModel}
-         */
+          * @type {DataModel}
+          */
         this.model = model;
-        if (_.isNil(context) && typeof model !== 'undefined' && typeof model != null) {
+        if (_.isNil(context) && _.isObject(model)) {
             //get current context from DataModel.context property
             this.context = model.context;
         }
@@ -94,7 +96,7 @@ var FunctionContext = exports.FunctionContext = function () {
             if (match) {
                 var expr2eval = void 0;
                 //check parameters (match[3])
-                if (match[3].length == 0) {
+                if (match[3].length === 0) {
                     expr2eval = expr1.replace(/(fn:)\s?(.*?)\s?\((.*?)\)/, "(function() { return this.$2(); });");
                 } else {
                     expr2eval = expr1.replace(/(fn:)\s?(.*?)\s?\((.*?)\)/, "(function() { return this.$2($3); });");
@@ -103,7 +105,7 @@ var FunctionContext = exports.FunctionContext = function () {
                 try {
                     var f = eval(expr2eval);
                     var value1 = f.call(this);
-                    if (typeof value1 !== 'undefined' && value1 != null && typeof value1.then === 'function') {
+                    if (typeof value1 !== 'undefined' && value1 !== null && typeof value1.then === 'function') {
                         value1.then(function (result) {
                             return callback(null, result);
                         }).catch(function (err) {
@@ -116,7 +118,7 @@ var FunctionContext = exports.FunctionContext = function () {
                     callback(err);
                 }
             } else {
-                console.log(sprintf.sprintf('Cannot evaluate %s.', expr1));
+                TraceUtils.log(sprintf.sprintf('Cannot evaluate %s.', expr1));
                 callback(new Error('Cannot evaluate expression.'));
             }
         }
@@ -370,7 +372,7 @@ function newGuidInternal() {
     for (i = 0; i < 36; i++) {
         if (!uuid[i]) {
             r = 0 | Math.random() * 16;
-            uuid[i] = chars[i == 19 ? r & 0x3 | 0x8 : r];
+            uuid[i] = chars[i === 19 ? r & 0x3 | 0x8 : r];
         }
     }
     return uuid.join('');

@@ -7,10 +7,9 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
 import {SequentialEventEmitter} from '@themost/common/emitter';
-import {_} from 'lodash';
+import _ from 'lodash';
 import {Args} from "@themost/common/utils";
 import Q from 'q';
 
@@ -59,7 +58,7 @@ export class DataCache extends SequentialEventEmitter {
      */
     remove(key) {
         const self = this;
-        return Q.denodeify((callback) => {
+        return Q.nfbind((callback) => {
             self.init((err) => {
                 if (err) {
                     return callback(err);
@@ -135,11 +134,11 @@ export class DataCache extends SequentialEventEmitter {
     /**
      * Gets a cached value defined by the given key.
      * @param {string|*} key
-     * @returns {Observable}
+     * @returns {Promise}
      */
     get(key) {
-        return Q.denodeify((function(key,callback) {
-            const self = this;
+        const self = this;
+        return Q.nfbind(function(key,callback) {
             self.init((err) => {
                 if (err) {
                     return callback(err);
@@ -154,7 +153,7 @@ export class DataCache extends SequentialEventEmitter {
                     return callback();
                 });
             });
-        }).bind(this))(key);
+        })(key);
     }
 
     /**
@@ -169,7 +168,7 @@ export class DataCache extends SequentialEventEmitter {
      * Sets the current cache service
      * @param {*|DataCache} cacheService
      */
-    setCurrent(cacheService) {
+    static setCurrent(cacheService) {
         DataCache.current = cacheService;
     }
 
@@ -185,6 +184,7 @@ export class NoDataCache {
      * @param {string|*} key
      * @returns {Promise}
      */
+// eslint-disable-next-line no-unused-vars
     get(key) {
         return Q();
     }
@@ -194,6 +194,7 @@ export class NoDataCache {
      * @param {string} key - A string that represents the key of the cached value to be removed
      * @returns {Promise}
      */
+// eslint-disable-next-line no-unused-vars
     remove(key) {
         return Q();
     }
@@ -207,6 +208,7 @@ export class NoDataCache {
      * @param {number=} absoluteExpiration - An absolute expiration time in seconds. This parameter is optional.
      * @returns {Promise}
      */
+// eslint-disable-next-line no-unused-vars
     add(key, value, absoluteExpiration) {
         return Q();
     }
@@ -226,14 +228,14 @@ export class NoDataCache {
      * @param {number=} absoluteExpiration - An absolute expiration time in seconds. This parameter is optional.
      * @returns {Promise}
      */
+// eslint-disable-next-line no-unused-vars
     getOrDefault(key, fn, absoluteExpiration) {
-        const self = this;
         Args.check(_.isFunction(fn),'Invalid argument. Expected function.');
         let source = fn();
-        Args.check(source instanceof Observable, 'Invalid argument. Expected a valid observable.');
-        return source.flatMap((res) => {
+        Args.check(_.isObject(source) && _.isFunction(source.then), 'Invalid argument. Expected a valid observable.');
+        return source.then((res) => {
             if (_.isNil(res)) {
-                return Qf();
+                return Q();
             }
             return Q(res);
         });

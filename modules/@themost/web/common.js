@@ -1,12 +1,3 @@
-/**
- * @license
- * MOST Web Framework 2.0 Codename Blueshift
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- *                     Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Use of this source code is governed by an BSD-3-Clause license that can be
- * found in the LICENSE file at https://themost.io/license
- */
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -16,7 +7,16 @@ exports.HttpApplicationConfig = exports.HttpApplicationOptions = undefined;
 
 require('source-map-support/register');
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } } /**
+                                                                                                                                                           * @license
+                                                                                                                                                           * MOST Web Framework 2.0 Codename Blueshift
+                                                                                                                                                           * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
+                                                                                                                                                           *                     Anthi Oikonomou anthioikonomou@gmail.com
+                                                                                                                                                           *
+                                                                                                                                                           * Use of this source code is governed by an BSD-3-Clause license that can be
+                                                                                                                                                           * found in the LICENSE file at https://themost.io/license
+                                                                                                                                                           */
+
 
 /**
  * @classdesc ApplicationOptions class describes the startup options of a MOST Web Framework application.

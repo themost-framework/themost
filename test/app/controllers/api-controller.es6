@@ -1,0 +1,15 @@
+/**
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2017, THEMOST LP All rights reserved
+ *
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
+ */
+import DataServiceController from "../../../modules/@themost/web/controllers/service";
+
+export default class ApiController extends DataServiceController {
+    constructor(context) {
+        super(context);
+    }
+}

@@ -35,7 +35,8 @@
     "jade": "^1.11.0",
     "pug": "^0.1.0",
     "vash": "^0.11.2",
-    "pagedown": "^1.1.0"
+    "pagedown": "^1.1.0",
+    "url-join": "^2.0.2"
   },
   "devDependencies": {
     "esdoc-standard-plugin": "^1.0.0"

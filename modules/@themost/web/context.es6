@@ -7,9 +7,8 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
-import {_} from 'lodash';
+import _ from 'lodash';
 import url from 'url';
 import path from 'path';
 import {HttpViewContext} from './mvc';
@@ -135,10 +134,12 @@ export class HttpContext extends DefaultDataContext {
         }
         else {
             //get mime type
-            let mime = self.mime;
-            if (mime) {
-                //and return the extension associated with this mime
-                return mime.extension.substr(1).toLowerCase();
+            if (this.request.route  && this.request.route.route && this.request.route.route.format) {
+                let mime = this.getApplication().getMimeType(this.request.route.route.format);
+                if (mime) {
+                    //and return the extension associated with this mime
+                    return mime.extension.substr(1).toLowerCase();
+                }
             }
         }
     }
@@ -211,7 +212,7 @@ export class HttpContext extends DefaultDataContext {
         Args.notNull(this.request,'HTTP Request');
         if (_.isNil(method)) { return false; }
         Args.notString(this.request.method,'HTTP Method');
-        return (this.request.method.toUpperCase() == method.toUpperCase());
+        return (this.request.method.toUpperCase() === method.toUpperCase());
     }
     /**
      * Gets the current culture
@@ -283,61 +284,79 @@ export class HttpContext extends DefaultDataContext {
             throw new HttpBadRequestError('Bad request. Invalid cross-site request forgery token.');
         if (csrfToken.length===0)
             throw new HttpBadRequestError('Bad request. Empty cross-site request forgery token.');
-            const cookies = self.cookies;
-            let csrfCookieToken;
-            let csrfRequestToken;
-            if (cookies['.CSRF']) {
-                //try to decrypt cookie token
-                try {
-                    csrfCookieToken = JSON.parse(self.getApplication().decrypt(cookies['.CSRF']));
-                }
-                catch(e) {
-                    throw new HttpBadRequestError('Bad request.Invalid cross-site request forgery data.');
-                }
-                //then try to decrypt the token provided
-                try {
-                    csrfRequestToken = JSON.parse(self.application.decrypt(csrfToken));
-                }
-                catch(e) {
-                    throw new HttpBadRequestError('Bad request.Invalid cross-site request forgery data.');
-                }
-                if ((typeof csrfCookieToken === 'object') && (typeof csrfRequestToken === 'object')) {
+        const cookies = self.cookies;
+        let csrfCookieToken;
+        let csrfRequestToken;
+        if (cookies['.CSRF']) {
+            //try to decrypt cookie token
+            try {
+                csrfCookieToken = JSON.parse(self.getApplication().decrypt(cookies['.CSRF']));
+            }
+            catch(e) {
+                throw new HttpBadRequestError('Bad request.Invalid cross-site request forgery data.');
+            }
+            //then try to decrypt the token provided
+            try {
+                csrfRequestToken = JSON.parse(self.application.decrypt(csrfToken));
+            }
+            catch(e) {
+                throw new HttpBadRequestError('Bad request.Invalid cross-site request forgery data.');
+            }
+            if ((typeof csrfCookieToken === 'object') && (typeof csrfRequestToken === 'object')) {
 
-                    let valid = true, tokenExpiration = 60;
-                    //1. validate token equality
-                    for(const key in csrfCookieToken) {
-                        if (csrfCookieToken.hasOwnProperty(key)) {
-                            if (csrfCookieToken[key]!==csrfRequestToken[key]) {
-                                valid = false;
-                                break;
-                            }
+                let valid = true, tokenExpiration = 60;
+                //1. validate token equality
+                for(const key in csrfCookieToken) {
+                    if (csrfCookieToken.hasOwnProperty(key)) {
+                        if (csrfCookieToken[key]!==csrfRequestToken[key]) {
+                            valid = false;
+                            break;
                         }
                     }
-                    if (valid==true) {
-                        //2. validate timestamp
-                        const timestamp = new Date(csrfCookieToken.date);
-                        const diff = Math.abs((new Date())-timestamp);
-                        if (diff<0) {
+                }
+                if (valid===true) {
+                    //2. validate timestamp
+                    const timestamp = new Date(csrfCookieToken.date);
+                    const diff = Math.abs((new Date())-timestamp);
+                    if (diff<0) {
+                        valid=false;
+                    }
+                    if (valid) {
+                        if (self.getApplication().getConfiguration().settings)
+                            if (self.getApplication().getConfiguration().settings.auth)
+                                if (self.getApplication().getConfiguration().settings.auth['csrfExpiration'])
+                                    tokenExpiration = parseInt(self.getApplication().getConfiguration().auth['csrfExpiration']);
+                        if (diff>tokenExpiration*60*1000)
                             valid=false;
-                        }
-                        if (valid) {
-                            if (self.getApplication().getConfiguration().settings)
-                                if (self.getApplication().getConfiguration().settings.auth)
-                                    if (self.getApplication().getConfiguration().settings.auth['csrfExpiration'])
-                                        tokenExpiration = parseInt(self.getApplication().getConfiguration().auth['csrfExpiration']);
-                            if (diff>tokenExpiration*60*1000)
-                                valid=false;
-                        }
                     }
-                    if (valid)
-                        return;
-
                 }
-                throw new HttpBadRequestError('Bad request. A cross-site request forgery was detected.');
+                if (valid)
+                    return;
+
             }
-            else {
-                throw new HttpBadRequestError('Bad request.Missing cross-site request forgery data.');
+            throw new HttpBadRequestError('Bad request. A cross-site request forgery was detected.');
+        }
+        else {
+            throw new HttpBadRequestError('Bad request.Missing cross-site request forgery data.');
+        }
+    }
+
+    getParam (name) {
+        if (typeof name === 'string') {
+            if (this.hasOwnProperty('params')) {
+                const params = this['params'];
+                if (typeof params !== 'object') {
+                    return;
+                }
+                if (params.hasOwnProperty(name))
+                    return params[name];
+                //otherwise make a case insensitive search
+                const re = new RegExp('^' + name + '$','i');
+                const p = Object.keys(params).filter(function(x) { return re.test(x); })[0];
+                if (p)
+                    return params[p];
             }
+        }
     }
 
     /**

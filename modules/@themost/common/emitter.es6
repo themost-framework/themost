@@ -6,7 +6,6 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
 import {_} from 'lodash';
 import async from 'async';
@@ -69,7 +68,7 @@ export class SequentialEventEmitter {
 
             if (index > -1) {
                 listeners.splice(index, 1);
-                this[listenersProperty].set(type, listeners);
+                //this[listenersProperty].set(type, listeners);
                 return this;
             }
         }
@@ -116,17 +115,24 @@ export class SequentialEventEmitter {
         //get listeners
         const listeners = self[listenersProperty].get(event);
         if (typeof listeners === 'undefined') {
-            return callback.call(self);
+            return callback.bind(self)();
         }
         //validate listeners
         if (listeners.length===0) {
             //exit emitter
-            return callback.call(self);
+            return callback.bind(self)();
         }
         //apply each series
-        async.applyEachSeries(listeners, args, function(err) {
-            callback.call(self, err);
-        });
+        try {
+            //apply each series
+            async.applyEachSeries(listeners, args, function(err) {
+                callback.call(self, err);
+            });
+        }
+        catch(err) {
+            return callback.bind(self)(err);
+        }
+
     }
 
     once(type, listener) {
@@ -138,7 +144,7 @@ export class SequentialEventEmitter {
             self.removeListener(type, g);
             if (!fired) {
                 fired = true;
-                listener.apply(this, arguments);
+                listener.apply(self, arguments);
             }
         }
         g.listener = listener;

@@ -1,22 +1,22 @@
-/**
- * @license
- * MOST Web Framework 2.0 Codename Blueshift
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- *                     Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Use of this source code is governed by an BSD-3-Clause license that can be
- * found in the LICENSE file at https://themost.io/license
- */
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.ParserUtils = exports.DataContextEmitter = exports.DataResultSet = exports.DataModelPrivilege = exports.DataModelEventListener = exports.DataField = exports.DataAssociationMapping = exports.DataModelMigration = exports.DataEventListener = exports.DataContext = exports.DataEventArgs = exports.DataAdapter = undefined;
+exports.ParserUtils = exports.DataCachingType = exports.DataObjectState = exports.DataContextEmitter = exports.DataResultSet = exports.DataModelPrivilege = exports.PrivilegeType = exports.DataModelEventListener = exports.DataField = exports.DataAssociationMapping = exports.DataModelMigration = exports.DataEventListener = exports.DataContext = exports.DataEventArgs = exports.DataAdapter = undefined;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * MOST Web Framework 2.0 Codename Blueshift
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *                     Anthi Oikonomou anthioikonomou@gmail.com
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Use of this source code is governed by an BSD-3-Clause license that can be
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * found in the LICENSE file at https://themost.io/license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
 
 require('source-map-support/register');
 
@@ -24,9 +24,16 @@ var _emitter = require('@themost/common/emitter');
 
 var SequentialEventEmitter = _emitter.SequentialEventEmitter;
 
+var _errors = require('@themost/common/errors');
+
+var AbstractClassError = _errors.AbstractClassError;
+var AbstractMethodError = _errors.AbstractMethodError;
+
 var _lodash = require('lodash');
 
-var _ = _lodash._;
+var _ = _interopRequireDefault(_lodash).default;
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
@@ -238,9 +245,9 @@ var DataAdapter = exports.DataAdapter = function () {
 
     _createClass(DataAdapter, [{
         key: 'open',
-        value: function open(callback) {}
-        //
-
+        value: function open(callback) {
+            return callback(new AbstractMethodError());
+        }
 
         /**
          * Closes the underlying database connection
@@ -249,9 +256,9 @@ var DataAdapter = exports.DataAdapter = function () {
 
     }, {
         key: 'close',
-        value: function close(callback) {}
-        //
-
+        value: function close(callback) {
+            return callback(new AbstractMethodError());
+        }
 
         /**
          * Executes the given query against the underlying database.
@@ -262,22 +269,22 @@ var DataAdapter = exports.DataAdapter = function () {
 
     }, {
         key: 'execute',
-        value: function execute(query, values, callback) {}
-        //
-
+        value: function execute(query, values, callback) {
+            return callback(new AbstractMethodError());
+        }
 
         /**
          * Executes a batch query expression and returns the result.
-         * @param {DataModelBatch} batch - The batch query expression to execute
+         * @param {*} batch - The batch query expression to execute
          * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain the result.
          * @deprecated This method is deprecated.
          */
 
     }, {
         key: 'executeBatch',
-        value: function executeBatch(batch, callback) {}
-        //
-
+        value: function executeBatch(batch, callback) {
+            return callback(new AbstractMethodError());
+        }
 
         /**
          * Produces a new identity value for the given entity and attribute.
@@ -288,9 +295,9 @@ var DataAdapter = exports.DataAdapter = function () {
 
     }, {
         key: 'selectIdentity',
-        value: function selectIdentity(entity, attribute, callback) {}
-        //
-
+        value: function selectIdentity(entity, attribute, callback) {
+            return callback(new AbstractMethodError());
+        }
 
         /**
          * Begins a transactional operation and executes the given function
@@ -300,9 +307,9 @@ var DataAdapter = exports.DataAdapter = function () {
 
     }, {
         key: 'executeInTransaction',
-        value: function executeInTransaction(fn, callback) {}
-        //
-
+        value: function executeInTransaction(fn, callback) {
+            return callback(new AbstractMethodError());
+        }
 
         /**
          * A helper method for creating a database view if the current data adapter supports views
@@ -314,7 +321,7 @@ var DataAdapter = exports.DataAdapter = function () {
     }, {
         key: 'createView',
         value: function createView(name, query, callback) {
-            //
+            return callback(new AbstractMethodError());
         }
     }]);
 
@@ -341,8 +348,9 @@ var DataEventArgs = exports.DataEventArgs = function DataEventArgs() {
 
 /**
  * @classdesc Represents the main data context.
+ * @property {DataAdapter} db
  * @class
- * @constructor
+ * @abstract
  */
 
 
@@ -352,16 +360,11 @@ var DataContext = exports.DataContext = function (_SequentialEventEmitt) {
     function DataContext() {
         _classCallCheck(this, DataContext);
 
-        /**
-         * Gets the current database adapter
-         * @type {DataAdapter}
-         */
         var _this = _possibleConstructorReturn(this, (DataContext.__proto__ || Object.getPrototypeOf(DataContext)).call(this));
 
-        _this.db = undefined;
         Object.defineProperty(_this, 'db', {
             get: function get() {
-                return null;
+                throw new AbstractMethodError();
             },
             configurable: true,
             enumerable: false });
@@ -372,34 +375,37 @@ var DataContext = exports.DataContext = function (_SequentialEventEmitt) {
      * Gets a data model based on the given data context
      * @param name {string} A string that represents the model to be loaded.
      * @returns {DataModel}
+     * @abstract
      */
 
 
     _createClass(DataContext, [{
         key: 'model',
         value: function model(name) {
-            return null;
+            throw new AbstractMethodError();
         }
 
         /**
          * Gets an instance of DataConfiguration class which is associated with this data context
          * @returns {DataConfigurationStrategy}
+         * @abstract
          */
 
     }, {
         key: 'getConfiguration',
         value: function getConfiguration() {
-            return null;
+            throw new AbstractMethodError();
         }
 
         /**
-         * @param cb {Function}
+         * @param callback {Function}
+         * @abstract
          */
 
     }, {
         key: 'finalize',
-        value: function finalize(cb) {
-            //
+        value: function finalize(callback) {
+            return callback(new AbstractMethodError());
         }
     }]);
 
@@ -425,46 +431,50 @@ var DataEventListener = exports.DataEventListener = function () {
         /**
          * Occurs before executing a data operation. The event arguments contain the query that is going to be executed.
          * @param {DataEventArgs} e - An object that represents the event arguments passed to this operation.
-         * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+         * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occurred.
+         * @abstract
          */
         value: function beforeExecute(e, cb) {
-            return this;
+            return cb(new AbstractMethodError());
         }
 
         /**
          * Occurs after executing a data operation. The event arguments contain the executed query.
          * @param {DataEventArgs} e - An object that represents the event arguments passed to this operation.
-         * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+         * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occurred.
+         * @abstract
          */
 
     }, {
         key: 'afterExecute',
         value: function afterExecute(e, cb) {
-            return this;
+            return cb(new AbstractMethodError());
         }
 
         /**
          * Occurs before creating or updating a data object.
          * @param {DataEventArgs} e - An object that represents the event arguments passed to this operation.
          * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+         * @abstract
          */
 
     }, {
         key: 'beforeSave',
         value: function beforeSave(e, cb) {
-            return this;
+            return cb(new AbstractMethodError());
         }
 
         /**
          * Occurs after creating or updating a data object.
          * @param {DataEventArgs} e - An object that represents the event arguments passed to this operation.
-         * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+         * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occurred.
+         * @abstract
          */
 
     }, {
         key: 'afterSave',
         value: function afterSave(e, cb) {
-            return this;
+            return cb(new AbstractMethodError());
         }
 
         /**
@@ -472,36 +482,39 @@ var DataEventListener = exports.DataEventListener = function () {
          * @param {DataEventArgs} e - An object that represents the event arguments passed to this operation.
          * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
          * @returns {DataEventListener}
+         * @abstract
          */
 
     }, {
         key: 'beforeRemove',
         value: function beforeRemove(e, cb) {
-            return this;
+            return cb(new AbstractMethodError());
         }
 
         /**
          * Occurs after removing a data object.
          * @param {DataEventArgs} e - An object that represents the event arguments passed to this operation.
-         * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+         * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occurred.
+         * @abstract
          */
 
     }, {
         key: 'afterRemove',
         value: function afterRemove(e, cb) {
-            return this;
+            return cb(new AbstractMethodError());
         }
 
         /**
          * Occurs after upgrading a data model.
          * @param {DataEventArgs} e - An object that represents the event arguments passed to this operation.
-         * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+         * @param {Function} cb - A callback function that should be called at the end of this operation. The first argument may be an error if any occurred.
+         * @abstract
          */
 
     }, {
         key: 'afterUpgrade',
         value: function afterUpgrade(e, cb) {
-            return this;
+            return cb(new AbstractMethodError());
         }
     }]);
 
@@ -780,7 +793,7 @@ var DataModelEventListener = exports.DataModelEventListener = function DataModel
  */
 
 
-var PrivilegeType = {
+var PrivilegeType = exports.PrivilegeType = {
     /**
      * Self Privilege (self).
      * @type {string}
@@ -870,7 +883,7 @@ var DataContextEmitter = exports.DataContextEmitter = function () {
  */
 
 
-var DataObjectState = {
+var DataObjectState = exports.DataObjectState = {
     /**
      * Insert State (1)
      */
@@ -889,7 +902,7 @@ var DataObjectState = {
  * An enumeration of the available data caching types
  * @enum {string}
  */
-var DataCachingType = {
+var DataCachingType = exports.DataCachingType = {
     /**
      * Data will never be cached (none)
      */
@@ -925,7 +938,7 @@ var ParserUtils = exports.ParserUtils = function () {
     }, {
         key: 'parseCounter',
         value: function parseCounter(val) {
-            return types.parsers.parseInteger(val);
+            return ParserUtils.parseInteger(val);
         }
     }, {
         key: 'parseFloat',
@@ -951,7 +964,7 @@ var ParserUtils = exports.ParserUtils = function () {
     }, {
         key: 'parseNumber',
         value: function parseNumber(val) {
-            return types.parsers.parseFloat(val);
+            return ParserUtils.parseFloat(val);
         }
     }, {
         key: 'parseDateTime',
@@ -968,7 +981,7 @@ var ParserUtils = exports.ParserUtils = function () {
     }, {
         key: 'parseDate',
         value: function parseDate(val) {
-            var res = types.parsers.parseDateTime(val);
+            var res = ParserUtils.parseDateTime(val);
             if (res instanceof Date) {
                 res.setHours(0, 0, 0, 0);
                 return res;
@@ -978,7 +991,7 @@ var ParserUtils = exports.ParserUtils = function () {
     }, {
         key: 'parseBoolean',
         value: function parseBoolean(val) {
-            return types.parsers.parseInteger(val) !== 0;
+            return ParserUtils.parseInteger(val) !== 0;
         }
     }, {
         key: 'parseText',

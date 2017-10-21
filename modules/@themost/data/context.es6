@@ -7,7 +7,6 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
 import {DataContext} from './types';
 import {_} from 'lodash';
@@ -163,8 +162,8 @@ export class DefaultDataContext extends DataContext {
         const ctx = new DefaultDataContext();
         func.call(null, ctx, (err) => {
             ctx.finalize(() => {
-               if (err) { return callback(err); }
-               return callback();
+                if (err) { return callback(err); }
+                return callback();
             });
         });
     }
@@ -178,7 +177,7 @@ export class DefaultDataContext extends DataContext {
  * @augments DataContext
  * @property {DataAdapter} db - Gets a data adapter based on the given adapter's name.
  */
-class NamedDataContext extends DataContext {
+export class NamedDataContext extends DataContext {
     /**
      * @constructor
      * @param {string} name

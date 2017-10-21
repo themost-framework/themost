@@ -7,7 +7,6 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
 import sprintf from 'sprintf';
 import _ from 'lodash';
@@ -911,7 +910,6 @@ export class QueryExpression {
      */
     startsWith(value) {
         const p0 = this.prop();
-        let r;
         if (p0) {
             if (!_.isString(value)) {
                 throw new Error('Invalid argument. Expected string.')
@@ -1279,8 +1277,8 @@ export class QueryExpression {
         }
 
         switch (typeof val) {
-            case 'boolean': return (val) ? 'true' : 'false';
-            case 'number': return val+'';
+        case 'boolean': return (val) ? 'true' : 'false';
+        case 'number': return val+'';
         }
 
         if (val instanceof Date) {
@@ -1313,13 +1311,13 @@ export class QueryExpression {
 
         val = val.replace(/[\0\n\r\b\t\\\'\"\x1a]/g, function(s) {
             switch(s) {
-                case "\0": return "\\0";
-                case "\n": return "\\n";
-                case "\r": return "\\r";
-                case "\b": return "\\b";
-                case "\t": return "\\t";
-                case "\x1a": return "\\Z";
-                default: return "\\"+s;
+            case "\0": return "\\0";
+            case "\n": return "\\n";
+            case "\r": return "\\r";
+            case "\b": return "\\b";
+            case "\t": return "\\t";
+            case "\x1a": return "\\Z";
+            default: return "\\"+s;
             }
         });
         return "'"+val+"'";
@@ -2087,7 +2085,7 @@ export class OpenDataQuery {
      */
     thenBy(name) {
         if (typeof name !=='undefined' || name!==null) {
-                this.$orderby += (this.$orderby ? ',' + name.toString() : name.toString());
+            this.$orderby += (this.$orderby ? ',' + name.toString() : name.toString());
         }
     }
 
@@ -2257,9 +2255,9 @@ export class OpenDataQuery {
         if (typeof s2 !== 'undefined')
             this[privatesProperty].left +=',' + QueryExpression.escape(s2);
         if (typeof s3 !== 'undefined')
-            this[privatesProperty].left +=',' + QueryExpression.escape(s3)
+            this[privatesProperty].left +=',' + QueryExpression.escape(s3);
         if (typeof s4 !== 'undefined')
-            this[privatesProperty].left +=',' + QueryExpression.escape(s4)
+            this[privatesProperty].left +=',' + QueryExpression.escape(s4);
         this[privatesProperty].left +=')';
         return this;
     }

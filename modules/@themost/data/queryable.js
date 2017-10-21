@@ -1,12 +1,3 @@
-/**
- * @license
- * MOST Web Framework 2.0 Codename Blueshift
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- *                     Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Use of this source code is governed by an BSD-3-Clause license that can be
- * found in the LICENSE file at https://themost.io/license
- */
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -16,7 +7,16 @@ exports.DataQueryable = exports.DataAttributeResolver = undefined;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * MOST Web Framework 2.0 Codename Blueshift
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *                     Anthi Oikonomou anthioikonomou@gmail.com
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Use of this source code is governed by an BSD-3-Clause license that can be
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * found in the LICENSE file at https://themost.io/license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
 
 require('source-map-support/register');
 
@@ -30,7 +30,7 @@ var sprintf = _interopRequireDefault(_sprintf).default;
 
 var _lodash = require('lodash');
 
-var _ = _lodash._;
+var _ = _interopRequireDefault(_lodash).default;
 
 var _q = require('q');
 
@@ -54,6 +54,7 @@ var QueryEntity = _query.QueryEntity;
 var _utils = require('@themost/common/utils');
 
 var TextUtils = _utils.TextUtils;
+var TraceUtils = _utils.TraceUtils;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -562,7 +563,7 @@ var DataQueryable = exports.DataQueryable = function () {
 
         /**
          * Clones the current DataQueryable instance.
-         * @returns {DataQuerable|*} - The cloned object.
+         * @returns {DataQueryable|*} - The cloned object.
          */
         value: function clone() {
             var result = new DataQueryable(this.model);
@@ -590,7 +591,7 @@ var DataQueryable = exports.DataQueryable = function () {
     }, {
         key: 'ensureContext',
         value: function ensureContext() {
-            if (this.model != null) if (this.model.context != null) return this.model.context;
+            if (this.model !== null) if (this.model.context !== null) return this.model.context;
             return null;
         }
 
@@ -670,13 +671,14 @@ var DataQueryable = exports.DataQueryable = function () {
                 return self;
             }
             var re = /("(.*?)")|(\w+)/g;
-            var match = void 0;
-            while (match = re.exec(text)) {
+            var match = re.exec(text);
+            while (match) {
                 if (match[2]) {
                     terms.push(match[2]);
                 } else {
                     terms.push(match[0]);
                 }
+                match = re.exec(text);
             }
             if (terms.length === 0) {
                 return self;
@@ -723,9 +725,9 @@ var DataQueryable = exports.DataQueryable = function () {
             //validate joined model
             if (_.isNil(joinModel)) throw new Error(sprintf.sprintf("The %s model cannot be found", model));
             var arr = self.model.attributes.filter(function (x) {
-                return x.type == joinModel.name;
+                return x.type === joinModel.name;
             });
-            if (arr.length == 0) throw new Error(sprintf.sprintf("An internal error occured. The association between %s and %s cannot be found", this.model.name, model));
+            if (arr.length === 0) throw new Error(sprintf.sprintf("An internal error occured. The association between %s and %s cannot be found", this.model.name, model));
             var mapping = self.model.inferMapping(arr[0].name);
             var expr = QueryExpression.create();
             expr.where(self.resolveField(mapping.childField)).equal(joinModel.resolveField(mapping.parentField));
@@ -1542,17 +1544,17 @@ var DataQueryable = exports.DataQueryable = function () {
             if (_.isArray(arg)) {
                 for (var i = 0; i < arg.length; i++) {
                     var x = arg[i];
-                    if (DataAttributeResolver.prototype.testNestedAttribute.call(this, x)) {
+                    if (DataAttributeResolver.prototype.testNestedAttribute.bind(this)(x)) {
                         //nested group by
-                        arr.push(DataAttributeResolver.prototype.orderByNestedAttribute.call(this, x));
+                        arr.push(DataAttributeResolver.prototype.orderByNestedAttribute.bind(this)(x));
                     } else {
                         arr.push(this.resolveField(x));
                     }
                 }
             } else {
-                if (DataAttributeResolver.prototype.testNestedAttribute.call(this, arg)) {
+                if (DataAttributeResolver.prototype.testNestedAttribute.bind(this)(arg)) {
                     //nested group by
-                    arr.push(DataAttributeResolver.prototype.orderByNestedAttribute.call(this, arg));
+                    arr.push(DataAttributeResolver.prototype.orderByNestedAttribute.bind(this)(arg));
                 } else {
                     arr.push(this.resolveField(arg));
                 }
@@ -1573,7 +1575,7 @@ var DataQueryable = exports.DataQueryable = function () {
         key: 'thenBy',
         value: function thenBy(attr) {
             if (typeof attr === 'string' && /\//.test(attr)) {
-                this.query.thenBy(DataAttributeResolver.prototype.orderByNestedAttribute.call(this, attr));
+                this.query.thenBy(DataAttributeResolver.prototype.orderByNestedAttribute.bind(this)(attr));
                 return this;
             }
             this.query.thenBy(this.resolveField(attr));
@@ -1590,7 +1592,7 @@ var DataQueryable = exports.DataQueryable = function () {
         key: 'orderByDescending',
         value: function orderByDescending(attr) {
             if (typeof attr === 'string' && /\//.test(attr)) {
-                this.query.orderByDescending(DataAttributeResolver.prototype.orderByNestedAttribute.call(this, attr));
+                this.query.orderByDescending(DataAttributeResolver.prototype.orderByNestedAttribute.bind(this)(attr));
                 return this;
             }
             this.query.orderByDescending(this.resolveField(attr));
@@ -1607,7 +1609,7 @@ var DataQueryable = exports.DataQueryable = function () {
         key: 'thenByDescending',
         value: function thenByDescending(attr) {
             if (typeof attr === 'string' && /\//.test(attr)) {
-                this.query.thenByDescending(DataAttributeResolver.prototype.orderByNestedAttribute.call(this, attr));
+                this.query.thenByDescending(DataAttributeResolver.prototype.orderByNestedAttribute.bind(this)(attr));
                 return this;
             }
             this.query.thenByDescending(this.resolveField(attr));
@@ -1789,7 +1791,7 @@ var DataQueryable = exports.DataQueryable = function () {
         value: function list(callback) {
             if (typeof callback !== 'function') {
                 var d = Q.defer();
-                listInternal.call(this, function (err, result) {
+                listInternal.bind(this)(function (err, result) {
                     if (err) {
                         return d.reject(err);
                     }
@@ -1809,9 +1811,8 @@ var DataQueryable = exports.DataQueryable = function () {
     }, {
         key: 'getItems',
         value: function getItems() {
-            var self = this,
-                d = Q.defer();
-            process.nextTick(function () {
+            var self = this;
+            return Q.promise(function (resolve, reject) {
                 delete self.query.$inlinecount;
                 if ((parseInt(self.query.$take) || 0) < 0) {
                     delete self.query.$take;
@@ -1822,12 +1823,11 @@ var DataQueryable = exports.DataQueryable = function () {
                 }
                 execute_.call(self, function (err, result) {
                     if (err) {
-                        return d.reject(err);
+                        return reject(err);
                     }
-                    return d.resolve(result);
+                    return resolve(result);
                 });
             });
-            return d.promise;
         }
 
         /**
@@ -1949,7 +1949,7 @@ var DataQueryable = exports.DataQueryable = function () {
         value: function average(attr, callback) {
             if (typeof callback !== 'function') {
                 var d = Q.defer();
-                averageInternal_.call(this, attr, function (err, result) {
+                averageInternal_.bind(this)(attr, function (err, result) {
                     if (err) {
                         return d.reject(err);
                     }
@@ -1957,7 +1957,7 @@ var DataQueryable = exports.DataQueryable = function () {
                 });
                 return d.promise;
             } else {
-                return averageInternal_.call(this, attr, callback);
+                return averageInternal_.bind(this)(attr, callback);
             }
         }
 
@@ -2660,7 +2660,7 @@ var DataQueryable = exports.DataQueryable = function () {
         value: function value(callback) {
             if (typeof callback !== 'function') {
                 var d = Q.defer();
-                valueInternal.call(this, function (err, result) {
+                valueInternal.bind(this)(function (err, result) {
                     if (err) {
                         return d.reject(err);
                     }
@@ -2668,7 +2668,7 @@ var DataQueryable = exports.DataQueryable = function () {
                 });
                 return d.promise;
             } else {
-                return valueInternal.call(this, callback);
+                return valueInternal.bind(this)(callback);
             }
         }
 
@@ -2883,6 +2883,14 @@ var DataQueryable = exports.DataQueryable = function () {
     return DataQueryable;
 }();
 
+/**
+ * @this DataQueryable
+ * @param arg
+ * @returns {*}
+ * @private
+ */
+
+
 function select_(arg) {
     var self = this;
     if (typeof arg === 'string' && arg.length === 0) {
@@ -2907,6 +2915,7 @@ function select_(arg) {
 }
 
 /**
+ * @this DataQueryable
  * @private
  * @param {Function} callback
  */
@@ -2923,6 +2932,7 @@ function firstInternal(callback) {
 }
 
 /**
+ * @this DataQueryable
  * @private
  * @param {Function} callback
  */
@@ -2941,6 +2951,7 @@ function allInternal(callback) {
 }
 
 /**
+ * @this DataQueryable
  * @private
  * @param {Number} n - Defines the number of items to take
  * @param {function=} callback
@@ -2959,6 +2970,7 @@ function takeInternal(n, callback) {
 }
 
 /**
+ * @this DataQueryable
  * @private
  * @param {Function} callback
  */
@@ -2995,6 +3007,7 @@ function listInternal(callback) {
 }
 
 /**
+ * @this DataQueryable
  * @private
  * @param callback {Function}
  * @returns {*} - A collection of objects that meet the query provided
@@ -3027,6 +3040,7 @@ function countInternal(callback) {
 }
 
 /**
+ * @this DataQueryable
  * @private
  * @param {string} attr
  * @param callback {Function}
@@ -3044,6 +3058,7 @@ function maxInternal(attr, callback) {
 }
 
 /**
+ * @this DataQueryable
  * @private
  * @param attr {String}
  * @param callback {Function}
@@ -3061,6 +3076,7 @@ function minInternal(attr, callback) {
 }
 
 /**
+ * @this DataQueryable
  * @private
  * @param {string} attr
  * @param {Function} callback
@@ -3105,6 +3121,7 @@ function executeCount_(callback) {
 }
 
 /**
+ * @this DataQueryable
  * Executes the underlying query statement.
  * @param {function(Error,*=)} callback
  * @private
@@ -3212,6 +3229,7 @@ function execute_(callback) {
 }
 
 /**
+ * @this DataQueryable
  * @private
  * @param {*} e
  * @param {Function} callback
@@ -3273,6 +3291,7 @@ function finalExecuteInternal_(e, callback) {
 }
 
 /**
+ * @this DataQueryable
  * @param {*} result
  * @param {Function} callback
  * @private
@@ -3282,9 +3301,7 @@ function afterExecute_(result, callback) {
      * @type {DataQueryable|*}
      */
     var self = this;
-    var field = void 0,
-        parentField = void 0,
-        junction = void 0;
+    var field = void 0;
     if (self.$expand) {
         //get distinct values
         var expands = _.uniqBy(self.$expand, function (x) {
@@ -3398,7 +3415,7 @@ function afterExecute_(result, callback) {
                     return cb(new Error("Not yet implemented"));
                 }
             } else {
-                console.log(sprintf.sprintf('Data assocication mapping (%s) for %s cannot be found or the association between these two models defined more than once.', expand, self.model.title));
+                TraceUtils.log(sprintf.sprintf('Data association mapping (%s) for %s cannot be found or the association between these two models defined more than once.', expand, self.model.title));
                 return cb(null);
             }
         }, function (err) {
@@ -3414,6 +3431,7 @@ function afterExecute_(result, callback) {
 }
 
 /**
+ * @this DataQueryable
  * @private
  * @param {Array|*} result
  * @param {Function} callback
@@ -3445,6 +3463,7 @@ function toArrayCallback(result, callback) {
 }
 
 /**
+ * @this DataQueryable
  * @private
  * @param {Function} callback
  */

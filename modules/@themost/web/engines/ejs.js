@@ -1,12 +1,3 @@
-/**
- * @license
- * MOST Web Framework 2.0 Codename Blueshift
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- *                     Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Use of this source code is governed by an BSD-3-Clause license that can be
- * found in the LICENSE file at https://themost.io/license
- */
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -32,7 +23,7 @@ var LangUtils = _utils.LangUtils;
 
 var _lodash = require('lodash');
 
-var _ = _lodash._;
+var _ = _interopRequireDefault(_lodash).default;
 
 var _ejs = require('ejs');
 
@@ -56,14 +47,20 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * @license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * MOST Web Framework 2.0 Codename Blueshift
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *                     Anthi Oikonomou anthioikonomou@gmail.com
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Use of this source code is governed by an BSD-3-Clause license that can be
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * found in the LICENSE file at https://themost.io/license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
 
-var contextProperty = Symbol('context');
 
 /**
  * @class
  */
-
 var EjsEngine = function (_HttpViewEngine) {
     _inherits(EjsEngine, _HttpViewEngine);
 
@@ -126,11 +123,24 @@ var EjsEngine = function (_HttpViewEngine) {
                             }
                             //create view context
                             var viewContext = new HttpViewContext(self.getContext());
-                            //extend view context with page properties
-                            _.assign(viewContext, properties || {});
-                            //set view context data
-                            viewContext.data = data;
                             var partial = false;
+                            var model = _.assign(properties, data, {
+                                getContext: function getContext() {
+                                    return self.getContext();
+                                },
+                                getViewContext: function getViewContext() {
+                                    return viewContext;
+                                }
+                            });
+                            _.assign(model, properties || {});
+                            //for backward compatibility issues add locals.context property
+                            //this property is going to be deprecated (use locals.getContext() instead)
+                            Object.defineProperty(model, 'context', {
+                                get: function get() {
+                                    return self.getContext();
+                                },
+                                enumerable: false, configurable: false
+                            });
                             if (self.getContext() && self.getContext().request.route) partial = LangUtils.parseBoolean(self.getContext().request.route['partial']);
                             if (properties.layout && !partial) {
                                 var layout = void 0;
@@ -141,8 +151,10 @@ var EjsEngine = function (_HttpViewEngine) {
                                     //relative to view file path e.g. ./../master.html.html.ejs
                                     layout = path.resolve(filename, properties.layout);
                                 }
-                                //set current view buffer (after rendering)
-                                viewContext.body = ejs.render(str, viewContext);
+
+                                viewContext.body = ejs.render(str, {
+                                    model: model
+                                });
                                 //render master layout
                                 fs.readFile(layout, 'utf-8', function (err, layoutData) {
                                     try {
@@ -152,14 +164,18 @@ var EjsEngine = function (_HttpViewEngine) {
                                             }
                                             return callback(err);
                                         }
-                                        var result = ejs.render(layoutData, viewContext);
+                                        var result = ejs.render(layoutData, {
+                                            model: model
+                                        });
                                         callback(null, result);
                                     } catch (e) {
                                         callback(e);
                                     }
                                 });
                             } else {
-                                var result = ejs.render(str, viewContext);
+                                var result = ejs.render(str, {
+                                    model: model
+                                });
                                 callback(null, result);
                             }
                         }

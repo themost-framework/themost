@@ -7,13 +7,11 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
 import url from 'url';
-import {_} from 'lodash';
+import _ from 'lodash';
 import async from 'async';
-import crypto from 'crypto';
-import {Args, TraceUtils, RandomUtils} from '@themost/common/utils';
+import {Args, TraceUtils} from '@themost/common/utils';
 import {HttpError, HttpNotFoundError, HttpMethodNotAllowedError} from '@themost/common/errors';
 import {HttpNextResult,HttpResult,HttpAnyResult} from './results';
 import {AuthConsumer, BasicAuthConsumer, EncryptionStrategy, DefaultEncyptionStrategy, AuthStrategy} from './consumers/auth';
@@ -28,22 +26,24 @@ import {DataConfigurationStrategy} from '@themost/data/config';
 import Q from 'q';
 import path from 'path';
 import http from 'http';
-import https from 'https';
-import {HttpApplicationService} from "./interfaces";
 import {ViewConsumer} from "./consumers/view";
 import {FormatterStrategy, DefaultFormatterStrategy} from "./formatters";
 import {QuerystringConsumer} from "./consumers/querystring";
-import {ConfigurationBase, ModuleLoaderStrategy, ActiveModuleLoaderStrategy} from "@themost/common/config";
+import {ModuleLoaderStrategy, ActiveModuleLoaderStrategy} from "@themost/common/config";
 import {HttpConfiguration} from "./config";
+import {PostContentConsumer} from "./consumers/post";
+import {MultipartContentConsumer} from "./consumers/multipart";
+import {JsonContentConsumer} from "./consumers/json";
 
 const HTTP_SERVER_DEFAULT_BIND = '127.0.0.1';
 const HTTP_SERVER_DEFAULT_PORT = 3000;
 
 /**
+ * @this HttpApplication
  * Starts current application
  * @private
  * @static
- * @param {ApplicationOptions|*} options
+ * @param {*} options
  */
 function startInternal(options) {
     /**
@@ -67,12 +67,12 @@ function startInternal(options) {
         const server_ = http.createServer((request, response) => {
             const context = self.createContext(request, response);
             //begin request processing
-            return Q.nfbind(processRequestInternal).bind(self)(context).then(()=> {
+            return Q.nbind(processRequestInternal,self)(context).then(()=> {
                 context.finalize(function() {
                     if (context.response) { context.response.end(); }
                 });
             }).catch((err)=> {
-                return Q.nfbind(processErrorInternal).bind(self)(context, err).then((res)=> {
+                return Q.nbind(processErrorInternal,self)(context, err).then(()=> {
                     context.finalize(function() {
                         if (context.response) { context.response.end(); }
                     });
@@ -115,6 +115,7 @@ function startInternal(options) {
 }
 
 /**
+ * @this HttpApplication
  * Processes an HTTP request under current application
  * @private
  * @static
@@ -138,7 +139,7 @@ function processRequestInternal(context, callback) {
          */
         (consumer, cb) => {
             try {
-                consumer.callable.apply(context).then((result)=> {
+                consumer.run(context).then((result)=> {
                     //if result is an instance of HttpNextResult
                     if (result instanceof HttpNextResult) {
                         //continue series execution (call series callback with no error)
@@ -158,7 +159,7 @@ function processRequestInternal(context, callback) {
                 return cb(err);
             }
 
-    }, (finalRes) => {
+        }, (finalRes) => {
             if (_.isNil(finalRes)) {
                 //get otherwise consumer
                 const otherWiseConsumer = self[otherwiseConsumerProperty];
@@ -166,7 +167,7 @@ function processRequestInternal(context, callback) {
                     if (!_.isFunction(otherWiseConsumer.callable)) {
                         return callback(new ReferenceError('HTTP consumer callable must be a function.'));
                     }
-                    return otherWiseConsumer.callable.apply(context).then(result=> {
+                    return otherWiseConsumer.run(context).then(result=> {
                         if (result instanceof HttpNextResult) {
                             return callback(new HttpNotFoundError());
                         }
@@ -226,7 +227,7 @@ function processRequestInternal(context, callback) {
             //throw exception
             return callback(new HttpMethodNotAllowedError());
 
-    });
+        });
 }
 
 
@@ -237,17 +238,13 @@ function processRequestInternal(context, callback) {
  * @param {Function} callback
  */
 function processErrorInternal(context, error, callback) {
-    /**
-     * @type {HttpApplication|*}
-     */
-    const self = this,
-        /**
-         * @type {Array}
-         */
-        errorConsumers = context.getApplication()[errorConsumersProperty];
-        if (errorConsumers.length===0) {
-            return callback(error);
-        }
+  /**
+   * @type {Array}
+   */
+  const errorConsumers = context.getApplication()[errorConsumersProperty];
+    if (errorConsumers.length===0) {
+        return callback(error);
+    }
     return async.eachSeries(errorConsumers, (consumer, cb) => {
         consumer.callable.call(context, error).then(result=> {
             if (result instanceof HttpNextResult) {
@@ -274,13 +271,13 @@ function createRequestInternal(options) {
     request.url = (opt.url) ? opt.url : '/';
     request.httpVersion = '1.1';
     request.headers = (opt.headers) ? opt.headers : {
-            host: 'localhost',
-            'user-agent': 'Mozilla/5.0 (X11; Linux i686; rv:10.0) Gecko/20100101 Firefox/22.0',
-            accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'accept-language': 'en-US,en;q=0.5',
-            'accept-encoding': 'gzip, deflate',
-            connection: 'keep-alive',
-            'cache-control': 'max-age=0' };
+        host: 'localhost',
+        'user-agent': 'Mozilla/5.0 (X11; Linux i686; rv:10.0) Gecko/20100101 Firefox/22.0',
+        accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'accept-language': 'en-US,en;q=0.5',
+        'accept-encoding': 'gzip, deflate',
+        connection: 'keep-alive',
+        'cache-control': 'max-age=0' };
     if (opt.cookie)
         request.headers.cookie = opt.cookie;
     request.cookies = (opt.cookies) ? opt.cookies : {};
@@ -337,6 +334,8 @@ export class HttpApplication {
         }
         //change module loader strategy
         this[configProperty] = config;
+        //load default consumers
+        this.useQuerystring();
     }
     /**
      * @param {string=} executionPath
@@ -387,7 +386,12 @@ export class HttpApplication {
     }
 
     getMimeType(extension) {
-        return _.find(this.getConfiguration().getSourceAt('mimes'),function(x) {
+        return _.find(this.getConfiguration().getSourceAt('mimes'),
+            /**
+             * @param {{extension:string}} x
+             * @returns {boolean}
+             */
+            function(x) {
             return (x.extension===extension) || (x.extension==='.'+extension);
         });
     }
@@ -422,9 +426,9 @@ export class HttpApplication {
         if (typeof consumerConstructor !== 'function') {
             return false;
         }
-       return _.findIndex(this[consumersProperty],(x)=> {
-           return x instanceof consumerConstructor;
-       })>=0;
+        return _.findIndex(this[consumersProperty],(x)=> {
+            return x instanceof consumerConstructor;
+        })>=0;
     }
 
     /**
@@ -600,6 +604,30 @@ export class HttpApplication {
     }
 
     /**
+     * Enables HTTP application/x-www-form-urlencoded request processing
+     * @returns {HttpApplication}
+     */
+    usePostContent() {
+        return this.any(new PostContentConsumer());
+    }
+
+    /**
+     * Enables HTTP multipart/form-data request processing
+     * @returns {HttpApplication}
+     */
+    useMultipartContent() {
+        return this.any(new MultipartContentConsumer());
+    }
+
+    /**
+     * Enables HTTP application/json request processing
+     * @returns {HttpApplication}
+     */
+    useJsonContent() {
+        return this.any(new JsonContentConsumer());
+    }
+
+    /**
      * Enables static content requests
      * @param {string=} whenDir
      * @param {string=} rootDir
@@ -645,7 +673,7 @@ export class HttpApplication {
      * @returns {HttpContext}
      */
     createContext(request, response) {
-       return new HttpContext(this, request, response);
+        return new HttpContext(this, request, response);
     }
 
     /**
@@ -687,12 +715,12 @@ export class HttpApplication {
         const self = this;
         return Q.nfcall(function(callback) {
             //create context
-            const request = createRequestInternal.call(self),
-                response = createResponseInternal.call(self,request);
+            const request = createRequestInternal.bind(self)(),
+                response = createResponseInternal.bind(self)(request);
             let context = self.createContext(request, response);
             //get unattended execution account
-            if (this.hasService(AuthStrategy)) {
-                const account = this.getService(AuthStrategy).getUnattendedExecutionAccount();
+            if (self.hasService(AuthStrategy)) {
+                const account = self.getService(AuthStrategy).getUnattendedExecutionAccount();
                 if (_.isEmpty(account)) {
                     context.user = { name: account, authenticationType: 'Basic'};
                 }
@@ -753,11 +781,11 @@ export class HttpApplication {
     /**
      * Executes an external or internal HTTP request
      * @param {*|string} options
-     * @returns {Promise}
+     * @returns {Promise|*}
      */
     executeRequest(options) {
         const self = this;
-        return Q.nfbind((callback) => {
+        return Q.nbind((callback) => {
             const requestOptions = { };
             if (typeof options === 'string') {
                 _.assign(requestOptions, { url:options });
@@ -780,8 +808,8 @@ export class HttpApplication {
             }
             else {
                 //create request and response
-                const request = createRequestInternal.call(this,requestOptions),
-                    response = createResponseInternal.call(this,request);
+                const request = createRequestInternal.bind(this)(requestOptions),
+                    response = createResponseInternal.bind(this)(request);
                 //set content length header to -1 (for backward compatibility issues)
                 response.setHeader('Content-Length',-1);
                 //create context
@@ -833,7 +861,7 @@ export class HttpApplication {
                     }
                 });
             }
-        }).bind(this)();
+        },this)();
 
 
     }

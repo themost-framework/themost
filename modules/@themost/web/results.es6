@@ -7,7 +7,6 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
 import Q from 'q';
 import {_} from 'lodash';
@@ -26,6 +25,17 @@ export class HttpResult {
         if (new.target === HttpResult) {
             throw new TypeError("Cannot construct abstract instances directly");
         }
+        this.headers = {};
+    }
+
+    /**
+     * @param {string} name
+     * @param {string} value
+     * @returns {HttpResult|*}
+     */
+    setHeader(name, value) {
+        this.headers[name] = value;
+        return this;
     }
 
     toPromise() {
@@ -65,7 +75,7 @@ export class HttpAnyResult extends HttpResult {
      * */
     execute(context) {
         const self = this;
-        return Q.nfcall(function(callback) {
+        return Q.nfbind(function(callback) {
             try {
                 /**
                  * @type {FormatterStrategy}
@@ -90,7 +100,7 @@ export class HttpAnyResult extends HttpResult {
                     return callback(new HttpMethodNotAllowedError());
                 }
                 return formatter.execute(context, self.data).then(()=>{
-                   return callback();
+                    return callback();
                 }).catch((err) => {
                     return callback(err);
                 });

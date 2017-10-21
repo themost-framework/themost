@@ -7,18 +7,15 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
 import {HttpViewContext} from '../mvc';
 import {HttpNotFoundError} from '@themost/common/errors';
 import {LangUtils} from '@themost/common/utils';
-import {_} from 'lodash';
+import _ from 'lodash';
 import ejs from 'ejs';
 import path from 'path';
 import fs from 'fs';
 import {HttpViewEngine} from "../interfaces";
-
-const contextProperty = Symbol('context');
 
 /**
  * @class
@@ -75,11 +72,24 @@ export default class EjsEngine extends HttpViewEngine {
                         }
                         //create view context
                         const viewContext = new HttpViewContext(self.getContext());
-                        //extend view context with page properties
-                        _.assign(viewContext, properties || {});
-                        //set view context data
-                        viewContext.data = data;
                         let partial = false;
+                        const model = _.assign(properties, data, {
+                            getContext: function() {
+                                return self.getContext();
+                            },
+                            getViewContext: function() {
+                                return viewContext;
+                            }
+                        });
+                        _.assign(model, properties || { });
+                        //for backward compatibility issues add locals.context property
+                        //this property is going to be deprecated (use locals.getContext() instead)
+                        Object.defineProperty(model, 'context', {
+                            get: function() {
+                                return self.getContext();
+                            },
+                            enumerable:false, configurable:false
+                        });
                         if (self.getContext() && self.getContext().request.route)
                             partial = LangUtils.parseBoolean(self.getContext().request.route['partial']);
                         if (properties.layout && !partial) {
@@ -92,8 +102,10 @@ export default class EjsEngine extends HttpViewEngine {
                                 //relative to view file path e.g. ./../master.html.html.ejs
                                 layout = path.resolve(filename, properties.layout);
                             }
-                            //set current view buffer (after rendering)
-                            viewContext.body = ejs.render(str, viewContext);
+
+                            viewContext.body = ejs.render(str, {
+                                model: model
+                            });
                             //render master layout
                             fs.readFile(layout,'utf-8', function(err, layoutData) {
                                 try {
@@ -103,7 +115,9 @@ export default class EjsEngine extends HttpViewEngine {
                                         }
                                         return callback(err);
                                     }
-                                    const result = ejs.render(layoutData, viewContext);
+                                    const result = ejs.render(layoutData, {
+                                        model:model
+                                    });
                                     callback(null, result);
                                 }
                                 catch (e) {
@@ -112,7 +126,9 @@ export default class EjsEngine extends HttpViewEngine {
                             });
                         }
                         else {
-                            const result = ejs.render(str, viewContext);
+                            const result = ejs.render(str, {
+                                model:model
+                            });
                             callback(null, result);
                         }
                     }

@@ -7,12 +7,10 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
 import formidable from 'formidable';
-import {_} from 'lodash';
+import _ from 'lodash';
 import {LangUtils,TraceUtils} from '@themost/common/utils';
-import xml from 'most-xml';
 import {HttpConsumer} from '../consumers';
 import Q from 'q';
 import {HttpNextResult} from '../results';
@@ -77,11 +75,7 @@ class PostHandler {
  */
 export class PostContentConsumer extends HttpConsumer {
     constructor() {
-        super(function() {
-            /**
-             * @type {HttpContext}
-             */
-            const context = this;
+        super(function(context) {
             try {
                 const handler = new PostHandler();
                 return Q.nfbind(handler.beginRequest)(context)

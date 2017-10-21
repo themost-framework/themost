@@ -1,12 +1,3 @@
-/**
- * @license
- * MOST Web Framework 2.0 Codename Blueshift
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- *                     Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Use of this source code is governed by an BSD-3-Clause license that can be
- * found in the LICENSE file at https://themost.io/license
- */
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -21,7 +12,6 @@ require('source-map-support/register');
 var _errors = require('@themost/common/errors');
 
 var HttpUnauthorizedError = _errors.HttpUnauthorizedError;
-var HttpBadRequestError = _errors.HttpBadRequestError;
 
 var _utils = require('@themost/common/utils');
 
@@ -41,7 +31,7 @@ var HttpConsumer = _consumers.HttpConsumer;
 
 var _lodash = require('lodash');
 
-var _ = _lodash._;
+var _ = _interopRequireDefault(_lodash).default;
 
 var _q = require('q');
 
@@ -57,7 +47,16 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } } /**
+                                                                                                                                                           * @license
+                                                                                                                                                           * MOST Web Framework 2.0 Codename Blueshift
+                                                                                                                                                           * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
+                                                                                                                                                           *                     Anthi Oikonomou anthioikonomou@gmail.com
+                                                                                                                                                           *
+                                                                                                                                                           * Use of this source code is governed by an BSD-3-Clause license that can be
+                                                                                                                                                           * found in the LICENSE file at https://themost.io/license
+                                                                                                                                                           */
+
 
 /**
  * @class
@@ -72,11 +71,10 @@ var LocationSetting = function LocationSetting() {
     _classCallCheck(this, LocationSetting);
 };
 
-var applicationProperty = Symbol('application');
-
 /**
  * @class
  */
+
 
 var RestrictAccessService = exports.RestrictAccessService = function (_HttpApplicationServi) {
     _inherits(RestrictAccessService, _HttpApplicationServi);
@@ -107,13 +105,13 @@ var RestrictAccessService = exports.RestrictAccessService = function (_HttpAppli
                 var conf = this.getApplication().getConfiguration();
                 if (_.isObject(conf.settings) && _.isObject(conf.settings.auth) && _.isArray(conf.settings.auth.locations)) {
                     /**
-                     * @type {Array}
-                     */
+                    * @type {Array}
+                    */
                     var locations = conf.settings.auth.locations;
                     for (var i = 0; i < locations.length; i++) {
                         /**
-                         * @type {*|LocationSetting}
-                         */
+                        * @type {*|LocationSetting}
+                        */
                         var location = locations[i];
                         if (/\*$/.test(location.path)) {
                             //wildcard search /something/*
@@ -152,7 +150,6 @@ var RestrictAccessService = exports.RestrictAccessService = function (_HttpAppli
 
 /**
  * @class
- * @augments HttpHandler
  */
 
 
@@ -209,11 +206,7 @@ var RestrictAccessConsumer = exports.RestrictAccessConsumer = function (_HttpCon
     function RestrictAccessConsumer() {
         _classCallCheck(this, RestrictAccessConsumer);
 
-        return _possibleConstructorReturn(this, (RestrictAccessConsumer.__proto__ || Object.getPrototypeOf(RestrictAccessConsumer)).call(this, function () {
-            /**
-             * @type {HttpContext}
-             */
-            var context = this;
+        return _possibleConstructorReturn(this, (RestrictAccessConsumer.__proto__ || Object.getPrototypeOf(RestrictAccessConsumer)).call(this, function (context) {
             try {
                 var handler = new RestrictHandler();
                 return Q.nfbind(handler.authorizeRequest)(context).then(function () {

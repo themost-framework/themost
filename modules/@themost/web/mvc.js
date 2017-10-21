@@ -1,12 +1,3 @@
-/**
- * @license
- * MOST Web Framework 2.0 Codename Blueshift
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- *                     Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Use of this source code is governed by an BSD-3-Clause license that can be
- * found in the LICENSE file at https://themost.io/license
- */
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -22,7 +13,7 @@ require('source-map-support/register');
 
 var _lodash = require('lodash');
 
-var _ = _lodash._;
+var _ = _interopRequireDefault(_lodash).default;
 
 var _q = require('q');
 
@@ -72,7 +63,16 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * @license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * MOST Web Framework 2.0 Codename Blueshift
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *                     Anthi Oikonomou anthioikonomou@gmail.com
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Use of this source code is governed by an BSD-3-Clause license that can be
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * found in the LICENSE file at https://themost.io/license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
+
 
 /**
  * @classdesc Represents a user-defined HTTP content result, typically an HTML or XML string.
@@ -118,7 +118,7 @@ var HttpContentResult = exports.HttpContentResult = function (_HttpAnyResult) {
                     response.writeHead(204);
                     return callback();
                 } else {
-                    response.writeHead(200, { 'Content-Type': self.contentType });
+                    response.writeHead(200, _.assign(self.headers, { 'Content-Type': self.contentType }));
                     response.write(self.data, self.contentEncoding, function (err) {
                         return callback(err);
                     });
@@ -155,7 +155,7 @@ var HttpEmptyResult = exports.HttpEmptyResult = function (_HttpAnyResult2) {
          */
         value: function execute(context) {
             //do nothing
-            context.response.writeHead(204);
+            context.response.writeHead(204, self.headers);
             return Q();
         }
     }]);
@@ -220,7 +220,7 @@ var HttpJsonResult = exports.HttpJsonResult = function (_HttpAnyResult3) {
                     response.writeHead(204);
                     return callback();
                 }
-                response.writeHead(200, { 'Content-Type': self.contentType });
+                response.writeHead(200, _.assign(self.headers, { 'Content-Type': self.contentType }));
                 response.write(self.data, self.contentEncoding, function (err) {
                     return callback(err);
                 });
@@ -275,7 +275,7 @@ var HttpJavascriptResult = exports.HttpJavascriptResult = function (_HttpAnyResu
                     response.writeHead(204);
                     return callback();
                 }
-                response.writeHead(200, { 'Content-Type': self.contentType });
+                response.writeHead(200, _.assign(self.headers, { 'Content-Type': self.contentType }));
                 response.write(self.data, self.contentEncoding, function (err) {
                     return callback(err);
                 });
@@ -311,6 +311,32 @@ var HttpXmlResult = exports.HttpXmlResult = function (_HttpAnyResult5) {
         if ((typeof data === 'undefined' ? 'undefined' : _typeof(data)) === 'object') _this5.data = xml.serialize(data).outerXML();else _this5.data = data;
         return _this5;
     }
+    /**
+     * @param context
+     * @returns {Promise}
+     */
+
+
+    _createClass(HttpXmlResult, [{
+        key: 'execute',
+        value: function execute(context) {
+            var self = this;
+            return Q.nfcall(function (callback) {
+                /**
+                 * @type ServerResponse
+                 * */
+                var response = context.response;
+                if (_.isNil(self.data)) {
+                    response.writeHead(204);
+                    return callback();
+                }
+                response.writeHead(200, _.assign(self.headers, { 'Content-Type': self.contentType }));
+                response.write(self.data, self.contentEncoding, function (err) {
+                    return callback(err);
+                });
+            });
+        }
+    }]);
 
     return HttpXmlResult;
 }(HttpAnyResult);
@@ -397,9 +423,10 @@ var HttpFileResult = exports.HttpFileResult = function (_HttpAnyResult7) {
         key: 'execute',
         value: function execute(context) {
 
+            var self = this;
             return Q.nfcall(function (callback) {
-                var physicalPath = this.physicalPath,
-                    fileName = this.fileName;
+                var physicalPath = self.physicalPath,
+                    fileName = self.fileName;
                 fs.exists(physicalPath, function (exists) {
                     if (!exists) {
                         callback(new HttpNotFoundError());
@@ -448,10 +475,10 @@ var HttpFileResult = exports.HttpFileResult = function (_HttpAnyResult7) {
                                             //create read stream
                                             var source = fs.createReadStream(physicalPath);
                                             //add Content-Disposition: attachment; filename="<file name.ext>"
-                                            context.response.writeHead(200, {
+                                            context.response.writeHead(200, _.assign(self.headers, {
                                                 'Content-Type': contentType + (contentEncoding ? ';charset=' + contentEncoding : ''),
                                                 'ETag': responseETag
-                                            });
+                                            }));
                                             //copy file
                                             source.pipe(context.response);
                                             source.on('end', function () {
@@ -477,6 +504,7 @@ var HttpFileResult = exports.HttpFileResult = function (_HttpAnyResult7) {
 }(HttpAnyResult);
 
 /**
+ * @this HttpContext
  * @param controller
  * @param view
  * @param extension
@@ -490,6 +518,7 @@ function queryDefaultViewPath(controller, view, extension, callback) {
     return queryAbsoluteViewPath.call(this, this.getApplication().mapExecutionPath('views'), controller, view, extension, callback);
 }
 /**
+ * @this HttpContext
  * @param view
  * @param extension
  * @param callback
@@ -673,7 +702,7 @@ var HttpViewResult = exports.HttpViewResult = function (_HttpAnyResult8) {
                                 if (err) {
                                     return callback(err);
                                 } else {
-                                    response.writeHead(200, { "Content-Type": self.contentType });
+                                    response.writeHead(200, _.assign(self.headers, { "Content-Type": self.contentType }));
                                     response.write(result, self.contentEncoding);
                                     return callback();
                                 }
@@ -808,6 +837,7 @@ var HttpController = function () {
 
         /**
          * Creates a JSON result object by using the specified data.
+         * @param {*} data
          * @returns HttpJsonResult
          * */
 
@@ -1010,7 +1040,7 @@ var HttpViewContext = exports.HttpViewContext = function () {
                 },
                 lang: function lang() {
                     var context = $view.context,
-                        c = context.culture();
+                        c = context.getCulture();
                     if (typeof c === 'string') {
                         if (c.length >= 2) {
                             return c.toLowerCase().substring(0, 2);
@@ -1081,7 +1111,7 @@ var HtmlViewHelper = exports.HtmlViewHelper = function () {
         value: function lang() {
             var $view = this.parent;
             var context = $view.context,
-                c = context.culture();
+                c = context.getCulture();
             if (typeof c === 'string') {
                 if (c.length >= 2) {
                     return c.toLowerCase().substring(0, 2);

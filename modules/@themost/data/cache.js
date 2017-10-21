@@ -1,12 +1,3 @@
-/**
- * @license
- * MOST Web Framework 2.0 Codename Blueshift
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- *                     Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Use of this source code is governed by an BSD-3-Clause license that can be
- * found in the LICENSE file at https://themost.io/license
- */
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -24,7 +15,7 @@ var SequentialEventEmitter = _emitter.SequentialEventEmitter;
 
 var _lodash = require('lodash');
 
-var _ = _lodash._;
+var _ = _interopRequireDefault(_lodash).default;
 
 var _utils = require('@themost/common/utils');
 
@@ -40,7 +31,16 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * @license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * MOST Web Framework 2.0 Codename Blueshift
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *                     Anthi Oikonomou anthioikonomou@gmail.com
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Use of this source code is governed by an BSD-3-Clause license that can be
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * found in the LICENSE file at https://themost.io/license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
+
 
 var rawCacheProperty = Symbol('rawCache');
 
@@ -99,7 +99,7 @@ var DataCache = exports.DataCache = function (_SequentialEventEmitt) {
         key: 'remove',
         value: function remove(key) {
             var self = this;
-            return Q.denodeify(function (callback) {
+            return Q.nfbind(function (callback) {
                 self.init(function (err) {
                     if (err) {
                         return callback(err);
@@ -184,14 +184,14 @@ var DataCache = exports.DataCache = function (_SequentialEventEmitt) {
         /**
          * Gets a cached value defined by the given key.
          * @param {string|*} key
-         * @returns {Observable}
+         * @returns {Promise}
          */
 
     }, {
         key: 'get',
         value: function get(key) {
-            return Q.denodeify(function (key, callback) {
-                var self = this;
+            var self = this;
+            return Q.nfbind(function (key, callback) {
                 self.init(function (err) {
                     if (err) {
                         return callback(err);
@@ -206,7 +206,7 @@ var DataCache = exports.DataCache = function (_SequentialEventEmitt) {
                         return callback();
                     });
                 });
-            }.bind(this))(key);
+            })(key);
         }
 
         /**
@@ -214,21 +214,21 @@ var DataCache = exports.DataCache = function (_SequentialEventEmitt) {
          * @returns {*|DataCache}
          */
 
-    }, {
-        key: 'setCurrent',
-
+    }], [{
+        key: 'getCurrent',
+        value: function getCurrent() {
+            return DataCache.current;
+        }
 
         /**
          * Sets the current cache service
          * @param {*|DataCache} cacheService
          */
+
+    }, {
+        key: 'setCurrent',
         value: function setCurrent(cacheService) {
             DataCache.current = cacheService;
-        }
-    }], [{
-        key: 'getCurrent',
-        value: function getCurrent() {
-            return DataCache.current;
         }
     }]);
 
@@ -247,6 +247,7 @@ var NoDataCache = exports.NoDataCache = function () {
      * @param {string|*} key
      * @returns {Promise}
      */
+    // eslint-disable-next-line no-unused-vars
 
 
     _createClass(NoDataCache, [{
@@ -260,6 +261,7 @@ var NoDataCache = exports.NoDataCache = function () {
          * @param {string} key - A string that represents the key of the cached value to be removed
          * @returns {Promise}
          */
+        // eslint-disable-next-line no-unused-vars
 
     }, {
         key: 'remove',
@@ -274,6 +276,7 @@ var NoDataCache = exports.NoDataCache = function () {
          * @param {number=} absoluteExpiration - An absolute expiration time in seconds. This parameter is optional.
          * @returns {Promise}
          */
+        // eslint-disable-next-line no-unused-vars
 
     }, {
         key: 'add',
@@ -299,17 +302,17 @@ var NoDataCache = exports.NoDataCache = function () {
          * @param {number=} absoluteExpiration - An absolute expiration time in seconds. This parameter is optional.
          * @returns {Promise}
          */
+        // eslint-disable-next-line no-unused-vars
 
     }, {
         key: 'getOrDefault',
         value: function getOrDefault(key, fn, absoluteExpiration) {
-            var self = this;
             Args.check(_.isFunction(fn), 'Invalid argument. Expected function.');
             var source = fn();
-            Args.check(source instanceof Observable, 'Invalid argument. Expected a valid observable.');
-            return source.flatMap(function (res) {
+            Args.check(_.isObject(source) && _.isFunction(source.then), 'Invalid argument. Expected a valid observable.');
+            return source.then(function (res) {
                 if (_.isNil(res)) {
-                    return Qf();
+                    return Q();
                 }
                 return Q(res);
             });

@@ -1,12 +1,3 @@
-/**
- * @license
- * MOST Web Framework 2.0 Codename Blueshift
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- *                     Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Use of this source code is governed by an BSD-3-Clause license that can be
- * found in the LICENSE file at https://themost.io/license
- */
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -15,6 +6,16 @@ Object.defineProperty(exports, "__esModule", {
 exports.ViewConsumer = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; /**
+                                                                                                                                                                                                                                                                               * @license
+                                                                                                                                                                                                                                                                               * MOST Web Framework 2.0 Codename Blueshift
+                                                                                                                                                                                                                                                                               * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
+                                                                                                                                                                                                                                                                               *                     Anthi Oikonomou anthioikonomou@gmail.com
+                                                                                                                                                                                                                                                                               *
+                                                                                                                                                                                                                                                                               * Use of this source code is governed by an BSD-3-Clause license that can be
+                                                                                                                                                                                                                                                                               * found in the LICENSE file at https://themost.io/license
+                                                                                                                                                                                                                                                                               */
 
 require('source-map-support/register');
 
@@ -34,7 +35,7 @@ var HttpConsumer = _consumers.HttpConsumer;
 
 var _lodash = require('lodash');
 
-var _ = _lodash._;
+var _ = _interopRequireDefault(_lodash).default;
 
 var _url = require('url');
 
@@ -48,6 +49,10 @@ var _q = require('q');
 
 var Q = _interopRequireDefault(_q).default;
 
+var _async = require('async');
+
+var async = _interopRequireDefault(_async).default;
+
 var _config = require('@themost/common/config');
 
 var ModuleLoaderStrategy = _config.ModuleLoaderStrategy;
@@ -60,6 +65,19 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+function getOwnPropertyNames_(obj) {
+    if (typeof obj === 'undefined' || obj === null) {
+        return [];
+    }
+    var ownPropertyNames = [];
+    var proto = Object.getPrototypeOf(obj);
+    while (proto) {
+        ownPropertyNames.push.apply(ownPropertyNames, Object.getOwnPropertyNames(proto));
+        proto = Object.getPrototypeOf(proto);
+    }
+    return ownPropertyNames;
+}
+
 /**
  *
  * @param s
@@ -71,8 +89,21 @@ function _dasherize(s) {
     return s;
 }
 function _isPromise(f) {
+    if ((typeof f === 'undefined' ? 'undefined' : _typeof(f)) !== 'object') {
+        return false;
+    }
     return typeof f.then === 'function' && typeof f.catch === 'function';
 }
+
+/**
+ * @method dasherize
+ * @memberOf _
+ */
+
+/**
+ * @method isPromise
+ * @memberOf _
+ */
 
 if (typeof _.dasherize !== 'function') {
     _.mixin({ 'dasherize': _dasherize });
@@ -164,7 +195,7 @@ var ViewHandler = function () {
                     }
                     var obj = void 0;
                     if (context.is('POST')) {
-                        if (context.format === 'xml') {
+                        if (context.getFormat() === 'xml') {
                             //get current model
                             if (context.request.body) {
                                 //load xml
@@ -176,7 +207,7 @@ var ViewHandler = function () {
                                     return callback(err);
                                 }
                             }
-                        } else if (context.format === 'json') {
+                        } else if (context.getFormat() === 'json') {
                             if (typeof context.request.body === 'string') {
                                 //parse json data
                                 try {
@@ -295,12 +326,12 @@ var ViewHandler = function () {
             var controllerPrototype = Object.getPrototypeOf(controller);
             if (controllerPrototype) {
                 //query controller methods that support current http request
-                var protoActionMethods = _.filter(Object.getOwnPropertyNames(controllerPrototype), function (x) {
+                var protoActionMethod = _.find(getOwnPropertyNames_(controller), function (x) {
                     return typeof controller[x] === 'function' && controller[x].httpAction === action && controller[x][httpMethodDecorator] === true;
                 });
                 //if an action was found for the given criteria
-                if (protoActionMethods.length === 1) {
-                    return controller[protoActionMethods[0]];
+                if (protoActionMethod) {
+                    return controller[protoActionMethod];
                 }
             }
             //if an action with the given name is a method of current controller
@@ -345,22 +376,50 @@ var ViewHandler = function () {
                         //enumerate params
                         var methodParams = LangUtils.getFunctionParams(actionMethod),
                             params = [];
-                        /*
-                        * enumerate method parameters and check if a parameter with the same name
-                        * exists in request's parameters.
-                        * */
-                        if (methodParams.length > 0) {
-                            var k = 0;
-                            while (k < methodParams.length) {
-                                //get context parameter
-                                if (typeof context.params.attr === 'function') params.push(context.params.attr(methodParams[k]));else params.push(context.params[methodParams[k]]);
-                                k++;
+                        //execute action handler decorators
+                        var actionConsumers = _.filter(_.keys(actionMethod), function (x) {
+                            return actionMethod[x] instanceof HttpConsumer;
+                        });
+                        return async.eachSeries(actionConsumers, function (actionConsumer, cb) {
+                            try {
+                                var source = actionMethod[actionConsumer].run(context);
+                                if (!_.isPromise(source)) {
+                                    return cb(new Error("Invalid type. Action consumer result must be a promise."));
+                                }
+                                return source.then(function () {
+                                    return cb();
+                                }).catch(function (err) {
+                                    return cb(err);
+                                });
+                            } catch (err) {
+                                return cb(err);
                             }
-                        }
-                        return actionMethod.apply(controller, params).then(function (result) {
-                            return callback(null, result);
-                        }).catch(function (err) {
-                            return callback(err);
+                        }, function (err) {
+                            if (err) {
+                                return callback(err);
+                            }
+                            try {
+                                if (methodParams.length > 0) {
+                                    var k = 0;
+                                    while (k < methodParams.length) {
+                                        if (typeof context.getParam === 'function') {
+                                            params.push(context.getParam(methodParams[k]));
+                                        } else {
+                                            params.push(context.params[methodParams[k]]);
+                                        }
+                                        k += 1;
+                                    }
+                                }
+                                //execute method
+                                var source = actionMethod.apply(controller, params);
+                                return source.then(function (result) {
+                                    return callback(null, result);
+                                }).catch(function (err) {
+                                    return callback(err);
+                                });
+                            } catch (err) {
+                                return callback(err);
+                            }
                         });
                     }
                 }
@@ -470,11 +529,7 @@ var ViewConsumer = exports.ViewConsumer = function (_HttpConsumer) {
     function ViewConsumer() {
         _classCallCheck(this, ViewConsumer);
 
-        return _possibleConstructorReturn(this, (ViewConsumer.__proto__ || Object.getPrototypeOf(ViewConsumer)).call(this, function () {
-            /**
-             * @type {HttpContext}
-             */
-            var context = this;
+        return _possibleConstructorReturn(this, (ViewConsumer.__proto__ || Object.getPrototypeOf(ViewConsumer)).call(this, function (context) {
             try {
                 var handler = new ViewHandler();
                 //execute mapRequest

@@ -7,11 +7,10 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
-import {_} from 'lodash';
+import _ from 'lodash';
 import sprintf from 'sprintf';
-import {DataConfiguration} from './config'
+import {DataConfigurationStrategy} from './config'
 
 /**
  * @class
@@ -101,7 +100,6 @@ export class PatternValidator extends DataValidator {
     constructor(pattern) {
         super();
         this.pattern = pattern;
-        PatternValidator.super_.call(this);
     }
 
     /**
@@ -197,7 +195,6 @@ export class MinLengthValidator extends DataValidator {
     constructor(length) {
         super();
         this.minLength = length;
-        MinLengthValidator.super_.call(this);
     }
 
     /**
@@ -294,7 +291,6 @@ export class MaxLengthValidator extends DataValidator {
     constructor(length) {
         super();
         this.maxLength = length;
-        MaxLengthValidator.super_.call(this);
     }
 
     /**
@@ -381,7 +377,6 @@ export class MinValueValidator extends DataValidator {
     constructor(min) {
         super();
         this.minValue = min;
-        MinValueValidator.super_.call(this);
     }
 
     /**
@@ -465,7 +460,6 @@ export class MaxValueValidator extends DataValidator {
     constructor(max) {
         super();
         this.maxValue = max;
-        MaxValueValidator.super_.call(this);
     }
 
     /**
@@ -557,7 +551,6 @@ export class RangeValidator extends DataValidator {
         super();
         this.minValue = min;
         this.maxValue = max;
-        RangeValidator.super_.call(this);
     }
 
     /**
@@ -570,11 +563,11 @@ export class RangeValidator extends DataValidator {
             return;
         }
         let minValidator, maxValidator, minValidation, maxValidation;
-        if (typeof this.minValue !== 'undefined' && this.minValue != null) {
+        if (typeof this.minValue !== 'undefined' && this.minValue !== null) {
             minValidator = new MinValueValidator(this.minValue);
             minValidation = minValidator.validateSync(val);
         }
-        if (typeof this.maxValue !== 'undefined' && this.maxValue != null) {
+        if (typeof this.maxValue !== 'undefined' && this.maxValue !== null) {
             maxValidator = new MaxValueValidator(this.maxValue);
             maxValidation = maxValidator.validateSync(val);
         }
@@ -695,10 +688,9 @@ export class DataTypeValidator extends DataValidator {
     constructor(type) {
         super();
         if (typeof type === 'string')
-            this.dataType = DataConfiguration.getCurrent().dataTypes[type];
+            this.dataType = DataConfigurationStrategy.getCurrent().dataTypes[type];
         else
             this.dataType = type;
-        DataTypeValidator.super_.call(this);
     }
 
     /**
@@ -1070,7 +1062,6 @@ export class RequiredValidator extends DataValidator {
      */
     constructor() {
         super();
-        RequiredValidator.super_.call(this);
     }
 
     /**

@@ -1,12 +1,3 @@
-/**
- * @license
- * MOST Web Framework 2.0 Codename Blueshift
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- *                     Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Use of this source code is governed by an BSD-3-Clause license that can be
- * found in the LICENSE file at https://themost.io/license
- */
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -16,13 +7,22 @@ exports.HttpContext = exports.HttpContextParams = undefined;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * MOST Web Framework 2.0 Codename Blueshift
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *                     Anthi Oikonomou anthioikonomou@gmail.com
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Use of this source code is governed by an BSD-3-Clause license that can be
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * found in the LICENSE file at https://themost.io/license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
 
 require('source-map-support/register');
 
 var _lodash = require('lodash');
 
-var _ = _lodash._;
+var _ = _interopRequireDefault(_lodash).default;
 
 var _url = require('url');
 
@@ -209,10 +209,12 @@ var HttpContext = exports.HttpContext = function (_DefaultDataContext) {
                 return result.substr(1).toLowerCase();
             } else {
                 //get mime type
-                var mime = self.mime;
-                if (mime) {
-                    //and return the extension associated with this mime
-                    return mime.extension.substr(1).toLowerCase();
+                if (this.request.route && this.request.route.route && this.request.route.route.format) {
+                    var mime = this.getApplication().getMimeType(this.request.route.route.format);
+                    if (mime) {
+                        //and return the extension associated with this mime
+                        return mime.extension.substr(1).toLowerCase();
+                    }
                 }
             }
         }
@@ -300,7 +302,7 @@ var HttpContext = exports.HttpContext = function (_DefaultDataContext) {
                 return false;
             }
             Args.notString(this.request.method, 'HTTP Method');
-            return this.request.method.toUpperCase() == method.toUpperCase();
+            return this.request.method.toUpperCase() === method.toUpperCase();
         }
         /**
          * Gets the current culture
@@ -406,7 +408,7 @@ var HttpContext = exports.HttpContext = function (_DefaultDataContext) {
                             }
                         }
                     }
-                    if (valid == true) {
+                    if (valid === true) {
                         //2. validate timestamp
                         var timestamp = new Date(csrfCookieToken.date);
                         var diff = Math.abs(new Date() - timestamp);
@@ -423,6 +425,25 @@ var HttpContext = exports.HttpContext = function (_DefaultDataContext) {
                 throw new HttpBadRequestError('Bad request. A cross-site request forgery was detected.');
             } else {
                 throw new HttpBadRequestError('Bad request.Missing cross-site request forgery data.');
+            }
+        }
+    }, {
+        key: 'getParam',
+        value: function getParam(name) {
+            if (typeof name === 'string') {
+                if (this.hasOwnProperty('params')) {
+                    var params = this['params'];
+                    if ((typeof params === 'undefined' ? 'undefined' : _typeof(params)) !== 'object') {
+                        return;
+                    }
+                    if (params.hasOwnProperty(name)) return params[name];
+                    //otherwise make a case insensitive search
+                    var re = new RegExp('^' + name + '$', 'i');
+                    var p = Object.keys(params).filter(function (x) {
+                        return re.test(x);
+                    })[0];
+                    if (p) return params[p];
+                }
             }
         }
 

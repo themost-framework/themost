@@ -1,12 +1,3 @@
-/**
- * @license
- * MOST Web Framework 2.0 Codename Blueshift
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- *                     Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Use of this source code is governed by an BSD-3-Clause license that can be
- * found in the LICENSE file at https://themost.io/license
- */
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -16,13 +7,18 @@ exports.DataNestedObjectListener = exports.DataStateValidatorListener = exports.
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * MOST Web Framework 2.0 Codename Blueshift
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *                     Anthi Oikonomou anthioikonomou@gmail.com
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Use of this source code is governed by an BSD-3-Clause license that can be
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * found in the LICENSE file at https://themost.io/license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
 
 require('source-map-support/register');
-
-var _types = require('./types');
-
-var ParserUtils = _types.ParserUtils;
 
 var _sprintf = require('sprintf');
 
@@ -32,17 +28,9 @@ var _async = require('async');
 
 var async = _interopRequireDefault(_async).default;
 
-var _moment = require('moment');
-
-var moment = _interopRequireDefault(_moment).default;
-
 var _lodash = require('lodash');
 
 var _ = _lodash._;
-
-var _q = require('q');
-
-var Q = _interopRequireDefault(_q).default;
 
 var _utils = require('@themost/common/utils');
 
@@ -91,20 +79,21 @@ var NotNullConstraintListener = exports.NotNullConstraintListener = function () 
             var attrs = event.model.attributes.filter(function (x) {
                 return !x.primary && !(typeof x.nullable === 'undefined' ? true : x.nullable);
             });
-            if (attrs.length == 0) {
-                callback(null);
-                return 0;
+            if (attrs.length === 0) {
+                return callback();
             }
             async.eachSeries(attrs, function (attr, cb) {
                 var name = attr.property || attr.name,
                     value = event.target[name];
-                if ((value == null || value === undefined) && event.state == 1 || value == null && typeof value !== 'undefined' && event.state == 2) {
+                if ((value === null || value === undefined) && event.state === 1 || value === null && typeof value !== 'undefined' && event.state === 2) {
                     var er = new NotNullError('A value is required.', null, event.model.name, attr.name);
                     if (process.env.NODE_ENV === 'development') {
                         TraceUtils.log(er);
                     }
                     return cb(er);
-                } else cb(null);
+                } else {
+                    cb();
+                }
             }, function (err) {
                 callback(err);
             });
@@ -136,16 +125,16 @@ var UniqueConstraintListener = exports.UniqueConstraintListener = function () {
         value: function beforeSave(event, callback) {
 
             //there are no constraints
-            if (event.model.constraints == null) {
+            if (event.model.constraints === null) {
                 //do nothing
                 callback(null);
                 return;
             }
             //get unique constraints
             var constraints = _.filter(event.model.constraints, function (x) {
-                return x.type == 'unique';
+                return x.type === 'unique';
             });
-            if (constraints.length == 0) {
+            if (constraints.length === 0) {
                 //do nothing
                 callback(null);
                 return;
@@ -188,9 +177,9 @@ var UniqueConstraintListener = exports.UniqueConstraintListener = function () {
                             cb(null);
                         } else {
                             var objectExists = true;
-                            if (event.state == 2) {
+                            if (event.state === 2) {
                                 //validate object id (check if target object is the same with the returned object)
-                                objectExists = result[event.model.primaryKey] != event.target[event.model.primaryKey];
+                                objectExists = result[event.model.primaryKey] !== event.target[event.model.primaryKey];
                             }
                             //if object already exists
                             if (objectExists) {
@@ -306,15 +295,15 @@ var CalculatedValueListener = exports.CalculatedValueListener = function () {
                     return cb();
                 }
                 //check javascript: keyword for code evaluation
-                if (expr.indexOf('javascript:') == 0) {
+                if (expr.indexOf('javascript:') === 0) {
                     //get expression
                     var fnstr = expr.substring('javascript:'.length);
                     //if expression starts with function add parenthesis (fo evaluation)
-                    if (fnstr.indexOf('function') == 0) {
+                    if (fnstr.indexOf('function') === 0) {
                         fnstr = '('.concat(fnstr, ')');
                     }
                     //if expression starts with return then normalize expression (surround with function() {} keyword)
-                    else if (fnstr.indexOf('return') == 0) {
+                    else if (fnstr.indexOf('return') === 0) {
                             fnstr = '(function() { '.concat(fnstr, '})');
                         }
                     var value = eval(fnstr);
@@ -322,7 +311,7 @@ var CalculatedValueListener = exports.CalculatedValueListener = function () {
                     if (typeof value === 'function') {
                         //then call function against the target object
                         var value1 = value.call(functionContext);
-                        if (typeof value1 !== 'undefined' && value1 != null && typeof value1.then === 'function') {
+                        if (typeof value1 !== 'undefined' && value1 !== null && typeof value1.then === 'function') {
                             //we have a promise, so we need to wait for answer
                             value1.then(function (result) {
                                 //otherwise set result
@@ -335,7 +324,7 @@ var CalculatedValueListener = exports.CalculatedValueListener = function () {
                             event.target[attr.name] = value1;
                             return cb();
                         }
-                    } else if (typeof value !== 'undefined' && value != null && typeof value.then === 'function') {
+                    } else if (typeof value !== 'undefined' && value !== null && typeof value.then === 'function') {
                         //we have a promise, so we need to wait for answer
                         value.then(function (result) {
                             //otherwise set result
@@ -349,7 +338,7 @@ var CalculatedValueListener = exports.CalculatedValueListener = function () {
                         event.target[attr.name] = value;
                         return cb();
                     }
-                } else if (expr.indexOf('fn:') == 0) {
+                } else if (expr.indexOf('fn:') === 0) {
                     return cb(new Error('fn: syntax is deprecated.'));
                 } else {
                     functionContext.evaluate(expr, function (err, result) {
@@ -481,6 +470,8 @@ var DataCachingListener = exports.DataCachingListener = function () {
                                     TraceUtils.log(sprintf.sprintf('Cache (Execution Time:%sms):%s', new Date().getTime() - logTime, key));
                                 }
                             } catch (err) {}
+                            //
+
                             //exit
                             return callback();
                         } else {
@@ -502,7 +493,7 @@ var DataCachingListener = exports.DataCachingListener = function () {
 
         /**
          * Occurs before executing an query expression, validates data caching configuration and stores data to cache.
-         * @param {DataEventArgs|*} e - An object that represents the event arguments passed to this operation.
+         * @param {DataEventArgs|*} event - An object that represents the event arguments passed to this operation.
          * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
          */
 
@@ -597,8 +588,8 @@ var DefaultValueListener = exports.DefaultValueListener = function () {
         value: function beforeSave(event, callback) {
 
             var state = event.state !== undefined ? event.state : 0;
-            if (state != 1) {
-                callback(null);
+            if (state !== 1) {
+                callback();
             } else {
                 //get function context
                 var functionContext = new FunctionContext();
@@ -621,23 +612,23 @@ var DefaultValueListener = exports.DefaultValueListener = function () {
                         return cb();
                     }
                     //check javascript: keyword for code evaluation
-                    if (expr.indexOf('javascript:') == 0) {
+                    if (expr.indexOf('javascript:') === 0) {
                         //get expression
                         var fnstr = expr.substring('javascript:'.length);
                         //if expression starts with function add parenthesis (fo evaluation)
-                        if (fnstr.indexOf('function') == 0) {
+                        if (fnstr.indexOf('function') === 0) {
                             fnstr = '('.concat(fnstr, ')');
                         }
                         //if expression starts with return then normalize expression (surround with function() {} keyword)
-                        else if (fnstr.indexOf('return') == 0) {
+                        else if (fnstr.indexOf('return') === 0) {
                                 fnstr = '(function() { '.concat(fnstr, '})');
                             }
                         var value = eval(fnstr);
                         //if value is function
                         if (typeof value === 'function') {
                             //then call function against the target object
-                            var value1 = value.call(functionContext);
-                            if (typeof value1 !== 'undefined' && value1 != null && typeof value1.then === 'function') {
+                            var value1 = value.bind(functionContext)();
+                            if (typeof value1 !== 'undefined' && value1 !== null && typeof value1.then === 'function') {
                                 //we have a promise, so we need to wait for answer
                                 value1.then(function (result) {
                                     //otherwise set result
@@ -650,7 +641,7 @@ var DefaultValueListener = exports.DefaultValueListener = function () {
                                 event.target[attr.name] = value1;
                                 return cb();
                             }
-                        } else if (typeof value !== 'undefined' && value != null && typeof value.then === 'function') {
+                        } else if (typeof value !== 'undefined' && value !== null && typeof value.then === 'function') {
                             //we have a promise, so we need to wait for answer
                             value.then(function (result) {
                                 //otherwise set result
@@ -664,7 +655,7 @@ var DefaultValueListener = exports.DefaultValueListener = function () {
                             event.target[attr.name] = value;
                             return cb();
                         }
-                    } else if (expr.indexOf('fn:') == 0) {
+                    } else if (expr.indexOf('fn:') === 0) {
                         return cb(new Error('fn: syntax is deprecated.'));
                     } else {
 
@@ -722,7 +713,7 @@ var DataModelCreateViewListener = exports.DataModelCreateViewListener = function
             var baseModel = self.base();
             //get array of fields
             var fields = _.map(_.filter(self.attributes, function (x) {
-                return self.name == x.model && !x.many;
+                return self.name === x.model && !x.many;
             }), function (x) {
                 return QueryField.create(x.name).from(adapter);
             });
@@ -731,7 +722,7 @@ var DataModelCreateViewListener = exports.DataModelCreateViewListener = function
              */
             var q = QueryExpression.create(adapter).select(fields);
             //get base adapter
-            var baseAdapter = baseModel != null ? baseModel.name.concat('Data') : null,
+            var baseAdapter = baseModel !== null ? baseModel.name.concat('Data') : null,
                 baseFields = [];
             //enumerate columns of base model (if any)
             if (_.isObject(baseModel)) {
@@ -786,7 +777,7 @@ var DataModelSeedListener = exports.DataModelSeedListener = function () {
                 var items = self['seed'];
                 //if model has an array of items to be seeded
                 if (_.isArray(items)) {
-                    if (items.length == 0) {
+                    if (items.length === 0) {
                         //if seed array is empty exit
                         return callback();
                     }
@@ -796,7 +787,7 @@ var DataModelSeedListener = exports.DataModelSeedListener = function () {
                             callback(err);return;
                         }
                         //if model has no data
-                        if (count == 0) {
+                        if (count === 0) {
                             //set items state to new
                             items.forEach(function (x) {
                                 x.$state = 1;
@@ -843,7 +834,7 @@ var DataModelSubTypesListener = exports.DataModelSubTypesListener = function () 
                 context = event.model.context;
             try {
                 self.getSubTypes().then(function (result) {
-                    if (result.length == 0) {
+                    if (result.length === 0) {
                         return callback();
                     }
                     //enumerate sub types
@@ -895,7 +886,7 @@ var PreviousStateListener = exports.PreviousStateListener = function () {
          * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
          */
         value: function beforeSave(event, callback) {
-            if (event.state == 1) {
+            if (event.state === 1) {
                 return callback();
             }
             var key = event.model.primaryKey;
@@ -999,7 +990,7 @@ var DataStateValidatorListener = exports.DataStateValidatorListener = function (
                         event.state = 2;
                     }
                 //if state is Update (2)
-                if (event.state == 2) {
+                if (event.state === 2) {
                     //if key exists exit
                     if (keyState) return callback();else {
                         return DataStateValidator_MapKey_(model, target, function (err) {
@@ -1010,7 +1001,7 @@ var DataStateValidatorListener = exports.DataStateValidatorListener = function (
                             return callback();
                         });
                     }
-                } else if (event.state == 1) {
+                } else if (event.state === 1) {
                     if (!keyState) {
                         return DataStateValidator_MapKey_(model, target, function (err, result) {
                             if (err) {
@@ -1102,7 +1093,7 @@ function DataStateValidator_MapKey_(model, obj, callback) {
     });
 
     var objectFound = false;
-    if (arr.length == 0) {
+    if (arr.length === 0) {
         //do nothing and exit
         return callback();
     }
@@ -1229,8 +1220,8 @@ var DataNestedObjectListener = exports.DataNestedObjectListener = function () {
                 }, function (err) {
                     return callback(err);
                 });
-            } catch (e) {
-                return callback(e);
+            } catch (err) {
+                return callback(err);
             }
         }
     }, {
@@ -1283,12 +1274,12 @@ function DataNestedObject_BeforeSave_(attr, event, callback) {
     if (_.isNil(nestedModel)) {
         return callback();
     }
-    if (event.state == 1) {
+    if (event.state === 1) {
         //save nested object
         nestedModel.silent().save(nestedObj, function (err) {
             callback(err);
         });
-    } else if (event.state == 2) {
+    } else if (event.state === 2) {
         //first of all get original address from db
         event.model.where(key).equal(event.target[key]).select(key, name).silent().first().then(function (result) {
             if (_.isNil(result)) {
@@ -1343,7 +1334,7 @@ function DataNestedObject_BeforeSaveMany_(attr, event, callback) {
         return callback(new DataError("EJUNCT", "Invalid argument type. Expected array.", null, event.model.name, name));
     }
     //if nested array does not have any data
-    if (nestedObj.length == 0) {
+    if (nestedObj.length === 0) {
         //do nothing
         return callback();
     }
@@ -1356,7 +1347,7 @@ function DataNestedObject_BeforeSaveMany_(attr, event, callback) {
     //get nested primary key
     var nestedKey = nestedModel.getPrimaryKey();
     //on insert
-    if (event.state == 1) {
+    if (event.state === 1) {
         //enumerate nested objects and set state to new
         nestedObj.forEach(function (x) {
             //delete identifier
@@ -1375,7 +1366,7 @@ function DataNestedObject_BeforeSaveMany_(attr, event, callback) {
         });
     }
     //on update
-    else if (event.state == 2) {
+    else if (event.state === 2) {
             //first of all get original associated object, if any
             event.model.where(key).equal(event.target[key]).select(key, name).expand(name).silent().first(function (err, result) {
                 if (err) {
@@ -1391,7 +1382,7 @@ function DataNestedObject_BeforeSaveMany_(attr, event, callback) {
                 nestedObj.forEach(function (x) {
                     //search in original nested objects
                     var obj = originalNestedObjects.find(function (y) {
-                        return y[nestedKey] == x[nestedKey];
+                        return y[nestedKey] === x[nestedKey];
                     });
                     //if object already exists
                     if (obj) {

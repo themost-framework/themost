@@ -7,7 +7,6 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
 import {_} from 'lodash';
 import crypto from 'crypto';
@@ -65,11 +64,7 @@ class AuthHandler {
 
 export class AuthConsumer extends HttpConsumer {
     constructor() {
-        super(function() {
-            /**
-             * @type {HttpContext}
-             */
-            const context = this;
+        super(function(context) {
             try {
                 let handler = new AuthHandler();
                 return Q.nfbind(handler.authenticateRequest)(context)
@@ -155,11 +150,7 @@ BasicAuthHandler.USERNAME_REGEXP = /^[a-zA-Z0-9.@_-]{1,255}$/;
 
 export class BasicAuthConsumer extends HttpConsumer {
     constructor() {
-        super(function() {
-            /**
-             * @type {HttpContext}
-             */
-            const context = this;
+        super(function(context) {
             try {
                 let handler = new BasicAuthHandler();
                 return Q.nfbind(handler.authenticateRequest)(context)
@@ -344,17 +335,17 @@ export class DefaultAuthStrategy extends HttpApplicationService {
                         .or('userPassword').equal('{md5}'.concat(crypto.createHash('md5').update(userPassword).digest('hex')))
                         .or('userPassword').equal('{sha1}'.concat(crypto.createHash('sha1').update(userPassword).digest('hex')))
                         .silent().count().then(function(count) {
-                        if (count===1) {
+                            if (count===1) {
                             //set cookie
-                            self.setAuthCookie(context, userName);
-                            context.user = { name: userName, authenticationType:'Basic' };
-                            return callback(null, true);
-                        }
-                        return callback(new HttpUnauthorizedError('Unknown username or bad password.'));
-                    }).catch(function(err) {
-                        TraceUtils.log(err);
-                        return callback(new Error('Login failed due to server error. Please try again or contact your system administrator.'));
-                    });
+                                self.setAuthCookie(context, userName);
+                                context.user = { name: userName, authenticationType:'Basic' };
+                                return callback(null, true);
+                            }
+                            return callback(new HttpUnauthorizedError('Unknown username or bad password.'));
+                        }).catch(function(err) {
+                            TraceUtils.log(err);
+                            return callback(new Error('Login failed due to server error. Please try again or contact your system administrator.'));
+                        });
                 });
             }
             catch (err) {

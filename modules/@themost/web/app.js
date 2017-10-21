@@ -1,12 +1,3 @@
-/**
- * @license
- * MOST Web Framework 2.0 Codename Blueshift
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- *                     Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Use of this source code is governed by an BSD-3-Clause license that can be
- * found in the LICENSE file at https://themost.io/license
- */
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -16,7 +7,16 @@ exports.HttpApplication = undefined;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * MOST Web Framework 2.0 Codename Blueshift
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *                     Anthi Oikonomou anthioikonomou@gmail.com
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Use of this source code is governed by an BSD-3-Clause license that can be
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * found in the LICENSE file at https://themost.io/license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
 
 require('source-map-support/register');
 
@@ -26,21 +26,16 @@ var url = _interopRequireDefault(_url).default;
 
 var _lodash = require('lodash');
 
-var _ = _lodash._;
+var _ = _interopRequireDefault(_lodash).default;
 
 var _async = require('async');
 
 var async = _interopRequireDefault(_async).default;
 
-var _crypto = require('crypto');
-
-var crypto = _interopRequireDefault(_crypto).default;
-
 var _utils = require('@themost/common/utils');
 
 var Args = _utils.Args;
 var TraceUtils = _utils.TraceUtils;
-var RandomUtils = _utils.RandomUtils;
 
 var _errors = require('@themost/common/errors');
 
@@ -114,14 +109,6 @@ var _http = require('http');
 
 var http = _interopRequireDefault(_http).default;
 
-var _https = require('https');
-
-var https = _interopRequireDefault(_https).default;
-
-var _interfaces = require('./interfaces');
-
-var HttpApplicationService = _interfaces.HttpApplicationService;
-
 var _view = require('./consumers/view');
 
 var ViewConsumer = _view.ViewConsumer;
@@ -137,13 +124,24 @@ var QuerystringConsumer = _querystring.QuerystringConsumer;
 
 var _config2 = require('@themost/common/config');
 
-var ConfigurationBase = _config2.ConfigurationBase;
 var ModuleLoaderStrategy = _config2.ModuleLoaderStrategy;
 var ActiveModuleLoaderStrategy = _config2.ActiveModuleLoaderStrategy;
 
 var _config3 = require('./config');
 
 var HttpConfiguration = _config3.HttpConfiguration;
+
+var _post = require('./consumers/post');
+
+var PostContentConsumer = _post.PostContentConsumer;
+
+var _multipart = require('./consumers/multipart');
+
+var MultipartContentConsumer = _multipart.MultipartContentConsumer;
+
+var _json = require('./consumers/json');
+
+var JsonContentConsumer = _json.JsonContentConsumer;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -153,10 +151,11 @@ var HTTP_SERVER_DEFAULT_BIND = '127.0.0.1';
 var HTTP_SERVER_DEFAULT_PORT = 3000;
 
 /**
+ * @this HttpApplication
  * Starts current application
  * @private
  * @static
- * @param {ApplicationOptions|*} options
+ * @param {*} options
  */
 function startInternal(options) {
     /**
@@ -180,14 +179,14 @@ function startInternal(options) {
         var server_ = http.createServer(function (request, response) {
             var context = self.createContext(request, response);
             //begin request processing
-            return Q.nfbind(processRequestInternal).bind(self)(context).then(function () {
+            return Q.nbind(processRequestInternal, self)(context).then(function () {
                 context.finalize(function () {
                     if (context.response) {
                         context.response.end();
                     }
                 });
             }).catch(function (err) {
-                return Q.nfbind(processErrorInternal).bind(self)(context, err).then(function (res) {
+                return Q.nbind(processErrorInternal, self)(context, err).then(function () {
                     context.finalize(function () {
                         if (context.response) {
                             context.response.end();
@@ -233,6 +232,7 @@ function startInternal(options) {
 }
 
 /**
+ * @this HttpApplication
  * Processes an HTTP request under current application
  * @private
  * @static
@@ -257,7 +257,7 @@ function processRequestInternal(context, callback) {
      */
     function (consumer, cb) {
         try {
-            consumer.callable.apply(context).then(function (result) {
+            consumer.run(context).then(function (result) {
                 //if result is an instance of HttpNextResult
                 if (result instanceof HttpNextResult) {
                     //continue series execution (call series callback with no error)
@@ -282,7 +282,7 @@ function processRequestInternal(context, callback) {
                 if (!_.isFunction(otherWiseConsumer.callable)) {
                     return callback(new ReferenceError('HTTP consumer callable must be a function.'));
                 }
-                return otherWiseConsumer.callable.apply(context).then(function (result) {
+                return otherWiseConsumer.run(context).then(function (result) {
                     if (result instanceof HttpNextResult) {
                         return callback(new HttpNotFoundError());
                     }
@@ -349,14 +349,9 @@ function processRequestInternal(context, callback) {
  */
 function processErrorInternal(context, error, callback) {
     /**
-     * @type {HttpApplication|*}
-     */
-    var self = this,
-
-    /**
      * @type {Array}
      */
-    errorConsumers = context.getApplication()[errorConsumersProperty];
+    var errorConsumers = context.getApplication()[errorConsumersProperty];
     if (errorConsumers.length === 0) {
         return callback(error);
     }
@@ -451,6 +446,8 @@ var HttpApplication = exports.HttpApplication = function () {
         }
         //change module loader strategy
         this[configProperty] = config;
+        //load default consumers
+        this.useQuerystring();
     }
     /**
      * @param {string=} executionPath
@@ -516,7 +513,12 @@ var HttpApplication = exports.HttpApplication = function () {
     }, {
         key: 'getMimeType',
         value: function getMimeType(extension) {
-            return _.find(this.getConfiguration().getSourceAt('mimes'), function (x) {
+            return _.find(this.getConfiguration().getSourceAt('mimes'),
+            /**
+             * @param {{extension:string}} x
+             * @returns {boolean}
+             */
+            function (x) {
                 return x.extension === extension || x.extension === '.' + extension;
             });
         }
@@ -784,6 +786,39 @@ var HttpApplication = exports.HttpApplication = function () {
         }
 
         /**
+         * Enables HTTP application/x-www-form-urlencoded request processing
+         * @returns {HttpApplication}
+         */
+
+    }, {
+        key: 'usePostContent',
+        value: function usePostContent() {
+            return this.any(new PostContentConsumer());
+        }
+
+        /**
+         * Enables HTTP multipart/form-data request processing
+         * @returns {HttpApplication}
+         */
+
+    }, {
+        key: 'useMultipartContent',
+        value: function useMultipartContent() {
+            return this.any(new MultipartContentConsumer());
+        }
+
+        /**
+         * Enables HTTP application/json request processing
+         * @returns {HttpApplication}
+         */
+
+    }, {
+        key: 'useJsonContent',
+        value: function useJsonContent() {
+            return this.any(new JsonContentConsumer());
+        }
+
+        /**
          * Enables static content requests
          * @param {string=} whenDir
          * @param {string=} rootDir
@@ -884,12 +919,12 @@ var HttpApplication = exports.HttpApplication = function () {
             var self = this;
             return Q.nfcall(function (callback) {
                 //create context
-                var request = createRequestInternal.call(self),
-                    response = createResponseInternal.call(self, request);
+                var request = createRequestInternal.bind(self)(),
+                    response = createResponseInternal.bind(self)(request);
                 var context = self.createContext(request, response);
                 //get unattended execution account
-                if (this.hasService(AuthStrategy)) {
-                    var account = this.getService(AuthStrategy).getUnattendedExecutionAccount();
+                if (self.hasService(AuthStrategy)) {
+                    var account = self.getService(AuthStrategy).getUnattendedExecutionAccount();
                     if (_.isEmpty(account)) {
                         context.user = { name: account, authenticationType: 'Basic' };
                     }
@@ -946,7 +981,7 @@ var HttpApplication = exports.HttpApplication = function () {
         /**
          * Executes an external or internal HTTP request
          * @param {*|string} options
-         * @returns {Promise}
+         * @returns {Promise|*}
          */
 
     }, {
@@ -955,7 +990,7 @@ var HttpApplication = exports.HttpApplication = function () {
             var _this = this;
 
             var self = this;
-            return Q.nfbind(function (callback) {
+            return Q.nbind(function (callback) {
                 var requestOptions = {};
                 if (typeof options === 'string') {
                     _.assign(requestOptions, { url: options });
@@ -975,8 +1010,8 @@ var HttpApplication = exports.HttpApplication = function () {
                     });
                 } else {
                     //create request and response
-                    var request = createRequestInternal.call(_this, requestOptions),
-                        response = createResponseInternal.call(_this, request);
+                    var request = createRequestInternal.bind(_this)(requestOptions),
+                        response = createResponseInternal.bind(_this)(request);
                     //set content length header to -1 (for backward compatibility issues)
                     response.setHeader('Content-Length', -1);
                     //create context
@@ -1026,7 +1061,7 @@ var HttpApplication = exports.HttpApplication = function () {
                         }
                     });
                 }
-            }).bind(this)();
+            }, this)();
         }
 
         /**

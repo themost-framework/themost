@@ -7,7 +7,6 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
 import {_} from 'lodash';
 import path from 'path';
@@ -54,7 +53,7 @@ export class LocalizationStrategy extends HttpApplicationService {
     hasCulture(culture) {
         Args.notString(culture,'Culture');
         return typeof _.find(this.getCultures(), function(x) {
-            return x==culture;
+            return x===culture;
         }) === 'string';
     }
 
@@ -63,6 +62,7 @@ export class LocalizationStrategy extends HttpApplicationService {
      * @param {string} locale - The target locale
      * @param {string} str - The string or key which is going to be localized
      * @param {string=} library - The library which contains the given text
+     * @abstract
      */
     getLocaleString(locale, str, library) {
         throw new AbstractMethodError();

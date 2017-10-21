@@ -7,12 +7,12 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
 import {ParserUtils} from './types';
 import sprintf from 'sprintf';
+// eslint-disable-next-line no-unused-vars
 import moment from 'moment';
-import {_} from 'lodash';
+import _ from 'lodash';
 import Q from 'q';
 import {TraceUtils} from "@themost/common/utils";
 
@@ -32,11 +32,11 @@ export class FunctionContext {
          * @type {DataContext}
         */
         this.context = context;
-         /**
+        /**
           * @type {DataModel}
           */
         this.model = model;
-        if ((_.isNil(context)) && (typeof model !=='undefined') && (typeof model != null)) {
+        if (_.isNil(context) && _.isObject(model)) {
             //get current context from DataModel.context property
             this.context = model.context;
         }
@@ -61,7 +61,7 @@ export class FunctionContext {
         if (match) {
             let expr2eval;
             //check parameters (match[3])
-            if (match[3].length==0) {
+            if (match[3].length===0) {
                 expr2eval = expr1.replace(/(fn:)\s?(.*?)\s?\((.*?)\)/, "(function() { return this.$2(); });");
             }
             else {
@@ -71,7 +71,7 @@ export class FunctionContext {
             try {
                 const f = eval(expr2eval);
                 const value1 = f.call(this);
-                if (typeof value1 !== 'undefined' && value1 !=null && typeof value1.then === 'function') {
+                if (typeof value1 !== 'undefined' && value1 !== null && typeof value1.then === 'function') {
                     value1.then(function(result) {
                         return callback(null, result);
                     }).catch(function(err) {
@@ -87,7 +87,7 @@ export class FunctionContext {
             }
         }
         else {
-            console.log(sprintf.sprintf('Cannot evaluate %s.', expr1));
+            TraceUtils.log(sprintf.sprintf('Cannot evaluate %s.', expr1));
             callback(new Error('Cannot evaluate expression.'));
         }
     }
@@ -183,7 +183,7 @@ export class FunctionContext {
                 const times = Math.ceil(length / 10);
                 let res = '';
                 _.times(times, function() {
-                     res += _.random(1000000000, 9000000000)
+                    res += _.random(1000000000, 9000000000)
                 });
                 return deferred.resolve(res.substr(0,length));
             }
@@ -315,7 +315,7 @@ function newGuidInternal() {
     for (i = 0; i < 36; i++) {
         if (!uuid[i]) {
             r = 0 | Math.random()*16;
-            uuid[i] = chars[(i == 19) ? (r & 0x3) | 0x8 : r];
+            uuid[i] = chars[(i === 19) ? (r & 0x3) | 0x8 : r];
         }
     }
     return uuid.join('');

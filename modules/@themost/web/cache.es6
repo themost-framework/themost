@@ -7,14 +7,13 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
 import {_} from 'lodash';
 import Q from 'q';
 import NodeCache from 'node-cache';
 import {HttpApplicationService} from './interfaces';
 import {AbstractClassError,AbstractMethodError} from '@themost/common/errors';
-import {Args,TraceUtils,LangUtils} from '@themost/common/utils';
+import {Args,LangUtils} from '@themost/common/utils';
 
 /**
  * @classdesc Represents cache strategy for an HTTP application
@@ -38,6 +37,7 @@ export class CacheStrategy extends HttpApplicationService {
      * @param {number=} absoluteExpiration - An absolute expiration time in seconds. This parameter is optional.
      * @returns {Promise}
      */
+// eslint-disable-next-line no-unused-vars
     add(key, value, absoluteExpiration) {
         throw new AbstractMethodError();
     }
@@ -48,6 +48,7 @@ export class CacheStrategy extends HttpApplicationService {
      * @param {string} key - A string that represents the key of the cached value to be removed
      * @returns {Promise}
      */
+// eslint-disable-next-line no-unused-vars
     remove(key) {
         throw new AbstractMethodError();
     }
@@ -64,6 +65,7 @@ export class CacheStrategy extends HttpApplicationService {
      * @param {string} key
      * @returns {Promise}
      */
+// eslint-disable-next-line no-unused-vars
     get(key) {
         throw new AbstractMethodError();
     }
@@ -74,6 +76,7 @@ export class CacheStrategy extends HttpApplicationService {
      * @param {number=} absoluteExpiration - An absolute expiration time in seconds. This parameter is optional.
      * @returns {Promise}
      */
+// eslint-disable-next-line no-unused-vars
     getOrDefault(key, fn, absoluteExpiration) {
         throw new AbstractMethodError();
     }
@@ -152,16 +155,16 @@ export class DefaultCacheStrategy extends CacheStrategy  {
         const self = this;
         Args.check(_.isFunction(fn),'Invalid argument. Expected function.');
         return self.get(key).then((res) => {
-           if (_.isNil(res)) {
-               let source = fn();
-               Args.check(typeof source.then !== 'function', 'Invalid argument. Expected a valid observable.');
-               return source.then((res) => {
-                   if (_.isNil(res)) {
-                       return Q();
-                   }
-                   return self.add(key,res,absoluteExpiration);
-               });
-           }
+            if (_.isNil(res)) {
+                let source = fn();
+                Args.check(typeof source.then !== 'function', 'Invalid argument. Expected a valid observable.');
+                return source.then((res) => {
+                    if (_.isNil(res)) {
+                        return Q();
+                    }
+                    return self.add(key,res,absoluteExpiration);
+                });
+            }
             return Q(res);
         });
     }

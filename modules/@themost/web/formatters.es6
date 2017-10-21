@@ -6,7 +6,6 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
 import {HttpApplicationService} from "./interfaces";
 import {AbstractClassError, AbstractMethodError} from "@themost/common/errors";
@@ -53,7 +52,7 @@ export class FormatterStrategy extends HttpApplicationService {
     get(formatterCtor) {
         Args.check(typeof formatterCtor === 'function', 'Formatter constructor mub be a function');
         return _.find(this[formattersProperty], function(x) {
-           return x instanceof formatterCtor;
+            return x instanceof formatterCtor;
         });
     }
 
@@ -81,11 +80,10 @@ export class DefaultFormatterStrategy extends FormatterStrategy {
     /**
      * Finds a formatter for the given HTTP context
      * @param context
-     * @returns {OutputFormatter}
+     * @returns {OutputFormatter|*}
      */
     find(context) {
-        const formatters = this[formattersProperty];
-        const mimeType = context.getApplication().getMimeType(path.extname(url.parse(context.request.url).pathname));
+        const mimeType = context.getApplication().getMimeType(context.getFormat());
         if (typeof mimeType === 'undefined') {
             //get available formatters (as array of types)
             const types = _.map(this[formattersProperty], (x) => {

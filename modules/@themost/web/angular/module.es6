@@ -7,10 +7,9 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
 import domino from 'domino';
-import {_} from 'lodash';
+import _ from 'lodash';
 import {HttpApplicationService} from "../interfaces";
 import {AngularServerModuleDefaults} from './directives';
 import {HttpError} from "@themost/common/errors";
@@ -256,7 +255,7 @@ function HttpInternalProvider($context, $async, $q) {
             method: 'get',
             cookie: $context.request.headers.cookie
         };
-        angular.extend(config, requestConfig);
+        _.assign(config, requestConfig);
         const deferred = $q.defer(), promise = deferred.promise;
 
         $async(function(resolve, reject) {
@@ -292,7 +291,7 @@ function HttpInternalProvider($context, $async, $q) {
 
     ['get', 'delete', 'head', 'jsonp'].forEach(function(name) {
         $http[name] = function(url, config) {
-            return $http(angular.extend(config || {}, {
+            return $http(_.assign(config || {}, {
                 method: name,
                 url: url
             }));
@@ -301,7 +300,7 @@ function HttpInternalProvider($context, $async, $q) {
 
     ['post', 'put'].forEach(function(name) {
         $http[name] = function(url, data, config) {
-            return $http(angular.extend(config || {}, {
+            return $http(_.assign(config || {}, {
                 method: name,
                 url: url,
                 data: data
@@ -314,10 +313,21 @@ function HttpInternalProvider($context, $async, $q) {
 
 /**
  * @class
+ * @property {HttpContext} context
+ * @property {HttpResult|*} target
+ */
+export class PostExecuteResultArgs {
+    constructor() {
+        //
+    }
+}
+
+/**
+ * @class
  */
 export class DirectiveHandler {
     /**
-     * @param {{context: HttpContext, target: HttpResult}} args
+     * @param {PostExecuteResultArgs} args
      * @param callback
      */
     postExecuteResult(args, callback) {
@@ -353,9 +363,6 @@ export class DirectiveHandler {
             const angular = document.parentWindow.angular;
 
             const app = angularServer[bootstrapMethod](angular);
-
-
-
             /**
              * @type {Array}
              */
@@ -395,19 +402,20 @@ export class DirectiveHandler {
             });
             app.service('$http', HttpInternalProvider);
             //copy application directives
-            Object.keys(angularServer.directives).forEach(function(name) {
+
+            _.forEach(_.keys(angularServer.directives), function(name) {
                 app.directive(name, angularServer.directives[name]);
             });
             //copy application services
-            Object.keys(angularServer.services).forEach(function(name) {
+            _.forEach(_.keys(angularServer.services), function(name) {
                 app.service(name, angularServer.services[name]);
             });
             //copy application filters
-            Object.keys(angularServer.filters).forEach(function(name) {
+            _.forEach(_.keys(angularServer.filters), function(name) {
                 app.filter(name, angularServer.filters[name]);
             });
             //copy application controllers
-            Object.keys(angularServer.controllers).forEach(function(name) {
+            _.forEach(_.keys(angularServer.controllers), function(name) {
                 app.controller(name, angularServer.controllers[name]);
             });
             //get application element
@@ -415,6 +423,13 @@ export class DirectiveHandler {
             if (appElement) {
                 //get $q
                 const $q = angular.injector(['ng']).get('$q');
+                //set $rootScope
+                app.run(function($rootScope) {
+                    if (_.isObject(view.data)) {
+                        _.assign($rootScope, view.data);
+                    }
+                });
+
                 //initialize app element
                 angular.bootstrap(appElement, ['server']);
                 //wait for promises

@@ -7,12 +7,10 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
 import _ from 'lodash';
 import {TraceUtils,PathUtils} from "@themost/common/utils";
 import {Args} from "@themost/common/utils";
-import {AbstractClassError, AbstractMethodError} from "@themost/common/errors";
 import {ConfigurationStrategy, ConfigurationBase} from "@themost/common/config";
 import {RandomUtils} from "@themost/common/utils";
 
@@ -27,6 +25,12 @@ function _dasherize(s) {
         return _.trim(s).replace(/[_\s]+/g, '-').replace(/([A-Z])/g, '-$1').replace(/-+/g, '-').replace(/^-/,'').toLowerCase();
     return s;
 }
+
+/**
+ * @method dasherize
+ * @memberOf _
+ */
+
 if (typeof _.dasherize !== 'function') {
     _.mixin({'dasherize' : _dasherize});
 }
@@ -59,7 +63,7 @@ const adapterTypesProperty =  Symbol('adapterTypes');
 /**
  * @classdesc Holds the configuration of data modeling infrastructure
  * @class
- * @property {DataConfigurationAuth} auth
+ * @property {AuthSettings} auth
  * @extends ConfigurationStrategy
  *
  */
@@ -140,7 +144,7 @@ export class DataConfigurationStrategy extends ConfigurationStrategy {
     }
 
     /**
-     * @returns {AuthSettings}
+     * @returns {AuthSettings|*}
      */
     getAuthSettings() {
         return this.getConfiguration().getSourceAt('settings/auth');
@@ -202,16 +206,16 @@ export class DataConfigurationStrategy extends ConfigurationStrategy {
          */
         const schemaLoader = this.getConfiguration().getStrategy(SchemaLoaderStrategy);
         return schemaLoader.getModelDefinition(name);
-    };
+    }
 
     /**
      * Sets a data model definition in application storage.
      * Use this method in order to override default model loading process.
      * @param {*} data - A generic object which represents a model definition
-     * @returns {DataConfiguration}
+     * @returns {DataConfigurationStrategy}
      * @example
-     var most = require("most-data");
-     most.cfg.getCurrent().setModelDefinition({
+     import {DataConfigurationStrategy} from '@themost/data/config';
+     DataConfigurationStrategy.getCurrent().setModelDefinition({
             "name":"UserColor",
             "version":"1.1",
             "title":"User Colors",
@@ -236,7 +240,7 @@ export class DataConfigurationStrategy extends ConfigurationStrategy {
         const schemaLoader = this.getConfiguration().getStrategy(SchemaLoaderStrategy);
         schemaLoader.setModelDefinition(data);
         return this;
-    };
+    }
 
     /**
      * @returns {*}
@@ -259,13 +263,27 @@ export class DataConfigurationStrategy extends ConfigurationStrategy {
 
 }
 
+/**
+ * @classdesc Represents the default data configuration strategy
+ * @class
+ * @extends DataConfigurationStrategy
+ */
+export class DefaultDataConfigurationStrategy extends DataConfigurationStrategy {
+    /**
+     * @constructor
+     * @param {ConfigurationBase} config
+     */
+    constructor(config) {
+        super(config);
+    }
+}
 
 const modelsProperty = Symbol('models');
 
 export class SchemaLoaderStrategy extends ConfigurationStrategy {
     /**
      *
-     * @param {DataConfiguration} config
+     * @param {ConfigurationBase} config
      */
     constructor(config) {
         super(config);
@@ -332,6 +350,10 @@ export class SchemaLoaderStrategy extends ConfigurationStrategy {
 const filesProperty = Symbol('files');
 const modelPathProperty = Symbol('modelPath');
 
+/**
+ * @class
+ * @extends SchemaLoaderStrategy
+ */
 export class DefaultSchemaLoaderStrategy extends SchemaLoaderStrategy {
     /**
      *
@@ -366,8 +388,7 @@ export class DefaultSchemaLoaderStrategy extends SchemaLoaderStrategy {
      * @returns {*}
      */
     getModelDefinition(name) {
-        const self = this,
-            getModelDefinitionSuper = super.getModelDefinition;
+        const getModelDefinitionSuper = super.getModelDefinition;
         let i;
         if (typeof name !== 'string')
             return;
@@ -415,7 +436,7 @@ export class DefaultSchemaLoaderStrategy extends SchemaLoaderStrategy {
                 //build model file path
                 const finalPath = PathUtils.join(modelPath, files[i]);
                 //get model
-                const result = require(finalPath), finalName = result.name;
+                const result = require(finalPath);
                 //set definition
                 this.setModelDefinition(result);
                 //and finally return this definition
@@ -425,20 +446,30 @@ export class DefaultSchemaLoaderStrategy extends SchemaLoaderStrategy {
     }
 }
 
+/**
+ * @classdesc Represents a model class loader strategy
+ * @class
+ * @extends ConfigurationBase
+ */
 export class ModelClassLoaderStrategy extends ConfigurationStrategy {
     /**
      *
-     * @param {DataConfiguration} config
+     * @param {ConfigurationBase} config
      */
     constructor(config) {
         super(config);
     }
 }
 
+/**
+ * @classdesc Represents the default model class loader strategy.
+ * @class
+ * @extends ConfigurationBase
+ */
 export class DefaultModelClassLoaderStrategy extends ConfigurationStrategy {
     /**
      *
-     * @param {DataConfiguration} config
+     * @param {ConfigurationBase} config
      */
     constructor(config) {
         super(config);

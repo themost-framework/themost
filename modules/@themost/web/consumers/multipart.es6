@@ -7,13 +7,13 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
 import formidable from 'formidable';
-import {_} from 'lodash';
+import _ from 'lodash';
 import {LangUtils} from '@themost/common/utils';
 import {HttpConsumer} from '../consumers';
 import {HttpNextResult} from '../results';
+import Q from 'q';
 
 if (process.version>="v6.0.0") {
     const multipart_parser = require('formidable/lib/multipart_parser'), MultipartParser = multipart_parser.MultipartParser;
@@ -76,11 +76,7 @@ class MultipartHandler {
  */
 export class MultipartContentConsumer extends HttpConsumer {
     constructor() {
-        super(function() {
-            /**
-             * @type {HttpContext}
-             */
-            const context = this;
+        super(function(context) {
             try {
                 const handler = new MultipartHandler();
                 return Q.nfbind(handler.beginRequest)(context)

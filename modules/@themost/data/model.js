@@ -1,12 +1,3 @@
-/**
- * @license
- * MOST Web Framework 2.0 Codename Blueshift
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- *                     Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Use of this source code is governed by an BSD-3-Clause license that can be
- * found in the LICENSE file at https://themost.io/license
- */
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -22,7 +13,7 @@ require('source-map-support/register');
 
 var _lodash = require('lodash');
 
-var _ = _lodash._;
+var _ = _interopRequireDefault(_lodash).default;
 
 var _q2 = require('q');
 
@@ -113,9 +104,19 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } } /**
+                                                                                                                                                           * @license
+                                                                                                                                                           * MOST Web Framework 2.0 Codename Blueshift
+                                                                                                                                                           * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
+                                                                                                                                                           *                     Anthi Oikonomou anthioikonomou@gmail.com
+                                                                                                                                                           *
+                                                                                                                                                           * Use of this source code is governed by an BSD-3-Clause license that can be
+                                                                                                                                                           * found in the LICENSE file at https://themost.io/license
+                                                                                                                                                           */
+
 
 /**
+ * @this DataModel
  * @memberOf DataModel
  * @param {DataField} field
  * @private
@@ -681,10 +682,10 @@ var DataModel = exports.DataModel = function (_SequentialEventEmitt) {
                         return;
                     }
                 }
-                if (typeof self.resolveMember === 'function') self.resolveMember.call(self, member, cb);else DataFilterResolver.prototype.resolveMember.call(self, member, cb);
+                if (typeof self.resolveMember === 'function') self.resolveMember.call(self, member, cb);else DataFilterResolver.prototype.resolveMember.bind(self)(member, cb);
             };
             parser.resolveMethod = function (name, args, cb) {
-                if (typeof self.resolveMethod === 'function') self.resolveMethod.call(self, name, args, cb);else DataFilterResolver.prototype.resolveMethod.call(self, name, args, cb);
+                if (typeof self.resolveMethod === 'function') self.resolveMethod.bind(self)(name, args, cb);else DataFilterResolver.prototype.resolveMethod.bind(self)(name, args, cb);
             };
             var filter = void 0;
 
@@ -757,8 +758,8 @@ var DataModel = exports.DataModel = function (_SequentialEventEmitt) {
                             }
                             if (expand) {
 
-                                var resolver = require("./expand-resolver");
-                                var matches = resolver.testExpandExpression(expand);
+                                var DataExpandResolver = require("./expand-resolver").DataExpandResolver;
+                                var matches = DataExpandResolver.testExpandExpression(expand);
                                 if (matches && matches.length > 0) {
                                     _q.expand.apply(_q, matches);
                                 }
@@ -1274,7 +1275,7 @@ var DataModel = exports.DataModel = function (_SequentialEventEmitt) {
         value: function save(obj, callback) {
             if (typeof callback !== 'function') {
                 var d = Q.defer();
-                save_.call(this, obj, function (err, result) {
+                save_.bind(this)(obj, function (err, result) {
                     if (err) {
                         return d.reject(err);
                     }
@@ -1282,7 +1283,7 @@ var DataModel = exports.DataModel = function (_SequentialEventEmitt) {
                 });
                 return d.promise;
             } else {
-                return save_.call(this, obj, callback);
+                return save_.bind(this)(obj, callback);
             }
         }
 
@@ -1344,7 +1345,7 @@ var DataModel = exports.DataModel = function (_SequentialEventEmitt) {
         value: function update(obj, callback) {
             if (typeof callback !== 'function') {
                 var d = Q.defer();
-                update_.call(this, obj, function (err, result) {
+                update_.bind(this)(obj, function (err, result) {
                     if (err) {
                         return d.reject(err);
                     }
@@ -1352,7 +1353,7 @@ var DataModel = exports.DataModel = function (_SequentialEventEmitt) {
                 });
                 return d.promise;
             } else {
-                return update_.call(this, obj, callback);
+                return update_.bind(this)(obj, callback);
             }
         }
 
@@ -1368,7 +1369,7 @@ var DataModel = exports.DataModel = function (_SequentialEventEmitt) {
         value: function insert(obj, callback) {
             if (typeof callback !== 'function') {
                 var d = Q.defer();
-                insert_.call(this, obj, function (err, result) {
+                insert_.bind(this)(obj, function (err, result) {
                     if (err) {
                         return d.reject(err);
                     }
@@ -1376,7 +1377,7 @@ var DataModel = exports.DataModel = function (_SequentialEventEmitt) {
                 });
                 return d.promise;
             } else {
-                return insert_.call(this, obj, callback);
+                return insert_.bind(this)(obj, callback);
             }
         }
 
@@ -1400,7 +1401,7 @@ var DataModel = exports.DataModel = function (_SequentialEventEmitt) {
         value: function remove(obj, callback) {
             if (typeof callback !== 'function') {
                 var d = Q.defer();
-                remove_.call(this, obj, function (err, result) {
+                remove_.bind(this)(obj, function (err, result) {
                     if (err) {
                         return d.reject(err);
                     }
@@ -1455,7 +1456,7 @@ var DataModel = exports.DataModel = function (_SequentialEventEmitt) {
             var conf = self.context.getConfiguration();
             conf.cache = conf.cache || {};
             conf.cache[self.name] = conf.cache[self.name] || {};
-            if (conf.cache[self.name].version == self.version) {
+            if (conf.cache[self.name].version === self.version) {
                 //model has already been migrated, so do nothing
                 return callback();
             }
@@ -1641,7 +1642,7 @@ var DataModel = exports.DataModel = function (_SequentialEventEmitt) {
         key: 'getDataView',
         value: function getDataView(name) {
             var self = this;
-            var re = new RegExp('^' + name.replace('$', '\$') + '$', 'ig');
+            var re = new RegExp('^' + name.replace('$', '\\$') + '$', 'ig');
             var view = _.find(self.views, function (x) {
                 return re.test(x.name);
             });
@@ -1755,7 +1756,7 @@ var DataModel = exports.DataModel = function (_SequentialEventEmitt) {
                 if (typeof associatedModel === 'undefined' || associatedModel === null) {
                     if (typeof field.many === 'boolean' && field.many) {
                         //validate primitive type mapping
-                        var tagMapping = inferTagMapping_.call(self, field);
+                        var tagMapping = inferTagMapping_.bind(self)(field);
                         if (tagMapping) {
                             //apply data association mapping to definition
                             var definitionField = conf.fields.find(function (x) {
@@ -1853,7 +1854,7 @@ var DataModel = exports.DataModel = function (_SequentialEventEmitt) {
         value: function validateForUpdate(obj, callback) {
             if (typeof callback !== 'function') {
                 var d = Q.defer();
-                validate_.call(this, obj, 2, function (err, result) {
+                validate_.bind(this)(obj, 2, function (err, result) {
                     if (err) {
                         return d.reject(err);
                     }
@@ -1879,7 +1880,7 @@ var DataModel = exports.DataModel = function (_SequentialEventEmitt) {
         value: function validateForInsert(obj, callback) {
             if (typeof callback !== 'function') {
                 var d = Q.defer();
-                validate_.call(this, obj, 1, function (err, result) {
+                validate_.bind(this)(obj, 1, function (err, result) {
                     if (err) {
                         return d.reject(err);
                     }
@@ -1887,7 +1888,7 @@ var DataModel = exports.DataModel = function (_SequentialEventEmitt) {
                 });
                 return d.promise;
             } else {
-                return validate_.call(this, obj, callback);
+                return validate_.bind(this)(obj, callback);
             }
         }
 
@@ -2046,6 +2047,7 @@ var DataModel = exports.DataModel = function (_SequentialEventEmitt) {
 }(SequentialEventEmitter);
 
 /**
+ * @this DataModel
  * @memberOf DataModel
  * @private
  */
@@ -2088,9 +2090,9 @@ function registerListeners_() {
     self.on('after.upgrade', DataModelSeedListener.prototype.afterUpgrade);
 
     /**
-     * change:8-Jun 2015
-     * description: Set lookup default listeners as obsolete.
-     */
+    * change:8-Jun 2015
+    * description: Set lookup default listeners as obsolete.
+    */
     ////register lookup model listeners
     //if (this.type === 'lookup') {
     //    //after save (clear lookup caching)
@@ -2105,9 +2107,9 @@ function registerListeners_() {
             //get listener type (e.g. type: require('./custom-listener.js'))
             if (listener.type && !listener.disabled) {
                 /**
-                 * Load event listener from the defined type
-                 * @type DataEventListener
-                 */
+                * Load event listener from the defined type
+                * @type DataEventListener
+                */
                 var m = self.context.getApplication().getConfiguration().getStrategy(ModuleLoaderStrategy).require(listener.type);
                 //if listener exports beforeSave function then register this as before.save event listener
                 if (typeof m.beforeSave === 'function') self.on('before.save', m.beforeSave);
@@ -2136,6 +2138,7 @@ function registerListeners_() {
 
 /**
  * @memberOf DataModel
+ * @this DataModel
  * @private
  * @param {*} obj
  */
@@ -2164,7 +2167,7 @@ function convertInternal_(obj) {
                         if (associatedModel) {
                             if ((typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object') {
                                 //set associated key value (e.g. primary key value)
-                                convertInternal_.call(associatedModel, value);
+                                convertInternal_.bind(associatedModel)(value);
                             } else {
                                 var field = associatedModel.field(mapping.parentField);
                                 if (field) {
@@ -2182,6 +2185,7 @@ function convertInternal_(obj) {
 }
 
 /**
+ * @this DataModel
  * @param {*} obj
  * @param {number=} state
  * @returns {*}
@@ -2229,6 +2233,7 @@ function cast_(obj, state) {
 }
 
 /**
+ * @this DataModel
  * @param {*} obj
  * @param {number=} state
  * @returns {*}
@@ -2276,16 +2281,15 @@ function castForValidation_(obj, state) {
 }
 
 /**
- *
+ * @this DataModel
  * @param {*|Array} obj
  * @param {Function} callback
  * @private
  */
 function save_(obj, callback) {
     var self = this;
-    if (typeof obj == 'undefined' || obj === null) {
-        callback.call(self, null);
-        return;
+    if (_.isNil(obj)) {
+        return callback();
     }
     //ensure migration
     self.migrate(function (err) {
@@ -2303,29 +2307,28 @@ function save_(obj, callback) {
         var res = [];
         db.executeInTransaction(function (cb) {
             async.eachSeries(arr, function (item, saveCallback) {
-                saveSingleObject_.call(self, item, function (err, result) {
+                saveSingleObject_.bind(self)(item, function (err, result) {
                     if (err) {
-                        saveCallback.call(self, err);
-                        return;
+                        return saveCallback(err);
                     }
                     res.push(result.insertedId);
-                    saveCallback.call(self, null);
+                    return saveCallback();
                 });
             }, function (err) {
                 if (err) {
                     res = null;
-                    cb(err);
-                    return;
+                    return cb(err);
                 }
-                cb(null);
+                return cb();
             });
         }, function (err) {
-            callback.call(self, err, res);
+            return callback(err, res);
         });
     });
 }
 
 /**
+ * @this DataModel
  * @param {*} obj
  * @param {Function} callback
  * @private
@@ -2337,22 +2340,22 @@ function saveBaseObject_(obj, callback) {
         base = self.base();
     //if obj is an array of objects throw exception (invoke callback with error)
     if (_.isArray(obj)) {
-        callback.call(self, new Error('Invalid argument. Base object cannot be an array.'));
-        return 0;
+        return callback(new Error('Invalid argument. Base object cannot be an array.'));
     }
     //if current model does not have a base model
-    if (base == null) {
+    if (_.isNil(base)) {
         //exit operation
-        callback.call(self, null);
+        return callback();
     } else {
         base.silent();
         //perform operation
-        saveSingleObject_.call(base, obj, function (err, result) {
-            callback.call(self, err, result);
+        saveSingleObject_.bind(base)(obj, function (err, result) {
+            return callback(err, result);
         });
     }
 }
 /**
+ * @this DataModel
  * @param {*} obj
  * @param {Function} callback
  * @private
@@ -2360,19 +2363,17 @@ function saveBaseObject_(obj, callback) {
 function saveSingleObject_(obj, callback) {
     var self = this;
     callback = callback || function () {};
-    if (obj == null) {
-        callback.call(self);
-        return;
+    if (_.isNil(obj)) {
+        return callback();
     }
     if (_.isArray(obj)) {
-        callback.call(self, new Error('Invalid argument. Source object cannot be an array.'));
-        return 0;
+        return callback(new Error('Invalid argument. Source object cannot be an array.'));
     }
     if (obj.$state === 4) {
         return removeSingleObject_.call(self, obj, callback);
     }
     //get object state before any other operation
-    var state = obj.$state ? obj.$state : obj[self.primaryKey] != null ? 2 : 1;
+    var state = obj.$state ? obj.$state : obj[self.primaryKey] !== null ? 2 : 1;
     var e = {
         model: self,
         target: obj,
@@ -2392,18 +2393,17 @@ function saveSingleObject_(obj, callback) {
     self.once('before.save', NotNullConstraintListener.prototype.beforeSave);
     //execute before update events
     self.emit('before.save', e, function (err) {
-        //if an error occured
+        //if an error occurred
         if (err) {
             //invoke callback with error
-            callback.call(self, err);
+            return callback(err);
         }
         //otherwise execute save operation
         else {
                 //save base object if any
-                saveBaseObject_.call(self, e.target, function (err, result) {
+                saveBaseObject_.bind(self)(e.target, function (err, result) {
                     if (err) {
-                        callback.call(self, err);
-                        return;
+                        return callback(err);
                     }
                     //if result is defined
                     if (result !== undefined)
@@ -2415,7 +2415,7 @@ function saveSingleObject_(obj, callback) {
                     var target = self.cast(e.target, e.state);
                     var q = null;
                     var key = target[self.primaryKey];
-                    if (e.state == 1) {
+                    if (e.state === 1) {
                         //create insert statement
                         q = QueryExpression.create().insert(target).into(self.sourceAdapter);
                     } else {
@@ -2431,7 +2431,7 @@ function saveSingleObject_(obj, callback) {
                         self.recast(e.target, target, function (err) {
                             if (err) {
                                 //and return error
-                                callback.call(self, err);
+                                return callback(err);
                             } else {
                                 //execute after update events
                                 self.emit('after.save', e, function (err) {
@@ -2445,7 +2445,7 @@ function saveSingleObject_(obj, callback) {
                         var nextIdentity = void 0;
                         var adapter = e.model.sourceAdapter;
                         //search if adapter has a nextIdentity function (also primary key must be a counter and state equal to insert)
-                        if (pm.type === 'Counter' && typeof db.nextIdentity === 'function' && e.state == 1) {
+                        if (pm.type === 'Counter' && typeof db.nextIdentity === 'function' && e.state === 1) {
                             nextIdentity = db.nextIdentity;
                         } else {
                             //otherwise use a dummy nextIdentity function
@@ -2453,9 +2453,9 @@ function saveSingleObject_(obj, callback) {
                                 return callback();
                             };
                         }
-                        nextIdentity.call(db, adapter, pm.name, function (err, insertedId) {
+                        nextIdentity.bind(db)(adapter, pm.name, function (err, insertedId) {
                             if (err) {
-                                return callback.call(self, err);
+                                return callback(err);
                             }
                             if (insertedId) {
                                 //get object to insert
@@ -2469,7 +2469,7 @@ function saveSingleObject_(obj, callback) {
                             }
                             db.execute(q, null, function (err, result) {
                                 if (err) {
-                                    callback.call(self, err);
+                                    return callback(err);
                                 } else {
                                     if (key) target[self.primaryKey] = key;
                                     //get updated object
@@ -2477,25 +2477,25 @@ function saveSingleObject_(obj, callback) {
                                         if (err) {
                                             callback.call(self, err);
                                         } else {
-                                            if (pm.type === 'Counter' && typeof db.nextIdentity !== 'function' && e.state == 1) {
+                                            if (pm.type === 'Counter' && typeof db.nextIdentity !== 'function' && e.state === 1) {
                                                 //if data adapter contains lastIdentity function
                                                 var lastIdentity = db.lastIdentity || function (lastCallback) {
                                                     if (_.isNil(result)) lastCallback(null, { insertId: null });
                                                     lastCallback(null, result);
                                                 };
-                                                lastIdentity.call(db, function (err, lastResult) {
+                                                lastIdentity.bind(db)(function (err, lastResult) {
                                                     if (lastResult) if (lastResult.insertId) e.target[self.primaryKey] = lastResult.insertId;
                                                     //raise after save listeners
                                                     self.emit('after.save', e, function (err) {
                                                         //invoke callback
-                                                        callback.call(self, err, e.target);
+                                                        return callback(err, e.target);
                                                     });
                                                 });
                                             } else {
                                                 //raise after save listeners
                                                 self.emit('after.save', e, function (err) {
                                                     //invoke callback
-                                                    callback.call(self, err, e.target);
+                                                    return callback(err, e.target);
                                                 });
                                             }
                                         }
@@ -2510,6 +2510,7 @@ function saveSingleObject_(obj, callback) {
 }
 
 /**
+ * @this DataModel
  * @param {*|Array} obj
  * @param {Function} callback
  * @private
@@ -2518,8 +2519,8 @@ function update_(obj, callback) {
     var self = this;
     //ensure callback
     callback = callback || function () {};
-    if (obj == null || obj === undefined) {
-        callback.call(self, null);
+    if (_.isNil(obj)) {
+        return callback();
     }
     //set state
     if (_.isArray(obj)) {
@@ -2533,6 +2534,7 @@ function update_(obj, callback) {
 }
 
 /**
+ * @this DataModel
  * @param {*|Array} obj
  * @param {Function} callback
  * @private
@@ -2541,8 +2543,8 @@ function insert_(obj, callback) {
     var self = this;
     //ensure callback
     callback = callback || function () {};
-    if (obj == null || obj === undefined) {
-        callback.call(self, null);
+    if (_.isNil(obj)) {
+        return callback();
     }
     //set state
     if (_.isArray(obj)) {
@@ -2556,16 +2558,15 @@ function insert_(obj, callback) {
 }
 
 /**
- *
+ * @this DataModel
  * @param {*|Array} obj
  * @param {Function} callback
  * @private
  */
 function remove_(obj, callback) {
     var self = this;
-    if (obj == null) {
-        callback.call(self, null);
-        return;
+    if (_.isNil(obj)) {
+        return callback();
     }
 
     self.migrate(function (err) {
@@ -2582,27 +2583,26 @@ function remove_(obj, callback) {
         var db = self.context.db;
         db.executeInTransaction(function (cb) {
             async.eachSeries(arr, function (item, removeCallback) {
-                removeSingleObject_.call(self, item, function (err) {
+                removeSingleObject_.bind(self)(item, function (err) {
                     if (err) {
-                        removeCallback.call(self, err);
-                        return;
+                        return removeCallback(err);
                     }
-                    removeCallback.call(self, null);
+                    return removeCallback();
                 });
             }, function (err) {
                 if (err) {
-                    cb(err);
-                    return;
+                    return cb(err);
                 }
-                cb(null);
+                return cb();
             });
         }, function (err) {
-            callback.call(self, err);
+            return callback(err);
         });
     });
 }
 
 /**
+ * @this DataModel
  * @param {Object} obj
  * @param {Function} callback
  * @private
@@ -2610,13 +2610,11 @@ function remove_(obj, callback) {
 function removeSingleObject_(obj, callback) {
     var self = this;
     callback = callback || function () {};
-    if (obj == null) {
-        callback.call(self);
-        return;
+    if (_.isNil(obj)) {
+        return callback();
     }
     if (_.isArray(obj)) {
-        callback.call(self, new Error('Invalid argument. Object cannot be an array.'));
-        return 0;
+        return callback(new Error('Invalid argument. Object cannot be an array.'));
     }
     var e = {
         model: self,
@@ -2644,7 +2642,7 @@ function removeSingleObject_(obj, callback) {
                 return callback(err);
             }
             //remove base object
-            removeBaseObject_.call(self, e.target, function (err, result) {
+            removeBaseObject_.bind(self)(e.target, function (err, result) {
                 if (err) {
                     return callback(err);
                 }
@@ -2662,6 +2660,7 @@ function removeSingleObject_(obj, callback) {
 }
 
 /**
+ * @this DataModel
  * @param {*} obj
  * @param {Function} callback
  * @private
@@ -2673,18 +2672,17 @@ function removeBaseObject_(obj, callback) {
         base = self.base();
     //if obj is an array of objects throw exception (invoke callback with error)
     if (_.isArray(obj)) {
-        callback.call(self, new Error('Invalid argument. Object cannot be an array.'));
-        return 0;
+        return callback(new Error('Invalid argument. Object cannot be an array.'));
     }
     //if current model does not have a base model
     if (_.isNil(base)) {
         //exit operation
-        callback.call(self, null);
+        return callback();
     } else {
         base.silent();
         //perform operation
-        removeSingleObject_.call(base, obj, function (err, result) {
-            callback.call(self, err, result);
+        removeSingleObject_.bind(base)(obj, function (err, result) {
+            return callback(err, result);
         });
     }
 }
@@ -2698,38 +2696,7 @@ function removeBaseObject_(obj, callback) {
 DataModel.PluralExpression = /([a-zA-Z]+?)([e']s|[^aiou]s)$/;
 
 /**
- * @param {DataField|*} field
- * @param {DataAssociationMapping|*} mapping
- * @private
- */
-function cacheMapping_(field, mapping) {
-    if (_.isNil(field)) return;
-    //cache mapping
-    var cachedModel = this.getConfiguration().models[this.name];
-    if (cachedModel) {
-        var cachedField = cachedModel.fields.find(function (x) {
-            return x.name === field.name;
-        });
-        if (typeof cachedField === 'undefined') {
-            //search in attributes
-            cachedField = this.attributes.find(function (x) {
-                return x.name === field.name;
-            });
-            if (cachedField) {
-                //add overriden field
-                cachedModel.fields.push(_.assign({}, cachedField));
-                cachedField = cachedModel.fields[cachedModel.fields.length - 1];
-                //clear attributes
-                this._clearAttributes();
-            }
-        }
-        if (cachedField)
-            //add mapping
-            cachedField.mapping = mapping;
-    }
-}
-
-/**
+ * @this DataModel
  * @function
  * @param {*} obj
  * @param {number} state
@@ -2751,23 +2718,22 @@ function validate_(obj, state, callback) {
         if (x.model !== self.name) {
             if (!x.cloned) return false;
         }
-        return !x.readonly || x.readonly && typeof x.calculation !== 'undefined' && state == 2 || x.readonly && typeof x.value !== 'undefined' && state == 1 || x.readonly && typeof x.calculation !== 'undefined' && state == 1;
+        return !x.readonly || x.readonly && typeof x.calculation !== 'undefined' && state === 2 || x.readonly && typeof x.value !== 'undefined' && state === 1 || x.readonly && typeof x.calculation !== 'undefined' && state === 1;
     }).filter(function (y) {
-        return state == 2 ? y.hasOwnProperty("editable") ? y.editable : true : true;
+        return state === 2 ? y.hasOwnProperty("editable") ? y.editable : true : true;
     });
 
     async.eachSeries(attributes, function (attr, cb) {
-        var validator = void 0,
-            validationResult = void 0;
+        var validationResult = void 0;
         //get value
         var value = objCopy[attr.name];
         //build validators array
         var arrValidators = [];
         //-- RequiredValidator
         if (attr.hasOwnProperty('nullable') && !attr.nullable) {
-            if (state == 1 && !attr.primary) {
+            if (state === 1 && !attr.primary) {
                 arrValidators.push(new RequiredValidator());
-            } else if (state == 2 && !attr.primary && objCopy.hasOwnProperty(attr.name)) {
+            } else if (state === 2 && !attr.primary && objCopy.hasOwnProperty(attr.name)) {
                 arrValidators.push(new RequiredValidator());
             }
         }

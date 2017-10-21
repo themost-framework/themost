@@ -7,9 +7,9 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
-import {_} from 'lodash';
+import {QueryExpression} from './query';
+import _ from 'lodash';
 /**
  * SQL Escape global function
  */
@@ -114,8 +114,8 @@ function escape(val, stringifyObjects, timeZone) {
     }
 
     switch (typeof val) {
-        case 'boolean': return (val) ? 'true' : 'false';
-        case 'number': return val+'';
+    case 'boolean': return (val) ? 'true' : 'false';
+    case 'number': return val+'';
     }
 
     if (val instanceof Date) {
@@ -139,13 +139,13 @@ function escape(val, stringifyObjects, timeZone) {
     }
     val = val.replace(STR_ESCAPE_REGEXP, function(s) {
         switch(s) {
-            case "\0": return "\\0";
-            case "\n": return "\\n";
-            case "\r": return "\\r";
-            case "\b": return "\\b";
-            case "\t": return "\\t";
-            case "\x1a": return "\\Z";
-            default: return "\\"+s;
+        case "\0": return "\\0";
+        case "\n": return "\\n";
+        case "\r": return "\\r";
+        case "\b": return "\\b";
+        case "\t": return "\\t";
+        case "\x1a": return "\\Z";
+        default: return "\\"+s;
         }
     });
     return "'"+val+"'";

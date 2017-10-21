@@ -1,12 +1,3 @@
-/**
- * @license
- * MOST Web Framework 2.0 Codename Blueshift
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- *                     Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Use of this source code is governed by an BSD-3-Clause license that can be
- * found in the LICENSE file at https://themost.io/license
- */
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -16,13 +7,21 @@ exports.RouteConsumer = exports.DefaultRoutingStrategy = exports.RoutingStrategy
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * MOST Web Framework 2.0 Codename Blueshift
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *                     Anthi Oikonomou anthioikonomou@gmail.com
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Use of this source code is governed by an BSD-3-Clause license that can be
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * found in the LICENSE file at https://themost.io/license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
 
 require('source-map-support/register');
 
 var _utils = require('@themost/common/utils');
 
-var TraceUtils = _utils.TraceUtils;
 var Args = _utils.Args;
 
 var _errors = require('@themost/common/errors');
@@ -32,7 +31,7 @@ var AbstractClassError = _errors.AbstractClassError;
 
 var _lodash = require('lodash');
 
-var _ = _lodash._;
+var _ = _interopRequireDefault(_lodash).default;
 
 var _url = require('url');
 
@@ -83,16 +82,16 @@ var HttpRoute = exports.HttpRoute = function () {
 
         this.patterns = {
             int: function int() {
-                return "^[1-9]([0-9]*)$";
+                return "^[+-]?[1-9]([0-9]*)$";
             },
             boolean: function boolean() {
                 return "^true|false$";
             },
             decimal: function decimal() {
-                return "^\d*\.?\d*$";
+                return "^[+-]?\\d*\\.?\\d*$";
             },
             float: function float() {
-                return "^\d*\.?\d*$";
+                return "^[+-]?\\d*\\.?\\*$";
             },
             guid: function guid() {
                 return "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$";
@@ -120,7 +119,7 @@ var HttpRoute = exports.HttpRoute = function () {
                 patternMatch = void 0;
             var k = urlToMatch.indexOf('?');
             if (k >= 0) str1 = urlToMatch.substr(0, k);
-            var re = /(\{([\w\[\]]+)(?::\s*((?:[^{}\\]+|\\.|\{(?:[^{}\\]+|\\.)*})+))?})|((:)([\w\[\]]+))/ig;
+            var re = /(\{([\w[\]]+)(?::\s*((?:[^{}\\]+|\\.|\{(?:[^{}\\]+|\\.)*})+))?})|((:)([\w[\]]+))/ig;
             var match = re.exec(this.route.url);
             var params = [];
             while (match) {
@@ -146,10 +145,10 @@ var HttpRoute = exports.HttpRoute = function () {
                 }
                 match = re.exec(this.route.url);
             }
-            var str = this.route.url.replace(re, "([\\w-]+)"),
+            var str = this.route.url.replace(re, "([\\$_\\-0-9\\w-]+)"),
                 matcher = new RegExp("^" + str + "$", "ig");
             match = matcher.exec(str1);
-            if (typeof match === 'undefined' || match == null) {
+            if (typeof match === 'undefined' || match === null) {
                 return false;
             }
             for (var i = 0; i < params.length; i++) {
@@ -362,11 +361,7 @@ var RouteConsumer = exports.RouteConsumer = function (_HttpConsumer) {
     function RouteConsumer() {
         _classCallCheck(this, RouteConsumer);
 
-        return _possibleConstructorReturn(this, (RouteConsumer.__proto__ || Object.getPrototypeOf(RouteConsumer)).call(this, function () {
-            /**
-             * @type {HttpContext}
-             */
-            var context = this;
+        return _possibleConstructorReturn(this, (RouteConsumer.__proto__ || Object.getPrototypeOf(RouteConsumer)).call(this, function (context) {
             try {
                 var handler = new RouteHandler();
                 return Q.nfbind(handler.mapRequest)(context).then(function () {

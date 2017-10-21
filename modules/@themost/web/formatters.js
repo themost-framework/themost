@@ -1,12 +1,4 @@
-/**
- * @license
- * MOST Web Framework 2.0 Codename Blueshift
- * Copyright (c) 2017, THEMOST LP All rights reserved
- *
- * Use of this source code is governed by an BSD-3-Clause license that can be
- * found in the LICENSE file at https://themost.io/license
- */
-'use strict';
+"use strict";
 
 Object.defineProperty(exports, "__esModule", {
     value: true
@@ -15,42 +7,42 @@ exports.HtmlOutputFormatter = exports.XmlOutputFormatter = exports.JsonOutputFor
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-require('source-map-support/register');
+require("source-map-support/register");
 
-var _interfaces = require('./interfaces');
+var _interfaces = require("./interfaces");
 
 var HttpApplicationService = _interfaces.HttpApplicationService;
 
-var _errors = require('@themost/common/errors');
+var _errors = require("@themost/common/errors");
 
 var AbstractClassError = _errors.AbstractClassError;
 var AbstractMethodError = _errors.AbstractMethodError;
 
-var _utils = require('@themost/common/utils');
+var _utils = require("@themost/common/utils");
 
 var Args = _utils.Args;
 
-var _lodash = require('lodash');
+var _lodash = require("lodash");
 
 var _ = _lodash._;
 
-var _q = require('q');
+var _q = require("q");
 
 var Q = _interopRequireDefault(_q).default;
 
-var _accepts = require('accepts');
+var _accepts = require("accepts");
 
 var accepts = _interopRequireDefault(_accepts).default;
 
-var _mostXml = require('most-xml');
+var _mostXml = require("most-xml");
 
 var xml = _interopRequireDefault(_mostXml).default;
 
-var _path = require('path');
+var _path = require("path");
 
 var path = _interopRequireDefault(_path).default;
 
-var _url = require('url');
+var _url = require("url");
 
 var url = _interopRequireDefault(_url).default;
 
@@ -60,7 +52,15 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * @license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * MOST Web Framework 2.0 Codename Blueshift
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Copyright (c) 2017, THEMOST LP All rights reserved
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Use of this source code is governed by an BSD-3-Clause license that can be
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * found in the LICENSE file at https://themost.io/license
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
+
 
 var formattersProperty = Symbol('formatters');
 
@@ -85,7 +85,7 @@ var FormatterStrategy = exports.FormatterStrategy = function (_HttpApplicationSe
 
 
     _createClass(FormatterStrategy, [{
-        key: 'add',
+        key: "add",
         value: function add(formatterCtor) {
             Args.check(typeof formatterCtor === 'function', 'Formatter constructor mub be a function');
             this[formattersProperty].push(new formatterCtor());
@@ -98,7 +98,7 @@ var FormatterStrategy = exports.FormatterStrategy = function (_HttpApplicationSe
          */
 
     }, {
-        key: 'insert',
+        key: "insert",
         value: function insert(index, formatterCtor) {
             Args.check(typeof formatterCtor === 'function', 'Formatter constructor mub be a function');
             this[formattersProperty].splice(index, 0, new formatterCtor());
@@ -110,7 +110,7 @@ var FormatterStrategy = exports.FormatterStrategy = function (_HttpApplicationSe
          */
 
     }, {
-        key: 'get',
+        key: "get",
         value: function get(formatterCtor) {
             Args.check(typeof formatterCtor === 'function', 'Formatter constructor mub be a function');
             return _.find(this[formattersProperty], function (x) {
@@ -125,7 +125,7 @@ var FormatterStrategy = exports.FormatterStrategy = function (_HttpApplicationSe
          */
 
     }, {
-        key: 'find',
+        key: "find",
         value: function find(context) {
             return _.find(this[formattersProperty], function (x) {
                 return x.isMatch(context);
@@ -153,15 +153,14 @@ var DefaultFormatterStrategy = exports.DefaultFormatterStrategy = function (_For
     /**
      * Finds a formatter for the given HTTP context
      * @param context
-     * @returns {OutputFormatter}
+     * @returns {OutputFormatter|*}
      */
 
 
     _createClass(DefaultFormatterStrategy, [{
-        key: 'find',
+        key: "find",
         value: function find(context) {
-            var formatters = this[formattersProperty];
-            var mimeType = context.getApplication().getMimeType(path.extname(url.parse(context.request.url).pathname));
+            var mimeType = context.getApplication().getMimeType(context.getFormat());
             if (typeof mimeType === 'undefined') {
                 //get available formatters (as array of types)
                 var types = _.map(this[formattersProperty], function (x) {
@@ -205,7 +204,7 @@ var OutputFormatter = exports.OutputFormatter = function () {
 
 
     _createClass(OutputFormatter, [{
-        key: 'getMediaType',
+        key: "getMediaType",
         value: function getMediaType() {
             throw new AbstractMethodError();
         }
@@ -216,7 +215,7 @@ var OutputFormatter = exports.OutputFormatter = function () {
          */
 
     }, {
-        key: 'getContentType',
+        key: "getContentType",
         value: function getContentType() {
             throw new AbstractMethodError();
         }
@@ -227,7 +226,7 @@ var OutputFormatter = exports.OutputFormatter = function () {
          */
 
     }, {
-        key: 'getType',
+        key: "getType",
         value: function getType() {
             throw new AbstractMethodError();
         }
@@ -238,7 +237,7 @@ var OutputFormatter = exports.OutputFormatter = function () {
          */
 
     }, {
-        key: 'isMatch',
+        key: "isMatch",
         value: function isMatch(context) {
             var accept = accepts(context.request);
             return accept.type([this.getType()]);
@@ -252,7 +251,7 @@ var OutputFormatter = exports.OutputFormatter = function () {
          */
 
     }, {
-        key: 'execute',
+        key: "execute",
         value: function execute(context, data) {
             return Q.reject(new AbstractMethodError());
         }
@@ -294,7 +293,7 @@ var JsonOutputFormatter = exports.JsonOutputFormatter = function (_OutputFormatt
 
 
     _createClass(JsonOutputFormatter, [{
-        key: 'getMediaType',
+        key: "getMediaType",
         value: function getMediaType() {
             return 'application/json';
         }
@@ -305,7 +304,7 @@ var JsonOutputFormatter = exports.JsonOutputFormatter = function (_OutputFormatt
          */
 
     }, {
-        key: 'getContentType',
+        key: "getContentType",
         value: function getContentType() {
             return 'application/json;charset=utf-8';
         }
@@ -316,7 +315,7 @@ var JsonOutputFormatter = exports.JsonOutputFormatter = function (_OutputFormatt
          */
 
     }, {
-        key: 'getType',
+        key: "getType",
         value: function getType() {
             return 'json';
         }
@@ -329,7 +328,7 @@ var JsonOutputFormatter = exports.JsonOutputFormatter = function (_OutputFormatt
          */
 
     }, {
-        key: 'execute',
+        key: "execute",
         value: function execute(context, data) {
             var _this4 = this;
 
@@ -378,7 +377,7 @@ var XmlOutputFormatter = exports.XmlOutputFormatter = function (_OutputFormatter
 
 
     _createClass(XmlOutputFormatter, [{
-        key: 'getMediaType',
+        key: "getMediaType",
         value: function getMediaType() {
             return 'application/xml';
         }
@@ -388,7 +387,7 @@ var XmlOutputFormatter = exports.XmlOutputFormatter = function (_OutputFormatter
          */
 
     }, {
-        key: 'getType',
+        key: "getType",
         value: function getType() {
             return 'xml';
         }
@@ -399,7 +398,7 @@ var XmlOutputFormatter = exports.XmlOutputFormatter = function (_OutputFormatter
          */
 
     }, {
-        key: 'getContentType',
+        key: "getContentType",
         value: function getContentType() {
             return 'application/xml;charset=utf-8';
         }
@@ -412,7 +411,7 @@ var XmlOutputFormatter = exports.XmlOutputFormatter = function (_OutputFormatter
          */
 
     }, {
-        key: 'execute',
+        key: "execute",
         value: function execute(context, data) {
             var _this6 = this;
 
@@ -457,7 +456,7 @@ var HtmlOutputFormatter = exports.HtmlOutputFormatter = function (_OutputFormatt
 
 
     _createClass(HtmlOutputFormatter, [{
-        key: 'getMediaType',
+        key: "getMediaType",
         value: function getMediaType() {
             return 'text/html';
         }
@@ -467,7 +466,7 @@ var HtmlOutputFormatter = exports.HtmlOutputFormatter = function (_OutputFormatt
          */
 
     }, {
-        key: 'getType',
+        key: "getType",
         value: function getType() {
             return 'html';
         }
@@ -478,7 +477,7 @@ var HtmlOutputFormatter = exports.HtmlOutputFormatter = function (_OutputFormatt
          */
 
     }, {
-        key: 'getContentType',
+        key: "getContentType",
         value: function getContentType() {
             return 'text/html;charset=utf-8';
         }
@@ -491,7 +490,7 @@ var HtmlOutputFormatter = exports.HtmlOutputFormatter = function (_OutputFormatt
          */
 
     }, {
-        key: 'execute',
+        key: "execute",
         value: function execute(context, data) {
             var _this8 = this;
 

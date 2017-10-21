@@ -7,7 +7,6 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
 import {HttpConsumer} from '../consumers';
 import Q from 'q';
@@ -80,17 +79,13 @@ class JsonHandler {
  */
 export class JsonContentConsumer extends HttpConsumer {
     constructor() {
-        super(function() {
-            /**
-             * @type {HttpContext}
-             */
-            const context = this;
+        super(function(context) {
             try {
                 let handler = new JsonHandler();
                 return Q.nfbind(handler.beginRequest)(context)
                     .then(()=> {
-                    return HttpNextResult.create().toPromise();
-                });
+                        return HttpNextResult.create().toPromise();
+                    });
             }
             catch(err) {
                 return Q.reject(err);

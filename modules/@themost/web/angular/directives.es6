@@ -7,10 +7,10 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
-import {_} from 'lodash';
+import _ from 'lodash';
 import {DataPermissionEventListener} from '@themost/data/permission';
+import {DataEventArgs} from "../../data/types";
 
 function toBoolean(value) {
     if (typeof value === 'function') {
@@ -46,14 +46,14 @@ export class AngularServerModuleDefaults {
      * @param {AngularServerModule} module
      */
     static applyDirectives(module) {
-        module.directive('serverInclude', function($context, $async, $parse) {
+        module.directive('serverInclude', function($context, $async, $parse, $window) {
             return {
                 replace:true,
                 restrict:'EA',
                 link: function (scope, element, attrs) {
+                    //get angular instance
+                    const angular = $window.angular;
                     return $async(function(resolve, reject) {
-                        //get angular instance
-                        const angular = this.angular;
                         /**
                          * @ngdoc attrs
                          * @property {string} serverInclude
@@ -88,7 +88,7 @@ export class AngularServerModuleDefaults {
                     scope.$eval(attrs.serverInit);
                 }
             };
-        }).directive('serverIf', function($animate, $document) {
+        }).directive('serverIf', function($animate, $window, $document) {
             return {
                 transclude: 'element',
                 priority: 600,
@@ -121,7 +121,7 @@ export class AngularServerModuleDefaults {
                                 childScope = null;
                             }
                             if (block) {
-                                previousElements = getBlockElements(angular, block.clone);
+                                previousElements = getBlockElements($window.angular, block.clone);
                                 $animate.leave(previousElements, function () {
                                     previousElements = null;
                                 });
@@ -155,9 +155,13 @@ export class AngularServerModuleDefaults {
                                             else
                                                 scope.state = scope.mask;
                                     }
-                                    const p = new DataPermissionEventListener(),
-                                        event = { model: targetModel, state: scope.state, throwError:false };
-                                    p.validate(event, function(err) {
+                                    const p = new DataPermissionEventListener();
+                                    const event = _.assign(new DataEventArgs(), {
+                                        model: targetModel,
+                                        state: scope.state,
+                                        throwError: false
+                                    });
+                                    p.validate(event, function() {
                                         if (event.result) {
                                             const result = $compile(element.contents())(scope);
                                             element.replaceWith(result);
@@ -174,7 +178,9 @@ export class AngularServerModuleDefaults {
                                 }
                             });
                         },
-                        post: angular.noop
+                        post: function () {
+                            //
+                        }
                     };
                 }
             };
@@ -252,7 +258,9 @@ export class AngularServerModuleDefaults {
                                 }
                             }
                         },
-                        post: angular.noop
+                        post: function () {
+                            //
+                        }
                     };
                 }
             };

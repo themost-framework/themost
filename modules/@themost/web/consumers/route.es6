@@ -7,11 +7,10 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
 import 'source-map-support/register';
-import {TraceUtils,Args} from '@themost/common/utils';
+import {Args} from '@themost/common/utils';
 import {AbstractMethodError,AbstractClassError} from '@themost/common/errors';
-import {_} from 'lodash';
+import _ from 'lodash';
 import url from 'url';
 import {HttpApplicationService} from '../interfaces';
 import {HttpConsumer} from '../consumers';
@@ -38,16 +37,16 @@ export class HttpRoute {
 
         this.patterns = {
             int:function() {
-                return "^[1-9]([0-9]*)$";
+                return "^[+-]?[1-9]([0-9]*)$";
             },
             boolean:function() {
                 return "^true|false$"
             },
             decimal:function() {
-                return "^\d*\.?\d*$";
+                return "^[+-]?\\d*\\.?\\d*$";
             },
             float:function() {
-                return "^\d*\.?\d*$";
+                return "^[+-]?\\d*\\.?\\*$";
             },
             guid:function() {
                 return "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$";
@@ -74,7 +73,7 @@ export class HttpRoute {
         const k = urlToMatch.indexOf('?');
         if (k >= 0)
             str1 = urlToMatch.substr(0, k);
-        const re = /(\{([\w\[\]]+)(?::\s*((?:[^{}\\]+|\\.|\{(?:[^{}\\]+|\\.)*})+))?})|((:)([\w\[\]]+))/ig;
+        const re = /(\{([\w[\]]+)(?::\s*((?:[^{}\\]+|\\.|\{(?:[^{}\\]+|\\.)*})+))?})|((:)([\w[\]]+))/ig;
         let match = re.exec(this.route.url);
         const params = [];
         while(match) {
@@ -102,9 +101,9 @@ export class HttpRoute {
             }
             match = re.exec(this.route.url);
         }
-        const str = this.route.url.replace(re, "([\\w-]+)"), matcher = new RegExp("^" + str + "$", "ig");
+        const str = this.route.url.replace(re, "([\\$_\\-0-9\\w-]+)"), matcher = new RegExp("^" + str + "$", "ig");
         match = matcher.exec(str1);
-        if (typeof match === 'undefined' || match == null) {
+        if (typeof match === 'undefined' || match === null) {
             return false;
         }
         for (let i = 0; i < params.length; i++) {
@@ -258,11 +257,7 @@ export class DefaultRoutingStrategy extends RoutingStrategy {
  */
 export class RouteConsumer extends HttpConsumer {
     constructor() {
-        super(function() {
-            /**
-             * @type {HttpContext}
-             */
-            const context = this;
+        super(function(context) {
             try {
                 let handler = new RouteHandler();
                 return Q.nfbind(handler.mapRequest)(context)

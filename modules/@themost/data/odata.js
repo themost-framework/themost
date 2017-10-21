@@ -1,18 +1,9 @@
-/**
- * @license
- * MOST Web Framework 2.0 Codename Blueshift
- * Copyright (c) 2017, THEMOST LP All rights reserved
- *
- * Use of this source code is governed by an BSD-3-Clause license that can be
- * found in the LICENSE file at https://themost.io/license
- */
-
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.ODataJsonFormatter = exports.ODataConventionModelBuilder = exports.ODataModelBuilder = exports.EntitySetConfiguration = exports.EntityTypeConfiguration = exports.EntitySetKind = exports.EdmMultiplicity = exports.EdmType = undefined;
+exports.ODataConventionModelBuilder = exports.ODataModelBuilder = exports.EntitySetConfiguration = exports.EntityTypeConfiguration = exports.EntitySetKind = exports.EdmMultiplicity = exports.EdmType = undefined;
 
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
@@ -25,7 +16,6 @@ var _ = _interopRequireDefault(_lodash).default;
 var _config = require('@themost/common/config');
 
 var ConfigurationStrategy = _config.ConfigurationStrategy;
-var ConfigurationBase = _config.ConfigurationBase;
 
 var _utils = require('@themost/common/utils');
 
@@ -56,13 +46,33 @@ var _pluralize = require('pluralize');
 
 var pluralize = _interopRequireDefault(_pluralize).default;
 
+var _errors = require('@themost/common/errors');
+
+var AbstractMethodError = _errors.AbstractMethodError;
+
+var _moment = require('moment');
+
+var moment = _interopRequireDefault(_moment).default;
+
+var _utils2 = require('../common/utils');
+
+var LangUtils = _utils2.LangUtils;
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } } /**
+                                                                                                                                                           * @license
+                                                                                                                                                           * MOST Web Framework 2.0 Codename Blueshift
+                                                                                                                                                           * Copyright (c) 2017, THEMOST LP All rights reserved
+                                                                                                                                                           *
+                                                                                                                                                           * Use of this source code is governed by an BSD-3-Clause license that can be
+                                                                                                                                                           * found in the LICENSE file at https://themost.io/license
+                                                                                                                                                           */
+
 
 var nameProperty = Symbol('name');
 var entityTypesProperty = Symbol('entityTypes');
@@ -87,7 +97,7 @@ var EdmType = exports.EdmType = function EdmType() {
 EdmType.EdmBinary = "Edm.Binary";
 EdmType.EdmBoolean = "Edm.Boolean";
 EdmType.EdmByte = "Edm.Byte";
-EdmType.EdmBoolean = "Edm.Date";
+EdmType.EdmDate = "Edm.Date";
 EdmType.EdmDateTimeOffset = "Edm.DateTimeOffset";
 EdmType.EdmDouble = "Edm.Double";
 EdmType.EdmDecimal = "Edm.Decimal";
@@ -209,7 +219,7 @@ var EntityTypeConfiguration = exports.EntityTypeConfiguration = function () {
                 "name": name,
                 "type": multiplicity === "Many" ? 'Collection(' + type + ')' : type
             };
-            if (multiplicity === EdmMultiplicity.ZeroOrOne) {
+            if (multiplicity === EdmMultiplicity.ZeroOrOne || multiplicity === EdmMultiplicity.Many) {
                 p.nullable = true;
             }
 
@@ -370,9 +380,181 @@ var EntitySetConfiguration = exports.EntitySetConfiguration = function () {
         }
 
         /**
+         * @returns {ODataModelBuilder}
+         */
+
+    }, {
+        key: 'getBuilder',
+        value: function getBuilder() {
+            return this[builderProperty];
+        }
+
+        /**
+         * @returns {*}
+         */
+
+    }, {
+        key: 'getEntityTypePropertyList',
+        value: function getEntityTypePropertyList() {
+            var result = {};
+            _.forEach(this.entityType.property, function (x) {
+                result[x.name] = x;
+            });
+            var baseEntityType = this.getBuilder().getEntity(this.entityType.baseType);
+            while (baseEntityType) {
+                _.forEach(baseEntityType.property, function (x) {
+                    result[x.name] = x;
+                });
+                baseEntityType = this.getBuilder().getEntity(baseEntityType.baseType);
+            }
+            return result;
+        }
+
+        /**
+         * @param {string} name
+         * @param  {boolean=} deep
+         * @returns {*}
+         */
+
+    }, {
+        key: 'getEntityTypeProperty',
+        value: function getEntityTypeProperty(name, deep) {
+            var re = new RegExp("^" + name + "$", "ig");
+            var p = _.find(this.entityType.property, function (x) {
+                return re.test(x.name);
+            });
+            if (p) {
+                return p;
+            }
+            var deep_ = _.isBoolean(deep) ? deep : true;
+            if (deep_) {
+                var baseEntityType = this.getBuilder().getEntity(this.entityType.baseType);
+                while (baseEntityType) {
+                    p = _.find(baseEntityType.property, function (x) {
+                        return re.test(x.name);
+                    });
+                    if (p) {
+                        return p;
+                    }
+                    baseEntityType = this.getBuilder().getEntity(baseEntityType.baseType);
+                }
+            }
+        }
+
+        /**
+         * @returns {*}
+         */
+
+    }, {
+        key: 'getEntityTypeIgnoredPropertyList',
+        value: function getEntityTypeIgnoredPropertyList() {
+            var result = [].concat(this.entityType.ignoredProperty);
+            var baseEntityType = this.getBuilder().getEntity(this.entityType.baseType);
+            while (baseEntityType) {
+                result.push.apply(result, baseEntityType.ignoredProperty);
+                baseEntityType = this.getBuilder().getEntity(baseEntityType.baseType);
+            }
+            return result;
+        }
+        /**
+         * @param {string} name
+         * @param  {boolean=} deep
+         * @returns {*}
+         */
+
+    }, {
+        key: 'getEntityTypeNavigationProperty',
+        value: function getEntityTypeNavigationProperty(name, deep) {
+            var re = new RegExp("^" + name + "$", "ig");
+            var p = _.find(this.entityType.navigationProperty, function (x) {
+                return re.test(x.name);
+            });
+            if (p) {
+                return p;
+            }
+            var deep_ = _.isBoolean(deep) ? deep : true;
+            if (deep_) {
+                var baseEntityType = this.getBuilder().getEntity(this.entityType.baseType);
+                while (baseEntityType) {
+                    p = _.find(baseEntityType.navigationProperty, function (x) {
+                        return re.test(x.name);
+                    });
+                    if (p) {
+                        return p;
+                    }
+                    baseEntityType = this.getBuilder().getEntity(baseEntityType.baseType);
+                }
+            }
+        }
+
+        /**
+         * @returns {*}
+         */
+
+    }, {
+        key: 'getEntityTypeNavigationPropertyList',
+        value: function getEntityTypeNavigationPropertyList() {
+            var result = [];
+            _.forEach(this.entityType.navigationProperty, function (x) {
+                result[x.name] = x;
+            });
+            var baseEntityType = this.getBuilder().getEntity(this.entityType.baseType);
+            while (baseEntityType) {
+                _.forEach(baseEntityType.navigationProperty, function (x) {
+                    result[x.name] = x;
+                });
+                baseEntityType = this.getBuilder().getEntity(baseEntityType.baseType);
+            }
+            return result;
+        }
+
+        /**
          * @returns {EntityTypeConfiguration}
          */
 
+    }, {
+        key: 'hasContextLink',
+
+
+        /**
+         * @param contextLinkFunc
+         */
+        value: function hasContextLink(contextLinkFunc) {
+            this.getContextLink = contextLinkFunc;
+        }
+
+        /**
+         *
+         * @param {Function} idLinkFunc
+         */
+
+    }, {
+        key: 'hasIdLink',
+        value: function hasIdLink(idLinkFunc) {
+            this.getIdLink = idLinkFunc;
+        }
+
+        /**
+         *
+         * @param {Function} readLinkFunc
+         */
+
+    }, {
+        key: 'hasReadLink',
+        value: function hasReadLink(readLinkFunc) {
+            this.getReadLink = readLinkFunc;
+        }
+
+        /**
+         *
+         * @param {Function} editLinkFunc
+         */
+
+    }, {
+        key: 'hasEditLink',
+        value: function hasEditLink(editLinkFunc) {
+            this.getEditLink = editLinkFunc;
+        }
     }, {
         key: 'entityType',
         get: function get() {
@@ -388,6 +570,7 @@ var EntitySetConfiguration = exports.EntitySetConfiguration = function () {
 
 /**
  * @classdesc Represents the OData model builder of an HTTP application
+ * @property {string} serviceRoot - Gets or sets the service root URI
  * @class
  */
 
@@ -413,13 +596,16 @@ var ODataModelBuilder = exports.ODataModelBuilder = function (_ConfigurationStra
     /**
      * Gets a registered entity type
      * @param {string} name
-     * @returns {EntityTypeConfiguration}
+     * @returns {EntityTypeConfiguration|*}
      */
 
 
     _createClass(ODataModelBuilder, [{
         key: 'getEntity',
         value: function getEntity(name) {
+            if (_.isNil(name)) {
+                return;
+            }
             Args.notString(name, 'Entity type name');
             return this[entityTypesProperty][name];
         }
@@ -479,8 +665,25 @@ var ODataModelBuilder = exports.ODataModelBuilder = function (_ConfigurationStra
         key: 'getEntitySet',
         value: function getEntitySet(name) {
             Args.notString(name, 'EntitySet Name');
+            var re = new RegExp("^" + name + "$", "ig");
             return _.find(this[entityContainerProperty], function (x) {
-                return x.name === name;
+                return re.test(x.name);
+            });
+        }
+
+        /**
+         * Gets an entity set based on the given entity name
+         * @param {string} entityName
+         * @returns {EntitySetConfiguration}
+         */
+
+    }, {
+        key: 'getEntityTypeEntitySet',
+        value: function getEntityTypeEntitySet(entityName) {
+            Args.notString(entityName, 'Entity Name');
+            var re = new RegExp("^" + entityName + "$", "ig");
+            return _.find(this[entityContainerProperty], function (x) {
+                return x.entityType && re.test(x.entityType.name);
             });
         }
 
@@ -674,6 +877,100 @@ var ODataModelBuilder = exports.ODataModelBuilder = function (_ConfigurationStra
                 }
             });
         }
+
+        /**
+         * @param {Function} contextLinkFunc
+         */
+
+    }, {
+        key: 'hasContextLink',
+        value: function hasContextLink(contextLinkFunc) {
+            this.getContextLink = contextLinkFunc;
+        }
+    }, {
+        key: 'hasJsonFormatter',
+        value: function hasJsonFormatter(jsonFormatterFunc) {
+            this.jsonFormatter = jsonFormatterFunc;
+        }
+
+        /**
+         * @param {EntitySetConfiguration} entitySet
+         * @param {*} instance
+         * @param {*=} options
+         * @returns *
+         */
+
+    }, {
+        key: 'jsonFormatter',
+        value: function jsonFormatter(context, entitySet, instance, options) {
+            var self = this;
+            var defaults = _.assign({
+                addContextAttribute: true,
+                addCountAttribute: false
+            }, options);
+            var entityProperty = entitySet.getEntityTypePropertyList();
+            var entityNavigationProperty = entitySet.getEntityTypeNavigationPropertyList();
+            var ignoredProperty = entitySet.getEntityTypeIgnoredPropertyList();
+            var singleJsonFormatter = function singleJsonFormatter(instance) {
+                var result = {};
+                _.forEach(_.keys(instance), function (key) {
+                    if (ignoredProperty.indexOf(key) < 0) {
+                        if (entityProperty.hasOwnProperty(key)) {
+                            var p = entityProperty[key];
+                            if (p.type === EdmType.EdmBoolean) {
+                                result[key] = LangUtils.parseBoolean(instance[key]);
+                            } else if (p.type === EdmType.EdmDate) {
+                                if (!_.isNil(instance[key])) {
+                                    result[key] = moment(instance[key]).format('YYYY-MM-DD');
+                                }
+                            } else if (p.type === EdmType.EdmDateTimeOffset) {
+                                if (!_.isNil(instance[key])) {
+                                    result[key] = moment(instance[key]).format('YYYY-MM-DDTHH:mm:ssZ');
+                                }
+                            } else {
+                                result[key] = instance[key];
+                            }
+                        } else if (entityNavigationProperty.hasOwnProperty(key)) {
+                            if (_.isObject(instance[key])) {
+                                var match = /^Collection\((.*?)\)$/.exec(entityNavigationProperty[key].type);
+                                var entityType = match ? match[1] : entityNavigationProperty[key].type;
+                                var _entitySet = self.getEntityTypeEntitySet(/\.?(\w+)$/.exec(entityType)[1]);
+                                result[key] = self.jsonFormatter(context, _entitySet, instance[key], {
+                                    addContextAttribute: false
+                                });
+                            }
+                        } else {
+                            result[key] = instance[key];
+                        }
+                    }
+                });
+                return result;
+            };
+            var value = void 0;
+            var result = {};
+            if (defaults.addContextAttribute) {
+                _.assign(result, {
+                    "@odata.context": self.getContextLink(context).concat("$metadata#", entitySet.name)
+                });
+            }
+            if (_.isArray(instance)) {
+                value = _.map(instance, function (x) {
+                    return singleJsonFormatter(x);
+                });
+                _.assign(result, {
+                    "value": value
+                });
+            } else if (_.isObject(instance)) {
+                value = singleJsonFormatter(instance);
+                if (defaults.addContextAttribute) {
+                    _.assign(result, {
+                        "@odata.context": self.getContextLink(context).concat("$metadata#", entitySet.name, "/$entity")
+                    });
+                }
+                _.assign(result, value);
+            }
+            return result;
+        }
     }]);
 
     return ODataModelBuilder;
@@ -768,6 +1065,9 @@ var ODataConventionModelBuilder = exports.ODataConventionModelBuilder = function
                 if (definition) {
                     var model = new DataModel(definition, new EntityDataContext(strategy));
                     var inheritedAttributes = [];
+                    var primaryKey = _.find(model.attributes, function (x) {
+                        return x.primary;
+                    });
                     if (model.inherits) {
                         //add base entity
                         self.addEntitySet(model.inherits, pluralize(model.inherits));
@@ -791,20 +1091,51 @@ var ODataConventionModelBuilder = exports.ODataConventionModelBuilder = function
                             var dataType = strategy.dataTypes[x.type];
                             //add property
                             var edmType = _.isObject(dataType) ? dataType.hasOwnProperty("edmtype") ? dataType["edmtype"] : "Edm." + x.type : SchemaDefaultNamespace.concat(".", x.type);
-                            modelEntityType.addProperty(name, edmType, x.nullable);
+                            modelEntityType.addProperty(name, edmType, x.hasOwnProperty('nullable') ? x.nullable : true);
                             if (x.primary) {
                                 modelEntityType.hasKey(name, edmType);
                             }
                         } else {
                             var namespacedType = SchemaDefaultNamespace.concat(".", x.type);
                             //add navigation property
-                            modelEntityType.addNavigationProperty(name, namespacedType, x.many ? EdmMultiplicity.Many : EdmMultiplicity.One);
+                            var isNullable = x.hasOwnProperty('nullable') ? x.nullable : true;
+                            modelEntityType.addNavigationProperty(name, namespacedType, x.many ? EdmMultiplicity.Many : isNullable ? EdmMultiplicity.ZeroOrOne : EdmMultiplicity.One);
                             //add navigation property entity (if type is not a primitive type)
                             if (!strategy.dataTypes.hasOwnProperty(x.type)) {
                                 self.addEntitySet(x.type, pluralize(x.type));
                             }
                         }
                     });
+                    //add link function
+                    if (typeof self.getContextLink === 'function') {
+                        modelEntitySet.hasContextLink(function (context) {
+                            return self.getContextLink(context).concat("$metadata#", modelEntitySet.name);
+                        });
+                    }
+                    //add id link
+                    if (typeof self.getContextLink === 'function') {
+                        if (primaryKey) {
+                            modelEntitySet.hasIdLink(function (context, instance) {
+                                //get parent model
+                                if (_.isNil(instance[primaryKey.name])) {
+                                    return;
+                                }
+                                return self.getContextLink(context).concat(modelEntitySet.name, "(", instance[primaryKey.name], ")");
+                            });
+                        }
+                    }
+                    //add read link
+                    if (typeof self.getContextLink === 'function') {
+                        if (primaryKey) {
+                            modelEntitySet.hasReadLink(function (context, instance) {
+                                //get parent model
+                                if (_.isNil(instance[primaryKey.name])) {
+                                    return;
+                                }
+                                return self.getContextLink(context).concat(modelEntitySet.name, "(", instance[primaryKey.name], ")");
+                            });
+                        }
+                    }
                 }
                 return modelEntitySet;
             }
@@ -873,11 +1204,11 @@ var ODataConventionModelBuilder = exports.ODataConventionModelBuilder = function
                     if (_.isObject(self[edmProperty])) {
                         return resolve(self[edmProperty]);
                     }
-                    return superGetEdm.bind(self)().then(function (result) {
-                        self[edmProperty] = result;
-                        return resolve(self[edmProperty]);
-                    }).catch(function (err) {
-                        return reject(err);
+                    return self.initialize().then(function () {
+                        return superGetEdm.bind(self)().then(function (result) {
+                            self[edmProperty] = result;
+                            return resolve(self[edmProperty]);
+                        });
                     });
                 } catch (err) {
                     return reject(err);
@@ -888,8 +1219,4 @@ var ODataConventionModelBuilder = exports.ODataConventionModelBuilder = function
 
     return ODataConventionModelBuilder;
 }(ODataModelBuilder);
-
-var ODataJsonFormatter = exports.ODataJsonFormatter = function ODataJsonFormatter() {
-    _classCallCheck(this, ODataJsonFormatter);
-};
 //# sourceMappingURL=odata.js.map
