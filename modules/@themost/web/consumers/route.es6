@@ -164,9 +164,9 @@ class RouteHandler {
         //assign route data to current request for further execution
         context.request.routeData = route.routeData || {};
 
-        if (typeof route.params === 'object' && route.params!==null) {
+        if (_.isObject(route.route)) {
             //assign route params
-            _.assign(context.params, route.params);
+            _.assign(context.params, route.route.params);
         }
         //assign route data to params (override any existed property)
         if (_.isObject(context.request.routeData)) {

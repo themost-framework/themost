@@ -3,7 +3,6 @@ var gulp = require('gulp');
 var gutil = require('gulp-util');
 var sourcemaps = require('gulp-sourcemaps');
 var babel = require('gulp-babel');
-var duration = require('gulp-duration');
 var eslint = require('gulp-eslint');
 
 var commonModule = [
@@ -22,6 +21,7 @@ var webModule = [
   'modules/@themost/web/**/*.es6',
   '!modules/@themost/web/node_modules/**/*.es6'
 ];
+
 var testModule = [
   'test/**/*.es6'
 ];
@@ -36,8 +36,6 @@ function lint(files, options) {
 
 function build(files) {
   return function () {
-
-      var bundleTimer = duration('bundle time');
 
     return gulp.src(files)
        // .once('data', bundleTimer.start)
@@ -79,6 +77,10 @@ gulp.task('lint:data', lint(dataModule));
 
 //lint @themost/web
 gulp.task('lint:web', lint(webModule));
+
+//lint test
+gulp.task('lint:test', lint(webModule));
+
 
 // lint @themost
 gulp.task('lint', ['lint:common','lint:query', 'lint:data', 'lint:web']);
