@@ -72,10 +72,46 @@ var HttpResult = exports.HttpResult = function () {
             this.headers[name] = value;
             return this;
         }
+
+        /**
+         * @returns {*|Q.Promise<HttpResult>|Q.Promise<any>}
+         */
+
     }, {
         key: 'toPromise',
         value: function toPromise() {
             return Q(this);
+        }
+
+        /**
+         * @returns {*|Q.Promise<HttpNextResult>}
+         */
+
+    }], [{
+        key: 'next',
+        value: function next() {
+            return HttpNextResult.create().toPromise();
+        }
+
+        /**
+         * @returns {*|Q.Promise<HttpEndResult>}
+         */
+
+    }, {
+        key: 'end',
+        value: function end() {
+            return HttpEndResult.create().toPromise();
+        }
+
+        /**
+         * @param {number} status
+         * @returns {*|Q.Promise<HttpErrorResult>}
+         */
+
+    }, {
+        key: 'error',
+        value: function error(status) {
+            return HttpErrorResult.create(status).toPromise();
         }
     }]);
 

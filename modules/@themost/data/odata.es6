@@ -21,10 +21,11 @@ const ignoreEntityTypesProperty = Symbol('ignoredEntityTypes');
 const builderProperty = Symbol('builder');
 const entityTypeProperty = Symbol('entityType');
 const edmProperty = Symbol('edm');
+const singletonProperty = Symbol('singleton');
 import pluralize from 'pluralize';
 import {AbstractMethodError} from "@themost/common/errors";
 import moment from 'moment';
-import {LangUtils} from "../common/utils";
+import {LangUtils} from "@themost/common/utils";
 
 const SchemaDefaultNamespace = "Edm.Models";
 
@@ -74,7 +75,93 @@ export class EntitySetKind {
 EntitySetKind.EntitySet = "EntitySet";
 EntitySetKind.Singleton = "Singleton";
 EntitySetKind.FunctionImport = "FunctionImport";
+EntitySetKind.ActionImport = "ActionImport";
 
+export class ProcedureConfiguration {
+    /**
+     * @constructor
+     * @param {string} name
+     */
+    constructor(name) {
+        this.name = name;
+        this.parameters = [];
+        this.isBindable = false;
+    }
+
+    /**
+     * @param type
+     * @returns {ProcedureConfiguration}
+     */
+    returns(type) {
+        this.returnType = type;
+        return this;
+    }
+    /**
+     * @param type
+     * @returns {ProcedureConfiguration}
+     */
+    returnsCollection(type) {
+        this.returnCollectionType =  type;
+        return this;
+    }
+    /**
+     * @param {string} name
+     * @param {string} type
+     * @param {boolean=} nullable
+     */
+    parameter(name, type, nullable) {
+        Args.notString(name, "Action parameter name");
+        Args.notString(type, "Action parameter type");
+        const findRe = new RegExp(`^${name}$` ,"ig");
+        const p = _.find(this.parameters, function(x) {
+            return findRe.test(x.name);
+        });
+        if (p) {
+            p.type = type;
+        }
+        else {
+            this.parameters.push({
+                "name":name,
+                "type":type,
+                "nullable": _.isBoolean(nullable) ? nullable : false
+            });
+        }
+        return this;
+    }
+
+}
+
+/**
+ * @class
+ * @augments ProcedureConfiguration
+ */
+export class ActionConfiguration extends ProcedureConfiguration {
+    /**
+     * @constructor
+     * @param {string} name
+     */
+    constructor(name) {
+        super(name);
+        this.isBound = false;
+    }
+
+}
+
+/**
+ * @class
+ * @augments ProcedureConfiguration
+ */
+export class FunctionConfiguration extends ProcedureConfiguration {
+    /**
+     * @constructor
+     * @param {string} name
+     */
+    constructor(name) {
+        super(name);
+        this.isBound = false;
+    }
+
+}
 
 /**
  * @class
@@ -90,6 +177,8 @@ export class EntityTypeConfiguration {
         this.property = [];
         this.ignoredProperty = [];
         this.navigationProperty = [];
+        this.actions = [];
+        this.functions = [];
     }
 
     get name() {
@@ -102,6 +191,75 @@ export class EntityTypeConfiguration {
     derivesFrom(name) {
         Args.notString(name,"Enity type name");
         this.baseType = name;
+    }
+
+    /**
+     * Creates an action that bind to this entity type
+     * @param {string} name
+     * @returns ActionConfiguration
+     */
+    addAction(name) {
+        /**
+         * @type {ActionConfiguration|*}
+         */
+        let a = this.hasAction(name);
+        if (a) {
+            return a;
+        }
+        a = new ActionConfiguration(name);
+        //add current entity as parameter
+        a.parameter(_.camelCase(this.name), this.name);
+        a.isBound = true;
+        this.actions.push(a);
+        return a;
+    }
+
+    /**
+     * Checks if entity type has an action with the given name
+     * @param {string} name
+     * @returns {ActionConfiguration|*}
+     */
+    hasAction(name) {
+        if (_.isEmpty(name)) {
+            return;
+        }
+        const findRe = new RegExp(`^${name}$` ,"ig");
+        return _.find(this.actions, function(x) {
+           return findRe.test(x.name);
+        });
+    }
+
+    /**
+     * Creates an action that bind to this entity type
+     * @param {string} name
+     * @returns ActionConfiguration
+     */
+    addFunction(name) {
+        let a = this.hasFunction(name);
+        if (a) {
+            return a;
+        }
+        a = new FunctionConfiguration(name);
+        a.isBound = true;
+        a.parameter(_.camelCase(this.name), this.name);
+        //add current entity as parameter
+        this.functions.push(a);
+        return a;
+    }
+
+    /**
+     * Checks if entity type has a function with the given name
+     * @param {string} name
+     * @returns {ActionConfiguration|*}
+     */
+    hasFunction(name) {
+        if (_.isEmpty(name)) {
+            return;
+        }
+        const findRe = new RegExp(`^${name}$` ,"ig");
+        return _.find(this.functions, function(x) {
+            return findRe.test(x.name);
+        });
     }
 
     /**
@@ -441,6 +599,13 @@ export class EntitySetConfiguration {
 
 }
 
+export class SingletonConfiguration  extends EntitySetConfiguration {
+    constructor(builder, entityType, name) {
+        super(builder, entityType, name);
+        this.kind = EntitySetKind.Singleton;
+    }
+}
+
 /**
  * @classdesc Represents the OData model builder of an HTTP application
  * @property {string} serviceRoot - Gets or sets the service root URI
@@ -456,6 +621,7 @@ export class ODataModelBuilder extends ConfigurationStrategy {
         this[entityTypesProperty] = {};
         this[ignoreEntityTypesProperty] = [];
         this[entityContainerProperty] = [];
+        this.defaultNamespace = SchemaDefaultNamespace;
     }
 
     /**
@@ -484,13 +650,50 @@ export class ODataModelBuilder extends ConfigurationStrategy {
     }
 
     /**
+     * @param {*} entityType
+     * @param {string} name
+     * @returns SingletonConfiguration|*
+     */
+    addSingleton(entityType, name) {
+        if (!this.hasSingleton(name)) {
+            this[entityContainerProperty].push(new SingletonConfiguration(this, entityType, name));
+        }
+        return this.getSingleton(name);
+    }
+
+    /**
+     * Gets an entity set
+     * @param name
+     * @returns {SingletonConfiguration}
+     */
+    getSingleton(name) {
+        Args.notString(name, 'Singleton Name');
+        const re = new RegExp("^" + name + "$","ig");
+        return _.find(this[entityContainerProperty], (x)=> {
+            return re.test(x.name) && x.kind === EntitySetKind.Singleton;
+        });
+    }
+
+    /**
+     * @param {string} name
+     * @returns {SingletonConfiguration|*}
+     */
+    hasSingleton(name) {
+        const findRe = new RegExp(`^${name}$` ,"ig");
+        return _.findIndex(this[entityContainerProperty], (x) => {
+            return findRe.test(x.name) && x.kind === EntitySetKind.Singleton;
+        })>=0;
+    }
+
+    /**
      * Checks if the given entity set exists in entity container
      * @param {string} name
      * @returns {boolean}
      */
     hasEntitySet(name) {
+        const findRe = new RegExp(`^${name}$` ,"ig");
         return _.findIndex(this[entityContainerProperty], (x) => {
-            return x.name === name;
+            return findRe.test(x.name) && x.kind === EntitySetKind.EntitySet;
         })>=0;
     }
 
@@ -516,7 +719,7 @@ export class ODataModelBuilder extends ConfigurationStrategy {
         Args.notString(name, 'EntitySet Name');
         const re = new RegExp("^" + name + "$","ig");
         return _.find(this[entityContainerProperty], (x)=> {
-            return re.test(x.name);
+            return re.test(x.name) && x.kind === EntitySetKind.EntitySet;
         });
     }
 
@@ -564,7 +767,7 @@ export class ODataModelBuilder extends ConfigurationStrategy {
         return Q.promise((resolve, reject) => {
             try{
                 const schema = {
-                    namespace:SchemaDefaultNamespace,
+                    namespace:self.defaultNamespace,
                     entityType:[],
                     entityContainer: {
                         "name":"DefaultContainer",
@@ -579,7 +782,7 @@ export class ODataModelBuilder extends ConfigurationStrategy {
                 _.forEach(keys, (key)=> {
                     schema.entityType.push(self[entityTypesProperty][key]);
                 });
-                //enumerate entity sets
+                //apply entity sets
                 schema.entityContainer.entitySet.push.apply(schema.entityContainer.entitySet, self[entityContainerProperty]);
 
                 return resolve(schema);
@@ -623,8 +826,7 @@ export class ODataModelBuilder extends ConfigurationStrategy {
                     const schemaElement = doc.createElement("Schema");
                     schemaElement.setAttribute("xmlns", "http://docs.oasis-open.org/odata/ns/edm");
                     schemaElement.setAttribute("Namespace", schema.namespace);
-                    //schemaElement.setAttribute("Namespace", "Most.Data.Models");
-
+                    const actionElements = [], functionElements = [];
                     //append edmx:DataServices > Schema
                     dataServicesElement.appendChild(schemaElement);
                     _.forEach(schema.entityType,
@@ -634,12 +836,57 @@ export class ODataModelBuilder extends ConfigurationStrategy {
                          */
                         (entityType) => {
 
+                            //search for bound actions
+                            _.forEach(entityType.actions, function(action) {
+                                const actionElement = doc.createElement("Action");
+                                actionElement.setAttribute("Name", action.name);
+                                actionElement.setAttribute("IsBound", true);
+                                actionElement.setAttribute("IsComposable", true);
+                                _.forEach(action.parameters, function(parameter) {
+                                   const paramElement =  doc.createElement("Parameter");
+                                   paramElement.setAttribute("Name", parameter.name);
+                                   paramElement.setAttribute("Type", parameter.type);
+                                   paramElement.setAttribute("Nullable", _.isBoolean(parameter.nullable) ? parameter.nullable : false);
+                                    //append Action > Parameter
+                                   actionElement.appendChild(paramElement)
+                                });
+                                actionElements.push(actionElement);
+                            });
+
+                            //search for bound functions
+                            _.forEach(entityType.functions, function(func) {
+                                const functionElement = doc.createElement("Function");
+                                functionElement.setAttribute("Name", func.name);
+                                functionElement.setAttribute("IsBound", true);
+                                functionElement.setAttribute("IsComposable", true);
+                                _.forEach(func.parameters, function(parameter) {
+                                    const paramElement =  doc.createElement("Parameter");
+                                    paramElement.setAttribute("Name", parameter.name);
+                                    paramElement.setAttribute("Type", parameter.type);
+                                    paramElement.setAttribute("Nullable", _.isBoolean(parameter.nullable) ? parameter.nullable : false);
+                                    //append Function > Parameter
+                                    functionElement.appendChild(paramElement)
+                                });
+                                const returnTypeElement =  doc.createElement("ReturnType");
+                                let returnType = func.returnType;
+                                if (func.returnCollectionType) {
+                                    returnType = func.returnCollectionType;
+                                    returnTypeElement.setAttribute("Type", `Collection(${returnType})`);
+                                }
+                                else {
+                                    returnTypeElement.setAttribute("Type", returnType);
+                                }
+                                returnTypeElement.setAttribute("Nullable", true);
+                                functionElement.appendChild(returnTypeElement);
+                                functionElements.push(functionElement);
+                            });
+
                             //create element Schema > EntityType
                             const entityTypeElement = doc.createElement("EntityType");
                             entityTypeElement.setAttribute("Name", entityType.name);
                             entityTypeElement.setAttribute("OpenType", true);
                             if (entityType.baseType) {
-                                entityTypeElement.setAttribute("BaseType", schema.namespace.concat(".", entityType.baseType));
+                                entityTypeElement.setAttribute("BaseType", entityType.baseType);
                             }
 
                             if (entityType.key && entityType.key.propertyRef) {
@@ -675,6 +922,17 @@ export class ODataModelBuilder extends ConfigurationStrategy {
                             schemaElement.appendChild(entityTypeElement);
                         });
 
+                    //append action elements to schema
+                    _.forEach(actionElements, function(actionElement) {
+                       schemaElement.appendChild(actionElement);
+                    });
+                    //append function elements to schema
+                    _.forEach(functionElements, function(functionElement) {
+                        schemaElement.appendChild(functionElement);
+                    });
+
+
+
                     //create Schema > EntityContainer
                     const entityContainerElement = doc.createElement("EntityContainer");
                     entityContainerElement.setAttribute("Name", schema.entityContainer.name || "DefaultContainer");
@@ -687,7 +945,7 @@ export class ODataModelBuilder extends ConfigurationStrategy {
                             const childElement = doc.createElement(child.kind);
                             childElement.setAttribute("Name", child.name);
                             if ((child.kind === EntitySetKind.EntitySet) || (child.kind === EntitySetKind.Singleton)) {
-                                childElement.setAttribute("EntityType", schema.namespace.concat(".", child.entityType.name));
+                                childElement.setAttribute("EntityType", child.entityType.name);
                             }
                             const childAnnotation = doc.createElement("Annotation");
                             childAnnotation.setAttribute("Term", "Org.OData.Core.V1.ResourcePath");
@@ -703,6 +961,8 @@ export class ODataModelBuilder extends ConfigurationStrategy {
                     //append edmx:Edmx > edmx:DataServices
                     rootElement.appendChild(dataServicesElement);
                     return resolve(doc);
+                }).catch((err)=> {
+                    return reject(err);
                 });
             }
             catch(err) {
@@ -901,14 +1161,14 @@ export class ODataConventionModelBuilder extends ODataModelBuilder {
                         //find data type
                         const dataType = strategy.dataTypes[x.type];
                         //add property
-                        const edmType = _.isObject(dataType) ? (dataType.hasOwnProperty("edmtype") ? dataType["edmtype"]: "Edm." + x.type) : SchemaDefaultNamespace.concat(".",x.type);
+                        const edmType = _.isObject(dataType) ? (dataType.hasOwnProperty("edmtype") ? dataType["edmtype"]: "Edm." + x.type) : self.defaultNamespace.concat(".",x.type);
                         modelEntityType.addProperty(name, edmType, x.hasOwnProperty('nullable') ? x.nullable : true);
                         if (x.primary) {
                             modelEntityType.hasKey(name, edmType);
                         }
                     }
                     else {
-                        const namespacedType = SchemaDefaultNamespace.concat(".",x.type);
+                        const namespacedType = self.defaultNamespace.concat(".",x.type);
                         //add navigation property
                         const isNullable = x.hasOwnProperty('nullable') ? x.nullable : true;
                         modelEntityType.addNavigationProperty(name, namespacedType, x.many ? EdmMultiplicity.Many: (isNullable ? EdmMultiplicity.ZeroOrOne : EdmMultiplicity.One));

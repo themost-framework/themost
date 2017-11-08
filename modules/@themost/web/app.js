@@ -680,7 +680,13 @@ var HttpApplication = exports.HttpApplication = function () {
     }, {
         key: 'useRoutingStrategy',
         value: function useRoutingStrategy() {
-            return this.useStrategy(RoutingStrategy, DefaultRoutingStrategy);
+            if (!this.hasService(RoutingStrategy)) {
+                this.useStrategy(RoutingStrategy, DefaultRoutingStrategy);
+            }
+            if (!this.hasConsumer(RouteConsumer)) {
+                this.any(new RouteConsumer());
+            }
+            return this;
         }
 
         /**

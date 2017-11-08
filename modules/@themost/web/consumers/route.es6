@@ -120,6 +120,7 @@ export class HttpRoute {
         });
         if (self.route.hasOwnProperty("controller")) { self.routeData["controller"] = self.route["controller"]; }
         if (self.route.hasOwnProperty("action")) { self.routeData["action"] = self.route["action"]; }
+        if (self.route.hasOwnProperty("model")) { self.routeData["model"] = self.route["model"]; }
         return true;
     }
 

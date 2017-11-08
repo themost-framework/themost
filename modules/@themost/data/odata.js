@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.ODataConventionModelBuilder = exports.ODataModelBuilder = exports.EntitySetConfiguration = exports.EntityTypeConfiguration = exports.EntitySetKind = exports.EdmMultiplicity = exports.EdmType = undefined;
+exports.ODataConventionModelBuilder = exports.ODataModelBuilder = exports.SingletonConfiguration = exports.EntitySetConfiguration = exports.EntityTypeConfiguration = exports.FunctionConfiguration = exports.ActionConfiguration = exports.ProcedureConfiguration = exports.EntitySetKind = exports.EdmMultiplicity = exports.EdmType = undefined;
 
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
@@ -20,6 +20,7 @@ var ConfigurationStrategy = _config.ConfigurationStrategy;
 var _utils = require('@themost/common/utils');
 
 var Args = _utils.Args;
+var LangUtils = _utils.LangUtils;
 
 var _config2 = require('./config');
 
@@ -54,10 +55,6 @@ var _moment = require('moment');
 
 var moment = _interopRequireDefault(_moment).default;
 
-var _utils2 = require('../common/utils');
-
-var LangUtils = _utils2.LangUtils;
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -81,6 +78,7 @@ var ignoreEntityTypesProperty = Symbol('ignoredEntityTypes');
 var builderProperty = Symbol('builder');
 var entityTypeProperty = Symbol('entityType');
 var edmProperty = Symbol('edm');
+var singletonProperty = Symbol('singleton');
 
 
 var SchemaDefaultNamespace = "Edm.Models";
@@ -136,10 +134,129 @@ var EntitySetKind = exports.EntitySetKind = function EntitySetKind() {
 EntitySetKind.EntitySet = "EntitySet";
 EntitySetKind.Singleton = "Singleton";
 EntitySetKind.FunctionImport = "FunctionImport";
+EntitySetKind.ActionImport = "ActionImport";
+
+var ProcedureConfiguration = exports.ProcedureConfiguration = function () {
+    /**
+     * @constructor
+     * @param {string} name
+     */
+    function ProcedureConfiguration(name) {
+        _classCallCheck(this, ProcedureConfiguration);
+
+        this.name = name;
+        this.parameters = [];
+        this.isBindable = false;
+    }
+
+    /**
+     * @param type
+     * @returns {ProcedureConfiguration}
+     */
+
+
+    _createClass(ProcedureConfiguration, [{
+        key: 'returns',
+        value: function returns(type) {
+            this.returnType = type;
+            return this;
+        }
+        /**
+         * @param type
+         * @returns {ProcedureConfiguration}
+         */
+
+    }, {
+        key: 'returnsCollection',
+        value: function returnsCollection(type) {
+            this.returnCollectionType = type;
+            return this;
+        }
+        /**
+         * @param {string} name
+         * @param {string} type
+         * @param {boolean=} nullable
+         */
+
+    }, {
+        key: 'parameter',
+        value: function parameter(name, type, nullable) {
+            Args.notString(name, "Action parameter name");
+            Args.notString(type, "Action parameter type");
+            var findRe = new RegExp('^' + name + '$', "ig");
+            var p = _.find(this.parameters, function (x) {
+                return findRe.test(x.name);
+            });
+            if (p) {
+                p.type = type;
+            } else {
+                this.parameters.push({
+                    "name": name,
+                    "type": type,
+                    "nullable": _.isBoolean(nullable) ? nullable : false
+                });
+            }
+            return this;
+        }
+    }]);
+
+    return ProcedureConfiguration;
+}();
+
+/**
+ * @class
+ * @augments ProcedureConfiguration
+ */
+
+
+var ActionConfiguration = exports.ActionConfiguration = function (_ProcedureConfigurati) {
+    _inherits(ActionConfiguration, _ProcedureConfigurati);
+
+    /**
+     * @constructor
+     * @param {string} name
+     */
+    function ActionConfiguration(name) {
+        _classCallCheck(this, ActionConfiguration);
+
+        var _this = _possibleConstructorReturn(this, (ActionConfiguration.__proto__ || Object.getPrototypeOf(ActionConfiguration)).call(this, name));
+
+        _this.isBound = false;
+        return _this;
+    }
+
+    return ActionConfiguration;
+}(ProcedureConfiguration);
+
+/**
+ * @class
+ * @augments ProcedureConfiguration
+ */
+
+
+var FunctionConfiguration = exports.FunctionConfiguration = function (_ProcedureConfigurati2) {
+    _inherits(FunctionConfiguration, _ProcedureConfigurati2);
+
+    /**
+     * @constructor
+     * @param {string} name
+     */
+    function FunctionConfiguration(name) {
+        _classCallCheck(this, FunctionConfiguration);
+
+        var _this2 = _possibleConstructorReturn(this, (FunctionConfiguration.__proto__ || Object.getPrototypeOf(FunctionConfiguration)).call(this, name));
+
+        _this2.isBound = false;
+        return _this2;
+    }
+
+    return FunctionConfiguration;
+}(ProcedureConfiguration);
 
 /**
  * @class
  */
+
 
 var EntityTypeConfiguration = exports.EntityTypeConfiguration = function () {
     /**
@@ -154,6 +271,8 @@ var EntityTypeConfiguration = exports.EntityTypeConfiguration = function () {
         this.property = [];
         this.ignoredProperty = [];
         this.navigationProperty = [];
+        this.actions = [];
+        this.functions = [];
     }
 
     _createClass(EntityTypeConfiguration, [{
@@ -166,6 +285,87 @@ var EntityTypeConfiguration = exports.EntityTypeConfiguration = function () {
         value: function derivesFrom(name) {
             Args.notString(name, "Enity type name");
             this.baseType = name;
+        }
+
+        /**
+         * Creates an action that bind to this entity type
+         * @param {string} name
+         * @returns ActionConfiguration
+         */
+
+    }, {
+        key: 'addAction',
+        value: function addAction(name) {
+            /**
+             * @type {ActionConfiguration|*}
+             */
+            var a = this.hasAction(name);
+            if (a) {
+                return a;
+            }
+            a = new ActionConfiguration(name);
+            //add current entity as parameter
+            a.parameter(_.camelCase(this.name), this.name);
+            a.isBound = true;
+            this.actions.push(a);
+            return a;
+        }
+
+        /**
+         * Checks if entity type has an action with the given name
+         * @param {string} name
+         * @returns {ActionConfiguration|*}
+         */
+
+    }, {
+        key: 'hasAction',
+        value: function hasAction(name) {
+            if (_.isEmpty(name)) {
+                return;
+            }
+            var findRe = new RegExp('^' + name + '$', "ig");
+            return _.find(this.actions, function (x) {
+                return findRe.test(x.name);
+            });
+        }
+
+        /**
+         * Creates an action that bind to this entity type
+         * @param {string} name
+         * @returns ActionConfiguration
+         */
+
+    }, {
+        key: 'addFunction',
+        value: function addFunction(name) {
+            var a = this.hasFunction(name);
+            if (a) {
+                return a;
+            }
+            a = new FunctionConfiguration(name);
+            a.isBound = true;
+            a.parameter(_.camelCase(this.name), this.name);
+            //add current entity as parameter
+            this.functions.push(a);
+            return a;
+        }
+
+        /**
+         * Checks if entity type has a function with the given name
+         * @param {string} name
+         * @returns {ActionConfiguration|*}
+         */
+
+    }, {
+        key: 'hasFunction',
+        value: function hasFunction(name) {
+            if (_.isEmpty(name)) {
+                return;
+            }
+            var findRe = new RegExp('^' + name + '$', "ig");
+            return _.find(this.functions, function (x) {
+                return findRe.test(x.name);
+            });
         }
 
         /**
@@ -568,6 +768,21 @@ var EntitySetConfiguration = exports.EntitySetConfiguration = function () {
     return EntitySetConfiguration;
 }();
 
+var SingletonConfiguration = exports.SingletonConfiguration = function (_EntitySetConfigurati) {
+    _inherits(SingletonConfiguration, _EntitySetConfigurati);
+
+    function SingletonConfiguration(builder, entityType, name) {
+        _classCallCheck(this, SingletonConfiguration);
+
+        var _this3 = _possibleConstructorReturn(this, (SingletonConfiguration.__proto__ || Object.getPrototypeOf(SingletonConfiguration)).call(this, builder, entityType, name));
+
+        _this3.kind = EntitySetKind.Singleton;
+        return _this3;
+    }
+
+    return SingletonConfiguration;
+}(EntitySetConfiguration);
+
 /**
  * @classdesc Represents the OData model builder of an HTTP application
  * @property {string} serviceRoot - Gets or sets the service root URI
@@ -585,12 +800,13 @@ var ODataModelBuilder = exports.ODataModelBuilder = function (_ConfigurationStra
     function ODataModelBuilder(config) {
         _classCallCheck(this, ODataModelBuilder);
 
-        var _this = _possibleConstructorReturn(this, (ODataModelBuilder.__proto__ || Object.getPrototypeOf(ODataModelBuilder)).call(this, config));
+        var _this4 = _possibleConstructorReturn(this, (ODataModelBuilder.__proto__ || Object.getPrototypeOf(ODataModelBuilder)).call(this, config));
 
-        _this[entityTypesProperty] = {};
-        _this[ignoreEntityTypesProperty] = [];
-        _this[entityContainerProperty] = [];
-        return _this;
+        _this4[entityTypesProperty] = {};
+        _this4[ignoreEntityTypesProperty] = [];
+        _this4[entityContainerProperty] = [];
+        _this4.defaultNamespace = SchemaDefaultNamespace;
+        return _this4;
     }
 
     /**
@@ -626,6 +842,51 @@ var ODataModelBuilder = exports.ODataModelBuilder = function (_ConfigurationStra
         }
 
         /**
+         * @param {*} entityType
+         * @param {string} name
+         * @returns SingletonConfiguration|*
+         */
+
+    }, {
+        key: 'addSingleton',
+        value: function addSingleton(entityType, name) {
+            if (!this.hasSingleton(name)) {
+                this[entityContainerProperty].push(new SingletonConfiguration(this, entityType, name));
+            }
+            return this.getSingleton(name);
+        }
+
+        /**
+         * Gets an entity set
+         * @param name
+         * @returns {SingletonConfiguration}
+         */
+
+    }, {
+        key: 'getSingleton',
+        value: function getSingleton(name) {
+            Args.notString(name, 'Singleton Name');
+            var re = new RegExp("^" + name + "$", "ig");
+            return _.find(this[entityContainerProperty], function (x) {
+                return re.test(x.name) && x.kind === EntitySetKind.Singleton;
+            });
+        }
+
+        /**
+         * @param {string} name
+         * @returns {SingletonConfiguration|*}
+         */
+
+    }, {
+        key: 'hasSingleton',
+        value: function hasSingleton(name) {
+            var findRe = new RegExp('^' + name + '$', "ig");
+            return _.findIndex(this[entityContainerProperty], function (x) {
+                return findRe.test(x.name) && x.kind === EntitySetKind.Singleton;
+            }) >= 0;
+        }
+
+        /**
          * Checks if the given entity set exists in entity container
          * @param {string} name
          * @returns {boolean}
@@ -634,8 +895,9 @@ var ODataModelBuilder = exports.ODataModelBuilder = function (_ConfigurationStra
     }, {
         key: 'hasEntitySet',
         value: function hasEntitySet(name) {
+            var findRe = new RegExp('^' + name + '$', "ig");
             return _.findIndex(this[entityContainerProperty], function (x) {
-                return x.name === name;
+                return findRe.test(x.name) && x.kind === EntitySetKind.EntitySet;
             }) >= 0;
         }
 
@@ -667,7 +929,7 @@ var ODataModelBuilder = exports.ODataModelBuilder = function (_ConfigurationStra
             Args.notString(name, 'EntitySet Name');
             var re = new RegExp("^" + name + "$", "ig");
             return _.find(this[entityContainerProperty], function (x) {
-                return re.test(x.name);
+                return re.test(x.name) && x.kind === EntitySetKind.EntitySet;
             });
         }
 
@@ -727,7 +989,7 @@ var ODataModelBuilder = exports.ODataModelBuilder = function (_ConfigurationStra
             return Q.promise(function (resolve, reject) {
                 try {
                     var schema = {
-                        namespace: SchemaDefaultNamespace,
+                        namespace: self.defaultNamespace,
                         entityType: [],
                         entityContainer: {
                             "name": "DefaultContainer",
@@ -742,7 +1004,7 @@ var ODataModelBuilder = exports.ODataModelBuilder = function (_ConfigurationStra
                     _.forEach(keys, function (key) {
                         schema.entityType.push(self[entityTypesProperty][key]);
                     });
-                    //enumerate entity sets
+                    //apply entity sets
                     schema.entityContainer.entitySet.push.apply(schema.entityContainer.entitySet, self[entityContainerProperty]);
 
                     return resolve(schema);
@@ -791,8 +1053,8 @@ var ODataModelBuilder = exports.ODataModelBuilder = function (_ConfigurationStra
                         var schemaElement = doc.createElement("Schema");
                         schemaElement.setAttribute("xmlns", "http://docs.oasis-open.org/odata/ns/edm");
                         schemaElement.setAttribute("Namespace", schema.namespace);
-                        //schemaElement.setAttribute("Namespace", "Most.Data.Models");
-
+                        var actionElements = [],
+                            functionElements = [];
                         //append edmx:DataServices > Schema
                         dataServicesElement.appendChild(schemaElement);
                         _.forEach(schema.entityType,
@@ -802,12 +1064,56 @@ var ODataModelBuilder = exports.ODataModelBuilder = function (_ConfigurationStra
                          */
                         function (entityType) {
 
+                            //search for bound actions
+                            _.forEach(entityType.actions, function (action) {
+                                var actionElement = doc.createElement("Action");
+                                actionElement.setAttribute("Name", action.name);
+                                actionElement.setAttribute("IsBound", true);
+                                actionElement.setAttribute("IsComposable", true);
+                                _.forEach(action.parameters, function (parameter) {
+                                    var paramElement = doc.createElement("Parameter");
+                                    paramElement.setAttribute("Name", parameter.name);
+                                    paramElement.setAttribute("Type", parameter.type);
+                                    paramElement.setAttribute("Nullable", _.isBoolean(parameter.nullable) ? parameter.nullable : false);
+                                    //append Action > Parameter
+                                    actionElement.appendChild(paramElement);
+                                });
+                                actionElements.push(actionElement);
+                            });
+
+                            //search for bound functions
+                            _.forEach(entityType.functions, function (func) {
+                                var functionElement = doc.createElement("Function");
+                                functionElement.setAttribute("Name", func.name);
+                                functionElement.setAttribute("IsBound", true);
+                                functionElement.setAttribute("IsComposable", true);
+                                _.forEach(func.parameters, function (parameter) {
+                                    var paramElement = doc.createElement("Parameter");
+                                    paramElement.setAttribute("Name", parameter.name);
+                                    paramElement.setAttribute("Type", parameter.type);
+                                    paramElement.setAttribute("Nullable", _.isBoolean(parameter.nullable) ? parameter.nullable : false);
+                                    //append Function > Parameter
+                                    functionElement.appendChild(paramElement);
+                                });
+                                var returnTypeElement = doc.createElement("ReturnType");
+                                var returnType = func.returnType;
+                                if (func.returnCollectionType) {
+                                    returnType = func.returnCollectionType;
+                                    returnTypeElement.setAttribute("Type", 'Collection(' + returnType + ')');
+                                } else {
+                                    returnTypeElement.setAttribute("Type", returnType);
+                                }
+                                returnTypeElement.setAttribute("Nullable", true);
+                                functionElement.appendChild(returnTypeElement);
+                                functionElements.push(functionElement);
+                            });
+
                             //create element Schema > EntityType
                             var entityTypeElement = doc.createElement("EntityType");
                             entityTypeElement.setAttribute("Name", entityType.name);
                             entityTypeElement.setAttribute("OpenType", true);
                             if (entityType.baseType) {
-                                entityTypeElement.setAttribute("BaseType", schema.namespace.concat(".", entityType.baseType));
+                                entityTypeElement.setAttribute("BaseType", entityType.baseType);
                             }
 
                             if (entityType.key && entityType.key.propertyRef) {
@@ -843,6 +1149,15 @@ var ODataModelBuilder = exports.ODataModelBuilder = function (_ConfigurationStra
                             schemaElement.appendChild(entityTypeElement);
                         });
 
+                        //append action elements to schema
+                        _.forEach(actionElements, function (actionElement) {
+                            schemaElement.appendChild(actionElement);
+                        });
+                        //append function elements to schema
+                        _.forEach(functionElements, function (functionElement) {
+                            schemaElement.appendChild(functionElement);
+                        });
+
                         //create Schema > EntityContainer
                         var entityContainerElement = doc.createElement("EntityContainer");
                         entityContainerElement.setAttribute("Name", schema.entityContainer.name || "DefaultContainer");
@@ -855,7 +1170,7 @@ var ODataModelBuilder = exports.ODataModelBuilder = function (_ConfigurationStra
                             var childElement = doc.createElement(child.kind);
                             childElement.setAttribute("Name", child.name);
                             if (child.kind === EntitySetKind.EntitySet || child.kind === EntitySetKind.Singleton) {
-                                childElement.setAttribute("EntityType", schema.namespace.concat(".", child.entityType.name));
+                                childElement.setAttribute("EntityType", child.entityType.name);
                             }
                             var childAnnotation = doc.createElement("Annotation");
                             childAnnotation.setAttribute("Term", "Org.OData.Core.V1.ResourcePath");
@@ -871,6 +1186,8 @@ var ODataModelBuilder = exports.ODataModelBuilder = function (_ConfigurationStra
                         //append edmx:Edmx > edmx:DataServices
                         rootElement.appendChild(dataServicesElement);
                         return resolve(doc);
+                    }).catch(function (err) {
+                        return reject(err);
                     });
                 } catch (err) {
                     return reject(err);
@@ -985,12 +1302,12 @@ var EntityDataContext = function (_DataContext) {
     function EntityDataContext(configuration) {
         _classCallCheck(this, EntityDataContext);
 
-        var _this2 = _possibleConstructorReturn(this, (EntityDataContext.__proto__ || Object.getPrototypeOf(EntityDataContext)).call(this));
+        var _this5 = _possibleConstructorReturn(this, (EntityDataContext.__proto__ || Object.getPrototypeOf(EntityDataContext)).call(this));
 
-        _this2.getConfiguration = function () {
+        _this5.getConfiguration = function () {
             return configuration;
         };
-        return _this2;
+        return _this5;
     }
 
     _createClass(EntityDataContext, [{
@@ -1090,13 +1407,13 @@ var ODataConventionModelBuilder = exports.ODataConventionModelBuilder = function
                             //find data type
                             var dataType = strategy.dataTypes[x.type];
                             //add property
-                            var edmType = _.isObject(dataType) ? dataType.hasOwnProperty("edmtype") ? dataType["edmtype"] : "Edm." + x.type : SchemaDefaultNamespace.concat(".", x.type);
+                            var edmType = _.isObject(dataType) ? dataType.hasOwnProperty("edmtype") ? dataType["edmtype"] : "Edm." + x.type : self.defaultNamespace.concat(".", x.type);
                             modelEntityType.addProperty(name, edmType, x.hasOwnProperty('nullable') ? x.nullable : true);
                             if (x.primary) {
                                 modelEntityType.hasKey(name, edmType);
                             }
                         } else {
-                            var namespacedType = SchemaDefaultNamespace.concat(".", x.type);
+                            var namespacedType = self.defaultNamespace.concat(".", x.type);
                             //add navigation property
                             var isNullable = x.hasOwnProperty('nullable') ? x.nullable : true;
                             modelEntityType.addNavigationProperty(name, namespacedType, x.many ? EdmMultiplicity.Many : isNullable ? EdmMultiplicity.ZeroOrOne : EdmMultiplicity.One);

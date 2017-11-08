@@ -38,8 +38,33 @@ export class HttpResult {
         return this;
     }
 
+    /**
+     * @returns {*|Q.Promise<HttpResult>|Q.Promise<any>}
+     */
     toPromise() {
         return Q(this);
+    }
+
+    /**
+     * @returns {*|Q.Promise<HttpNextResult>}
+     */
+    static next() {
+        return HttpNextResult.create().toPromise();
+    }
+
+    /**
+     * @returns {*|Q.Promise<HttpEndResult>}
+     */
+    static end() {
+        return HttpEndResult.create().toPromise();
+    }
+
+    /**
+     * @param {number} status
+     * @returns {*|Q.Promise<HttpErrorResult>}
+     */
+    static error(status) {
+        return HttpErrorResult.create(status).toPromise();
     }
 
 }

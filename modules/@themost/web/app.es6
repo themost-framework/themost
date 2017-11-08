@@ -525,7 +525,13 @@ export class HttpApplication {
      * @returns {HttpApplication}
      */
     useRoutingStrategy() {
-        return this.useStrategy(RoutingStrategy, DefaultRoutingStrategy);
+        if (!this.hasService(RoutingStrategy))  {
+            this.useStrategy(RoutingStrategy, DefaultRoutingStrategy);
+        }
+        if (!this.hasConsumer(RouteConsumer)) {
+            this.any(new RouteConsumer());
+        }
+        return this;
     }
 
     /**
