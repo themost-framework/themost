@@ -101,11 +101,12 @@ export class HttpRoute {
             }
             match = re.exec(this.route.url);
         }
-        const str = this.route.url.replace(re, "([\\$_\\-0-9\\w-]+)"), matcher = new RegExp("^" + str + "$", "ig");
+        const str = this.route.url.replace(re, "([\\$_\\-%0-9\\w-]+)"), matcher = new RegExp("^" + str + "$", "ig");
         match = matcher.exec(str1);
         if (typeof match === 'undefined' || match === null) {
             return false;
         }
+        let decodedMatch;
         for (let i = 0; i < params.length; i++) {
             const param = params[i];
             if (typeof param.pattern !== 'undefined') {
@@ -113,7 +114,8 @@ export class HttpRoute {
                     return false;
                 }
             }
-            param.value = match[i+1];
+            decodedMatch = decodeURIComponent(match[i+1]);
+            param.value = (match[i+1] !== decodedMatch) ? decodedMatch : match[i+1];
         }
         params.forEach(function(x) {
             self.routeData[x.name] = x.value;

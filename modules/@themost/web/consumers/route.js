@@ -145,12 +145,13 @@ var HttpRoute = exports.HttpRoute = function () {
                 }
                 match = re.exec(this.route.url);
             }
-            var str = this.route.url.replace(re, "([\\$_\\-0-9\\w-]+)"),
+            var str = this.route.url.replace(re, "([\\$_\\-%0-9\\w-]+)"),
                 matcher = new RegExp("^" + str + "$", "ig");
             match = matcher.exec(str1);
             if (typeof match === 'undefined' || match === null) {
                 return false;
             }
+            var decodedMatch = void 0;
             for (var i = 0; i < params.length; i++) {
                 var param = params[i];
                 if (typeof param.pattern !== 'undefined') {
@@ -158,7 +159,8 @@ var HttpRoute = exports.HttpRoute = function () {
                         return false;
                     }
                 }
-                param.value = match[i + 1];
+                decodedMatch = decodeURIComponent(match[i + 1]);
+                param.value = match[i + 1] !== decodedMatch ? decodedMatch : match[i + 1];
             }
             params.forEach(function (x) {
                 self.routeData[x.name] = x.value;
