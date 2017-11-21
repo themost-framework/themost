@@ -146,7 +146,7 @@ var ProcedureConfiguration = exports.ProcedureConfiguration = function () {
 
         this.name = name;
         this.parameters = [];
-        this.isBindable = false;
+        this.isBound = false;
     }
 
     /**

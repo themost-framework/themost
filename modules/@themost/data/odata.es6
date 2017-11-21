@@ -85,7 +85,7 @@ export class ProcedureConfiguration {
     constructor(name) {
         this.name = name;
         this.parameters = [];
-        this.isBindable = false;
+        this.isBound = false;
     }
 
     /**
