@@ -1,6 +1,6 @@
 {
   "name": "@themost/web",
-  "version": "2.0.0-alpha.1",
+  "version": "2.0.3",
   "description": "MOST Web Framework 2.0 - web server module",
   "module": "index.js",
   "peerDependencies": {},
@@ -36,9 +36,27 @@
     "pug": "^0.1.0",
     "vash": "^0.11.2",
     "pagedown": "^1.1.0",
-    "url-join": "^2.0.2"
+    "url-join": "^2.0.2",
+    "most-data": "~1.8.25",
+    "pluralize": "^7.0.0",
+    "sprintf": "^0.1.5",
+    "string": "1.5.1",
+    "symbol": "^0.3.1"
   },
   "devDependencies": {
-    "esdoc-standard-plugin": "^1.0.0"
+    "eslint": "^4.10.0"
+  },
+  "eslintConfig": {
+    "env": {
+      "browser": true,
+      "node": true,
+      "es6": false,
+      "jquery": true
+    },
+    "globals": {
+      "describe": false,
+      "it": false
+    },
+    "extends": "eslint:recommended"
   }
 }

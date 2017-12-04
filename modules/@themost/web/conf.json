@@ -1,0 +1,13 @@
+{
+    "tags": {
+        "allowUnknownTags": true
+    },
+    "source": {
+        "include": ["./"],
+        "includePattern": ".+\\.js(doc)?$",
+        "exclude":[ "angular.js","jquery.js" ]
+    },
+    "opts": {
+        "readme":"README.md"
+    }
+}

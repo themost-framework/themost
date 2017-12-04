@@ -1,9 +1,0 @@
-{
-    "source": ".",
-    "includes": ["\\.(es6)$"],
-    "excludes": ["node_modules\\.es6$"],
-    "destination": "./doc",
-    "plugins": [{
-      "name": "esdoc-standard-plugin"
-    }]
-}

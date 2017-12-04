@@ -1,111 +1,35 @@
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.DecoratorError = undefined;
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-exports.httpGet = httpGet;
-exports.httpPost = httpPost;
-exports.httpPut = httpPut;
-exports.httpDelete = httpDelete;
-exports.httpAction = httpAction;
-exports.httpParam = httpParam;
-exports.httpAuthorize = httpAuthorize;
-
-require('source-map-support/register');
-
-var _lodash = require('lodash');
-
-var _ = _interopRequireDefault(_lodash).default;
-
-var _q = require('q');
-
-var Q = _interopRequireDefault(_q).default;
-
-var _errors = require('@themost/common/errors');
-
-var HttpBadRequestError = _errors.HttpBadRequestError;
-var HttpUnauthorizedError = _errors.HttpUnauthorizedError;
-
-var _consumers = require('./consumers');
-
-var HttpConsumer = _consumers.HttpConsumer;
-
-var _utils = require('@themost/common/utils');
-
-var TraceUtils = _utils.TraceUtils;
-var LangUtils = _utils.LangUtils;
-var Args = _utils.Args;
-
-var _validators = require('@themost/data/validators');
-
-var DataTypeValidator = _validators.DataTypeValidator;
-var MinValueValidator = _validators.MinValueValidator;
-var MaxValueValidator = _validators.MaxValueValidator;
-var MaxLengthValidator = _validators.MaxLengthValidator;
-var MinLengthValidator = _validators.MinLengthValidator;
-var PatternValidator = _validators.PatternValidator;
-var RequiredValidator = _validators.RequiredValidator;
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-function _extendableBuiltin(cls) {
-    function ExtendableBuiltin() {
-        var instance = Reflect.construct(cls, Array.from(arguments));
-        Object.setPrototypeOf(instance, Object.getPrototypeOf(this));
-        return instance;
-    }
-
-    ExtendableBuiltin.prototype = Object.create(cls.prototype, {
-        constructor: {
-            value: cls,
-            enumerable: false,
-            writable: true,
-            configurable: true
-        }
-    });
-
-    if (Object.setPrototypeOf) {
-        Object.setPrototypeOf(ExtendableBuiltin, cls);
-    } else {
-        ExtendableBuiltin.__proto__ = cls;
-    }
-
-    return ExtendableBuiltin;
-} /**
-   * @license
-   * MOST Web Framework 2.0 Codename Blueshift
-   * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
-   *                     Anthi Oikonomou anthioikonomou@gmail.com
-   *
-   * Use of this source code is governed by an BSD-3-Clause license that can be
-   * found in the LICENSE file at https://themost.io/license
-   */
+var _ = require('lodash');
+var util = require('util');
+var Q = require('q');
+var common = require('./common');
+var HttpConsumer = require('./consumers').HttpConsumer;
+var DataTypeValidator = require('most-data').validators.DataTypeValidator;
+var MinLengthValidator = require('most-data').validators.MinLengthValidator;
+var MaxLengthValidator = require('most-data').validators.MaxLengthValidator;
+var MinValueValidator = require('most-data').validators.MinValueValidator;
+var MaxValueValidator = require('most-data').validators.MaxValueValidator;
+var RequiredValidator = require('most-data').validators.RequiredValidator;
+var PatternValidator = require('most-data').validators.PatternValidator;
 
 /**
  * @class
+ * @constructor
  * @extends Error
+ * @augments Error
  */
-var DecoratorError = exports.DecoratorError = function (_extendableBuiltin2) {
-    _inherits(DecoratorError, _extendableBuiltin2);
+function DecoratorError() {
+    DecoratorError.super_.call(this, 'Decorator is not valid on this declaration type.');
+}
+util.inherits(DecoratorError, Error);
 
-    function DecoratorError() {
-        _classCallCheck(this, DecoratorError);
-
-        return _possibleConstructorReturn(this, (DecoratorError.__proto__ || Object.getPrototypeOf(DecoratorError)).call(this, 'Decorator is not valid on this declaration type.'));
+function httpController() {
+    return function (target, key, descriptor) {
+        if (typeof target === 'function') {
+            target.httpController = true;
+        }
+        return descriptor;
     }
-
-    return DecoratorError;
-}(_extendableBuiltin(Error));
+}
 
 function httpGet() {
     return function (target, key, descriptor) {
@@ -113,185 +37,233 @@ function httpGet() {
             descriptor.value.httpGet = true;
         }
         return descriptor;
-    };
+    }
+}
+
+function httpAny() {
+    return function (target, key, descriptor) {
+        if (typeof descriptor.value === 'function') {
+            descriptor.value.httpGet = true;
+            descriptor.value.httpPost = true;
+            descriptor.value.httpPut = true;
+            descriptor.value.httpDelete = true;
+            descriptor.value.httpOptions = true;
+            descriptor.value.httpHead = true;
+        }
+        return descriptor;
+    }
 }
 
 function httpPost() {
     return function (target, key, descriptor) {
-        if (typeof descriptor.value !== 'function') {
-            throw new DecoratorError();
+        if (typeof descriptor.value === 'function') {
+            descriptor.value.httpPost = true;
         }
-        descriptor.value.httpPost = true;
         return descriptor;
-    };
+    }
+}
+
+function httpPatch() {
+    return function (target, key, descriptor) {
+        if (typeof descriptor.value === 'function') {
+            descriptor.value.httpPatch = true;
+        }
+        return descriptor;
+    }
 }
 
 function httpPut() {
     return function (target, key, descriptor) {
-        if (typeof descriptor.value !== 'function') {
-            throw new DecoratorError();
+        if (typeof descriptor.value === 'function') {
+            descriptor.value.httpPut = true;
         }
-        descriptor.value.httpPut = true;
         return descriptor;
-    };
+    }
 }
 
 function httpDelete() {
     return function (target, key, descriptor) {
-        if (typeof descriptor.value !== 'function') {
-            throw new DecoratorError();
+        if (typeof descriptor.value === 'function') {
+            descriptor.value.httpDelete = true;
         }
-        descriptor.value.httpDelete = true;
         return descriptor;
-    };
+    }
 }
-/**
- *
- * @param {string} name
- * @returns {Function}
- */
+
+function httpOptions() {
+    return function (target, key, descriptor) {
+        if (typeof descriptor.value === 'function') {
+            descriptor.value.httpOptions = true;
+        }
+        return descriptor;
+    }
+}
+
+function httpHead() {
+    return function (target, key, descriptor) {
+        if (typeof descriptor.value === 'function') {
+            descriptor.value.httpHead = true;
+        }
+        return descriptor;
+    }
+}
+
 function httpAction(name) {
     if (typeof name !== 'string') {
         throw new TypeError('Action name must be a string');
     }
     return function (target, key, descriptor) {
         if (typeof descriptor.value !== 'function') {
-            throw new DecoratorError();
+            throw new Error('Decorator is not valid on this declaration type.');
         }
         descriptor.value.httpAction = name;
         return descriptor;
-    };
+    }
 }
-
 /**
-* @class
-* @abstract
-* @property {string} name
-* @property {string} type
-* @property {RegExp|string} pattern
-* @property {date|number|*} minValue
-* @property {date|number|*} maxValue
-* @property {number} minLength
-* @property {number} maxLength
-* @property {boolean} required
-* @property {string} message
-* @constructor
-*/
-function HttpParamAttributeOptions() {}
-//
-
-
-/**
- * @param {*=} options
+ *
+ * @param {string} name
+ * @param {string} alias
  * @returns {Function}
  */
-function httpParam(options) {
-    if ((typeof options === 'undefined' ? 'undefined' : _typeof(options)) !== 'object') {
-        throw new TypeError('Parameter options must be an object');
-    }
-    if (typeof options.name !== 'string') {
+function httpParamAlias(name, alias) {
+    if (typeof name !== 'string') {
         throw new TypeError('Parameter name must be a string');
+    }
+    if (typeof alias !== 'string') {
+        throw new TypeError('Parameter alias must be a string');
     }
     return function (target, key, descriptor) {
         if (typeof descriptor.value !== 'function') {
             throw new Error('Decorator is not valid on this declaration type.');
         }
+        descriptor.value.httpParamAlias = descriptor.value.httpParamAlias || { };
+        descriptor.value.httpParamAlias[name] = alias;
+        return descriptor;
+    }
+}
+/**
+ * @class
+ * @abstract
+ * @property {string} name
+ * @property {string} type
+ * @property {RegExp|string} pattern
+ * @property {date|number|*} minValue
+ * @property {date|number|*} maxValue
+ * @property {number} minLength
+ * @property {number} maxLength
+ * @property {boolean} required
+ * @property {string} message
+ * @constructor
+ */
+// eslint-disable-next-line no-unused-vars
+function HttpParamAttributeOptions() {
 
-        descriptor.value.httpParams = descriptor.value.httpParams || {};
-        descriptor.value.httpParams[options.name] = _.extend({ "type": "Text" }, options);
+}
+
+/**
+ * @param {HttpParamAttributeOptions|*=} options
+ * @returns {Function}
+ */
+function httpParam(options) {
+    if (typeof options !== 'object') { throw new TypeError('Parameter options must be an object'); }
+    if (typeof options.name !== 'string') { throw new TypeError('Parameter name must be a string'); }
+    return function (target, key, descriptor) {
+        if (typeof descriptor.value !== 'function') {
+            throw new Error('Decorator is not valid on this declaration type.');
+        }
+
+        descriptor.value.httpParams = descriptor.value.httpParams || { };
+        descriptor.value.httpParams[options.name] = _.extend({"type":"Text"}, options);
         if (typeof descriptor.value.httpParam === 'undefined') {
             descriptor.value.httpParam = new HttpConsumer(function (context) {
                 var httpParamValidationFailedCallback = function httpParamValidationFailedCallback(context, httpParam, validationResult) {
-                    TraceUtils.log(_.assign(validationResult, {
-                        "param": httpParam,
+                    common.log(_.assign(validationResult, {
+                        "param":httpParam,
                         "request": {
-                            "url": context.request.url,
-                            "method": context.request.method
+                            "url":context.request.url,
+                            "method":context.request.method
                         }
                     }));
-                    return Q.reject(new HttpBadRequestError('Bad request parameter', httpParam.message || validationResult.message));
+                    return Q.reject(new common.HttpBadRequest('Bad request parameter', httpParam.message || validationResult.message));
                 };
-                var methodParams = LangUtils.getFunctionParams(descriptor.value);
+                var methodParams = common.getFunctionParams(descriptor.value);
                 var httpParams = descriptor.value.httpParams;
-                if (methodParams.length > 0) {
-                    var k = 0,
-                        _httpParam = void 0,
-                        validator = void 0,
-                        validationResult = void 0,
-                        functionParam = void 0,
-                        contextParam = void 0;
+                if (methodParams.length>0) {
+                    var k = 0, httpParam, validator, validationResult, functionParam, contextParam;
                     while (k < methodParams.length) {
                         functionParam = methodParams[k];
                         if (typeof context.getParam === 'function') {
                             contextParam = context.getParam(functionParam);
-                        } else {
+                        }
+                        else {
                             contextParam = context.params[functionParam];
                         }
                         if (_.isObject(httpParams)) {
-                            _httpParam = httpParams[functionParam];
-                            if (_.isObject(_httpParam)) {
-                                if (typeof _httpParam.type === 'string') {
+                            httpParam = httpParams[functionParam];
+                            if (_.isObject(httpParam)) {
+                                if (typeof httpParam.type === 'string') {
                                     //--validate type
-                                    validator = new DataTypeValidator(_httpParam.type);
+                                    validator = new DataTypeValidator(httpParam.type);
                                     validator.setContext(context);
                                     validationResult = validator.validateSync(contextParam);
                                     if (validationResult) {
-                                        return httpParamValidationFailedCallback(context, _httpParam, validationResult);
+                                        return httpParamValidationFailedCallback(context, httpParam, validationResult);
                                     }
                                 }
-                                if (_httpParam.pattern instanceof RegExp) {
+                                if (httpParam.pattern instanceof RegExp) {
                                     //--validate pattern
-                                    validator = new PatternValidator(_httpParam.pattern);
+                                    validator = new PatternValidator(httpParam.pattern);
                                     validator.setContext(context);
                                     validationResult = validator.validateSync(contextParam);
                                     if (validationResult) {
-                                        return httpParamValidationFailedCallback(context, _httpParam, validationResult);
+                                        return httpParamValidationFailedCallback(context, httpParam, validationResult);
                                     }
                                 }
-                                if (typeof _httpParam.minLength === 'number') {
+                                if (typeof httpParam.minLength === 'number') {
                                     //--validate min length
-                                    validator = new MinLengthValidator(_httpParam.minLength);
+                                    validator = new MinLengthValidator(httpParam.minLength);
                                     validator.setContext(context);
                                     validationResult = validator.validateSync(contextParam);
                                     if (validationResult) {
-                                        return httpParamValidationFailedCallback(context, _httpParam, validationResult);
+                                        return httpParamValidationFailedCallback(context, httpParam, validationResult);
                                     }
                                 }
-                                if (typeof _httpParam.maxLength === 'number') {
+                                if (typeof httpParam.maxLength === 'number') {
                                     //--validate max length
-                                    validator = new MaxLengthValidator(_httpParam.maxLength);
+                                    validator = new MaxLengthValidator(httpParam.maxLength);
                                     validator.setContext(context);
                                     validationResult = validator.validateSync(contextParam);
                                     if (validationResult) {
-                                        return httpParamValidationFailedCallback(context, _httpParam, validationResult);
+                                        return httpParamValidationFailedCallback(context, httpParam, validationResult);
                                     }
                                 }
-                                if (typeof _httpParam.minValue !== 'undefined') {
+                                if (typeof httpParam.minValue !== 'undefined') {
                                     //--validate min value
-                                    validator = new MinValueValidator(_httpParam.minValue);
+                                    validator = new MinValueValidator(httpParam.minValue);
                                     validator.setContext(context);
                                     validationResult = validator.validateSync(contextParam);
                                     if (validationResult) {
-                                        return httpParamValidationFailedCallback(context, _httpParam, validationResult);
+                                        return httpParamValidationFailedCallback(context, httpParam, validationResult);
                                     }
                                 }
-                                if (typeof _httpParam.maxValue !== 'undefined') {
+                                if (typeof httpParam.maxValue !== 'undefined') {
                                     //--validate max value
-                                    validator = new MaxValueValidator(_httpParam.required);
+                                    validator = new MaxValueValidator(httpParam.required);
                                     validator.setContext(context);
                                     validationResult = validator.validateSync(contextParam);
                                     if (validationResult) {
-                                        return httpParamValidationFailedCallback(context, _httpParam, validationResult);
+                                        return httpParamValidationFailedCallback(context, httpParam, validationResult);
                                     }
                                 }
 
-                                if (typeof _httpParam.required !== 'undefined' && _httpParam.required === true) {
+                                if ((typeof httpParam.required !== 'undefined') && (httpParam.required === true)) {
                                     //--validate required value
                                     validator = new RequiredValidator();
                                     validator.setContext(context);
                                     validationResult = validator.validateSync(contextParam);
                                     if (validationResult) {
-                                        return httpParamValidationFailedCallback(context, _httpParam, validationResult);
+                                        return httpParamValidationFailedCallback(context, httpParam, validationResult);
                                     }
                                 }
                             }
@@ -303,16 +275,18 @@ function httpParam(options) {
             });
         }
         return descriptor;
-    };
+    }
 }
+
 /**
- *
  * @param {boolean=} value
  * @returns {Function}
  */
 function httpAuthorize(value) {
     return function (target, key, descriptor) {
-        Args.check(typeof descriptor.value === 'function', new DecoratorError());
+        if (typeof descriptor.value !== 'function') {
+            throw new Error('Decorator is not valid on this declaration type.');
+        }
         var authorize = true;
         if (typeof value === 'boolean') {
             authorize = value;
@@ -322,10 +296,56 @@ function httpAuthorize(value) {
                 if (context.user && context.user.name !== 'anonymous') {
                     return Q();
                 }
-                return Q.reject(new HttpUnauthorizedError());
+                return Q.reject(new common.HttpUnauthorizedException());
             });
         }
         return descriptor;
     };
 }
-//# sourceMappingURL=decorators.js.map
+
+/**
+ *
+ * @param {Object|Function} proto - The constructor function of a class or the prototype of a class
+ * @param {string} key - The name of the property or method where the decorator will be included
+ * @param {Function} decorator - The decorator to be included
+ */
+function defineDecorator(proto, key, decorator) {
+    if ((typeof proto !== 'object') && (typeof proto !== 'function')) {
+        throw new DecoratorError('Invalid prototype. Expected object or function.');
+    }
+    if (typeof key !== 'string') {
+        throw new DecoratorError('Invalid property name. Expected string.');
+    }
+    if (typeof decorator !== 'function') {
+        throw new DecoratorError('Invalid decorator. Expected function.');
+    }
+    decorator(proto, key, Object.getOwnPropertyDescriptor(proto, key));
+}
+//extend object
+if (typeof Object.defineDecorator === 'undefined') {
+    /**
+     * @function defineDecorator
+     * @param {Object|Function} proto - The constructor function of a class or the prototype of a class
+     * @param {string} key - The name of the property or method where the decorator will be included
+     * @param {Function} decorator - The decorator to be included
+     * @memberOf Object
+     * @static
+     */
+    Object.defineDecorator = defineDecorator;
+}
+
+module.exports.DecoratorError = DecoratorError;
+module.exports.httpGet = httpGet;
+module.exports.httpAny = httpAny;
+module.exports.httpPost = httpPost;
+module.exports.httpPut = httpPut;
+module.exports.httpPatch = httpPatch;
+module.exports.httpDelete = httpDelete;
+module.exports.httpOptions = httpOptions;
+module.exports.httpHead = httpHead;
+module.exports.httpAction = httpAction;
+module.exports.httpController = httpController;
+module.exports.httpParamAlias = httpParamAlias;
+module.exports.httpParam = httpParam;
+module.exports.httpAuthorize = httpAuthorize;
+module.exports.defineDecorator = defineDecorator;

@@ -1,6 +1,6 @@
 {
   "name": "@themost/query",
-  "version": "2.0.0-alpha.1",
+  "version": "2.0.3",
   "description": "MOST Web Framework 2.0 - query module",
   "module": "common.js",
   "peerDependencies": {},
@@ -16,8 +16,9 @@
   "homepage": "https://github.com/kbarbounakis/themost#readme",
   "dependencies": {
     "@themost/common": "2.0.0-alpha.1",
+    "esprima": "^4.0.0",
     "lodash": "^4.17.4",
-    "sprintf": "^0.1.5",
-    "source-map-support": "^0.4.11"
+    "source-map-support": "^0.4.11",
+    "sprintf": "^0.1.5"
   }
 }
