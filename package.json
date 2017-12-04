@@ -1,6 +1,6 @@
 {
   "name": "themost-src",
-  "version": "2.0.0-alpha",
+  "version": "2.0.3",
   "private": true,
   "description": "MOST Web Framework 2.0 Codename Blueshift",
   "main": "index.js",

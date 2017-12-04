@@ -5,10 +5,6 @@ var sourcemaps = require('gulp-sourcemaps');
 var babel = require('gulp-babel');
 var eslint = require('gulp-eslint');
 
-var commonModule = [
-  'modules/@themost/common/**/*.es6',
-  '!modules/@themost/common/node_modules/**/*.es6'
-];
 var queryModule = [
   'modules/@themost/query/**/*.es6',
   '!modules/@themost/query/node_modules/**/*.es6'
@@ -51,8 +47,6 @@ function build(files) {
   }
 }
 
-// @themost/common
-gulp.task('build:common',build(commonModule));
 
 // @themost/query
 gulp.task('build:query',build(queryModule));
@@ -65,9 +59,6 @@ gulp.task('build:web',build(webModule));
 
 // test
 gulp.task('build:test',build(testModule));
-
-//lint @themost/common
-gulp.task('lint:common', lint(commonModule));
 
 //lint @themost/query
 gulp.task('lint:query', lint(queryModule));
@@ -83,12 +74,12 @@ gulp.task('lint:test', lint(webModule));
 
 
 // lint @themost
-gulp.task('lint', ['lint:common','lint:query', 'lint:data', 'lint:web']);
+gulp.task('lint', ['lint:query', 'lint:data', 'lint:web']);
 
-gulp.task('build', ['build:common','build:query','build:data','build:web']);
+gulp.task('build', ['build:query','build:data','build:web']);
 
 gulp.task('debug', ['build'], function () {
-  var files = commonModule.concat(queryModule,dataModule,webModule,testModule);
+  var files = [].concat(queryModule,dataModule,webModule,testModule);
   gulp.watch(files, function(file) {
     gutil.log(gutil.colors.green('Compiling ' + file.path));
     return build(file.path)();
