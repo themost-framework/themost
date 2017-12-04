@@ -20,5 +20,31 @@
     "lodash": "^4.17.4",
     "source-map-support": "^0.4.11",
     "sprintf": "^0.1.5"
+  },
+  "devDependencies": {
+    "eslint": "^4.12.1"
+  },
+  "eslintConfig": {
+    "env": {
+      "browser": true,
+      "node": true,
+      "es6": false,
+      "jquery": true
+    },
+    "globals": {
+      "describe": false,
+      "it": false
+    },
+    "extends": "eslint:recommended",
+    "rules": {
+      "no-console": "warn",
+      "no-invalid-this": "warn",
+      "no-undef": "error",
+      "no-unused-vars": "warn",
+      "strict": [
+        2,
+        "never"
+      ]
+    }
   }
 }

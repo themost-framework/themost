@@ -8,10 +8,10 @@
  * Released under the BSD3-Clause license
  * Date: 2015-03-12
  */
-var expressions = require('./expressions'),
-    esprima = require('esprima'),
-    async = require('async'),
-    _ = require('lodash');
+var expressions = require('./expressions');
+var esprima = require('esprima');
+var async = require('async');
+var _ = require('lodash');
 
 var ExpressionTypes = {
     LogicalExpression : 'LogicalExpression',
@@ -118,7 +118,7 @@ ClosureParser.prototype.parseLogical = function(expr, callback) {
     var op = (expr.operator === '||') ? expressions.Operators.Or : expressions.Operators.And;
     //validate operands
     if (_.isNil(expr.left) || _.isNil(expr.right)) {
-        callback(new Error('Invalid logical expression. Left or right operand is missig or undefined.'));
+        callback(new Error('Invalid logical expression. Left or right operand is missing or undefined.'));
     }
     else {
         self.parseCommon(expr.left, function(err, left) {

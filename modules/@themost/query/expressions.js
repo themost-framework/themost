@@ -334,7 +334,7 @@ var expressions = {
     /**
      * Creates a logical expression
      * @param {String} operator The logical operator
-     * @param {Array} args An array that represents the expression's arguments
+     * @param {Array=} args An array that represents the expression's arguments
      * @returns {LogicalExpression}
      */
     createLogicalExpression : function(operator, args) {

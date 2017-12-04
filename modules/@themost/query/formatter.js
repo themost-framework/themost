@@ -8,18 +8,18 @@
  * Released under the BSD3-Clause license
  * Date: 2014-07-16
  */
-var sqlutils = require('./sql-utils'),
-    util = require('util'),
-    _ = require('lodash'),
-    query = require('./query'),
-    QueryExpression = query.QueryExpression,
-    QueryField = query.QueryField;
+var sqlEscape = require('./sql-utils').escape;
+var sprintf = require('sprintf').sprintf;
+var _ = require('lodash');
+var query = require('./query');
+var QueryExpression = query.QueryExpression;
+var QueryField = query.QueryField;
 
 if (typeof Object.key !== 'function') {
     /**
      * Gets a string that represents the name of the very first property of an object. This operation may be used in anonymous object types.
      * @param obj {*}
-     * @returns {string}
+     * @returns {string|*}
      */
     Object.key = function(obj) {
         if (typeof obj === 'undefined' || obj === null)
@@ -73,7 +73,7 @@ SqlFormatter.prototype.formatComparison = function(comparison)
     if (typeof comparison === 'object')
     {
         if (comparison instanceof Date) {
-            return '(%s'.concat(util.format('=%s)',this.escape(comparison)));
+            return '(%s'.concat(sprintf('=%s)',this.escape(comparison)));
         }
         var compares = [];
         for(key in comparison) {
@@ -87,7 +87,7 @@ SqlFormatter.prototype.formatComparison = function(comparison)
             for (var i = 0; i < compares.length; i++) {
                 key = compares[i];
                 if (QueryExpression.ComparisonOperators[key]===undefined)
-                    throw new Error(util.format('Unknown operator %s.', key));
+                    throw new Error(sprintf('Unknown operator %s.', key));
                 var escapedValue = this.escape(comparison[key]);
                 switch (key) {
                     case '$eq': arr.push('(%s'.concat('=',escapedValue,')'));break;
@@ -112,7 +112,7 @@ SqlFormatter.prototype.formatComparison = function(comparison)
     }
     else
     {
-        return '(%s'.concat(util.format('=%s)',this.escape(comparison)));
+        return '(%s'.concat(sprintf('=%s)',this.escape(comparison)));
     }
 };
 
@@ -131,13 +131,13 @@ SqlFormatter.prototype.isComparison = function(obj) {
 SqlFormatter.prototype.escape = function(value,unquoted)
 {
     if (_.isNil(value))
-        return sqlutils.escape(null);
+        return sqlEscape(null);
 
     if (typeof value === 'object')
     {
         //add an exception for Date object
         if (value instanceof Date)
-            return sqlutils.escape(value);
+            return sqlEscape(value);
         if (value.hasOwnProperty('$name'))
             return this.escapeName(value.$name);
         else {
@@ -157,7 +157,7 @@ SqlFormatter.prototype.escape = function(value,unquoted)
     if (unquoted)
         return value.valueOf();
     else
-        return sqlutils.escape(value);
+        return sqlEscape(value);
 };
 
 /**
@@ -192,7 +192,7 @@ SqlFormatter.prototype.formatWhere = function(where)
         case '$or':
             var separator = property==='$or' ? ' OR ' : ' AND ';
             //property value must be an array
-            if (!util.isArray(propertyValue))
+            if (!_.isArray(propertyValue))
                 throw new Error('Invalid query argument. A logical expression must contain one or more comparison expressions.');
             if (propertyValue.length===0)
                 return '';
@@ -222,29 +222,29 @@ SqlFormatter.prototype.formatWhere = function(where)
                     return self.$text({ $name:property}, comparison.$text.$search);
                 case '$eq':
                     if (_.isNil(comparison.$eq))
-                        return util.format('(%s IS NULL)', escapedProperty);
-                    return util.format('(%s=%s)', escapedProperty, self.escape(comparison.$eq));
+                        return sprintf('(%s IS NULL)', escapedProperty);
+                    return sprintf('(%s=%s)', escapedProperty, self.escape(comparison.$eq));
                 case '$gt':
-                    return util.format('(%s>%s)', escapedProperty, self.escape(comparison.$gt));
+                    return sprintf('(%s>%s)', escapedProperty, self.escape(comparison.$gt));
                 case '$gte':
-                    return util.format('(%s>=%s)', escapedProperty, self.escape(comparison.$gte));
+                    return sprintf('(%s>=%s)', escapedProperty, self.escape(comparison.$gte));
                 case '$lt':
-                    return util.format('(%s<%s)', escapedProperty, self.escape(comparison.$lt));
+                    return sprintf('(%s<%s)', escapedProperty, self.escape(comparison.$lt));
                 case '$lte':
-                    return util.format('(%s<=%s)', escapedProperty, self.escape(comparison.$lte));
+                    return sprintf('(%s<=%s)', escapedProperty, self.escape(comparison.$lte));
                 case '$ne':
                     if (_.isNil(comparison.$ne))
-                        return util.format('(NOT %s IS NULL)', escapedProperty);
+                        return sprintf('(NOT %s IS NULL)', escapedProperty);
                     if (comparison!==null)
-                        return util.format('(NOT %s=%s)', escapedProperty, self.escape(comparison.$ne));
+                        return sprintf('(NOT %s=%s)', escapedProperty, self.escape(comparison.$ne));
                     else
-                        return util.format('(NOT %s IS NULL)', escapedProperty);
+                        return sprintf('(NOT %s IS NULL)', escapedProperty);
                 case '$regex':
                     return this.$regex({ $name:property} , comparison.$regex);
                 case '$in':
-                    if (util.isArray(comparison.$in)) {
+                    if (_.isArray(comparison.$in)) {
                         if (comparison.$in.length===0)
-                            return util.format('(%s IN (NULL))', escapedProperty);
+                            return sprintf('(%s IN (NULL))', escapedProperty);
                         sql = '('.concat(escapedProperty,' IN (',_.map(comparison.$in, function (x) {
                             return self.escape(x!==null ? x: null)
                         }).join(', '),'))');
@@ -252,18 +252,18 @@ SqlFormatter.prototype.formatWhere = function(where)
                     }
                     else if (typeof comparison.$in === 'object') {
                         //try to validate if comparison.$in is a select query expression (sub-query support)
-                        var sq = util._extend(new QueryExpression(), comparison.$in);
+                        var sq = _.assign(new QueryExpression(), comparison.$in);
                         if (sq.$select) {
                             //if sub query is a select expression
-                            return util.format('(%s IN (%s))', escapedProperty, self.format(sq));
+                            return sprintf('(%s IN (%s))', escapedProperty, self.format(sq));
                         }
                     }
                     //otherwise throw error
                     throw new Error('Invalid query argument. An in statement must contain one or more values.');
                 case '$nin':
-                    if (util.isArray(comparison.$nin)) {
+                    if (_.isArray(comparison.$nin)) {
                         if (comparison.$nin.length===0)
-                            return util.format('(NOT %s IN (NULL))', escapedProperty);
+                            return sprintf('(NOT %s IN (NULL))', escapedProperty);
                         sql = '(NOT '.concat(escapedProperty,' IN (',_.map(comparison.$nin, function (x) {
                             return self.escape(x!==null ? x: null)
                         }).join(', '),'))');
@@ -271,10 +271,10 @@ SqlFormatter.prototype.formatWhere = function(where)
                     }
                     else if (typeof comparison.$in === 'object') {
                         //try to validate if comparison.$nin is a select query expression (sub-query support)
-                        var sq = util._extend(new QueryExpression(), comparison.$in);
+                        var sq = _.assign(new QueryExpression(), comparison.$in);
                         if (sq.$select) {
                             //if sub query is a select expression
-                            return util.format('(NOT %s IN (%s))', escapedProperty, self.format(sq));
+                            return sprintf('(NOT %s IN (%s))', escapedProperty, self.format(sq));
                         }
                     }
                     //otherwise throw error
@@ -292,7 +292,7 @@ SqlFormatter.prototype.formatWhere = function(where)
                         var argn = null;
                         //push identifier
                         args.push({ $name:property });
-                        if (util.isArray(p1)) {
+                        if (_.isArray(p1)) {
                             //push other parameters
                             for (var j = 0; j < p1.length-1; j++) {
                                 args.push(p1[j]);
@@ -317,9 +317,9 @@ SqlFormatter.prototype.formatWhere = function(where)
                     else {
                         //equal expression
                         if (typeof p1 !== 'undefined' && p1!==null)
-                            return util.format('(%s=%s)', property, self.escape(p1));
+                            return sprintf('(%s=%s)', property, self.escape(p1));
                         else
-                            return util.format('(%s IS NULL)', property);
+                            return sprintf('(%s IS NULL)', property);
                     }
 
             }
@@ -338,7 +338,7 @@ SqlFormatter.prototype.$startswith = function(p0, p1)
     //validate params
     if (_.isNil(p0) || _.isNil(p1))
         return '';
-    return util.format('(%s REGEXP \'^%s\')', this.escape(p0), this.escape(p1, true));
+    return sprintf('(%s REGEXP \'^%s\')', this.escape(p0), this.escape(p1, true));
 };
 // noinspection JSUnusedGlobalSymbols
 /**
@@ -352,7 +352,7 @@ SqlFormatter.prototype.$endswith = function(p0, p1)
     //validate params
     if (_.isNil(p0) || _.isNil(p1))
         return '';
-    return util.format('(%s REGEXP \'%s$$\')', this.escape(p0), this.escape(p1, true));
+    return sprintf('(%s REGEXP \'%s$$\')', this.escape(p0), this.escape(p1, true));
 };
 
 /**
@@ -366,7 +366,7 @@ SqlFormatter.prototype.$regex = function(p0, p1)
     //validate params
     if (_.isNil(p0) || _.isNil(p1))
         return '';
-    return util.format('(%s REGEXP \'%s\')', this.escape(p0), this.escape(p1, true));
+    return sprintf('(%s REGEXP \'%s\')', this.escape(p0), this.escape(p1, true));
 };
 
 /**
@@ -376,9 +376,9 @@ SqlFormatter.prototype.$regex = function(p0, p1)
  */
 SqlFormatter.prototype.$length = function(p0)
 {
-    return util.format('LENGTH(%s)', this.escape(p0));
+    return sprintf('LENGTH(%s)', this.escape(p0));
 };
-
+//noinspection JSUnusedGlobalSymbols
 /**
  * Implements length(a) expression formatter.
  * @param {*} p0
@@ -387,7 +387,7 @@ SqlFormatter.prototype.$length = function(p0)
  */
 SqlFormatter.prototype.$ifnull = function(p0,p1)
 {
-    return util.format('COALESCE(%s,%s)', this.escape(p0), this.escape(p1));
+    return sprintf('COALESCE(%s,%s)', this.escape(p0), this.escape(p1));
 };
 
 /**
@@ -397,7 +397,7 @@ SqlFormatter.prototype.$ifnull = function(p0,p1)
  */
 SqlFormatter.prototype.$trim = function(p0)
 {
-    return util.format('TRIM(%s)', this.escape(p0));
+    return sprintf('TRIM(%s)', this.escape(p0));
 };
 
 
@@ -409,7 +409,7 @@ SqlFormatter.prototype.$trim = function(p0)
  */
 SqlFormatter.prototype.$concat = function(p0, p1)
 {
-    return util.format('CONCAT(%s,%s)', this.escape(p0),  this.escape(p1));
+    return sprintf('CONCAT(%s,%s)', this.escape(p0),  this.escape(p1));
 };
 
 
@@ -422,7 +422,7 @@ SqlFormatter.prototype.$concat = function(p0, p1)
  */
 SqlFormatter.prototype.$indexof = function(p0, p1)
 {
-    return util.format('(LOCATE(%s,%s)-1)', this.escape(p1), this.escape(p0));
+    return sprintf('(LOCATE(%s,%s)-1)', this.escape(p1), this.escape(p0));
 };
 
 SqlFormatter.prototype.$indexOf = SqlFormatter.prototype.$indexof;
@@ -437,9 +437,9 @@ SqlFormatter.prototype.$indexOf = SqlFormatter.prototype.$indexof;
 SqlFormatter.prototype.$substring = function(p0, pos, length)
 {
     if (length)
-        return util.format('SUBSTRING(%s,%s,%s)', this.escape(p0), pos.valueOf()+1, length.valueOf());
+        return sprintf('SUBSTRING(%s,%s,%s)', this.escape(p0), pos.valueOf()+1, length.valueOf());
     else
-        return util.format('SUBSTRING(%s,%s)', this.escape(p0), pos.valueOf()+1);
+        return sprintf('SUBSTRING(%s,%s)', this.escape(p0), pos.valueOf()+1);
 };
 
 SqlFormatter.prototype.$substr = SqlFormatter.prototype.$substring;
@@ -451,7 +451,7 @@ SqlFormatter.prototype.$substr = SqlFormatter.prototype.$substring;
  */
 SqlFormatter.prototype.$tolower = function(p0)
 {
-    return util.format('LOWER(%s)', this.escape(p0));
+    return sprintf('LOWER(%s)', this.escape(p0));
 };
 SqlFormatter.prototype.$toLower = SqlFormatter.prototype.$tolower;
 /**
@@ -461,7 +461,7 @@ SqlFormatter.prototype.$toLower = SqlFormatter.prototype.$tolower;
  */
 SqlFormatter.prototype.$toupper = function(p0)
 {
-    return util.format('UPPER(%s)', this.escape(p0));
+    return sprintf('UPPER(%s)', this.escape(p0));
 };
 SqlFormatter.prototype.$toUpper = SqlFormatter.prototype.$toupper;
 /**
@@ -486,27 +486,27 @@ SqlFormatter.prototype.$text = function(p0, p1)
     //validate params
     if (_.isNil(p0) || _.isNil(p1))
         return '';
-    if (p1.valueOf().toString().length==0)
+    if (p1.valueOf().toString().length===0)
         return '';
-    return util.format('(%s REGEXP \'%s\')', this.escape(p0), this.escape(p1, true));
+    return sprintf('(%s REGEXP \'%s\')', this.escape(p0), this.escape(p1, true));
 };
 
-SqlFormatter.prototype.$day = function(p0) { return util.format('DAY(%s)', this.escape(p0)); };
+SqlFormatter.prototype.$day = function(p0) { return sprintf('DAY(%s)', this.escape(p0)); };
 SqlFormatter.prototype.$dayOfMonth = SqlFormatter.prototype.$day;
-SqlFormatter.prototype.$month = function(p0) { return util.format('MONTH(%s)', this.escape(p0)); };
-SqlFormatter.prototype.$year = function(p0) { return util.format('YEAR(%s)', this.escape(p0)); };
-SqlFormatter.prototype.$hour = function(p0) { return util.format('HOUR(%s)', this.escape(p0)); };
-SqlFormatter.prototype.$minute = function(p0) { return util.format('MINUTE(%s)', this.escape(p0)); };
+SqlFormatter.prototype.$month = function(p0) { return sprintf('MONTH(%s)', this.escape(p0)); };
+SqlFormatter.prototype.$year = function(p0) { return sprintf('YEAR(%s)', this.escape(p0)); };
+SqlFormatter.prototype.$hour = function(p0) { return sprintf('HOUR(%s)', this.escape(p0)); };
+SqlFormatter.prototype.$minute = function(p0) { return sprintf('MINUTE(%s)', this.escape(p0)); };
 SqlFormatter.prototype.$minutes = SqlFormatter.prototype.$minute;
-SqlFormatter.prototype.$second = function(p0) { return util.format('SECOND(%s)', this.escape(p0)); };
+SqlFormatter.prototype.$second = function(p0) { return sprintf('SECOND(%s)', this.escape(p0)); };
 SqlFormatter.prototype.$seconds = SqlFormatter.prototype.$second;
 SqlFormatter.prototype.$date = function(p0) {
-    return util.format('DATE(%s)', this.escape(p0));
+    return sprintf('DATE(%s)', this.escape(p0));
 };
 
 
-SqlFormatter.prototype.$floor = function(p0) { return util.format('FLOOR(%s)', this.escape(p0)); };
-SqlFormatter.prototype.$ceiling = function(p0) { return util.format('CEILING(%s)', this.escape(p0)); };
+SqlFormatter.prototype.$floor = function(p0) { return sprintf('FLOOR(%s)', this.escape(p0)); };
+SqlFormatter.prototype.$ceiling = function(p0) { return sprintf('CEILING(%s)', this.escape(p0)); };
 
 
 /**
@@ -518,7 +518,7 @@ SqlFormatter.prototype.$ceiling = function(p0) { return util.format('CEILING(%s)
 SqlFormatter.prototype.$round = function(p0,p1) {
     if (_.isNil(p1))
         p1 = 0;
-    return util.format('ROUND(%s,%s)', this.escape(p0), this.escape(p1));
+    return sprintf('ROUND(%s,%s)', this.escape(p0), this.escape(p1));
 };
 
 /**
@@ -532,8 +532,9 @@ SqlFormatter.prototype.$add = function(p0, p1)
     //validate params
     if (_.isNil(p0) || _.isNil(p1))
         return '0';
-    return util.format('(%s + %s)', this.escape(p0), this.escape(p1));
+    return sprintf('(%s + %s)', this.escape(p0), this.escape(p1));
 };
+//noinspection JSUnusedGlobalSymbols
 /**
  * Validates whether the given parameter is a field object or not.
  * @param obj
@@ -559,7 +560,7 @@ SqlFormatter.prototype.$sub = function(p0, p1)
     //validate params
     if (_.isNil(p0) || _.isNil(p1))
         return '0';
-    return util.format('(%s - %s)', this.escape(p0), this.escape(p1));
+    return sprintf('(%s - %s)', this.escape(p0), this.escape(p1));
 };
 
 SqlFormatter.prototype.$subtract = SqlFormatter.prototype.$sub;
@@ -574,7 +575,7 @@ SqlFormatter.prototype.$mul = function(p0, p1)
     //validate params
     if (_.isNil(p0) || _.isNil(p1))
         return '0';
-    return util.format('(%s * %s)', this.escape(p0), this.escape(p1));
+    return sprintf('(%s * %s)', this.escape(p0), this.escape(p1));
 };
 
 SqlFormatter.prototype.$multiply = SqlFormatter.prototype.$mul;
@@ -589,7 +590,7 @@ SqlFormatter.prototype.$mod = function(p0, p1)
     //validate params
     if (_.isNil(p0) || _.isNil(p1))
         return '0';
-    return util.format('(%s % %s)', this.escape(p0), this.escape(p1));
+    return sprintf('(%s % %s)', this.escape(p0), this.escape(p1));
 };
 
 /**
@@ -602,7 +603,7 @@ SqlFormatter.prototype.$div = function(p0, p1)
     //validate params
     if (_.isNil(p0) || _.isNil(p1))
         return '0';
-    return util.format('(%s / %s)', this.escape(p0), this.escape(p1));
+    return sprintf('(%s / %s)', this.escape(p0), this.escape(p1));
 };
 
 SqlFormatter.prototype.$divide = SqlFormatter.prototype.$div;
@@ -617,7 +618,7 @@ SqlFormatter.prototype.$mod = function(p0, p1)
     //validate params
     if (_.isNil(p0) || _.isNil(p1))
         return '0';
-    return util.format('(%s % %s)', this.escape(p0), this.escape(p1));
+    return sprintf('(%s % %s)', this.escape(p0), this.escape(p1));
 };
 
 /**
@@ -630,7 +631,7 @@ SqlFormatter.prototype.$bit = function(p0, p1)
     //validate params
     if (_.isNil(p0) || _.isNil(p1))
         return '0';
-    return util.format('(%s & %s)', this.escape(p0), this.escape(p1));
+    return sprintf('(%s & %s)', this.escape(p0), this.escape(p1));
 };
 
 /**
@@ -648,7 +649,7 @@ SqlFormatter.prototype.formatSelect = function(obj)
     var joins = [];
     if (!_.isNil(obj.$expand))
     {
-        if (util.isArray(obj.$expand))
+        if (_.isArray(obj.$expand))
             joins=obj.$expand;
         else
             joins.push(obj.$expand);
@@ -656,7 +657,7 @@ SqlFormatter.prototype.formatSelect = function(obj)
     //get entity fields
     var fields = obj.fields();
     //if fields is not an array
-    if (!util.isArray(fields))
+    if (!_.isArray(fields))
         throw new Error('Select expression does not contain any fields or the collection of fields is of the wrong type.');
 
     //validate entity reference (if any)
@@ -689,7 +690,7 @@ SqlFormatter.prototype.formatSelect = function(obj)
         _.forEach(joins, function(x) {
             if (x.$entity instanceof QueryExpression) {
                 //get on statement (the join comparison)
-                sql = sql.concat(util.format(' INNER JOIN (%s)', $this.format(x.$entity)));
+                sql = sql.concat(sprintf(' INNER JOIN (%s)', $this.format(x.$entity)));
                 //add alias
                 if (x.$entity.$alias)
                     sql = sql.concat(' AS ').concat($this.escapeName(x.$entity.$alias));
@@ -704,7 +705,7 @@ SqlFormatter.prototype.formatSelect = function(obj)
                 if (x.$entity.$as)
                     sql = sql.concat(' AS ').concat($this.escapeName(x.$entity.$as));
             }
-            if (util.isArray(x.$with))
+            if (_.isArray(x.$with))
             {
                 if (x.$with.length!==2)
                     throw new Error('Invalid join comparison expression.');
@@ -797,7 +798,7 @@ SqlFormatter.prototype.formatField = function(obj)
         return '';
     if (typeof obj === 'string')
         return obj;
-    if (util.isArray(obj)) {
+    if (_.isArray(obj)) {
         return _.map(obj, function(x) {
             return x.valueOf();
         }).join(', ');
@@ -809,7 +810,7 @@ SqlFormatter.prototype.formatField = function(obj)
         //get table name
         var tableName = Object.key(obj);
         var fields = [];
-        if (!util.isArray(obj[tableName])) {
+        if (!_.isArray(obj[tableName])) {
             fields.push(obj[tableName])
         }
         else {
@@ -832,14 +833,14 @@ SqlFormatter.prototype.formatField = function(obj)
 SqlFormatter.prototype.formatOrder = function(obj)
 {
     var self = this;
-    if (!util.isArray(obj))
+    if (!_.isArray(obj))
         return '';
     var sql = _.map(obj, function(x)
     {
         var f = x.$desc ? x.$desc : x.$asc;
         if (_.isNil(f))
             throw new Error('An order by object must have either ascending or descending property.');
-        if (util.isArray(f)) {
+        if (_.isArray(f)) {
             return _.map(f, function(a) {
                 return self.format(a,'%ff').concat(x.$desc ? ' DESC': ' ASC');
             }).join(', ');
@@ -858,7 +859,7 @@ SqlFormatter.prototype.formatOrder = function(obj)
 SqlFormatter.prototype.formatGroupBy = function(obj)
 {
     var self = this;
-    if (!util.isArray(obj))
+    if (!_.isArray(obj))
         return '';
     var arr = [];
     _.forEach(obj, function(x) {
@@ -991,19 +992,19 @@ SqlFormatter.prototype.formatFieldEx = function(obj, format)
         var name = expr[prop], s;
         switch (prop) {
             case '$count':
-                s= util.format('COUNT(%s)',this.escapeName(name));
+                s= sprintf('COUNT(%s)',this.escapeName(name));
                 break;
             case '$min':
-                s= util.format('MIN(%s)',this.escapeName(name));
+                s= sprintf('MIN(%s)',this.escapeName(name));
                 break;
             case '$max':
-                s= util.format('MAX(%s)',this.escapeName(name));
+                s= sprintf('MAX(%s)',this.escapeName(name));
                 break;
             case '$avg':
-                s= util.format('AVG(%s)',this.escapeName(name));
+                s= sprintf('AVG(%s)',this.escapeName(name));
                 break;
             case '$sum':
-                s= util.format('SUM(%s)',this.escapeName(name));
+                s= sprintf('SUM(%s)',this.escapeName(name));
                 break;
             case '$value':
                 s= this.escapeConstant(name);
@@ -1040,7 +1041,7 @@ SqlFormatter.prototype.format = function(obj, s)
             if (typeof obj === 'string')
                 field.select(obj);
             else
-                field = util._extend(new QueryField(), obj);
+                field = _.assign(new QueryField(), obj);
             return this.formatFieldEx(field, s);
         }
         else if (s==='%o') {
@@ -1058,7 +1059,7 @@ SqlFormatter.prototype.format = function(obj, s)
     if (obj instanceof QueryExpression)
         query = obj;
     else
-        query = util._extend(new QueryExpression(), obj);
+        query = _.assign(new QueryExpression(), obj);
     //format query
     if (_.isObject(query.$select)) {
         if (!query.hasPaging())

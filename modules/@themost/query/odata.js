@@ -8,7 +8,9 @@
  * Released under the BSD3-Clause license
  * Date: 2014-02-15
  */
-var util = require('util'), expressions = require('./expressions');
+var util = require('util');
+var sprintf = require('sprintf').sprintf;
+var expressions = require('./expressions');
 /**
  * @class OpenDataParser
  * @constructor
@@ -73,11 +75,11 @@ function OpenDataParser() {
 
 }
 /**
- * Gets the logical or artihmetic operator of the given token
+ * Gets the logical or arithmetic operator of the given token
  * @param token
  */
 OpenDataParser.prototype.getOperator = function(token) {
-    if (token.type==Token.TokenType.Identifier) {
+    if (token.type===Token.TokenType.Identifier) {
         switch (token.identifier)
         {
             case "and": return Token.Operator.And;
@@ -99,7 +101,7 @@ OpenDataParser.prototype.getOperator = function(token) {
         }
     }
     return null;
-}
+};
 OpenDataParser.ArithmeticOperatorRegEx = /^(\$add|\$sub|\$mul|\$div|\$mod)$/g;
 OpenDataParser.LogicalOperatorRegEx = /^(\$or|\$nor|\$not|\$and)$/g;
 
@@ -163,12 +165,11 @@ OpenDataParser.prototype.moveNext = function() {
 OpenDataParser.prototype.expect = function(token) {
     var self = this;
     if (self.currentToken.valueOf()!==token.valueOf())
-        throw new Error(util.format('Expected %s.', token.valueOf()));
+        throw new Error(sprintf('Expected %s.', token.valueOf()));
     this.moveNext();
 };
 
 OpenDataParser.prototype.expectAny = function() {
-    var self = this;
     if (this.atEnd())
         throw new Error('Unexpected end.');
 };
@@ -177,21 +178,20 @@ OpenDataParser.prototype.expectAny = function() {
 OpenDataParser.prototype.atEnd = function() {
     return this.offset >= this.tokens.length;
 };
-
+//noinspection JSUnusedGlobalSymbols
 OpenDataParser.prototype.atStart = function() {
-    return this.offset == 0;
+    return this.offset === 0;
 };
 
 /**
  * Parses OData token
- * @param {Token} token
  * @param {Function} callback
  */
 OpenDataParser.prototype.parseCommon = function(callback) {
     var self = this;
     //ensure callback
     callback = callback || function() {};
-    if (this.tokens.length==0) {
+    if (this.tokens.length===0) {
         callback.call(self);
         return;
     }
@@ -204,8 +204,8 @@ OpenDataParser.prototype.parseCommon = function(callback) {
                 callback.call(self, null, result);
             }
             //method call exception for [,] or [)] tokens e.g indexOf(Title,'...')
-            else if ((this.currentToken.syntax==SyntaxToken.Comma.syntax) ||
-                (this.currentToken.syntax==SyntaxToken.ParenClose.syntax)) {
+            else if ((this.currentToken.syntax===SyntaxToken.Comma.syntax) ||
+                (this.currentToken.syntax===SyntaxToken.ParenClose.syntax)) {
                 callback.call(self, null, result);
             }
             else {
@@ -256,7 +256,7 @@ OpenDataParser.prototype.createExpression = function(left, operator, right) {
         var expr = null;
         if (expressions.isLogicalExpression(left))
         {
-            if (left.operator==operator) {
+            if (left.operator===operator) {
                 expr = expressions.createLogicalExpression(operator);
                 for (var i = 0; i < left.args.length; i++) {
                     var o = left.args[i];
@@ -278,8 +278,7 @@ OpenDataParser.prototype.createExpression = function(left, operator, right) {
         return expressions.createArithmeticExpression(left, operator, right);
     }
     else if (expressions.isArithmeticExpression(left) || expressions.isMethodCallExpression(left) || expressions.isMemberExpression(left))  {
-            var expr = expressions.createComparisonExpression(left, operator, right);
-            return expr;
+            return expressions.createComparisonExpression(left, operator, right);
     }
     else if (expressions.isComparisonOperator(operator)) {
         return expressions.createComparisonExpression(left,operator, right);
@@ -287,25 +286,25 @@ OpenDataParser.prototype.createExpression = function(left, operator, right) {
     else {
         throw new Error('Invalid or unsupported expression arguments.');
     }
-}
+};
 
 OpenDataParser.prototype.parseCommonItem = function(callback) {
     var self = this;
     //ensure callback
     callback = callback || function() {};
-    if (self.tokens.length==0) {
+    if (self.tokens.length===0) {
         callback.call(self);
         return;
     }
     switch (this.currentToken.type) {
         case Token.TokenType.Identifier:
             //if next token is an open parenthesis token and the current token is not an operator. current=indexOf, next=(
-            if ((self.nextToken.syntax==SyntaxToken.ParenOpen.syntax) && (self.getOperator(self.currentToken)==null))
+            if ((self.nextToken.syntax===SyntaxToken.ParenOpen.syntax) && (self.getOperator(self.currentToken)==null))
             {
                 //then parse method call
                 self.parseMethodCall(callback);
             }
-            else if (self.getOperator(self.currentToken) == Token.Operator.Not)
+            else if (self.getOperator(self.currentToken) === Token.Operator.Not)
             {
                 callback.call(self,new Error('Not operator is not yet implemented.'));
                 return;
@@ -317,7 +316,7 @@ OpenDataParser.prototype.parseCommonItem = function(callback) {
                         callback.call(self,err);
                     }
                     else {
-                        while (!self.atEnd() && self.currentToken.syntax==SyntaxToken.Slash.syntax) {
+                        while (!self.atEnd() && self.currentToken.syntax===SyntaxToken.Slash.syntax) {
                             //self.moveNext();
                             //self.parseMembers(callback)
                             callback.call(self,new Error('Slash syntax is not yet implemented.'));
@@ -335,11 +334,11 @@ OpenDataParser.prototype.parseCommonItem = function(callback) {
             callback.call(self, null, value);
             break;
         case Token.TokenType.Syntax:
-            if (self.currentToken.syntax == SyntaxToken.Negative.syntax) {
+            if (self.currentToken.syntax === SyntaxToken.Negative.syntax) {
                 callback.call(self,new Error('Negative syntax is not yet implemented.'));
                 return;
             }
-            if (self.currentToken.syntax == SyntaxToken.ParenOpen.syntax) {
+            if (self.currentToken.syntax === SyntaxToken.ParenOpen.syntax) {
                 self.moveNext();
                 self.parseCommon(function(err, result) {
                     if (err) {
@@ -365,7 +364,7 @@ OpenDataParser.prototype.parseMethodCall = function(callback) {
     var self = this;
     //ensure callback
     callback = callback || function() {};
-    if (this.tokens.length==0)
+    if (this.tokens.length===0)
         callback.call(this);
     else
     {
@@ -402,12 +401,12 @@ OpenDataParser.prototype.parseMethodCallArguments = function(args, callback) {
     callback = callback || function() {};
     args = args || [];
     self.expectAny();
-    if (self.currentToken.syntax==SyntaxToken.Comma.syntax) {
+    if (self.currentToken.syntax===SyntaxToken.Comma.syntax) {
         self.moveNext();
         self.expectAny();
         self.parseMethodCallArguments(args, callback);
     }
-    else if (self.currentToken.syntax==SyntaxToken.ParenClose.syntax) {
+    else if (self.currentToken.syntax===SyntaxToken.ParenClose.syntax) {
         self.moveNext();
         callback(null, arguments);
     }
@@ -429,11 +428,11 @@ OpenDataParser.prototype.parseMember = function(callback) {
     var self = this;
     //ensure callback
     callback = callback || function() {};
-    if (this.tokens.length==0) {
+    if (this.tokens.length===0) {
         callback.call(this);
     }
     else {
-        if (this.currentToken.type!='Identifier') {
+        if (this.currentToken.type!=='Identifier') {
             callback.call(self, new Error('Expected identifier.'));
         }
         else {
@@ -463,7 +462,8 @@ OpenDataParser.prototype.parseMember = function(callback) {
 
 /**
  * Abstract function which resolves entity based on the given member name
- * @param {String} member
+ * @param {string} member
+ * @param {Function} callback
  */
 OpenDataParser.prototype.resolveMember = function(member, callback)
 {
@@ -490,7 +490,7 @@ OpenDataParser.prototype.resolveMethod = function(method, args, callback)
         callback.call(this);
 };
 ///**
-// * Resolves an equivalent expressiob based on the given OData token
+// * Resolves an equivalent expression based on the given OData token
 // * @param {Token} token
 // */
 //OpenDataParser.prototype.resolveVariable = function(token, callback) {
@@ -498,7 +498,7 @@ OpenDataParser.prototype.resolveMethod = function(method, args, callback)
 //};
 
 /**
- * Get a collection of tokens by parsing the curent expression
+ * Get a collection of tokens by parsing the current expression
  * @returns {Array}
  */
 OpenDataParser.prototype.toList = function() {
@@ -557,7 +557,7 @@ OpenDataParser.prototype.getNext = function() {
             }
             else
             {
-                throw new Error(util.format('Unexpecter character "%s" at offset %s.', c , _current));
+                throw new Error(sprintf('Unexpected character "%s" at offset %s.', c , _current));
             }
     }
 };
@@ -595,7 +595,7 @@ OpenDataParser.prototype.parseIdentifier = function(minus)
     for (_current++; _current < _source.length; _current++)
     {
         var c = _source.charAt(_current);
-        if (OpenDataParser.isIdentifierChar(c)==false)
+        if (OpenDataParser.isIdentifierChar(c)===false)
             break;
     }
 
@@ -643,7 +643,7 @@ OpenDataParser.prototype.parseIdentifier = function(minus)
             this.current = _current;this.offset=_offset;
             break;
     }
-    if (_offset < _source.length && _source.charAt(_offset) == '\'')
+    if (_offset < _source.length && _source.charAt(_offset) === '\'')
     {
         var stringType;
         switch (name)
@@ -653,11 +653,11 @@ OpenDataParser.prototype.parseIdentifier = function(minus)
             case "datetime": stringType = LiteralToken.StringType.DateTime; break;
             case "guid": stringType = LiteralToken.StringType.Guid; break;
             case "time": stringType = LiteralToken.StringType.Time; break;
-            case "datetimeoffset": LiteralToken.StringType = StringType.DateTimeOffset; break;
+            case "datetimeoffset": stringType = LiteralToken.StringType.DateTimeOffset; break;
             default: stringType = LiteralToken.StringType.None; break;
         }
 
-        if (stringType != LiteralToken.StringType.None && _source.charAt(_offset) == '\'')
+        if (stringType !== LiteralToken.StringType.None && _source.charAt(_offset) === '\'')
         {
             var content = this.parseString();
             return this.parseSpecialString(content.value, stringType);
@@ -677,10 +677,10 @@ OpenDataParser.DateTimeRegex = /^(\\d{4})-(\\d{1,2})-(\\d{1,2})T(\\d{1,22}):(\\d
 OpenDataParser.prototype.parseGuidString = function(value)
 {
     if (typeof value !== 'string')
-        throw new Error(util.format('Invalid argument at %s.', this.offset))
+        throw new Error(sprintf('Invalid argument at %s.', this.offset));
     if (value.match(OpenDataParser.GuidRegex)!=null)
-        throw new Error(util.format('Guid format is invalid at %s.', this.offset))
-    return new LiteralToken(value, LiteralType.Guid);
+        throw new Error(sprintf('Guid format is invalid at %s.', this.offset));
+    return new LiteralToken(value, LiteralToken.LiteralType.Guid);
 };
 
 /**
@@ -693,18 +693,18 @@ OpenDataParser.prototype.parseTimeString = function(value) {
     var match = value.match(OpenDataParser.DurationRegex);
     if (match!=null)
     {
-        var negative = (match[1] == "-");
+        var negative = (match[1] === "-");
         var year = match[2].length > 0 ? parseInt(match[2]) : 0,
             month = match[3].length > 0 ? parseInt(match[3]) : 0,
             day = match[4].length > 0 ? parseInt(match[4]) : 0,
             hour = match[5].length > 0 ? parseInt(match[5]) : 0,
             minute = match[6].length > 0 ? parseInt(match[6]) : 0,
             second = match[7].length > 0 ? parseFloat(match[7]) : 0;
-        return new LiteralToken(new TimeSpan(!negative, year, month, day, hour, minute, second), LiteralType.Duration);
+        return new LiteralToken(new TimeSpan(!negative, year, month, day, hour, minute, second), LiteralToken.LiteralType.Duration);
     }
     else
     {
-        throw new Error(util.format('Duration format is invalid at %s.', this.offset))
+        throw new Error(sprintf('Duration format is invalid at %s.', this.offset))
     }
 };
 
@@ -745,11 +745,11 @@ OpenDataParser.prototype.parseDateTimeString = function(value) {
         second = match[6].length > 0 ? parseInt(match[6]) : 0,
         nanoSecond = match[7].length > 0 ? parseInt(match[7]) : 0;
         //return new LiteralToken(new Date(year, month, day, hour, minute, second, nanoSecond / 1000), LiteralType.DateTime);
-        return new LiteralToken(new Date(year, month, day, hour, minute, second), LiteralType.DateTime);
+        return new LiteralToken(new Date(year, month, day, hour, minute, second), LiteralToken.LiteralType.DateTime);
     }
     else
     {
-        throw new Error(util.format('Datetime format is invalid at %s.', this.offset))
+        throw new Error(sprintf('Datetime format is invalid at %s.', this.offset))
     }
 };
 
@@ -792,9 +792,9 @@ OpenDataParser.prototype.parseString = function()
     {
         var c = this.source.charAt(_current);
 
-        if (c == '\'')
+        if (c === '\'')
         {
-            if ((_current < _source.length - 1) && (_source.charAt(_current+1) == '\'')) {
+            if ((_current < _source.length - 1) && (_source.charAt(_current+1) === '\'')) {
                 _current++;
                 sb += '\'';
             }
@@ -812,7 +812,7 @@ OpenDataParser.prototype.parseString = function()
 
     if (!hadEnd)
     {
-        throw new Error(util.format('Unterminated string starting at %s', _offset));
+        throw new Error(sprintf('Unterminated string starting at %s', _offset));
     }
     this.current = _current;
     this.offset = _current + 1;
@@ -843,7 +843,7 @@ OpenDataParser.prototype.parseNumeric = function()
     for (_current++; _current < _source.length; _current++)
     {
         c = _source.charAt(_current);
-        if (c == OpenDataParser.CHR_POINT)
+        if (c === OpenDataParser.CHR_POINT)
         {
             if (floating)
                 break;
@@ -858,23 +858,23 @@ OpenDataParser.prototype.parseNumeric = function()
     if (_current < _source.length)
     {
         c = _source.charAt(_current);
-        if (c == 'E' || c == 'e')
+        if (c === 'E' || c === 'e')
         {
             _current++;
-            if (_source.charAt(_current) == '-')
+            if (_source.charAt(_current) === '-')
                 _current++;
-            var exponentEnd = (_current == _source.length) ? null : this.skipDigits(_current);
+            var exponentEnd = (_current === _source.length) ? null : this.skipDigits(_current);
             if (exponentEnd==null)
-                throw new Error(util.format('Expected digits after exponent at %s.', _offset));
+                throw new Error(sprintf('Expected digits after exponent at %s.', _offset));
             _current = exponentEnd;
             haveExponent = true;
 
             if (_current < _source.length) {
                 c = _source.charAt(_current);
-                if (c == 'm' || c == 'M')
-                    throw new Error(util.format('Unexpected exponent for decimal literal at %s.', _offset));
-                else if (c == 'l' || c == 'L')
-                    throw new Error(util.format('Unexpected exponent for long literal at %s.', _offset));
+                if (c === 'm' || c === 'M')
+                    throw new Error(sprintf('Unexpected exponent for decimal literal at %s.', _offset));
+                else if (c === 'l' || c === 'L')
+                    throw new Error(sprintf('Unexpected exponent for long literal at %s.', _offset));
             }
         }
     }
@@ -912,7 +912,7 @@ OpenDataParser.prototype.parseNumeric = function()
 
             case 'L':
             case 'l':
-                value = parseInit(text);
+                value = parseInt(text);
                 type = LiteralToken.LiteralType.Long;
                 _current++;
                 break;
@@ -976,7 +976,7 @@ OpenDataParser.CHR_POINT = '.';
 OpenDataParser.isChar = function(c)
 {
     return (c.match(OpenDataParser.REGEXP_CHAR)!=null);
-}
+};
 
 /**
  * @param {String} c
@@ -989,7 +989,7 @@ OpenDataParser.isDigit = function(c)
 
 OpenDataParser.isIdentifierStartChar = function(c)
 {
-    return (c == OpenDataParser.CHR_UNDERSCORE) || (c == OpenDataParser.CHR_DOLLARSIGN) || OpenDataParser.isChar(c);
+    return (c === OpenDataParser.CHR_UNDERSCORE) || (c === OpenDataParser.CHR_DOLLARSIGN) || OpenDataParser.isChar(c);
 };
 /**
   * @param {String} c
@@ -997,7 +997,7 @@ OpenDataParser.isIdentifierStartChar = function(c)
  */
 OpenDataParser.isWhitespace = function(c)
 {
-    return (c == OpenDataParser.CHR_WHITESPACE);
+    return (c === OpenDataParser.CHR_WHITESPACE);
 };
 
 OpenDataParser.isIdentifierChar = function(c)
@@ -1011,7 +1011,7 @@ function TimeSpan(positive, years, months, days, hours, minutes, seconds) {
 
 TimeSpan.prototype.toString = function() {
 
-}
+};
 
 /**
  * @class Token
@@ -1024,25 +1024,46 @@ function Token(tokenType)
     this.type = tokenType;
 }
 
+/**
+ *
+ * @returns {boolean}
+ */
+//noinspection JSUnusedGlobalSymbols
 Token.prototype.isParenOpen = function() {
-    return (this.type=='Syntax') && (this.syntax=='(');
-}
-
+    return (this.type==='Syntax') && (this.syntax==='(');
+};
+/**
+ *
+ * @returns {boolean}
+ */
+//noinspection JSUnusedGlobalSymbols
 Token.prototype.isParenClose = function() {
-    return (this.type=='Syntax') && (this.syntax==')');
-}
-
+    return (this.type==='Syntax') && (this.syntax===')');
+};
+/**
+ *
+ * @returns {boolean}
+ */
+//noinspection JSUnusedGlobalSymbols
 Token.prototype.isSlash = function() {
-    return (this.type=='Syntax') && (this.syntax=='/');
-}
-
+    return (this.type==='Syntax') && (this.syntax==='/');
+};
+/**
+ *
+ * @returns {boolean}
+ */
+//noinspection JSUnusedGlobalSymbols
 Token.prototype.isComma = function() {
-    return (this.type=='Syntax') && (this.syntax==',');
-}
-
+    return (this.type==='Syntax') && (this.syntax===',');
+};
+/**
+ *
+ * @returns {boolean}
+ */
+//noinspection JSUnusedGlobalSymbols
 Token.prototype.isNegative = function() {
-    return (this.type=='Syntax') && (this.syntax=='-');
-}
+    return (this.type==='Syntax') && (this.syntax==='-');
+};
 
 Token.TokenType = {
     Literal : 'Literal',
@@ -1074,7 +1095,7 @@ Token.Operator ={
     And:'$and',
     // Conditional OR
     Or:'$or'
-}
+};
 
 
 /**
@@ -1126,7 +1147,7 @@ LiteralToken.Null = new LiteralToken(null, LiteralToken.LiteralType.Null);
 
 /**
  * @class IdentifierToken
- * @param {String} The identifier's name
+ * @param {string} name The identifier's name
  * @constructor
  */
 function IdentifierToken(name)
@@ -1165,7 +1186,8 @@ SyntaxToken.Negative = new SyntaxToken('-');
 
 var odata = {
     /**
-     * @param {String} str The open data filter expression
+     * @param {string} str The open data filter expression
+     * @param {Function} callback
      * @returns {*} The equivalent query expression
      */
     parse: function(str, callback) {
@@ -1179,7 +1201,7 @@ var odata = {
     createParser: function() {
         return new OpenDataParser();
     }
-}
+};
 
 if (typeof exports !== 'undefined')
 {

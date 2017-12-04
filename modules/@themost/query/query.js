@@ -1,24 +1,20 @@
 /**
- * MOST Web Framework
- * A JavaScript Web Framework
- * http://themost.io
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2017, THEMOST LP All rights reserved
  *
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com, Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Released under the BSD3-Clause license
- * Date: 2014-07-16
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
  */
-/**
- * Created by kbarbounakis on 16/7/2014.
- */
-
 /**
  * @ignore
  */
-var util = require('util'),
-    _ = require('lodash'),
+var sprintf = require('sprintf').sprintf;
+var _ = require('lodash');
 // eslint-disable-next-line no-unused-vars
-    natives = require('./natives');
+//noinspection JSUnusedLocalSymbols
+var natives = require('./natives');
+
 
 /**
  * @class QueryParameter
@@ -40,9 +36,9 @@ function QueryFieldAggregator() {
  * @param {*} comparison
  */
 QueryFieldAggregator.prototype.wrapWith = function(comparison) {
-    var name = Object.keys(this)[0];
+    var name = _.keys(this)[0];
     if (name) {
-        if (util.isArray(this[name])) {
+        if (_.isArray(this[name])) {
             //search for query parameter
             for (var i = 0; i < this[name].length; i++) {
                 if (this[name][i] instanceof QueryParameter) {
@@ -169,7 +165,7 @@ QueryExpression.prototype.prop = function(s)
  */
 QueryExpression.prototype.clone = function()
 {
-    return util._extend(new QueryExpression(), this);
+    return _.assign(new QueryExpression(), this);
 };
 
 /**
@@ -210,7 +206,7 @@ QueryExpression.prototype.fields = function() {
     var joins = [];
     if (!_.isNil(this.$expand))
     {
-        if (util.isArray(this.$expand))
+        if (_.isArray(this.$expand))
             joins=this.$expand;
         else
             joins.push(this.$expand);
@@ -232,7 +228,7 @@ QueryExpression.prototype.fields = function() {
             }
         }
         else {
-            fields.push(util._extend(new QueryField(), x));
+            fields.push(_.assign(new QueryField(), x));
         }
     });
     //enumerate join fields
@@ -249,7 +245,7 @@ QueryExpression.prototype.fields = function() {
                     fields.push(new QueryField(y));
                 }
                 else {
-                    fields.push(util._extend(new QueryField(), y));
+                    fields.push(_.assign(new QueryField(), y));
                 }
             });
         }
@@ -302,13 +298,13 @@ QueryExpression.prototype.hasFields = function()
     var joins = [];
     if (!_.isNil(self.$expand))
     {
-        if (util.isArray(self.$expand))
+        if (_.isArray(self.$expand))
             joins=self.$expand;
         else
             joins.push(self.$expand);
     }
     //search for fields
-    if (util.isArray(self.$select[entity])) {
+    if (_.isArray(self.$select[entity])) {
         if (self.$select[entity].length>0)
             return true;
     }
@@ -317,7 +313,7 @@ QueryExpression.prototype.hasFields = function()
     _.forEach(joins, function(x)
     {
         var table = Object.key(x.$entity);
-        if (util.isArray(x.$entity[table])) {
+        if (_.isArray(x.$entity[table])) {
             if (x.$entity[table].length>0)
                 result = true;
         }
@@ -466,7 +462,7 @@ QueryExpression.prototype.set = function(obj)
 {
     if (_.isNil(obj))
         return this;
-    if (util.isArray(obj) || !_.isObject(obj))
+    if (_.isArray(obj) || !_.isObject(obj))
         throw new Error('Invalid argument type. Update expression argument must be an object.');
     //get entity name (by property)
     var prop = Object.key(this.$update);
@@ -487,7 +483,7 @@ QueryExpression.prototype.select = function(props)
     if (_.isNil(props))
         return this;
     var fields = [];
-    if (!util.isArray(props))
+    if (!_.isArray(props))
     {
         if (typeof props === 'string')
             fields.push(props);
@@ -612,7 +608,7 @@ QueryExpression.prototype.with = function(obj) {
         this.$expand = this.privates.__expand;
     }
     else {
-        if (util.isArray(this.$expand)) {
+        if (_.isArray(this.$expand)) {
             this.$expand.push(this.privates.__expand);
         }
         else {
@@ -700,7 +696,7 @@ QueryExpression.prototype.groupBy = function(name) {
     if (_.isNil(this.$group))
         this.$group = [];
     var self = this;
-    if (util.isArray(name)) {
+    if (_.isArray(name)) {
         _.forEach(name, function (x) {
             if (x)
                 self.$group.push(x);
@@ -724,7 +720,7 @@ QueryExpression.prototype.__append = function(expr) {
         var op = this.privates.__expr;
         if (op) {
             //get current operator
-            var keys = Object.keys(this.$where);
+            var keys = _.keys(this.$where);
             if (keys[0]===op) {
                 this.$where[op].push(expr);
             }
@@ -1555,7 +1551,7 @@ QueryField.prototype.as = function(alias) {
     {
         if (typeof this.$name !== 'undefined')
             return null;
-        var keys = Object.keys(this);
+        var keys = _.keys(this);
         if (keys.length===0)
             return null;
         else
@@ -1688,7 +1684,7 @@ QueryFieldComparer.prototype.compareWith = function(comparison) {
     }
     //get aggregate function
     var aggr = Object.key(this), name;
-    if (util.isArray(this[aggr])) {
+    if (_.isArray(this[aggr])) {
         //get first element (the field name)
         name = QueryField.prototype.nameOf.call(this[aggr][0]);
     }
@@ -1748,7 +1744,7 @@ OpenDataQuery.prototype.append = function() {
         var expr = null;
 
         if (self.privates.op==='in') {
-            if (util.isArray(self.privates.right)) {
+            if (_.isArray(self.privates.right)) {
                 //expand values
                 exprs = [];
                 _.forEach(self.privates.right, function(x) {
@@ -1759,7 +1755,7 @@ OpenDataQuery.prototype.append = function() {
             }
         }
         else if (self.privates.op==='nin') {
-            if (util.isArray(self.privates.right)) {
+            if (_.isArray(self.privates.right)) {
                 //expand values
                 exprs = [];
                 _.forEach(self.privates.right, function(x) {
@@ -1794,7 +1790,7 @@ OpenDataQuery.prototype.append = function() {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.select = function(attr) {
-    if (util.isArray(attr)) {
+    if (_.isArray(attr)) {
         this.$select = attr.join(',');
     }
     else
@@ -1934,7 +1930,7 @@ OpenDataQuery.prototype.orIndexOf = function(name) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.endsWith = function(name, s) {
-    this.privates.left = util.format('endswith(%s,%s)',name,QueryExpression.escape(s));
+    this.privates.left = sprintf('endswith(%s,%s)',name,QueryExpression.escape(s));
     return this;
 };
 
@@ -1944,7 +1940,7 @@ OpenDataQuery.prototype.endsWith = function(name, s) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.startsWith = function(name, s) {
-    this.privates.left = util.format('startswith(%s,%s)',name,QueryExpression.escape(s));
+    this.privates.left = sprintf('startswith(%s,%s)',name,QueryExpression.escape(s));
     return this;
 };
 // noinspection JSUnusedGlobalSymbols
@@ -1954,7 +1950,7 @@ OpenDataQuery.prototype.startsWith = function(name, s) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.substringOf = function(name, s) {
-    this.privates.left = util.format('substringof(%s,%s)',name,QueryExpression.escape(s));
+    this.privates.left = sprintf('substringof(%s,%s)',name,QueryExpression.escape(s));
     return this;
 };
 
@@ -1965,7 +1961,7 @@ OpenDataQuery.prototype.substringOf = function(name, s) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.substring = function(name, pos, length) {
-    this.privates.left = util.format('substring(%s,%s,%s)',name,pos,length);
+    this.privates.left = sprintf('substring(%s,%s,%s)',name,pos,length);
     return this;
 };
 
@@ -1974,7 +1970,7 @@ OpenDataQuery.prototype.substring = function(name, pos, length) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.length = function(name) {
-    this.privates.left = util.format('length(%s)',name);
+    this.privates.left = sprintf('length(%s)',name);
     return this;
 };
 // noinspection JSUnusedGlobalSymbols
@@ -1983,7 +1979,7 @@ OpenDataQuery.prototype.length = function(name) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.toLower = function(name) {
-    this.privates.left = util.format('tolower(%s)',name);
+    this.privates.left = sprintf('tolower(%s)',name);
     return this;
 };
 // noinspection JSUnusedGlobalSymbols
@@ -1992,7 +1988,7 @@ OpenDataQuery.prototype.toLower = function(name) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.toUpper = function(name) {
-    this.privates.left = util.format('toupper(%s)',name);
+    this.privates.left = sprintf('toupper(%s)',name);
     return this;
 };
 
@@ -2001,7 +1997,7 @@ OpenDataQuery.prototype.toUpper = function(name) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.trim = function(name) {
-    this.privates.left = util.format('trim(%s)',name);
+    this.privates.left = sprintf('trim(%s)',name);
     return this;
 };
 
@@ -2034,7 +2030,7 @@ OpenDataQuery.prototype.field = function(name) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.day = function(name) {
-    this.privates.left = util.format('day(%s)',name);
+    this.privates.left = sprintf('day(%s)',name);
     return this;
 };
 
@@ -2043,7 +2039,7 @@ OpenDataQuery.prototype.day = function(name) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.day = function(name) {
-    this.privates.left = util.format('hour(%s)',name);
+    this.privates.left = sprintf('hour(%s)',name);
     return this;
 };
 
@@ -2052,7 +2048,7 @@ OpenDataQuery.prototype.day = function(name) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.minute = function(name) {
-    this.privates.left = util.format('minute(%s)',name);
+    this.privates.left = sprintf('minute(%s)',name);
     return this;
 };
 
@@ -2061,7 +2057,7 @@ OpenDataQuery.prototype.minute = function(name) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.month = function(name) {
-    this.privates.left = util.format('month(%s)',name);
+    this.privates.left = sprintf('month(%s)',name);
     return this;
 };
 
@@ -2071,7 +2067,7 @@ OpenDataQuery.prototype.month = function(name) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.second = function(name) {
-    this.privates.left = util.format('second(%s)',name);
+    this.privates.left = sprintf('second(%s)',name);
     return this;
 };
 
@@ -2081,7 +2077,7 @@ OpenDataQuery.prototype.second = function(name) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.year = function(name) {
-    this.privates.left = util.format('year(%s)',name);
+    this.privates.left = sprintf('year(%s)',name);
     return this;
 };
 
@@ -2090,7 +2086,7 @@ OpenDataQuery.prototype.year = function(name) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.round = function(name) {
-    this.privates.left = util.format('round(%s)',name);
+    this.privates.left = sprintf('round(%s)',name);
     return this;
 };
 
@@ -2099,7 +2095,7 @@ OpenDataQuery.prototype.round = function(name) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.floor = function(name) {
-    this.privates.left = util.format('floor(%s)',name);
+    this.privates.left = sprintf('floor(%s)',name);
     return this;
 };
 
@@ -2108,7 +2104,7 @@ OpenDataQuery.prototype.floor = function(name) {
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.ceiling = function(name) {
-    this.privates.left = util.format('ceiling(%s)',name);
+    this.privates.left = sprintf('ceiling(%s)',name);
     return this;
 };
 
