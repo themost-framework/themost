@@ -45,8 +45,8 @@ function ClosureParser() {
 }
 /**
  * Parses a javascript expression and returns the equivalent QueryExpression instance.
- * @param {function(*)} fn The closure expression to parse
- * @param {function(Error=,*=)} callback
+ * @param {Function} fn The closure expression to parse
+ * @param {Function} callback
  */
 ClosureParser.prototype.parseFilter = function(fn, callback) {
     var self = this;
@@ -477,30 +477,24 @@ ClosureParser.prototype.resolveMethod = function(method, args, callback)
         callback.call(this);
 };
 
-var closures = {
-    /**
-     * @param {function(*)} fn The closure expression to parse
-     * @param {function(Error=,*=)} callback A callback function which is going to return the equivalent QueryExpression
-     */
-    parseFilter: function(fn, callback) {
-        var p = new ClosureParser();
-        return p.parseFilter(fn, callback);
-    },
-    /**
-     * Creates a new instance of closure parser
-     * @returns {ClosureParser}
-     */
-    createParser: function() {
-        var parser = new ClosureParser();
-        parser.eval = function(o) { return eval(o); };
-        return parser;
-    }
-};
-
 if (typeof exports !== 'undefined')
 {
     /**
-     * @see closures
+     * @param {Function} fn - The closure expression to parse
+     * @param {Function} callback - A callback function which is going to return the equivalent QueryExpression
      */
-    module.exports = closures;
+    module.exports.parseFilter =  function(fn, callback) {
+        var p = new ClosureParser();
+        return p.parseFilter(fn, callback);
+    };
+    /**
+     * Creates an instance of ClosureParser class
+     * @return {ClosureParser}
+     */
+    module.exports.createParser = function() {
+        var parser = new ClosureParser();
+        parser.eval = function(o) { return eval(o); };
+        return parser;
+    };
+    module.exports.ClosureParser = ClosureParser;
 }

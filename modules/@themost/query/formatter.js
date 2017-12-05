@@ -252,10 +252,10 @@ SqlFormatter.prototype.formatWhere = function(where)
                     }
                     else if (typeof comparison.$in === 'object') {
                         //try to validate if comparison.$in is a select query expression (sub-query support)
-                        var sq = _.assign(new QueryExpression(), comparison.$in);
-                        if (sq.$select) {
+                        var q1 = _.assign(new QueryExpression(), comparison.$in);
+                        if (q1.$select) {
                             //if sub query is a select expression
-                            return sprintf('(%s IN (%s))', escapedProperty, self.format(sq));
+                            return sprintf('(%s IN (%s))', escapedProperty, self.format(q1));
                         }
                     }
                     //otherwise throw error
@@ -271,10 +271,10 @@ SqlFormatter.prototype.formatWhere = function(where)
                     }
                     else if (typeof comparison.$in === 'object') {
                         //try to validate if comparison.$nin is a select query expression (sub-query support)
-                        var sq = _.assign(new QueryExpression(), comparison.$in);
-                        if (sq.$select) {
+                        var q2 = _.assign(new QueryExpression(), comparison.$in);
+                        if (q2.$select) {
                             //if sub query is a select expression
-                            return sprintf('(NOT %s IN (%s))', escapedProperty, self.format(sq));
+                            return sprintf('(NOT %s IN (%s))', escapedProperty, self.format(q2));
                         }
                     }
                     //otherwise throw error
@@ -285,7 +285,7 @@ SqlFormatter.prototype.formatWhere = function(where)
                     // and the property value contains an array of all others parameters (if any) and the comparison operator
                     // e.g. { Price: { $add: [5, { $gt:100} ]} } where we are trying to find elements that meet the following query expression: (Price+5)>100
                     // The identifier <Price> is the first parameter, the constant 5 is the second
-                    var fn = this[op], p0 = property, p1 = comparison[op];
+                    var fn = this[op], p1 = comparison[op];
                     if (typeof fn === 'function')
                     {
                         var args = [];
@@ -671,7 +671,7 @@ SqlFormatter.prototype.formatSelect = function(obj)
         escapedEntity = $this.escapeName(entity)
     }
     //add basic SELECT statement
-    if (obj.$fixed) {
+    if (obj["$fixed"]) {
         sql = sql.concat('SELECT * FROM (SELECT ', _.map(fields, function(x) {
             return $this.format(x,'%f');
         }).join(', '), ') ', escapedEntity);

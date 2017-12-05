@@ -1,26 +1,20 @@
 /**
- * MOST Web Framework
- * A JavaScript Web Framework
- * http://themost.io
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2017, THEMOST LP All rights reserved
  *
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com, Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Released under the BSD3-Clause license
- * Date: 2014-02-15
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
  */
-/**
- * @ignore
- */
-var util = require('util'),
-    odata = require('./odata'),
-    frmt = require('./formatter'),
-    closures = require('./closures'),
-    sqlutils = require('./sql-utils'),
-    qryq = require('./query'),
-    QueryExpression = qryq.QueryExpression,
-    QueryField = qryq.QueryField,
-    QueryEntity = qryq.QueryEntity,
-    OpenDataQuery = qryq.OpenDataQuery;
+var _ = require("lodash");
+var odata = require('./odata');
+var SqlFormatter = require('./formatter').SqlFormatter;
+var closures = require('./closures');
+var sqlutils = require('./sql-utils');
+var QueryExpression = require('./query').QueryExpression;
+var QueryField = require('./query').QueryField;
+var QueryEntity = require('./query').QueryEntity;
+var OpenDataQuery = require('./query').OpenDataQuery;
 
 var qry = { };
 
@@ -28,7 +22,7 @@ qry.classes = {
     QueryExpression:QueryExpression,
     QueryField:QueryField,
     QueryEntity:QueryEntity,
-    SqlFormatter:frmt.SqlFormatter,
+    SqlFormatter:SqlFormatter,
     OpenDataQuery:OpenDataQuery
 };
 /**
@@ -191,7 +185,7 @@ qry.fields = {
     floor:function(name) {
         var f = { };
         f[name] = { $floor:[ qry.fields.select(name) ] };
-        return util._extend(new QueryField(), f);
+        return _.assign(new QueryField(), f);
     },
     /**
      * @param name {string}
@@ -200,7 +194,7 @@ qry.fields = {
     ceil:function(name) {
         var f = { };
         f[name] = { $ceiling:[ qry.fields.select(name) ] };
-        return util._extend(new QueryField(), f);
+        return _.assign(new QueryField(), f);
     },
     /**
      * @param {string} name
@@ -210,7 +204,7 @@ qry.fields = {
     modulo:function(name, divider) {
         var f = { };
         f[name] = { $mod:[ qry.fields.select(name), divider ] };
-        return util._extend(new QueryField(), f);
+        return _.assign(new QueryField(), f);
     },
     /**
      * @param {string} name
@@ -220,7 +214,7 @@ qry.fields = {
     add:function(name, x) {
         var f = { };
         f[name] = { $add:[ qry.fields.select(name), x ] };
-        return util._extend(new QueryField(), f);
+        return _.assign(new QueryField(), f);
     },
     /**
      * @param {string} name
@@ -230,7 +224,7 @@ qry.fields = {
     subtract:function(name, x) {
         var f = { };
         f[name] = { $subtract:[ qry.fields.select(name), x ] };
-        return util._extend(new QueryField(), f);
+        return _.assign(new QueryField(), f);
     },
     /**
      * @param {string} name
@@ -240,7 +234,7 @@ qry.fields = {
     divide:function(name, divider) {
         var f = { };
         f[name] = { $divide:[ qry.fields.select(name), divider ] };
-        return util._extend(new QueryField(), f);
+        return _.assign(new QueryField(), f);
     },
     /**
      * @param {string} name
@@ -250,7 +244,7 @@ qry.fields = {
     multiply:function(name, multiplier) {
         var f = { };
         f[name] = { $multiply:[ qry.fields.select(name), multiplier ] };
-        return util._extend(new QueryField(), f);
+        return _.assign(new QueryField(), f);
     },
     /**
      * @param {string} name
@@ -259,8 +253,8 @@ qry.fields = {
      */
     round:function(name, n) {
         var f = { };
-        f[name] = { $round:[ qry.fields.select(name), 2 ] };
-        return util._extend(new QueryField(), f);
+        f[name] = { $round:[ qry.fields.select(name), typeof n !== 'number' ? n : 2 ] };
+        return _.assign(new QueryField(), f);
     },
     /**
      * @param name {string}
@@ -269,7 +263,7 @@ qry.fields = {
     month:function(name) {
         var f = { };
         f[name] = { $month:[ qry.fields.select(name) ] };
-        return util._extend(new QueryField(), f);
+        return _.assign(new QueryField(), f);
     },
     /**
      * @param name {string}
@@ -278,7 +272,7 @@ qry.fields = {
     length:function(name) {
         var f = { };
         f[name] = { $length:[ qry.fields.select(name) ] };
-        return util._extend(new QueryField(), f);
+        return _.assign(new QueryField(), f);
     },
     /**
      * @param name {string}
@@ -287,7 +281,7 @@ qry.fields = {
     trim:function(name) {
         var f = { };
         f[name] = { $trim:[ qry.fields.select(name) ] };
-        return util._extend(new QueryField(), f);
+        return _.assign(new QueryField(), f);
     },
     /**
      * @param name {string}
@@ -296,7 +290,7 @@ qry.fields = {
     year:function(name) {
         var f = { };
         f[name] = { $year:[ qry.fields.select(name) ] };
-        return util._extend(new QueryField(), f);
+        return _.assign(new QueryField(), f);
     },
     /**
      * @param name {string}
@@ -305,7 +299,7 @@ qry.fields = {
     day:function(name) {
         var f = { };
         f[name] = { $day:[ qry.fields.select(name) ] };
-        return util._extend(new QueryField(), f);
+        return _.assign(new QueryField(), f);
     },
     /**
      * @param name {string}
@@ -314,7 +308,7 @@ qry.fields = {
     date:function(name) {
         var f = { };
         f[name] = { $date:[ qry.fields.select(name) ] };
-        return util._extend(new QueryField(), f);
+        return _.assign(new QueryField(), f);
     },
     /**
      * @param name {string}
@@ -323,7 +317,7 @@ qry.fields = {
     hour:function(name) {
         var f = { };
         f[name] = { $hour:[ qry.fields.select(name) ] };
-        return util._extend(new QueryField(), f);
+        return _.assign(new QueryField(), f);
     },
     /**
      * @param name {string}
@@ -332,7 +326,7 @@ qry.fields = {
     minute:function(name) {
         var f = { };
         f[name] = { $minute:[ qry.fields.select(name) ] };
-        return util._extend(new QueryField(), f);
+        return _.assign(new QueryField(), f);
     },
     /**
      * @param name {string}
@@ -341,7 +335,7 @@ qry.fields = {
     second:function(name) {
         var f = { };
         f[name] = { $second:[ qry.fields.select(name) ] };
-        return util._extend(new QueryField(), f);
+        return _.assign(new QueryField(), f);
     },
     /**
      * @param name {string}

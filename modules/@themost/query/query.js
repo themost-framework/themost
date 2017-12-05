@@ -141,6 +141,7 @@ function QueryExpression()
     this.privates = function() { };
 
 }
+
 /**
  * @private
  * @param {string|*=} s
