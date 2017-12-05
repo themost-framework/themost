@@ -1,0 +1,13 @@
+{
+    "extends": ["tslint:recommended"],
+    "rules": {
+        "typedef-whitespace": false,
+        "max-line-length": [false],
+        "whitespace": false,
+        "comment-format": false,
+        "max-classes-per-file": [false],
+        "no-bitwise": false,
+        "object-literal-sort-keys": false,
+        "interface-name": false
+    }
+}

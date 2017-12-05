@@ -1,0 +1,48 @@
+{
+  "name": "@themost/common",
+  "version": "2.0.4",
+  "description": "MOST Web Framework Common Module",
+  "main": "index.js",
+  "peerDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kbarbounakis/themost.git"
+  },
+  "author": "Kyriakos Barbounakis <k.barbounakis@gmail.com>",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/kbarbounakis/themost/issues"
+  },
+  "homepage": "https://github.com/kbarbounakis/themost#readme",
+  "dependencies": {
+    "async": "^2.5.0",
+    "blueimp-md5": "^2.7.0",
+    "eslint": "^4.12.1",
+    "events": "^1.1.1",
+    "hashmap": "^2.3.0",
+    "lodash": "^4.17.4",
+    "sprintf": "^0.1.5",
+    "symbol": "^0.3.1"
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "mocha": "^3.5.1",
+    "q": "^1.5.1",
+    "source-map-support": "^0.5.0"
+  },
+  "eslintConfig": {
+    "env": {
+      "browser": true,
+      "node": true,
+      "es6": false,
+      "jquery": true
+    },
+    "globals": {
+      "describe": false,
+      "it": false,
+      "before": false,
+      "after": false
+    },
+    "extends": "eslint:recommended"
+  }
+}
