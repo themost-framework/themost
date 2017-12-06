@@ -2,7 +2,7 @@
 
 require('source-map-support/register');
 
-var _app = require('./../../modules/@themost/web/app');
+var _app = require('../../modules/@themost/web/resources/app');
 
 var HttpApplication = _app.HttpApplication;
 

@@ -1,36 +1,35 @@
 /**
- * MOST Web Framework
- * A JavaScript Web Framework
- * http://themost.io
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2017, THEMOST LP All rights reserved
  *
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com, Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Released under the BSD3-Clause license
- * Date: 2014-06-10
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
-/**
- * @private
- */
-var common = require('./common'),
-    files = require('./files'),
-    _ = require('lodash'),
-    mvc = require('./http-mvc'),
-    html = require('./html'), util = require('util'), array = require('most-array'),
-    async = require('async'), path = require("path"), fs = require("fs"),
-    url = require('url'),
-    http = require('http'),
-    EventEmitter2 = require('most-data').types.EventEmitter2,
-    DataConfiguration = require('most-data').cfg.DataConfiguration,
-    querystring = require('querystring'),
-    HttpContext= require('./http-context').HttpContext,
-    DataException = require('most-data/types').DataException,
-    decorators = require('./decorators'),
-    crypto = require('crypto');
+var HttpError = require('@themost/common/errors').HttpError;
+var HttpServerError = require('@themost/common/errors').HttpServerError;
+var HttpNotFoundError = require('@themost/common/errors').HttpNotFoundError;
+var TraceUtils = require('@themost/common/utils').TraceUtils;
+var RandomUtils = require('@themost/common/utils').RandomUtils;
+var sprintf = require('sprintf').sprintf;
+var files = require('./files');
+var _ = require('lodash');
+var mvc = require('./http-mvc');
+var LangUtils = require('@themost/common/utils').LangUtils;
+var path = require("path");
+var fs = require("fs");
+var url = require('url');
+var http = require('http');
+var SequentialEventEmitter = require('@themost/common/emitter').SequentialEventEmitter;
+var DataConfiguration = require('@themost/data/data-configuration').DataConfiguration;
+var querystring = require('querystring');
+var HttpContext = require('./http-context').HttpContext;
+var decorators = require('./decorators');
+var crypto = require('crypto');
 var Symbol = require('symbol');
+var HttpHandler = require('./types').HttpHandler;
 var executionPathProperty = Symbol('executionPath');
 var configPathProperty = Symbol('configPath');
-var strategiesProperty = Symbol('strategies');
 
 /**
  * @classdesc ApplicationOptions class describes the startup options of a MOST Web Framework application.
@@ -53,6 +52,7 @@ var strategiesProperty = Symbol('strategies');
  var web = require("most-web");
  web.current.start();
  */
+// eslint-disable-next-line no-unused-vars
 function ApplicationOptions() {
 
 }
@@ -61,6 +61,7 @@ function ApplicationOptions() {
  * Represents a configuration file that is applicable to an application or service.
  * @constructor
  */
+// eslint-disable-next-line no-unused-vars
 function ApplicationConfig() {
     /**
      * Gets an array of data adapters.
@@ -118,7 +119,7 @@ function HttpDataContext() {
     //
 }
 /**
- * @returns {AbstractAdapter}
+ * @returns {DataAdapter}
  */
 HttpDataContext.prototype.db = function () {
     return null;
@@ -128,6 +129,7 @@ HttpDataContext.prototype.db = function () {
  * @param {string} name
  * @returns {DataModel}
  */
+// eslint-disable-next-line no-unused-vars
 HttpDataContext.prototype.model = function (name) {
     return null;
 };
@@ -136,172 +138,16 @@ HttpDataContext.prototype.model = function (name) {
  * @param {string} type
  * @returns {*}
  */
+// eslint-disable-next-line no-unused-vars
 HttpDataContext.prototype.dataTypes = function (type) {
     return null;
 };
 
 /**
- * @classdesc An abstract class that represents an HTTP Handler
- * @class HttpHandler
- * @abstract
- * @constructor
- */
-function HttpHandler() {
-    //
-}
-
-/**
- * @type {string[]}
- * @private
- */
-HttpHandler.Events = ['beginRequest', 'validateRequest', 'authenticateRequest',
-    'authorizeRequest', 'mapRequest', 'postMapRequest', 'preExecuteResult', 'postExecuteResult', 'endRequest'];
-
-/**
- * Occurs as the first event in the HTTP execution
- * @param {HttpContext} context
- * @param {Function} callback
- */
-HttpHandler.prototype.beginRequest = function (context, callback) {
-    callback = callback || function () {
-    };
-    callback.call(context);
-};
-
-/**
- * Occurs when a handler is going to validate current HTTP request.
- * @param {HttpContext} context
- * @param {Function} callback
- */
-HttpHandler.prototype.validateRequest = function (context, callback) {
-    callback = callback || function () {
-    };
-    callback.call(context);
-};
-
-/**
- * Occurs when a handler is going to set current user identity.
- * @param {HttpContext} context
- * @param {Function} callback
- */
-HttpHandler.prototype.authenticateRequest = function (context, callback) {
-    callback = callback || function () {
-    };
-    callback.call(context);
-};
-
-/**
- * Occurs when a handler has established the identity of the current user.
- * @param {HttpContext} context
- * @param {Function} callback
- */
-/*HttpHandler.prototype.postAuthenticateRequest = function(context, callback) {
- callback = callback || function() {};
- callback.call(context);
- };*/
-
-
-/**
- * Occurs when a handler has verified user authorization.
- * @param {HttpContext} context
- * @param {Function} callback
- */
-HttpHandler.prototype.authorizeRequest = function (context, callback) {
-    callback = callback || function () {
-    };
-    callback.call(context);
-};
-
-/**
- * Occurs when the handler is selected to respond to the request.
- * @param {HttpContext} context
- * @param {Function} callback
- */
-HttpHandler.prototype.mapRequest = function (context, callback) {
-    callback = callback || function () {
-    };
-    callback.call(context);
-};
-
-/**
- * Occurs when application has mapped the current request to the appropriate handler.
- * @param {HttpContext} context
- * @param {Function} callback
- */
-HttpHandler.prototype.postMapRequest = function(context, callback) {
-    callback = callback || function() {};
-    callback.call(context);
-};
-
-/**
- * Occurs just before application starts executing a handler.
- * @param {HttpContext} context
- * @param {Function} callback
- */
-/*HttpHandler.prototype.preRequestHandlerExecute = function(context, callback) {
- callback = callback || function() {};
- callback.call(context);
- };*/
-
-/**
- * Occurs when application starts processing current HTTP request.
- * @param {HttpContext} context
- * @param {Function} callback
- */
-HttpHandler.prototype.processRequest = function (context, callback) {
-    callback = callback || function () {
-    };
-    callback.call(context);
-};
-
-/**
- * Occurs when application starts executing an HTTP Result.
- * @param {HttpContext} context
- * @param {Function} callback
- */
-HttpHandler.prototype.preExecuteResult = function (context, callback) {
-    callback = callback || function () {
-    };
-    callback.call(context);
-};
-
-/**
- * Occurs when application was succesfully executes an HTTP Result.
- * @param {HttpContext} context
- * @param {Function} callback
- */
-HttpHandler.prototype.postExecuteResult = function (context, callback) {
-    callback = callback || function () {
-    };
-    callback.call(context);
-};
-
-/**
- * Occurs when the handler finishes execution.
- * @param {HttpContext} context
- * @param {Function} callback
- */
-/*HttpHandler.prototype.postRequestHandlerExecute = function(context, callback) {
- callback = callback || function() {};
- callback.call(context);
- };*/
-
-/**
- * Occurs as the last event in the HTTP execution
- * @param {HttpContext} context
- * @param {Function} callback
- */
-HttpHandler.prototype.endRequest = function (context, callback) {
-    callback = callback || function () {
-    };
-    callback.call(context);
-};
-
-/**
  * @class HttpApplication
  * @constructor
- * @param {string} executionPath
- * @augments EventEmitter
+ * @param {string=} executionPath
+ * @augments SequentialEventEmitter
  */
 function HttpApplication(executionPath) {
     /**
@@ -325,7 +171,7 @@ function HttpApplication(executionPath) {
     this.handlers = [];
 
     //initialize angular server module
-    var ng = require('./angular-server-module');
+    var ng = require('./angular/module');
     /**
      * @type {AngularServerModule}
      */
@@ -361,7 +207,7 @@ function HttpApplication(executionPath) {
 
     Object.defineProperty(self, 'cache', {
         get: function () {
-            if (!web.common.isNullOrUndefined($cache))
+            if (!web._.isNil($cache))
                 return $cache;
             var HttpCache = require( "./http-cache" );
             /**
@@ -389,7 +235,7 @@ function HttpApplication(executionPath) {
 
 }
 
-util.inherits(HttpApplication, EventEmitter2);
+LangUtils.inherits(HttpApplication, SequentialEventEmitter);
 
 HttpApplication.prototype.getExecutionPath = function() {
     return this[executionPathProperty];
@@ -412,78 +258,78 @@ HttpApplication.prototype.init = function () {
     var env = process.env['NODE_ENV'] || 'production', str;
     //first of all try to load environment specific configuration
     try {
-        common.log(util.format('Init: Loading environment specific configuration file (app.%s.json)', env));
+        TraceUtils.log('Init: Loading environment specific configuration file (app.%s.json)', env);
         str = path.join(this.getConfigurationPath(), 'app.' + env + '.json');
         /**
          * @type {ApplicationConfig}
          */
         this.config = require(str);
-        common.log(util.format('Init: Environment specific configuration file (app.%s.json) was succesfully loaded.', env));
+        TraceUtils.log('Init: Environment specific configuration file (app.%s.json) was succesfully loaded.', env);
     }
     catch (e) {
         if (e.code === 'MODULE_NOT_FOUND') {
-            common.log(util.format('Init: Environment specific configuration file (app.%s.json) is missing.', env));
+            TraceUtils.log('Init: Environment specific configuration file (app.%s.json) is missing.', env);
             //try to load default configuration file
             try {
-                common.log('Init: Loading environment default configuration file (app.json)');
+                TraceUtils.log('Init: Loading environment default configuration file (app.json)');
                 str = path.join(this.getConfigurationPath(), 'app.json');
                 /**
                  * @type {ApplicationConfig}
                  */
                 this.config = require(str);
-                common.log('Init: Default configuration file (app.json) was succesfully loaded.');
+                TraceUtils.log('Init: Default configuration file (app.json) was succesfully loaded.');
             }
             catch (e) {
                 if (e.code === 'MODULE_NOT_FOUND') {
-                    common.log('Init: An error occured while loading default configuration (app.json). Configuration cannot be found or is inaccesible.');
+                    TraceUtils.log('Init: An error occured while loading default configuration (app.json). Configuration cannot be found or is inaccesible.');
                     //load internal configuration file
                     /**
                      * @type {ApplicationConfig}
                      */
-                    this.config = require('./app.json');
+                    this.config = require('./resources/app.json');
                     this.config.settings.crypto = {
                         "algorithm": "aes256",
-                        "key": common.randomHex(32)
+                        "key": RandomUtils.randomHex(32)
                     };
-                    common.log('Init: Internal configuration file (app.json) was succesfully loaded.');
+                    TraceUtils.log('Init: Internal configuration file (app.json) was succesfully loaded.');
                 }
                 else {
-                    common.log('Init: An error occured while loading default configuration (app.json)');
+                    TraceUtils.log('Init: An error occured while loading default configuration (app.json)');
                     throw e;
                 }
             }
         }
         else {
-            common.log(util.format('Init: An error occured while loading application specific configuration (app).', env));
+            TraceUtils.log(sprintf('Init: An error occured while loading application specific configuration (app).', env));
             throw e;
         }
     }
     //load routes (if empty)
-    if (web.common.isNullOrUndefined(this.config.routes)) {
+    if (web._.isNil(this.config.routes)) {
         try {
             this.config.routes = require(path.resolve(this.getConfigurationPath(),'routes.json'));
         }
         catch(e) {
             if (e.code === 'MODULE_NOT_FOUND') {
                 //load internal default route file
-                web.common.log('Init: Application specific routes configuration cannot be found. The default routes configuration will be loaded instead.');
-                this.config.routes = require('./routes.json');
+                TraceUtils.log('Init: Application specific routes configuration cannot be found. The default routes configuration will be loaded instead.');
+                this.config.routes = require('./resources/routes.json');
             }
             else {
-                web.common.log('Init: An error occured while trying to load application routes configuration.');
+                TraceUtils.log('Init: An error occured while trying to load application routes configuration.');
                 throw e;
             }
         }
     }
     //load data types (if empty)
-    if (web.common.isNullOrUndefined(this.config.dataTypes))
+    if (web._.isNil(this.config.dataTypes))
     {
         try {
             var dataConfiguration = new DataConfiguration(this[configPathProperty]);
             this.config.dataTypes = dataConfiguration.dataTypes;
         }
         catch(e) {
-            web.common.log('Init: An error occured while trying to load application data types configuration.');
+            TraceUtils.log('Init: An error occured while trying to load application data types configuration.');
             throw e;
         }
     }
@@ -496,7 +342,7 @@ HttpApplication.prototype.init = function () {
     //so they should not hold information about http context and execution lifecycle.
     var self = this;
 
-    var handlers = self.config.handlers || [], defaultApplicationConfig = require('./app.json');
+    var handlers = self.config.handlers || [], defaultApplicationConfig = require('./resources/app.json');
     //default handlers
     var defaultHandlers = defaultApplicationConfig.handlers;
     for (var i = 0; i < defaultHandlers.length; i++) {
@@ -506,15 +352,15 @@ HttpApplication.prototype.init = function () {
             }
         })(defaultHandlers[i]);
     }
-    array(handlers).each(function (h) {
+    _.forEach(handlers, function (h) {
         try {
             var handlerPath = h.type;
-            if (handlerPath.indexOf('/')==0)
+            if (handlerPath.indexOf('/')===0)
                 handlerPath = self.mapPath(handlerPath);
             var handlerModule = require(handlerPath), handler = null;
             if (handlerModule) {
-                if (typeof handlerModule.createInstance != 'function') {
-                    console.log(util.format('The specified handler (%s) cannot be instantiated. The module does not export createInstance() function.', h.name));
+                if (typeof handlerModule.createInstance !== 'function') {
+                    TraceUtils.log('The specified handler (%s) cannot be instantiated. The module does not export createInstance() function.', h.name);
                     return;
                 }
                 handler = handlerModule.createInstance();
@@ -522,12 +368,12 @@ HttpApplication.prototype.init = function () {
                     self.handlers.push(handler);
             }
         }
-        catch (e) {
-            throw new Error(util.format('The specified handler (%s) cannot be loaded. %s', h.name, e.message));
+        catch (err) {
+            throw new Error(sprintf('The specified handler (%s) cannot be loaded. %s', h.name, err.message));
         }
     });
     //initialize basic directives collection
-    var directives = require("./angular-server-directives");
+    var directives = require("./angular/angular-server-directives");
     directives.apply(this);
     return this;
 };
@@ -542,7 +388,7 @@ HttpApplication.prototype.mapPath = function (s) {
 };
 
 /**
- * Resolves ETag header for the given file. If the specifed does not exist or is invalid returns null.
+ * Resolves ETag header for the given file. If the specified does not exist or is invalid returns null.
  * @param {string=} file - A string that represents the file we want to query
  * @param {function(Error,string=)} callback
  */
@@ -578,6 +424,7 @@ HttpApplication.prototype.resolveETag = function(file, callback) {
         }
     });
 };
+// noinspection JSUnusedGlobalSymbols
 /**
  * @param {HttpContext} context
  * @param {string} executionPath
@@ -591,39 +438,35 @@ HttpApplication.prototype.unmodifiedRequest = function(context, executionPath, c
             return;
         }
         HttpApplication.prototype.resolveETag(executionPath, function(err, result) {
-            callback(null, (requestETag==result));
+            callback(null, (requestETag===result));
         });
     }
-    catch (e) {
-        console.log(e);
+    catch (err) {
+        TraceUtils.error(err);
         callback(null, false);
     }
 };
 
 /**
- * @param request {String|IncomingMessage}
+ * @param request {string|IncomingMessage}
+ * @returns {*}
  * */
 HttpApplication.prototype.resolveMime = function (request) {
+    var extensionName;
     if (typeof request=== 'string') {
         //get file extension
-        var extensionName = path.extname(request);
-        var arr = this.config.mimes.filter(function(x) {
-            return (x.extension == extensionName);
-        });
-        if (arr.length>0)
-            return arr[0];
-        return null;
+        extensionName = path.extname(request);
     }
     else if (typeof request=== 'object') {
         //get file extension
-        var extensionName = path.extname(request.url);
-        var arr = this.config.mimes.filter(function(x) {
-            return (x.extension == extensionName);
-        });
-        if (arr.length>0)
-            return arr[0];
-        return null;
+        extensionName = path.extname(request.url);
     }
+    else {
+        return;
+    }
+    return _.find(this.config.mimes, function(x) {
+        return (x.extension === extensionName);
+    });
 };
 
 /**
@@ -673,8 +516,8 @@ HttpApplication.prototype.setAuthCookie = function (context, username, options)
 {
     var defaultOptions = { user:username, dateCreated:new Date()}, value, expires;
     if (typeof options !== 'undefined' && options != null) {
-        value = JSON.stringify(util._extend(options, defaultOptions));
-        if (util.isDate(options.expires)) {
+        value = JSON.stringify(_.assign(options, defaultOptions));
+        if (_.isDate(options.expires)) {
             expires = options.expires.toUTCString();
         }
     }
@@ -690,10 +533,10 @@ HttpApplication.prototype.setAuthCookie = function (context, username, options)
     context.response.setHeader('Set-Cookie',str);
 };
 
+// noinspection JSUnusedGlobalSymbols
 /**
  * Sets the authentication cookie that is associated with the given user.
  * @param {HttpContext} context
- * @param {String} username
  */
 HttpApplication.prototype.getAuthCookie = function (context)
 {
@@ -706,9 +549,9 @@ HttpApplication.prototype.getAuthCookie = function (context)
         }
         return null;
     }
-    catch(e) {
-        console.log('GetAuthCookie failed.');
-        console.log(e.message);
+    catch(err) {
+        TraceUtils.error('GetAuthCookie failed.');
+        TraceUtils.error(err.message);
         return null;
     }
 };
@@ -783,7 +626,7 @@ HttpApplication.prototype.processRequest = function (context, callback) {
                                                                     }
                                                                 });
                                                             else {
-                                                                var er = new common.HttpNotFoundException();
+                                                                var er = new HttpNotFoundError();
                                                                 if (context.request && context.request.url) {
                                                                     er.resource = context.request.url;
                                                                 }
@@ -808,7 +651,7 @@ HttpApplication.prototype.processRequest = function (context, callback) {
 
 /**
  * Gets the default data context based on the current configuration
- * @returns {AbstractAdapter}
+ * @returns {DataAdapter}
  */
 HttpApplication.prototype.db = function () {
     if ((this.config.adapters === null) || (this.config.adapters.length === 0))
@@ -819,7 +662,7 @@ HttpApplication.prototype.db = function () {
         adapter = this.config.adapters[0];
     }
     else {
-        adapter = array(this.config.adapters).firstOrDefault(function (x) {
+        adapter = _.find(this.config.adapters,function (x) {
             return x.default;
         });
     }
@@ -975,7 +818,7 @@ HttpApplication.prototype.extend = function (extension) {
         if (fs.existsSync(extensionFolder)) {
             var arr = fs.readdirSync(extensionFolder);
             for (var i = 0; i < arr.length; i++) {
-                if (path.extname(arr[i])=='.js')
+                if (path.extname(arr[i])==='.js')
                     require(path.join(extensionFolder, arr[i]));
             }
         }
@@ -983,7 +826,7 @@ HttpApplication.prototype.extend = function (extension) {
     else {
         //register the specified extension
         if (typeof extension === 'string') {
-            var extensionPath = this.mapPath(util.format('/extensions/%s.js', extension));
+            var extensionPath = this.mapPath(sprintf('/extensions/%s.js', extension));
             if (fs.existsSync(extensionPath)) {
                 //load extension
                 require(extensionPath);
@@ -1001,10 +844,10 @@ HttpApplication.prototype.extend = function (extension) {
 HttpApplication.prototype.executeRequest = function (options, callback) {
     var opts = { };
     if (typeof options === 'string') {
-        util._extend(opts, { url:options });
+        _.assign(opts, { url:options });
     }
     else {
-        util._extend(opts, options);
+        _.assign(opts, options);
     }
     var request = createRequestInternal.call(this,opts),
         response = createResponseInternal.call(this,request);
@@ -1012,7 +855,7 @@ HttpApplication.prototype.executeRequest = function (options, callback) {
         callback(new Error('Internal request url cannot be empty at this context.'));
         return;
     }
-    if (opts.url.indexOf('/')!=0)
+    if (opts.url.indexOf('/') !== 0)
     {
         var uri = url.parse(opts.url);
         opts.host = uri.host;
@@ -1027,9 +870,9 @@ HttpApplication.prototype.executeRequest = function (options, callback) {
         /*
         IMPORTANT: set response Content-Length to -1 in order to force the default HTTP response format.
         if the content length is unknown (server response does not have this header)
-        in earlier version of node.js <0.11.9 the response contains by default a hexademical number that
+        in earlier version of node.js <0.11.9 the response contains by default a hexadecimal number that
         represents the content length. This number appears exactly after response headers and before response body.
-        If the content length is defined the operation omits this hexademical value
+        If the content length is defined the operation omits this hexadecimal value
         e.g. the wrong or custom formatted response
         HTTP 1.1 Status OK
         Content-Type: text/html
@@ -1078,7 +921,7 @@ HttpApplication.prototype.executeRequest = function (options, callback) {
                     //get body
                     var body = null;
                     var encoding = null;
-                    if (util.isArray(response.output)) {
+                    if (_.isArray(response.output)) {
                         if (response.output.length>0) {
                             body = response.output[0].substr(response._header.length);
                             encoding = response.outputEncodings[0];
@@ -1112,17 +955,17 @@ function handleRequestInternal(request, response, callback)
     var self = this, context = self.createContext(request, response);
     //add query string
     if (request.url.indexOf('?') > 0)
-        util._extend(context.params, querystring.parse(request.url.substring(request.url.indexOf('?') + 1)));
+        _.assign(context.params, querystring.parse(request.url.substring(request.url.indexOf('?') + 1)));
     //add form
     if (request.form)
-        util._extend(context.params, request.form);
+        _.assign(context.params, request.form);
     //add files
     if (request.files)
-        util._extend(context.params, request.files);
+        _.assign(context.params, request.files);
 
     self.processRequest(context, function (err) {
         if (err) {
-            if (self.listeners('error').length == 0) {
+            if (self.listeners('error').length === 0) {
                 self.onError(context, err, function () {
                     response.end();
                     callback();
@@ -1193,12 +1036,12 @@ function createResponseInternal(req) {
  */
 function onHtmlError(context, err, callback) {
     try {
-        if (common.isNullOrUndefined(context)) {
+        if (_.isNil(context)) {
             callback(err);
             return;
         }
         var request = context.request, response = context.response, ejs = require('ejs');
-        if (common.isNullOrUndefined(request) || common.isNullOrUndefined(response)) {
+        if (_.isNil(request) || _.isNil(response)) {
             callback(err);
             return;
         }
@@ -1206,7 +1049,7 @@ function onHtmlError(context, err, callback) {
         fs.readFile(path.join(__dirname, './http-error.html.ejs'), 'utf8', function (readErr, data) {
             if (readErr) {
                 //log process error
-                common.log(readErr);
+                TraceUtils.log(readErr);
                 //continue error execution
                 callback(err);
                 return;
@@ -1214,23 +1057,23 @@ function onHtmlError(context, err, callback) {
             //compile data
             var str;
             try {
-                if (err instanceof common.HttpException) {
+                if (err instanceof HttpError) {
                     str = ejs.render(data, { error:err });
                 }
                 else {
-                    var httpErr = new common.HttpException(500, null, err.message);
+                    var httpErr = new HttpError(500, null, err.message);
                     httpErr.stack = err.stack;
                     str = ejs.render(data, {error: httpErr});
                 }
             }
             catch (e) {
-                common.log(e);
+                TraceUtils.log(e);
                 //continue error execution
                 callback(err);
                 return;
             }
             //write status header
-            response.writeHead(err.status || 500 , { "Content-Type": "text/html" });
+            response.writeHead(err.statusCode || 500 , { "Content-Type": "text/html" });
             response.write(str);
             response.end();
             callback();
@@ -1238,7 +1081,7 @@ function onHtmlError(context, err, callback) {
     }
     catch (e) {
         //log process error
-        web.common.log(e);
+        TraceUtils.log(e);
         //and continue execution
         callback(err);
     }
@@ -1248,8 +1091,8 @@ function onHtmlError(context, err, callback) {
 /**
  *
  * @param {HttpContext} context
- * @param {Error|HttpException} err
- * @param {function()} callback
+ * @param {Error|HttpError} err
+ * @param {Function} callback
  */
 HttpApplication.prototype.onError = function (context, err, callback) {
     callback = callback || function () { };
@@ -1259,10 +1102,10 @@ HttpApplication.prototype.onError = function (context, err, callback) {
             return callback.bind(this)();
         }
         //always log error
-        common.log(err);
+        TraceUtils.log(err);
         //get response object
-        var response = context.response, ejs = require('ejs');
-        if (common.isNullOrUndefined(response)) {
+        var response = context.response;
+        if (_.isNil(response)) {
             return callback.bind(this)();
         }
         if (response._headerSent) {
@@ -1271,10 +1114,10 @@ HttpApplication.prototype.onError = function (context, err, callback) {
         onHtmlError(context, err, function(err) {
             if (err) {
                 //send plain text
-                response.writeHead(err.status || 500, {"Content-Type": "text/plain"});
+                response.writeHead(err.statusCode || 500, {"Content-Type": "text/plain"});
                 //if error is an HTTP Exception
-                if (err instanceof common.HttpException) {
-                    response.write(err.status + ' ' + err.message + "\n");
+                if (err instanceof HttpError) {
+                    response.write(err.statusCode + ' ' + err.message + "\n");
                 }
                 else {
                     //otherwise send status 500
@@ -1282,10 +1125,10 @@ HttpApplication.prototype.onError = function (context, err, callback) {
                 }
                 //send extra data (on development)
                 if (process.env.NODE_ENV === 'development') {
-                    if (!common.isEmptyString(err.innerMessage)) {
+                    if (!_.isEmpty(err.innerMessage)) {
                         response.write(err.innerMessage + "\n");
                     }
-                    if (!common.isEmptyString(err.stack)) {
+                    if (!_.isEmpty(err.stack)) {
                         response.write(err.stack + "\n");
                     }
                 }
@@ -1294,7 +1137,7 @@ HttpApplication.prototype.onError = function (context, err, callback) {
         });
     }
     catch (err) {
-        common.log(err);
+        TraceUtils.log(err);
         if (context.response) {
             context.response.writeHead(500, {"Content-Type": "text/plain"});
             context.response.write("500 Internal Server Error");
@@ -1337,7 +1180,7 @@ function startInternal(options, callback) {
             port:(process.env.PORT ? process.env.PORT: HTTP_SERVER_DEFAULT_PORT)
         };
         //extend options
-        util._extend(opts, options);
+        _.assign(opts, options);
 
         var server_ = http.createServer(function (request, response) {
             var context = self.createContext(request, response);
@@ -1388,11 +1231,11 @@ function startInternal(options, callback) {
 
         //start listening
         server_.listen(opts.port, opts.bind);
-        web.common.log(util.format('Web application is running at http://%s:%s/', opts.bind, opts.port));
+        TraceUtils.log('Web application is running at http://%s:%s/', opts.bind, opts.port);
         //do callback
         callback.call(self);
-    } catch (e) {
-        console.log(e);
+    } catch (err) {
+        TraceUtils.error(err);
     }
 }
 
@@ -1411,7 +1254,7 @@ HttpApplication.prototype.start = function (options, callback) {
         }
         else {
             //get cluster number
-            clusters = common.parseInt(options.cluster);
+            clusters = LangUtils.parseInt(options.cluster);
         }
         if (clusters>1) {
             var cluster = require('cluster');
@@ -1501,7 +1344,7 @@ HttpApplication.prototype.controller = function(name, ctor) {
         er =  new Error('Invalid HTTP Controller constructor. Expected function.'); er.code='EARG';
         throw er;
     }
-    //append controller to application constroller (or override an already existing controller)
+    //append controller to application controller (or override an already existing controller)
     this.config.controllers[name] = ctor;
     return this;
 };
@@ -1568,10 +1411,10 @@ function httpApplicationErrors(application) {
             var response = context.response;
             if (error) {
                 //send plain text
-                response.writeHead(error.status || 500, {"Content-Type": "text/plain"});
+                response.writeHead(error.statusCode || 500, {"Content-Type": "text/plain"});
                 //if error is an HTTP Exception
-                if (error instanceof common.HttpException) {
-                    response.write(error.status + ' ' + error.message + "\n");
+                if (error instanceof HttpError) {
+                    response.write(error.statusCode + ' ' + error.message + "\n");
                 }
                 else {
                     //otherwise send status 500
@@ -1579,10 +1422,10 @@ function httpApplicationErrors(application) {
                 }
                 //send extra data (on development)
                 if (process.env.NODE_ENV === 'development') {
-                    if (!common.isEmptyString(error.innerMessage)) {
+                    if (!_.isEmpty(error.innerMessage)) {
                         response.write(error.innerMessage + "\n");
                     }
-                    if (!common.isEmptyString(error.stack)) {
+                    if (!_.isEmpty(error.stack)) {
                         response.write(error.stack + "\n");
                     }
                 }
@@ -1595,16 +1438,16 @@ function httpApplicationErrors(application) {
             context.request.headers = context.request.headers || { };
             if (/application\/json/g.test(context.request.headers.accept) || (context.format === 'json')) {
                 var result;
-                if (error instanceof common.HttpException) {
+                if (error instanceof HttpError) {
                     result = new mvc.HttpJsonResult(error);
-                    result.responseStatus = error.status;
+                    result.responseStatus = error.statusCode;
                 }
                 else if (process.env.NODE_ENV === 'development') {
                     result = new mvc.HttpJsonResult(error);
-                    result.responseStatus = error.status || 500;
+                    result.responseStatus = error.statusCode || 500;
                 }
                 else {
-                    result = new mvc.HttpJsonResult(new common.HttpServerError());
+                    result = new mvc.HttpJsonResult(new HttpServerError());
                     result.responseStatus = 500;
                 }
                 //execute redirect result
@@ -1618,10 +1461,10 @@ function httpApplicationErrors(application) {
         unauthorized: function(context, error, callback) {
             callback = callback || function () { };
             if (_.isNil(error)) { return callback(); }
-            if (common.isNullOrUndefined(context) || common.isNullOrUndefined(context)) {
+            if (_.isNil(context)) {
                 return callback.call(self);
             }
-            if (error.status !== 401) {
+            if (error.statusCode !== 401) {
                 //go to next error if any
                 return callback.call(self, error);
             }
@@ -1660,6 +1503,7 @@ web.current = undefined;
  * Most Web Framework Express Parser
  * @param {*=} options
  */
+// eslint-disable-next-line no-unused-vars
 web.runtime = function(options) {
     return web.current.runtime();
 };
@@ -1668,17 +1512,18 @@ web.runtime = function(options) {
  * Expression handler for Access Denied HTTP errors (401).
  * @param {*=} options
  */
+// eslint-disable-next-line no-unused-vars
 web.unauthorized = function(options) {
     return function(err, req, res, next)
     {
         try {
-            if (err.status===401)  {
+            if (err.statusCode===401)  {
                 if (/text\/html/g.test(req.get('accept'))) {
                     if (web.current.config.settings) {
                         if (web.current.config.settings.auth) {
                             var page = web.current.config.settings.auth.loginPage || '/login.html';
                             res.set('Location', page.concat('?returnUrl=', encodeURIComponent(req.url)));
-                            res.status(302).end();
+                            res.statusCode(302).end();
                             return;
                         }
                     }
@@ -1686,8 +1531,8 @@ web.unauthorized = function(options) {
             }
             next(err);
         }
-        catch(e) {
-            console.log(e);
+        catch(err) {
+            TraceUtils.error(err);
             next(err);
         }
     };
@@ -1700,7 +1545,7 @@ web.error = function() {
     {
         try {
             var ejs = require('ejs');
-            if (common.isNullOrUndefined(response) || common.isNullOrUndefined(request)) {
+            if (_.isNil(response) || _.isNil(request)) {
                 next(err);
             }
             if (!/text\/html/g.test(request.get('accept'))) {
@@ -1714,36 +1559,36 @@ web.error = function() {
                 fs.readFile(path.join(__dirname, './http-error.html.ejs'), 'utf8', function (readErr, data) {
                     if (readErr) {
                         //log process error
-                        common.log(readErr);
+                        TraceUtils.log(readErr);
                         next(err);
                         return;
                     }
                     //compile data
                     var str;
                     try {
-                        if (err instanceof common.HttpException) {
+                        if (err instanceof HttpError) {
                             str = ejs.render(data, { error:err });
                         }
                         else {
-                            var httpErr = new common.HttpException(500, null, err.message);
+                            var httpErr = new HttpError(500, null, err.message);
                             httpErr.stack = err.stack;
                             str = ejs.render(data, {error: httpErr});
                         }
                     }
                     catch (e) {
-                        common.log(e);
+                        TraceUtils.log(e);
                         next(err);
                         return;
                     }
                     //write status header
-                    response.writeHead(err.status || 500 , { "Content-Type": "text/html" });
+                    response.writeHead(err.statusCode || 500 , { "Content-Type": "text/html" });
                     response.write(str);
                     response.end();
                 });
             }
         }
-        catch(e) {
-            console.log(e);
+        catch(err) {
+            TraceUtils.log(err);
             next(err);
         }
     };
@@ -1751,83 +1596,18 @@ web.error = function() {
 
 web.controllers = {
         HttpController: mvc.HttpController,
-        HttpBaseController: require('./base-controller'),
-        HttpDataController: require('./data-controller'),
-        HttpLookupController: require('./lookup-controller'),
-        HttpServiceControll: require('./service-controller')
+        HttpBaseController: require('./controllers/base'),
+        HttpDataController: require('./controllers/data'),
+        HttpLookupController: require('./controllers/lookup'),
+        HttpServiceController: require('./controllers/service')
 };
 
 web.views = {
-    /**
-     * Creates an empty HTTP response.
-     * @returns {HttpEmptyResult}
-     */
-    createEmptyResult: function () {
-        return new mvc.HttpEmptyResult();
-    },
-    /**
-     * Creates a basic HTTP response with the data provided
-     * @param s {string}
-     * @returns {HttpContentResult}
-     */
-    createContentResult: function (s) {
-        return new mvc.HttpContentResult(s);
-    },
-    /**
-     * Creates a new HTTP view context that is going to be used in view controllers
-     * @param context {HttpContext=} - The current HTTP context
-     * @returns {HttpViewContext} - The newly create HTTP view context
-     */
-    createViewContext: function (context) {
-        return new mvc.HttpViewContext(context);
-    },
-    /**
-     * Creates a JSON response with the given data
-     * @param data
-     * @returns {HttpJsonResult}
-     */
-    createJsonResult: function (data) {
-        return new mvc.HttpJsonResult(data);
-    },
-    /**
-     * Creates a HTTP redirect to given url.
-     * @param url
-     * @returns {HttpRedirectResult}
-     */
-    createRedirectResult: function (url) {
-        return new mvc.HttpRedirectResult(url);
-    },
-    /**
-     * Creates an XML response with the data provided.
-     * @param data
-     * @returns {HttpXmlResult}
-     */
-    createXmlResult: function (data) {
-        return new mvc.HttpXmlResult(data);
-    },
-    /**
-     * Creates an HTML response with the data provided.
-     * @param {string} name
-     * @param {*} data
-     * @returns {HttpViewResult}
-     */
-    createViewResult: function (name, data) {
-        return new mvc.HttpViewResult(name, data);
-    },
-    /**
-     * Inherit the prototype methods from HttpController into the given class
-     * @param {function} ctor Constructor function which needs to inherit the HttpController
-     */
-    inheritsController: function (ctor) {
-        util.inherits(ctor, mvc.HttpController);
-    },
     HttpController: mvc.HttpController,
-        HttpViewContext:mvc.HttpViewContext
+    HttpViewContext:mvc.HttpViewContext
 };
 
-web.html = html;
 web.mvc = mvc;
-web.common = common;
 web.files= files;
 web.decorators = decorators;
 

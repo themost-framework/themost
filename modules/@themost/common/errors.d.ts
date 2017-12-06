@@ -86,6 +86,10 @@ export declare class HttpNotFoundError extends HttpError {
      * @param {string=} innerMessage
      */
     constructor(message?: string, innerMessage?: string);
+    /**
+     * Gets or sets the resource which could not to be found
+     */
+    resource: string;
 }
 /**
  * @classdesc HTTP 405 Method Not Allowed exception class

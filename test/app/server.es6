@@ -7,7 +7,7 @@
  * found in the LICENSE file at https://themost.io/license
  */
 import 'source-map-support/register';
-import {HttpApplication} from './../../modules/@themost/web/app';
+import {HttpApplication} from '../../modules/@themost/web/resources/app';
 import {AngularServerModule} from "../../modules/@themost/web/angular/module";
 import {ODataConventionModelBuilder, ODataModelBuilder} from "../../modules/@themost/data/odata";
 //initialize application

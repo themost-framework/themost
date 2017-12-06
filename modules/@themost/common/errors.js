@@ -103,6 +103,22 @@ function HttpError(status, message, innerMessage) {
 LangUtils.inherits(HttpError, CodedError);
 
 /**
+ * @param {Error} err
+ * @returns {Error|HttpError}
+ */
+HttpError.create = function(err) {
+    if (_.isNil(err)) {
+        return new HttpError(500);
+    }
+    if (err.hasOwnProperty('statusCode')) {
+        return _.assign(new HttpError(err.statusCode, err.message), err);
+    }
+    else {
+        return _.assign(new HttpError(500, err.message), err);
+    }
+};
+
+/**
  * @classdesc Represents a 400 HTTP Bad Request error.
  * @class
  * @param {string=} message
@@ -121,6 +137,7 @@ LangUtils.inherits(HttpBadRequestError, HttpError);
  * @param {string=} message
  * @param {string=} innerMessage
  * @constructor
+ * @property {string} resource - Gets or sets the requested resource which could not to be found
  * @extends HttpError
  */
 function HttpNotFoundError(message, innerMessage) {

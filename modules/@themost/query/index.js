@@ -10,7 +10,7 @@ var _ = require("lodash");
 var odata = require('./odata');
 var SqlFormatter = require('./formatter').SqlFormatter;
 var closures = require('./closures');
-var sqlutils = require('./sql-utils');
+var SqlUtils = require('./utils').SqlUtils;
 var QueryExpression = require('./query').QueryExpression;
 var QueryField = require('./query').QueryField;
 var QueryEntity = require('./query').QueryEntity;
@@ -31,7 +31,7 @@ qry.classes = {
  * @returns {string}
  */
 qry.escape = function(val) {
-    return sqlutils.escape(val);
+    return SqlUtils.escape(val);
 };
 /**
  * @returns {QueryExpression}
@@ -112,7 +112,7 @@ qry.format = function(query, s) {
 qry.prepare = function(query, values) {
     if (typeof values === 'undefined' || values===null)
         return query;
-    return sqlutils.format(query,values);
+    return SqlUtils.format(query,values);
 };
 /**
  * Creates an entity reference that is going to be used in query expressions.

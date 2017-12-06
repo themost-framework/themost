@@ -1,23 +1,19 @@
 /**
- * MOST Web Framework
- * A JavaScript Web Framework
- * http://themost.io
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2017, THEMOST LP All rights reserved
  *
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com, Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Released under the BSD3-Clause license
- * Date: 2014-03-10
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
  */
-/**
- * @ignore
- */
-var dat = require('most-data'), util = require('util');
+var LangUtils = require('@themost/common/utils').LangUtils;
+var SequentialEventEmitter = require('@themost/common/emitter').SequentialEventEmitter;
 /**
  * Implements the cache for a data application.
  * @class HttpCache
- * @param {{ttl:number}|*} options
+ * @param {*=} options
  * @constructor
- * @augments EventEmitter2
+ * @augments SequentialEventEmitter
  */
 function HttpCache(options) {
     this.initialized = false;
@@ -25,7 +21,7 @@ function HttpCache(options) {
     options.ttl = options.ttl || (20*60);
     this.options = options;
 }
-util.inherits(HttpCache, dat.types.EventEmitter2);
+LangUtils.inherits(HttpCache, SequentialEventEmitter);
 /**
  * Initializes data caching.
  * @param {function(Error=)} callback
@@ -174,9 +170,5 @@ HttpCache.prototype.get = function(key, callback) {
 
 if (typeof exports !== 'undefined')
 {
-    /**
-     * @see HttpCache
-     * @constructs HttpCache
-     */
     module.exports = HttpCache;
 }

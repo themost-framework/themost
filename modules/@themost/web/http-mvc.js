@@ -1,28 +1,26 @@
 /**
- * MOST Web Framework
- * A JavaScript Web Framework
- * http://themost.io
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2017, THEMOST LP All rights reserved
  *
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com, Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Released under the BSD3-Clause license
- * Date: 2014-06-10
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
  */
-'use strict';
-/**
- * @ignore
- */
-var common = require('./common'),
-    util = require('util'),
-    _ = require('lodash'),
-    htmlWriter = require('./html'),
-    xml = require('most-xml'),
-    path = require('path'),
-    da = require("most-data"),
-    fs = require('fs'),
-    crypto = require('crypto'),
-    Q = require('q'),
-    async = require('async');
+var HttpError = require('@themost/common/errors').HttpError;
+var HttpMethodNotAllowedError = require('@themost/common/errors').HttpMethodNotAllowedError;
+var HttpNotFoundError = require('@themost/common/errors').HttpNotFoundError;
+var HttpForbiddenError = require('@themost/common/errors').HttpForbiddenError;
+var LangUtils = require('@themost/common/utils').LangUtils;
+var SequentialEventEmitter = require('@themost/common/emitter').SequentialEventEmitter;
+var HtmlWriter = require('@themost/common/html').HtmlWriter;
+var sprintf = require('sprintf').sprintf;
+var _ = require('lodash');
+var xml = require('@themost/xml');
+var path = require('path');
+var fs = require('fs');
+var crypto = require('crypto');
+var Q = require('q');
+var async = require('async');
 /**
  * @class
  * @constructor
@@ -35,7 +33,7 @@ function HttpResult() {
  *
  * @param {Number=} status
  */
-HttpResult.prototype.status = function(status) {
+HttpResult.prototype.statusCode = function(status) {
     this.responseStatus = status;
     return this;
 };
@@ -77,7 +75,7 @@ function HttpContentResult(content) {
 /**
  * Inherits HttpAction
  * */
-util.inherits(HttpContentResult,HttpResult);
+LangUtils.inherits(HttpContentResult,HttpResult);
 
 /**
  * Represents a content that does nothing.
@@ -92,7 +90,7 @@ function HttpEmptyResult() {
 /**
  * Inherits HttpAction
  * */
-util.inherits(HttpEmptyResult,HttpResult);
+LangUtils.inherits(HttpEmptyResult,HttpResult);
 
 HttpEmptyResult.prototype.execute = function(context, callback)
 {
@@ -145,7 +143,7 @@ function HttpJsonResult(data)
 /**
  * Inherits HttpAction
  * */
-util.inherits(HttpJsonResult,HttpResult);
+LangUtils.inherits(HttpJsonResult,HttpResult);
 
 /**
  * Represents an action that is used to send Javascript-formatted content.
@@ -164,7 +162,7 @@ function HttpJavascriptResult(data)
 /**
  * Inherits HttpAction
  * */
-util.inherits(HttpJavascriptResult,HttpResult);
+LangUtils.inherits(HttpJavascriptResult,HttpResult);
 
 
 /**
@@ -190,7 +188,7 @@ function HttpXmlResult(data)
 /**
  * Inherits HttpAction
  * */
-util.inherits(HttpXmlResult,HttpResult);
+LangUtils.inherits(HttpXmlResult,HttpResult);
 
 /**
  * Represents a redirect action to a specified URI.
@@ -206,7 +204,7 @@ function HttpRedirectResult(url) {
 /**
  * Inherits HttpAction
  * */
-util.inherits(HttpRedirectResult,HttpResult);
+LangUtils.inherits(HttpRedirectResult,HttpResult);
 /**
  *
  * @param {HttpContext} context
@@ -240,7 +238,7 @@ function HttpFileResult(physicalPath, fileName) {
 /**
  * Inherits HttpAction
  * */
-util.inherits(HttpFileResult,HttpResult);
+LangUtils.inherits(HttpFileResult,HttpResult);
 /**
  *
  * @param {HttpContext} context
@@ -252,7 +250,7 @@ HttpFileResult.prototype.execute = function(context, callback)
     var physicalPath = this.physicalPath, fileName = this.fileName,  app = require('./index');
     fs.exists(physicalPath, function(exists) {
         if (!exists) {
-            callback(new app.common.HttpNotFoundException());
+            callback(new HttpNotFoundError());
         }
         else {
             try {
@@ -262,7 +260,7 @@ HttpFileResult.prototype.execute = function(context, callback)
                     }
                     else {
                         if (!stats.isFile()) {
-                            callback(new app.common.HttpNotFoundException());
+                            callback(new HttpNotFoundError());
                         }
                         else {
                             //get if-none-match header
@@ -272,7 +270,7 @@ HttpFileResult.prototype.execute = function(context, callback)
                             md5.update(stats.mtime.toString());
                             var responseETag = md5.digest('base64');
                             if (requestETag) {
-                                if (requestETag == responseETag) {
+                                if (requestETag === responseETag) {
                                     context.response.writeHead(304);
                                     context.response.end();
                                     callback();
@@ -283,12 +281,11 @@ HttpFileResult.prototype.execute = function(context, callback)
                             //get file extension
                             var extensionName = path.extname(fileName || physicalPath);
                             //get MIME collection
-                            var web = require('./index')
                             var mimes = app.current.config.mimes;
                             var contentEncoding = null;
                             //find MIME type by extension
                             var mime = mimes.filter(function (x) {
-                                return x.extension == extensionName;
+                                return x.extension === extensionName;
                             })[0];
                             if (mime) {
                                 contentType = mime.type;
@@ -297,8 +294,8 @@ HttpFileResult.prototype.execute = function(context, callback)
                             }
 
                             //throw exception (MIME not found or access denied)
-                            if (web.common.isNullOrUndefined(contentType)) {
-                                callback(new app.common.HttpForbiddenException())
+                            if (_.isNil(contentType)) {
+                                callback(new HttpForbiddenError())
                             }
                             else {
                                 /*//finally process request
@@ -374,14 +371,13 @@ function querySharedViewPath(view, extension, callback) {
  * @private
  */
 function queryAbsoluteViewPath(search, controller, view, extension, callback) {
-    var self = this,
-        result = path.resolve(search, util.format('%s/%s.html.%s', controller, view, extension));
+    var result = path.resolve(search, sprintf('%s/%s.html.%s', controller, view, extension));
     fs.exists(result, function(exists) {
         if (exists)
             return callback(null, result);
         //search for capitalized controller name e.g. person as Person
         var capitalizedController = controller.charAt(0).toUpperCase() + controller.substring(1);
-        result = path.resolve(search, util.format('%s/%s.html.%s', capitalizedController, view, extension));
+        result = path.resolve(search, sprintf('%s/%s.html.%s', capitalizedController, view, extension));
         fs.exists(result, function(exists) {
             if (exists)
                 return callback(null, result);
@@ -401,7 +397,7 @@ function isAbsolute(p) {
 /**
  * Represents a class that is used to render a view.
  * @class
- * @param {string=} name - The name of the view.
+ * @param {*=} name - The name of the view.
  * @param {*=} data - The data that are going to be used to render the view.
  * @augments HttpResult
  */
@@ -415,7 +411,7 @@ function HttpViewResult(name, data)
 /**
  * Inherits HttpAction
  * */
-util.inherits(HttpViewResult,HttpResult);
+LangUtils.inherits(HttpViewResult,HttpResult);
 
 /**
  * Sets or changes the name of this HttpViewResult instance.
@@ -460,9 +456,6 @@ HttpViewResult.prototype.execute = function(context, callback)
     //and of course controller's name
     var controllerName = context.data['controller'];
     //enumerate existing view engines e.g /views/controller/index.[html].ejs or /views/controller/index.[html].xform etc.
-    /**
-     * {HttpViewEngineReference|*}
-     */
     var viewPath, viewEngine;
     async.eachSeries(app.current.config.engines, function(engine, cb) {
         if (viewPath) { cb(); return; }
@@ -545,7 +538,7 @@ HttpViewResult.prototype.execute = function(context, callback)
 
         }
         else {
-            var er = new common.HttpNotFoundException();
+            var er = HttpNotFoundError();
             if (context.request && context.request.url) {
                 er.resource = context.request.url;
             }
@@ -579,7 +572,7 @@ function HttpController(context) {
 HttpController.prototype.view = function(data)
 {
     return new HttpViewResult(null, data);
-}
+};
 
 /**
  * Creates a view result based on the context content type
@@ -591,7 +584,7 @@ HttpController.prototype.result = function(data)
     if (this.context) {
          var fn = this[this.context.format];
         if (typeof fn !== 'function')
-            throw new common.HttpException(400,'Not implemented.');
+            throw new HttpError(400,'Not implemented.');
         return fn.call(this, data);
     }
     else
@@ -599,7 +592,7 @@ HttpController.prototype.result = function(data)
 };
 
 HttpController.prototype.forbidden = function (callback) {
-    callback(new common.HttpForbiddenException());
+    return callback(new HttpForbiddenError());
 };
 
 /**
@@ -664,7 +657,7 @@ HttpController.prototype.action = function(callback)
     self.context.handleGet(function() {
         return callback(null, self.view());
     }).unhandle(function() {
-        return callback(new common.HttpMethodNotAllowed());
+        return callback(new HttpMethodNotAllowedError());
     });
 
 };
@@ -741,52 +734,6 @@ HttpController.prototype.toPromise = function(resolver)
 {
     return Q.promise(resolver.bind(this));
 };
-/**
- * Abstract view engine class
- * @class HttpViewEngine
- * @param {HttpContext} context
- * @constructor
- * @augments {EventEmitter}
- */
-function HttpViewEngine(context) {
-    //
-}
-util.inherits(HttpViewEngine, da.types.EventEmitter2);
-
-/**
- * Renders the specified view with the options provided
- * @param url
- * @param options
- * @param {Function} callback
- */
-HttpViewEngine.prototype.render = function(url, options, callback) {
-    //
-};
-
-
-/**
- * Defines an HTTP view engine in application configuration
- * @class
- * @constructor
- */
-function HttpViewEngineReference()
-{
-    /**
-     * Gets or sets the class associated with an HTTP view engine
-     * @type {String}
-     */
-    this.type = null;
-    /**
-     * Gets or sets the name of an HTTP view engine
-     * @type {String}
-     */
-    this.name = null;
-    /**
-     * Gets or sets the layout extension associated with an HTTP view engine
-     * @type {null}
-     */
-    this.extension = null;
-}
 
 /**
  * Encapsulates information that is related to rendering a view.
@@ -825,16 +772,17 @@ function HttpViewContext(context) {
     this.context = context;
 
     /**
-     * @type {HtmlWriter}
+     * @property
+     * @name HttpViewContext#writer
+     * @type HtmlWriter
+     * @description Gets an instance of HtmlWriter helper class
      */
-    this.writer = undefined;
-
-    var writer = null;
+    var writer;
     Object.defineProperty(this, 'writer', {
         get:function() {
             if (writer)
                 return writer;
-            writer = htmlWriter.createInstance();
+            writer = new HtmlWriter();
             writer.indent = false;
             return writer;
         }, configurable:false, enumerable:false
@@ -857,9 +805,10 @@ function HttpViewContext(context) {
         this.init();
     }
 }
-util.inherits(HttpViewContext, da.types.EventEmitter2);
+LangUtils.inherits(HttpViewContext, SequentialEventEmitter);
 /**
- * @param {String} url
+ * @param {string} url
+ * @param {Function} callback
  * @returns {string}
  */
 HttpViewContext.prototype.render = function(url, callback) {
@@ -891,15 +840,6 @@ HttpViewContext.prototype.init = function() {
  */
 HttpViewContext.prototype.translate = function(s, lib) {
     return this.context.translate(s, lib);
-};
-/**
- *
- * @param {String} s
- * @param {String=} lib
- * @returns {String}
- */
-HttpViewContext.prototype.$T = function(s, lib) {
-    return this.translate(s, lib);
 };
 
 /**
@@ -938,7 +878,7 @@ HttpViewContext.HtmlViewHelper = function($view)
         return 'en';
     }
 };
-}
+};
 
 /**
  * @class
@@ -992,26 +932,20 @@ HtmlViewHelper.prototype.lang = function() {
     return 'en';
 };
 
-var mvc = { };
-
-mvc.HttpResult  = HttpResult;
-mvc.HttpContentResult  = HttpContentResult;
-mvc.HttpJsonResult =HttpJsonResult;
-mvc.HttpEmptyResult =HttpEmptyResult;
-mvc.HttpXmlResult =HttpXmlResult;
-mvc.HttpRedirectResult =HttpRedirectResult;
-mvc.HttpFileResult =HttpFileResult;
-mvc.HttpViewResult =HttpViewResult;
-mvc.HttpViewContext =HttpViewContext;
-mvc.HtmlViewHelper =HtmlViewHelper;
-mvc.HttpController =HttpController;
-mvc.HttpViewEngine = HttpViewEngine;
-mvc.HttpViewEngineReference = HttpViewEngineReference;
-
 
 if (typeof exports !== 'undefined')
 {
-    module.exports = mvc;
+    module.exports.HttpResult  = HttpResult;
+    module.exports.HttpContentResult  = HttpContentResult;
+    module.exports.HttpJsonResult =HttpJsonResult;
+    module.exports.HttpEmptyResult =HttpEmptyResult;
+    module.exports.HttpXmlResult =HttpXmlResult;
+    module.exports.HttpRedirectResult =HttpRedirectResult;
+    module.exports.HttpFileResult =HttpFileResult;
+    module.exports.HttpViewResult =HttpViewResult;
+    module.exports.HttpViewContext =HttpViewContext;
+    module.exports.HtmlViewHelper =HtmlViewHelper;
+    module.exports.HttpController =HttpController;
 }
 
 

@@ -1,9 +1,14 @@
 /**
- * @ignore
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2017, THEMOST LP All rights reserved
+ *
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
  */
-var _ = require('lodash'),
-    qry = require('most-query'),
-    Q = require('q');
+var _ = require('lodash');
+var qry = require('@themost/query');
+var Q = require('q');
 
 var mappingExtensions = {
 
@@ -55,7 +60,7 @@ var mappingExtensions = {
                         return deferred.resolve();
                     }
                     var arr = _.isArray(items) ? items : [items];
-                    if (arr.length == 0) {
+                    if (arr.length === 0) {
                         return deferred.resolve();
                     }
                     if (_.isNil(thisQueryable)) {
@@ -96,7 +101,7 @@ var mappingExtensions = {
                             //and finally query parent
                             q.getItems().then(function(parents){
                                 //if result contains only one item
-                                if (arr.length == 1) {
+                                if (arr.length === 1) {
                                     arr[0][mapping.refersTo] = parents;
                                     return deferred.resolve();
                                 }
@@ -105,7 +110,7 @@ var mappingExtensions = {
                                     //get child (key value)
                                     var valueId = x[mapping.childField];
                                     //get parent(s)
-                                    var p = junctions.filter(function(y) { return (y.valueId==valueId); }).map(function(r) { return r['parentId']; });
+                                    var p = junctions.filter(function(y) { return (y.valueId===valueId); }).map(function(r) { return r['parentId']; });
                                     //filter data and set property value (a filtered array of parent objects)
                                     x[mapping.refersTo] = parents.filter(function(z) { return p.indexOf(z[mapping.parentField])>=0; });
                                 });
@@ -130,7 +135,7 @@ var mappingExtensions = {
                         return deferred.resolve();
                     }
                     var arr = _.isArray(items) ? items : [items];
-                    if (arr.length == 0) {
+                    if (arr.length === 0) {
                         return deferred.resolve();
                     }
                     if (_.isNil(thisQueryable)) {
@@ -193,7 +198,7 @@ var mappingExtensions = {
                         return deferred.resolve();
                     }
                     var arr = _.isArray(items) ? items : [items];
-                    if (arr.length == 0) {
+                    if (arr.length === 0) {
                         return deferred.resolve();
                     }
                     if (_.isNil(thisQueryable)) {
@@ -245,7 +250,7 @@ var mappingExtensions = {
                             //inherit silent mode
                             if (thisQueryable.$silent)  { q.silent(); }
                             //append where statement for this operation
-                            if (values.length==1) {
+                            if (values.length===1) {
                                 q.where(mapping.childField).equal(values[0]);
                             }
                             else {
@@ -254,7 +259,7 @@ var mappingExtensions = {
                             //and finally query childs
                             q.getItems().then(function(childs) {
                                 //if result contains only one item
-                                if (arr.length == 1) {
+                                if (arr.length === 1) {
                                     arr[0][mapping.refersTo] = childs;
                                     return deferred.resolve();
                                 }
@@ -263,7 +268,7 @@ var mappingExtensions = {
                                     //get parent (key value)
                                     var parentId = x[mapping.parentField];
                                     //get parent(s)
-                                    var p = junctions.filter(function(y) { return (y.parentId==parentId); }).map(function(r) { return r['valueId']; });
+                                    var p = junctions.filter(function(y) { return (y.parentId===parentId); }).map(function(r) { return r['valueId']; });
                                     //filter data and set property value (a filtered array of parent objects)
                                     x[mapping.refersTo] = childs.filter(function(z) { return p.indexOf(z[mapping.childField])>=0; });
                                 });
@@ -290,7 +295,7 @@ var mappingExtensions = {
                         return deferred.resolve();
                     }
                     var arr = _.isArray(items) ? items : [items];
-                    if (arr.length == 0) {
+                    if (arr.length === 0) {
                         return deferred.resolve();
                     }
                     if (_.isNil(thisQueryable)) {
@@ -413,7 +418,7 @@ var mappingExtensions = {
                         return deferred.resolve();
                     }
                     var arr = _.isArray(items) ? items : [items];
-                    if (arr.length == 0) {
+                    if (arr.length === 0) {
                         return deferred.resolve();
                     }
                     if (_.isNil(thisQueryable)) {
@@ -432,7 +437,7 @@ var mappingExtensions = {
                         var values = _.intersection(_.map(_.filter(arr, function(x) {
                             return x.hasOwnProperty(keyField);
                             }), function (x) { return x[keyField];}));
-                        if (values.length==0) {
+                        if (values.length===0) {
                             return deferred.resolve();
                         }
                         thisArg.getParentModel().filter(mapping.options, function(err, q) {
@@ -453,7 +458,7 @@ var mappingExtensions = {
                             q.silent().getAllItems().then(function(parents) {
                                 var key=null,
                                     selector = function(x) {
-                                        return x[mapping.parentField]==key;
+                                        return x[mapping.parentField]===key;
                                     },
                                     iterator = function(x) {
                                         key = x[keyField];
@@ -488,7 +493,7 @@ var mappingExtensions = {
                         return deferred.resolve();
                     }
                     var arr = _.isArray(items) ? items : [items];
-                    if (arr.length == 0) {
+                    if (arr.length === 0) {
                         return deferred.resolve();
                     }
                     if (_.isNil(thisQueryable)) {
@@ -507,7 +512,7 @@ var mappingExtensions = {
                         var values = _.intersection(_.map(_.filter(arr, function(x) {
                             return x.hasOwnProperty(keyField);
                         }), function (x) { return x[keyField];}));
-                        if (values.length==0) {
+                        if (values.length===0) {
                             return deferred.resolve();
                         }
                         //search for view named summary
@@ -526,7 +531,7 @@ var mappingExtensions = {
                                 q.$levels = 0;
                             }
                             q.prepare();
-                            if (values.length==1) {
+                            if (values.length===1) {
                                 q.where(mapping.childField).equal(values[0]);
                             }
                             else {
@@ -565,7 +570,7 @@ var mappingExtensions = {
                         return deferred.resolve();
                     }
                     var arr = _.isArray(items) ? items : [items];
-                    if (arr.length == 0) {
+                    if (arr.length === 0) {
                         return deferred.resolve();
                     }
                     if (_.isNil(thisQueryable)) {
@@ -584,7 +589,7 @@ var mappingExtensions = {
                         var values = _.intersection(_.map(_.filter(arr, function(x) {
                             return x.hasOwnProperty(keyField);
                         }), function (x) { return x[keyField];}));
-                        if (values.length==0) {
+                        if (values.length===0) {
                             return deferred.resolve();
                         }
                         //search for view named summary

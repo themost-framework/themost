@@ -1,41 +1,16 @@
 /**
- * MOST Web Framework
- * A JavaScript Web Framework
- * http://themost.io
- * Created by Kyriakos Barbounakis<k.barbounakis@gmail.com> on 2014-10-13.
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2017, THEMOST LP All rights reserved
  *
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- Anthi Oikonomou anthioikonomou@gmail.com
- All rights reserved.
- Redistribution and use in source and binary forms, with or without
- modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
- list of conditions and the following disclaimer.
- * Redistributions in binary form must reproduce the above copyright notice,
- this list of conditions and the following disclaimer in the documentation
- and/or other materials provided with the distribution.
- * Neither the name of MOST Web Framework nor the names of its
- contributors may be used to endorse or promote products derived from
- this software without specific prior written permission.
- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
- FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
  */
-/**
- * @ignore
- */
-var util = require('util'),
-    _ = require("lodash"),
-    dataCommon = require('./data-common'),
-    types = require('./types'),
-    cfg = require('./data-configuration');
+var _ = require("lodash");
+var TraceUtils = require('@themost/common/utils').TraceUtils;
+var LangUtils = require('@themost/common/utils').LangUtils;
+var DataContext = require('./types').DataContext;
+var cfg = require('./data-configuration');
 /**
  * @classdesc Represents the default data context of MOST Data Applications.
  * The default data context uses the adapter which is registered as the default adapter in application configuration.
@@ -66,7 +41,7 @@ var util = require('util'),
 function DefaultDataContext()
 {
     /**
-     * @type {types.DataAdapter|DataAdapter}
+     * @type {DataAdapter}
      * @private
      */
     var db_= null;
@@ -128,7 +103,7 @@ function DefaultDataContext()
         enumerable:false });
 }
 
-util.inherits(DefaultDataContext, types.DataContext);
+LangUtils.inherits(DefaultDataContext, DataContext);
 
 /**
  * Gets an instance of DataConfiguration class which is associated with this data context
@@ -159,7 +134,7 @@ DefaultDataContext.prototype.model = function(name) {
 };
 /**
  * Finalizes the current data context
- * @param {Function} cb - A callback function where the first argument will contain the Error object if an error occured, or null otherwise.
+ * @param {Function} cb - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise.
  */
 DefaultDataContext.prototype.finalize = function(cb) {
     cb = cb || function () {};
@@ -192,9 +167,9 @@ function NamedDataContext(name)
             if (db_)
                 db_.close();
         }
-        catch(e) {
-            dataCommon.debug('An error occure while closing the underlying database context.');
-            dataCommon.debug(e);
+        catch(err) {
+            TraceUtils.debug('An error occurred while closing the underlying database context.');
+            TraceUtils.debug(err);
         }
         db_ = null;
     };
@@ -254,7 +229,7 @@ function NamedDataContext(name)
         enumerable:false });
 
 }
-util.inherits(NamedDataContext, types.DataContext);
+LangUtils.inherits(NamedDataContext, DataContext);
 
 /**
  * Gets an instance of DataModel class based on the given name.

@@ -1,33 +1,35 @@
 /**
- * @ignore
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2017, THEMOST LP All rights reserved
+ *
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
  */
-var model = require('./data-model'),
-    perms = require('./data-permission'),
-    FunctionContext = require('./functions').FunctionContext,
-    DataQueryable = require('./data-queryable').DataQueryable,
-    DefaultDataContext = require('./data-context').DefaultDataContext,
-    NamedDataContext = require('./data-context').NamedDataContext,
-    DataModel = model.DataModel,
-    DataObject = require('./data-object').DataObject,
-    DataFilterResolver = require('./data-filter-resolver').DataFilterResolver;
+var PermissionMask = require('./data-permission').PermissionMask;
+var DataPermissionEventListener = require('./data-permission').DataPermissionEventListener;
+var DataPermissionEventArgs = require('./data-permission').DataPermissionEventArgs;
+var FunctionContext = require('./functions').FunctionContext;
+var DataQueryable = require('./data-queryable').DataQueryable;
+var DefaultDataContext = require('./data-context').DefaultDataContext;
+var NamedDataContext = require('./data-context').NamedDataContext;
+var DataModel = require('./data-model').DataModel;
+var DataObject = require('./data-object').DataObject;
+var DataFilterResolver = require('./data-filter-resolver').DataFilterResolver;
 
-    /**
-     * @exports most-data/data-classes
-     */
-    var dataClasses = { };
+if (typeof exports !== 'undefined') {
 
-    dataClasses.DataObject = DataObject;
-    dataClasses.DefaultDataContext = DefaultDataContext;
-    dataClasses.NamedDataContext = NamedDataContext;
-    dataClasses.FunctionContext = FunctionContext;
-    dataClasses.DataQueryable = DataQueryable;
-    dataClasses.DataModel = DataModel;
-    dataClasses.DataFilterResolver = DataFilterResolver;
-    dataClasses.DataPermissionEventListener = perms.DataPermissionEventListener;
-    dataClasses.DataPermissionEventArgs = perms.DataPermissionEventArgs;
-    dataClasses.PermissionMask = perms.PermissionMask;
+    module.exports.DataObject = DataObject;
+    module.exports.DefaultDataContext = DefaultDataContext;
+    module.exports.NamedDataContext = NamedDataContext;
+    module.exports.FunctionContext = FunctionContext;
+    module.exports.DataQueryable = DataQueryable;
+    module.exports.DataModel = DataModel;
+    module.exports.DataFilterResolver = DataFilterResolver;
+    module.exports.DataPermissionEventListener = DataPermissionEventListener;
+    module.exports.DataPermissionEventArgs = DataPermissionEventArgs;
+    module.exports.PermissionMask = PermissionMask;
 
-    module.exports = dataClasses;
-
+}
 
 

@@ -33,6 +33,7 @@ function HttpConsumer(callable, params) {
  * @param {*} context
  * @param {...*} args
  */
+// eslint-disable-next-line no-unused-vars
 HttpConsumer.prototype.run = function(context, args) {
     return this.callable.apply(context, Array.prototype.slice.call(arguments));
 };

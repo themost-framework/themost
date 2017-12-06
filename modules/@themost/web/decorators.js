@@ -1,15 +1,25 @@
+/**
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2017, THEMOST LP All rights reserved
+ *
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
+ */
 var _ = require('lodash');
-var util = require('util');
 var Q = require('q');
-var common = require('./common');
+var TraceUtils = require('@themost/common/utils').TraceUtils;
+var LangUtils = require('@themost/common/utils').LangUtils;
+var HttpBadRequestError = require('@themost/common/errors').HttpBadRequestError;
+var HttpUnauthorizedError = require('@themost/common/errors').HttpUnauthorizedError;
 var HttpConsumer = require('./consumers').HttpConsumer;
-var DataTypeValidator = require('most-data').validators.DataTypeValidator;
-var MinLengthValidator = require('most-data').validators.MinLengthValidator;
-var MaxLengthValidator = require('most-data').validators.MaxLengthValidator;
-var MinValueValidator = require('most-data').validators.MinValueValidator;
-var MaxValueValidator = require('most-data').validators.MaxValueValidator;
-var RequiredValidator = require('most-data').validators.RequiredValidator;
-var PatternValidator = require('most-data').validators.PatternValidator;
+var DataTypeValidator = require('@themost/data/data-validator').DataTypeValidator;
+var MinLengthValidator = require('@themost/data/data-validator').MinLengthValidator;
+var MaxLengthValidator = require('@themost/data/data-validator').MaxLengthValidator;
+var MinValueValidator = require('@themost/data/data-validator').MinValueValidator;
+var MaxValueValidator = require('@themost/data/data-validator').MaxValueValidator;
+var RequiredValidator = require('@themost/data/data-validator').RequiredValidator;
+var PatternValidator = require('@themost/data/data-validator').PatternValidator;
 
 /**
  * @class
@@ -20,7 +30,7 @@ var PatternValidator = require('most-data').validators.PatternValidator;
 function DecoratorError() {
     DecoratorError.super_.call(this, 'Decorator is not valid on this declaration type.');
 }
-util.inherits(DecoratorError, Error);
+LangUtils.inherits(DecoratorError, Error);
 
 function httpController() {
     return function (target, key, descriptor) {
@@ -178,16 +188,16 @@ function httpParam(options) {
         if (typeof descriptor.value.httpParam === 'undefined') {
             descriptor.value.httpParam = new HttpConsumer(function (context) {
                 var httpParamValidationFailedCallback = function httpParamValidationFailedCallback(context, httpParam, validationResult) {
-                    common.log(_.assign(validationResult, {
+                    TraceUtils.log(_.assign(validationResult, {
                         "param":httpParam,
                         "request": {
                             "url":context.request.url,
                             "method":context.request.method
                         }
                     }));
-                    return Q.reject(new common.HttpBadRequest('Bad request parameter', httpParam.message || validationResult.message));
+                    return Q.reject(new HttpBadRequestError('Bad request parameter', httpParam.message || validationResult.message));
                 };
-                var methodParams = common.getFunctionParams(descriptor.value);
+                var methodParams = LangUtils.getFunctionParams(descriptor.value);
                 var httpParams = descriptor.value.httpParams;
                 if (methodParams.length>0) {
                     var k = 0, httpParam, validator, validationResult, functionParam, contextParam;
@@ -296,7 +306,7 @@ function httpAuthorize(value) {
                 if (context.user && context.user.name !== 'anonymous') {
                     return Q();
                 }
-                return Q.reject(new common.HttpUnauthorizedException());
+                return Q.reject(new HttpUnauthorizedError());
             });
         }
         return descriptor;

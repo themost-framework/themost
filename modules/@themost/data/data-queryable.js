@@ -5,11 +5,11 @@ var async = require('async');
 var sprintf = require('sprintf').sprintf;
 var Symbol = require('symbol');
 var _ = require("lodash");
-var dataCommon = require('./data-common');
+var TextUtils = require("@themost/common/utils").TextUtils;
 var mappingExtensions = require('./data-mapping-extensions');
-var types = require('./types');
-var qry = require('most-query');
-var DataException = require('./types').DataException;
+var DataAssociationMapping = require('./types').DataAssociationMapping;
+var DataError = require("@themost/common/errors").DataError;
+var qry = require('@themost/query');
 var Q = require('q');
 
 var aliasProperty = Symbol('alias');
@@ -454,7 +454,7 @@ DataAttributeResolver.prototype.resolveJunctionAttributeJoin = function(attr) {
                 //get child model
                 var childModel = self.context.model(mapping.childModel);
                 if (_.isNil(childModel)) {
-                    throw new types.DataException("EJUNC","The associated model cannot be found.");
+                    throw new DataError("EJUNC","The associated model cannot be found.");
                 }
                 //create new join
                 var alias = field.name + "_" + childModel.name;
@@ -491,7 +491,7 @@ DataAttributeResolver.prototype.resolveJunctionAttributeJoin = function(attr) {
                 //get parent model
                 var parentModel = self.context.model(mapping.parentModel);
                 if (_.isNil(parentModel)) {
-                    throw new types.DataException("EJUNC","The associated model cannot be found.");
+                    throw new DataError("EJUNC","The associated model cannot be found.");
                 }
                 //create new join
                 var parentAlias = field.name + "_" + parentModel.name;
@@ -508,7 +508,7 @@ DataAttributeResolver.prototype.resolveJunctionAttributeJoin = function(attr) {
         }
     }
     else {
-        throw new types.DataException("EJUNC","The target model does not have a many to many association defined by the given attribute.","", self.name, attr);
+        throw new DataError("EJUNC","The target model does not have a many to many association defined by the given attribute.","", self.name, attr);
     }
 };
 
@@ -2301,7 +2301,7 @@ function afterExecute_(result, callback) {
            if (typeof x === 'string') {
                return x;
            }
-           else if (x instanceof types.DataAssociationMapping) {
+           else if (x instanceof DataAssociationMapping) {
                 return x;
            }
            else if (typeof x.name === "string") {
@@ -2319,7 +2319,7 @@ function afterExecute_(result, callback) {
                  * @type {DataAssociationMapping|*}
                  */
                 var mapping = null, options = { };
-                if (expand instanceof types.DataAssociationMapping) {
+                if (expand instanceof DataAssociationMapping) {
                     mapping = expand;
                     if (typeof expand.select !== 'undefined' && expand.select !== null) {
                         if (typeof expand.select === 'string')
@@ -2438,7 +2438,7 @@ function afterExecute_(result, callback) {
                 }
             }
             else {
-                return cb(new DataException("EASSOC", sprintf('Data association mapping (%s) for %s cannot be found or the association between these two models defined more than once.', expand, self.model.title)));
+                return cb(new DataError("EASSOC", sprintf('Data association mapping (%s) for %s cannot be found or the association between these two models defined more than once.', expand, self.model.title)));
             }
         }, function(err) {
             if (err) {
@@ -2536,7 +2536,7 @@ DataQueryable.prototype.toMD5 = function() {
     if (typeof this.$flatten!== 'undefined') { q.$flatten =this.$flatten; }
     if (typeof this.$silent!== 'undefined') { q.$silent =this.$silent; }
     if (typeof this.$asArray!== 'undefined') { q.$asArray =this.$asArray; }
-    return dataCommon.md5(q);
+    return TextUtils.md5(q);
 };
 
 /**
@@ -2666,7 +2666,7 @@ DataQueryable.prototype.expand = function(attr) {
             if (_.isNil(x)) {
                 return;
             }
-            if ((typeof x === 'string') || (x instanceof types.DataAssociationMapping)
+            if ((typeof x === 'string') || (x instanceof DataAssociationMapping)
                 || (typeof x === 'object' && x.hasOwnProperty('name'))) {
                 expanded = self.hasExpand(x);
                 if (expanded) {
@@ -2716,7 +2716,7 @@ DataQueryable.prototype.hasExpand = function(attr) {
         if (typeof x === 'string') {
             return x === expand;
         }
-        else if (x instanceof types.DataAssociationMapping) {
+        else if (x instanceof DataAssociationMapping) {
             return x === expand;
         }
         else if (typeof x.name === "string") {

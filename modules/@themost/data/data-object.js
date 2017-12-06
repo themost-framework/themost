@@ -1,17 +1,18 @@
 /**
  * @ignore
  */
-var util = require('util');
 var sprintf = require('sprintf');
 var _ = require("lodash");
-var EventEmitter2 = require('./types').EventEmitter2;
-var DataException = require('./types').DataException;
 var Symbol = require('symbol');
 var DataObjectJunction = require('./data-object-junction').DataObjectJunction;
 var DataObjectTag = require('./data-object-tag').DataObjectTag;
 var HasManyAssociation = require('./has-many-association').HasManyAssociation;
 var HasOneAssociation = require('./has-one-association').HasOneAssociation;
 var HasParentJunction = require('./has-parent-junction').HasParentJunction;
+var SequentialEventEmitter = require("@themost/common/emitter").SequentialEventEmitter;
+var LangUtils = require("@themost/common/utils").LangUtils;
+var DataError = require("@themost/common/errors").DataError;
+
 
 var selectorsProperty = Symbol('selectors');
 var typeProperty = Symbol('type');
@@ -31,7 +32,7 @@ var STR_MISSING_CALLBACK_ARGUMENT = 'Missing argument. Callback function expecte
  * @param {string=} type
  * @param {*=} obj The object that is going to be extended
  * @constructor
- * @augments EventEmitter
+ * @augments SequentialEventEmitter
  * @property {string} $$type - A string that represents the type of this object.
  * @property {DataModel} $$model - The data model which is associated with this object.
  * @property {*} $$id - Gets the identifier of this object based on the associated model's primary key
@@ -41,9 +42,10 @@ function DataObject(type, obj)
 {
     var self = this;
     /**
-     * @property {DataContext}
+     * @property context
+     * @type {DataContext}
      * @description An instance of DataContext class associated with this object.
-     * @name DataObject#context
+     * @memberOf DataObject#
      */
     Object.defineProperty(this,'context',{
         get: function() { return this[contextProperty]; } ,
@@ -138,7 +140,7 @@ function DataObject(type, obj)
     }
 
 }
-util.inherits(DataObject, EventEmitter2);
+LangUtils.inherits(DataObject, SequentialEventEmitter);
 /**
  * Gets the identifier of this data object
  * @returns {*}
@@ -524,7 +526,7 @@ DataObject.prototype.execute = function(context, fn) {
 DataObject.prototype.query = function(attr)
 {
     var mapping = this.getModel().inferMapping(attr);
-    if (_.isNil(mapping)) { new DataException('EASSOCIATION','The given attribute does not define an association of any type.'); }
+    if (_.isNil(mapping)) { new DataError('EASSOCIATION','The given attribute does not define an association of any type.'); }
     return this.property(attr)
 };
 
@@ -538,7 +540,7 @@ function save_(context, callback) {
     //get current application
     var model = self.getModel();
     if (_.isNil(model)) {
-        return callback.call(self, new DataException('EMODEL','Data model cannot be found.'));
+        return callback.call(self, new DataError('EMODEL','Data model cannot be found.'));
     }
     var i;
     //register before listeners
@@ -601,7 +603,7 @@ function remove_(context, callback) {
     //get current application
     var model = self.getModel();
     if (_.isNil(model)) {
-        return callback.call(self, new DataException('EMODEL','Data model cannot be found.'));
+        return callback.call(self, new DataError('EMODEL','Data model cannot be found.'));
     }
     //register before listeners
     var beforeListeners = self.listeners('before.remove');

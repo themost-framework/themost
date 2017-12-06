@@ -33,7 +33,7 @@
  */
 var types = require('./types'),
     sprintf = require('sprintf'),
-    dataCommon = require('./data-common'),
+    TraceUtils = require('@themost/common/utils').TraceUtils,
     moment = require('moment'),
     _ = require('lodash'),
     Q = require("q");
@@ -291,7 +291,7 @@ FunctionContext.prototype.user = function() {
         var userModel = context.model('User'), parser, undefinedUser = null;
         userModel.where('name').equal(user.name).silent().select('id').first(function(err, result) {
             if (err) {
-                dataCommon.log(err);
+                TraceUtils.log(err);
                 //try to get undefined user
                 parser = types.parsers['parse' + userModel.field('id').type];
                 if (typeof parser === 'function')

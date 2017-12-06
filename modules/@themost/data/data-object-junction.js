@@ -1,43 +1,17 @@
 /**
- * MOST Web Framework
- * A JavaScript Web Framework
- * http://themost.io
- * Created by Kyriakos Barbounakis<k.barbounakis@gmail.com> on 2014-10-13.
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2017, THEMOST LP All rights reserved
  *
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- Anthi Oikonomou anthioikonomou@gmail.com
- All rights reserved.
- Redistribution and use in source and binary forms, with or without
- modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
- list of conditions and the following disclaimer.
- * Redistributions in binary form must reproduce the above copyright notice,
- this list of conditions and the following disclaimer in the documentation
- and/or other materials provided with the distribution.
- * Neither the name of MOST Web Framework nor the names of its
- contributors may be used to endorse or promote products derived from
- this software without specific prior written permission.
- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
- FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
  */
-
-/**
- * @ignore
- */
-var util = require('util'),
-    _ = require('lodash'),
-    async = require('async'),
-    qry = require('most-query'),
-    types = require('./types'),
-    DataQueryable = require('./data-queryable').DataQueryable;
+var LangUtils = require('@themost/common/utils').LangUtils;
+var _ = require('lodash');
+var async = require('async');
+var qry = require('@themost/query');
+var DataAssociationMapping = require('./types').DataAssociationMapping;
+var DataQueryable = require('./data-queryable').DataQueryable;
 
 /**
  * @classdesc Represents a many-to-many association between two data models.
@@ -160,10 +134,10 @@ function DataObjectJunction(obj, association) {
     }
     else if (typeof association === 'object' && association !=null) {
         //get the specified mapping
-        if (association instanceof types.DataAssociationMapping)
+        if (association instanceof DataAssociationMapping)
             self.mapping = association;
         else
-            self.mapping = _.assign(new types.DataAssociationMapping(), association);
+            self.mapping = _.assign(new DataAssociationMapping(), association);
     }
     //get related model
     var relatedModel = this.parent.context.model(self.mapping.childModel);
@@ -204,8 +178,8 @@ function DataObjectJunction(obj, association) {
             if (_.isNil(baseModel)) {
                 conf.models[self.mapping.associationAdapter] = { name:adapter, title: adapter, source:adapter, type:"hidden", hidden:true, sealed:false, view:adapter, version:'1.0', fields:[
                     { name: "id", type:"Counter", primary: true },
-                    { name: "parentId", indexed: true, nullable:false, type: (parentField.type=='Counter') ? 'Integer' : parentField.type },
-                    { name: "valueId", indexed: true, nullable:false, type: (childField.type=='Counter') ? 'Integer' : childField.type } ],
+                    { name: "parentId", indexed: true, nullable:false, type: (parentField.type === 'Counter') ? 'Integer' : parentField.type },
+                    { name: "valueId", indexed: true, nullable:false, type: (childField.type === 'Counter') ? 'Integer' : childField.type } ],
                     "constraints": [
                         {
                             "description": "The relation between two objects must be unique.",
@@ -248,13 +222,14 @@ function DataObjectJunction(obj, association) {
 DataObjectJunction.STR_OBJECT_FIELD = 'parentId';
 DataObjectJunction.STR_VALUE_FIELD = 'valueId';
 
-util.inherits(DataObjectJunction, DataQueryable);
+LangUtils.inherits(DataObjectJunction, DataQueryable);
 
 /**
  * Migrates the underlying data association adapter.
- * @param callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise.
+ * @param callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise.
  */
 DataObjectJunction.prototype.migrate = function(callback) {
+    var self = this;
     var model = this.getBaseModel();
     model.migrate(function(err) {
         if (err) {
@@ -267,17 +242,24 @@ DataObjectJunction.prototype.migrate = function(callback) {
 };
 /**
  * Overrides DataQueryable.execute() method
- * @param callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise.
+ * @param callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise.
  * @ignore
  */
 DataObjectJunction.prototype.execute = function(callback) {
     var self = this;
     self.migrate(function(err) {
         if (err) { callback(err); return; }
+        // noinspection JSPotentiallyInvalidConstructorUsage
         DataObjectJunction.super_.prototype.execute.call(self, callback);
     });
 };
 
+/**
+ * @this DataObjectJunction
+ * @param {*} obj
+ * @param {Function} callback
+ * @private
+ */
 function insert_(obj, callback) {
     var self = this, arr = [];
     if (_.isArray(obj))
@@ -349,7 +331,7 @@ function insert_(obj, callback) {
 /**
  * Inserts an association between parent object and the given object or array of objects.
  * @param {*|Array} obj - An object or an array of objects to be related with parent object
- * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise.
+ * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise.
  * @returns {Promise<T>|*} - If callback parameter is missing then returns a Promise object.
  * @example
  //add a user (by name) in Administrators group
@@ -379,6 +361,11 @@ DataObjectJunction.prototype.insert = function(obj, callback) {
     }
 };
 
+/**
+ * @this DataObjectJunction
+ * @param {Function} callback
+ * @private
+ */
 function clear_(callback) {
     var self = this;
     self.migrate(function(err) {
@@ -390,7 +377,7 @@ function clear_(callback) {
         //validate relation existence
         relationModel.where(DataObjectJunction.STR_OBJECT_FIELD).equal(parentId).all(function(err, result) {
             if (err) { return callback(); }
-            if (result.length==0) { return callback();  }
+            if (result.length===0) { return callback();  }
             relationModel.remove(result, callback);
         });
     });
@@ -427,6 +414,7 @@ DataObjectJunction.prototype.removeAll = function(callback) {
 };
 
 /**
+ * @this DataObjectJunction
  * Inserts a new relation between a parent and a child object.
  * @param {*} obj An object or an identifier that represents the child object
  * @param {Function} callback
@@ -465,7 +453,7 @@ function insertSingleObject_(obj, callback) {
         }
     });
 
-};
+}
 /**
  * Migrates current junction data storage
  * @param {Function} callback
@@ -498,6 +486,12 @@ DataObjectJunction.prototype.migrate = function(callback)
     });
 };
 
+/**
+ * @this DataObjectJunction
+ * @param obj
+ * @param callback
+ * @private
+ */
 function remove_(obj, callback) {
     var self = this;
     var arr = [];
@@ -520,7 +514,7 @@ function remove_(obj, callback) {
                 //get related model
                 var relatedModel = self.parent.context.model(self.mapping.childModel);
                 //find object by querying child object
-                relatedModel.find(child).select([self.mapping.childField]).first(function (err, result) {
+                relatedModel.find(child).select(self.mapping.childField).first(function (err, result) {
                     if (err) {
                         cb(null);
                     }
@@ -545,7 +539,7 @@ function remove_(obj, callback) {
 /**
  * Removes the association between parent object and the given object or array of objects.
  * @param {*|Array} obj - An object or an array of objects to be disconnected from parent object
- * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise.
+ * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise.
  * @returns {Promise<T>|*} - If callback parameter is missing then returns a Promise object.
  * @example
  //remove a user (by name) from Administrators group
@@ -576,6 +570,7 @@ DataObjectJunction.prototype.remove = function(obj, callback) {
 };
 
 /**
+ * @this DataObjectJunction
  * Removes a relation between a parent and a child object.
  * @param {*} obj An object or an identifier that represents the child object
  * @param {Function} callback
@@ -606,11 +601,9 @@ DataObjectJunction.prototype.remove = function(obj, callback) {
             }
         }
     });
-};
+}
 
 if (typeof exports !== 'undefined')
 {
-    module.exports = {
-        DataObjectJunction:DataObjectJunction
-    };
+    module.exports.DataObjectJunction = DataObjectJunction;
 }

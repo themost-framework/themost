@@ -8,13 +8,13 @@
  * Released under the BSD3-Clause license
  * Date: 2014-11-10
  */
-var util = require('util');
+var LangUtils = require('@themost/common/utils').LangUtils;
 var Q = require('q');
 var _ = require('lodash');
 var HttpResult = require('./http-mvc').HttpResult;
-var ODataModelConventionBuilder = require('most-data/odata').ODataConventionModelBuilder;
-var ODataModelBuilder = require('most-data/odata').ODataModelBuilder;
-var DataConfiguration = require('most-data/data-configuration').DataConfiguration;
+var ODataModelConventionBuilder = require('@themost/data/odata').ODataConventionModelBuilder;
+var ODataModelBuilder = require('@themost/data/odata').ODataModelBuilder;
+var DataConfiguration = require('@themost/data/data-configuration').DataConfiguration;
 
 /**
  * @class
@@ -30,7 +30,7 @@ function ODataJsonResult(data) {
     this.contentType = 'application/json;charset=utf-8';
     this.contentEncoding = 'utf8';
 }
-util.inherits(ODataJsonResult,HttpResult);
+LangUtils.inherits(ODataJsonResult,HttpResult);
 
 ODataJsonResult.prototype.execute = function(context, callback) {
     var res = context.response;

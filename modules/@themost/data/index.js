@@ -38,7 +38,6 @@ var model = require('./data-model'),
     cfg = require('./data-configuration'),
     validators = require('./data-validator'),
     dataCache = require('./data-cache'),
-    dataCommon = require('./data-common'),
     dataClasses = require("./data-classes"),
     DefaultDataContext = require('./data-context').DefaultDataContext,
     NamedDataContext = require('./data-context').NamedDataContext;
@@ -46,7 +45,6 @@ var model = require('./data-model'),
 var most = { };
 
 most.cfg = cfg;
-most.common = dataCommon;
 most.types = types;
 most.cache = dataCache;
 most.validators = validators;

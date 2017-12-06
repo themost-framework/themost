@@ -1,5 +1,1 @@
-modules/@themost/common/**/*.js
-modules/@themost/query/**/*.js
-modules/@themost/data/**/*.js
-modules/@themost/web/**/*.js
 node_modules/

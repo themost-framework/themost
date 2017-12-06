@@ -6,15 +6,11 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-/**
- * @ignore
- */
 var sprintf = require('sprintf').sprintf;
 var _ = require('lodash');
 // eslint-disable-next-line no-unused-vars
 //noinspection JSUnusedLocalSymbols
 var natives = require('./natives');
-
 
 /**
  * @class QueryParameter
@@ -263,7 +259,7 @@ QueryExpression.prototype.hasFilter = function()
     return _.isObject(this.$where);
 };
 /**
- * @param {Boolean} useOr
+ * @param {boolean=} useOr
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.prepare = function(useOr)

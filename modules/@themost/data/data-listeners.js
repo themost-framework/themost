@@ -1,44 +1,20 @@
 /**
- * MOST Web Framework
- * A JavaScript Web Framework
- * http://themost.io
- * Created by Kyriakos Barbounakis<k.barbounakis@gmail.com> on 2015-02-13.
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2017, THEMOST LP All rights reserved
  *
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- Anthi Oikonomou anthioikonomou@gmail.com
- All rights reserved.
- Redistribution and use in source and binary forms, with or without
- modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
- list of conditions and the following disclaimer.
- * Redistributions in binary form must reproduce the above copyright notice,
- this list of conditions and the following disclaimer in the documentation
- and/or other materials provided with the distribution.
- * Neither the name of MOST Web Framework nor the names of its
- contributors may be used to endorse or promote products derived from
- this software without specific prior written permission.
- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
- FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
  */
-/**
- * @ignore
- */
-var async = require('async'),
-    sprintf = require('sprintf'),
-    _ = require('lodash'),
-    dataCommon = require('./data-common'),
-    moment = require("moment"),
-    util = require('util'),
-    types = require('./types');
-
+var async = require('async');
+var sprintf = require('sprintf');
+var cache = require('./data-cache');
+var _ = require('lodash');
+var QueryUtils = require('@themost/query/utils').QueryUtils;
+var NotNullError = require("@themost/common/errors").NotNullError;
+var UniqueConstraintError = require("@themost/common/errors").UniqueConstraintError;
+var TraceUtils = require("@themost/common/utils").TraceUtils;
+var TextUtils = require("@themost/common/utils").TextUtils;
 
 /**
  * @classdesc Represents an event listener for validating not nullable fields. This listener is automatically  registered in all data models.
@@ -70,12 +46,12 @@ NotNullConstraintListener.prototype.beforeSave = function(e, callback) {
         if ((((value === null) || (value===undefined))  && (e.state===1))
             || ((value === null) && (typeof value!=='undefined') && (e.state === 2)))
         {
-            var er = new types.NotNullException('A value is required.', null, e.model.name, attr.name);
-            if (process.env.NODE_ENV==='development') { dataCommon.log(er); }
+            var er = new NotNullError('A value is required.', null, e.model.name, attr.name);
+            TraceUtils.debug(er);
             return cb(er);
         }
         else
-            cb(null);
+            return cb();
     }, function(err) {
         callback(err);
     });
@@ -105,7 +81,7 @@ UniqueContraintListener.prototype.beforeSave = function(e, callback) {
     }
     //get unique constraints
     var constraints = e.model.constraints.filter(function(x) {
-        return (x.type=='unique');
+        return (x.type==='unique');
     });
     if (constraints.length===0) {
         //do nothing
@@ -165,12 +141,12 @@ UniqueContraintListener.prototype.beforeSave = function(e, callback) {
                         var er;
                         //so throw exception
                         if (constraint.description) {
-                            er = new types.UniqueConstraintException(constraint.description, null, e.model.name);
+                            er = new UniqueConstraintError(constraint.description, null, e.model.name);
                         }
                         else {
-                            er = new types.UniqueConstraintException("Object already exists. A unique constraint violated.", null, e.model.name);
+                            er = new UniqueConstraintError("Object already exists. A unique constraint violated.", null, e.model.name);
                         }
-                        if (process.env.NODE_ENV==='development') { dataCommon.log(er); }
+                        TraceUtils.debug(er);
                         return cb(er);
                     }
                     else {
@@ -388,7 +364,6 @@ function DataCachingListener() {
  */
 DataCachingListener.prototype.beforeExecute = function(event, callback) {
     try {
-        var cache = require('./data-cache');
         if (_.isNil(event)) {
             return callback();
         }
@@ -397,7 +372,7 @@ DataCachingListener.prototype.beforeExecute = function(event, callback) {
         if (!caching) { return callback(); }
         //validate conditional caching
         if (event.model.caching==='conditional') {
-            if (event.emitter && typeof event.emitter.data == 'function') {
+            if (event.emitter && typeof event.emitter.data === 'function') {
                 if (!event.emitter.data('cache')) {
                     return callback();
                 }
@@ -412,17 +387,17 @@ DataCachingListener.prototype.beforeExecute = function(event, callback) {
             }
             else {
                 //else calculate hash
-                hash = dataCommon.md5({ query: event.query });
+                hash = TextUtils.md5({ query: event.query });
             }
             //format cache key
             var key = '/' + event.model.name + '/?query=' + hash;
             //calculate execution time (debug)
             var logTime = new Date().getTime();
             //query cache
-            cache.current.get(key, function(err, result) {
+            cache.getCurrent().get(key, function(err, result) {
                 if (err) {
-                    dataCommon.log('DataCacheListener: An error occured while trying to get cached data.');
-                    dataCommon.log(err);
+                    TraceUtils.log('DataCacheListener: An error occured while trying to get cached data.');
+                    TraceUtils.log(err);
                 }
                 if (typeof result !== 'undefined') {
                     //delete expandables
@@ -436,10 +411,12 @@ DataCachingListener.prototype.beforeExecute = function(event, callback) {
                     //log execution time (debug)
                     try {
                         if (process.env.NODE_ENV==='development') {
-                            dataCommon.log(sprintf.sprintf('Cache (Execution Time:%sms):%s', (new Date()).getTime()-logTime, key));
+                            TraceUtils.log(sprintf.sprintf('Cache (Execution Time:%sms):%s', (new Date()).getTime()-logTime, key));
                         }
                     }
-                    catch(err) { }
+                    catch(err) {
+                        //
+                    }
                     //exit
                     return callback();
                 }
@@ -459,18 +436,17 @@ DataCachingListener.prototype.beforeExecute = function(event, callback) {
 };
 /**
  * Occurs before executing an query expression, validates data caching configuration and stores data to cache.
- * @param {DataEventArgs|*} e - An object that represents the event arguments passed to this operation.
+ * @param {DataEventArgs|*} event - An object that represents the event arguments passed to this operation.
  * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
  */
 DataCachingListener.prototype.afterExecute = function(event, callback) {
     try {
-        var cache = require('./data-cache');
         //validate caching
         var caching = (event.model.caching==='always' || event.model.caching==='conditional');
         if (!caching) { return callback(); }
         //validate conditional caching
         if (event.model.caching==='conditional') {
-            if (event.emitter && typeof event.emitter.data == 'function') {
+            if (event.emitter && typeof event.emitter.data === 'function') {
                 if (!event.emitter.data('cache')) {
                     return callback();
                 }
@@ -486,13 +462,13 @@ DataCachingListener.prototype.afterExecute = function(event, callback) {
                 }
                 else {
                     //else calculate hash
-                    hash = dataCommon.md5({ query: event.query });
+                    hash = TextUtils.md5({ query: event.query });
                 }
                 var key = '/' + event.model.name + '/?query=' + hash;
                 if (process.env.NODE_ENV==='development') {
-                    dataCommon.debug('DataCacheListener: Setting data to cache [' + key + ']');
+                    TraceUtils.debug('DataCacheListener: Setting data to cache [' + key + ']');
                 }
-                cache.current.add(key, event.result);
+                cache.getCurrent().add(key, event.result);
                 return callback();
             }
         }
@@ -536,10 +512,10 @@ function DefaultValueListener() {
  */
 DefaultValueListener.prototype.beforeSave = function(e, callback) {
 
-    var state = e.state!==undefined ? e.state : 0;
-    if (state!=1)
+    var state = typeof e.state !== 'number' ? e.state : 0;
+    if (state!==1)
     {
-        callback(null);
+        return callback();
     }
     else {
         //get function context
@@ -561,15 +537,15 @@ DefaultValueListener.prototype.beforeSave = function(e, callback) {
                 return cb();
             }
             //check javascript: keyword for code evaluation
-            if (expr.indexOf('javascript:')==0) {
+            if (expr.indexOf('javascript:')===0) {
                 //get expression
                 var fnstr = expr.substring('javascript:'.length);
                 //if expression starts with function add parenthesis (fo evaluation)
-                if (fnstr.indexOf('function')==0) {
+                if (fnstr.indexOf('function')===0) {
                     fnstr = '('.concat(fnstr,')');
                 }
                 //if expression starts with return then normalize expression (surround with function() {} keyword)
-                else if (fnstr.indexOf('return')==0) {
+                else if (fnstr.indexOf('return')===0) {
                     fnstr = '(function() { '.concat(fnstr,'})');
                 }
                 var value = eval(fnstr);
@@ -608,7 +584,7 @@ DefaultValueListener.prototype.beforeSave = function(e, callback) {
                     return cb();
                 }
             }
-            else if (expr.indexOf('fn:')==0) {
+            else if (expr.indexOf('fn:')===0) {
                 return cb(new Error ('fn: syntax is deprecated.'));
             }
             else  {
@@ -645,7 +621,7 @@ function DataModelCreateViewListener() {
 DataModelCreateViewListener.prototype.afterUpgrade = function(event, callback) {
 
     var self = event.model,
-        qry = require("most-query"),
+        qry = require("@themost/query"),
         db = self.context.db;
     var view = self.viewAdapter, adapter = self.sourceAdapter;
     //if data model is a sealed model do nothing anb exit
@@ -655,18 +631,19 @@ DataModelCreateViewListener.prototype.afterUpgrade = function(event, callback) {
     var baseModel = self.base();
     //get array of fields
     var fields = self.attributes.filter(function(x) {
-        return (self.name== x.model) && (!x.many);
+        return (self.name=== x.model) && (!x.many);
     }).map(function(x) {
         return qry.fields.select(x.name).from(adapter);
     });
     /**
      * @type {QueryExpression}
      */
-    var q = qry.query(adapter).select(fields);
+    var q = QueryUtils.query(adapter).select(fields);
     //get base adapter
-    var baseAdapter = (baseModel!=null) ? baseModel.name.concat('Data') : null, baseFields = [];
+    var baseAdapter = _.isObject(baseModel) ? baseModel.name.concat('Data') : null;
+    var baseFields = [];
     //enumerate columns of base model (if any)
-    if (dataCommon.isDefined(baseModel)) {
+    if (_.isObject(baseModel)) {
         baseModel.attributes.forEach(function(x) {
             //get all fields (except primary and one-to-many relations)
             if ((!x.primary) && (!x.many))
@@ -711,7 +688,7 @@ DataModelSeedListener.prototype.afterUpgrade = function(event, callback) {
         var items = self['seed'];
         //if model has an array of items to be seeded
         if (_.isArray(items)) {
-            if (items.length==0) {
+            if (items.length===0) {
                 //if seed array is empty exit
                 return callback();
             }
@@ -721,7 +698,7 @@ DataModelSeedListener.prototype.afterUpgrade = function(event, callback) {
                     callback(err); return;
                 }
                 //if model has no data
-                if (count==0) {
+                if (count===0) {
                     //set items state to new
                     items.forEach(function(x) { x.$state=1; });
                     self.silent().save(items, callback);
@@ -759,7 +736,7 @@ DataModelSubTypesListener.prototype.afterUpgrade = function(event, callback) {
     var self = event.model, context = event.model.context;
     try {
         self.getSubTypes().then(function(result) {
-            if (result.length==0) { return callback(); }
+            if (result.length===0) { return callback(); }
             //enumerate sub types
             async.eachSeries(result, function(name, cb) {
                 //get model

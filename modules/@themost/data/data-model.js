@@ -1,56 +1,34 @@
 /**
- * MOST Web Framework
- * A JavaScript Web Framework
- * http://themost.io
- * Created by Kyriakos Barbounakis<k.barbounakis@gmail.com> on 2014-10-13.
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2017, THEMOST LP All rights reserved
  *
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- Anthi Oikonomou anthioikonomou@gmail.com
- All rights reserved.
- Redistribution and use in source and binary forms, with or without
- modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
- list of conditions and the following disclaimer.
- * Redistributions in binary form must reproduce the above copyright notice,
- this list of conditions and the following disclaimer in the documentation
- and/or other materials provided with the distribution.
- * Neither the name of MOST Web Framework nor the names of its
- contributors may be used to endorse or promote products derived from
- this software without specific prior written permission.
- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
- FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
  */
-/**
- * @private
- */
-var _ = require("lodash"),
-    util = require('util'),
-    sprintf = require('sprintf'),
-    path = require("path"),
-    async = require('async'),
-    qry = require('most-query'),
-    types = require('./types'),
-    DataAssociationMapping = require('./types').DataAssociationMapping,
-    dataCommon = require('./data-common'),
-    dataListeners = require('./data-listeners'),
-    validators = require('./data-validator'),
-    dataAssociations = require('./data-associations'),
-    DataNestedObjectListener = require("./data-nested-object-listener").DataNestedObjectListener,
-    DataReferencedObjectListener = require("./data-ref-object-listener").DataReferencedObjectListener,
-    DataQueryable = require('./data-queryable').DataQueryable,
-    DataAttributeResolver = require('./data-queryable').DataAttributeResolver,
-    DataObjectAssociationListener = dataAssociations.DataObjectAssociationListener,
-    DataModelView = require('./data-model-view').DataModelView,
-    DataFilterResolver = require('./data-filter-resolver').DataFilterResolver,
-    Q = require("q");
+
+var _ = require("lodash");
+var sprintf = require('sprintf').sprintf;
+var path = require("path");
+var async = require('async');
+var qry = require('@themost/query');
+var types = require('./types');
+var DataAssociationMapping = require('./types').DataAssociationMapping;
+var dataListeners = require('./data-listeners');
+var validators = require('./data-validator');
+var dataAssociations = require('./data-associations');
+var DataNestedObjectListener = require("./data-nested-object-listener").DataNestedObjectListener;
+var DataReferencedObjectListener = require("./data-ref-object-listener").DataReferencedObjectListener;
+var DataQueryable = require('./data-queryable').DataQueryable;
+var DataAttributeResolver = require('./data-queryable').DataAttributeResolver;
+var DataObjectAssociationListener = dataAssociations.DataObjectAssociationListener;
+var DataModelView = require('./data-model-view').DataModelView;
+var DataFilterResolver = require('./data-filter-resolver').DataFilterResolver;
+var Q = require("q");
+var SequentialEventEmitter = require("@themost/common/emitter").SequentialEventEmitter;
+var LangUtils = require("@themost/common/utils").LangUtils;
+var TraceUtils = require("@themost/common/utils").TraceUtils;
+var DataError = require("@themost/common/errors").DataError;
 
 /**
  * @param {DataField} field
@@ -245,7 +223,7 @@ function EmptyQueryExpression() {
  * @property {DataField[]} attributes - Gets an array of DataField objects which represents the collection of model fields (including fields which are inherited from the base model).
  * @property {Array} seed - An array of objects which represents a collection of items to be seeded when the model is being generated for the first time
  * @constructor
- * @augments EventEmitter2
+ * @augments SequentialEventEmitter
  * @param {*=} obj An object instance that holds data model attributes. This parameter is optional.
  */
 function DataModel(obj) {
@@ -282,11 +260,11 @@ function DataModel(obj) {
     }, enumerable: false, configurable: false});
 
     Object.defineProperty(this, 'sourceAdapter', { get: function() {
-        return dataCommon.isDefined(self.source) ? self.source :  self.name.concat('Base');
+        return _.isString(self.source) ? self.source :  self.name.concat('Base');
     }, enumerable: false, configurable: false});
 
     Object.defineProperty(this, 'viewAdapter', { get: function() {
-        return dataCommon.isDefined(self.view) ? self.view :  self.name.concat('Data');
+        return _.isString(self.view) ? self.view :  self.name.concat('Data');
     }, enumerable: false, configurable: false});
 
     var silent_ = false;
@@ -441,7 +419,7 @@ function DataModel(obj) {
         this.initialize();
 }
 
-util.inherits(DataModel, types.EventEmitter2);
+LangUtils.inherits(DataModel, SequentialEventEmitter);
 
 /**
  * @returns {Function}
@@ -1117,6 +1095,14 @@ DataModel.prototype.base = function()
         }
     });
 }
+
+function dasherize(data) {
+    if (typeof data === 'string')
+    {
+        return data.replace(/(^\s*|\s*$)/g, '').replace(/[_\s]+/g, '-').replace(/([A-Z])/g, '-$1').replace(/-+/g, '-').replace(/^-/,'').toLowerCase();
+    }
+}
+
 /**
  * @returns {*}
  * @constructor
@@ -1142,7 +1128,7 @@ function getDataObjectClass_() {
                     try {
                         //if the specified class file was not found try to dasherize model name
                         // e.g. OrderDetail -> order-detail-model.js
-                        classPath = path.join(process.cwd(),'app','models',dataCommon.dasherize(self.name).concat('-model.js'));
+                        classPath = path.join(process.cwd(),'app','models',dasherize(self.name).concat('-model.js'));
                         DataObjectClass = require(classPath);
                     }
                     catch(e) {
@@ -2086,7 +2072,7 @@ DataModel.prototype.ensureModel = function(callback) {
     //get migration model
     var migrationModel = self.context.model("migration");
     //ensure migration
-    var version = dataCommon.isDefined(self.version) ? self.version : '0.0';
+    var version = _.isString(self.version) ? self.version : '0.0';
     migrationModel.where('appliesTo').equal(self.sourceAdapter).and('version').equal(version).count(function(err, result) {
         if (err) { return callback(err); }
         if (result>0) { return callback(); }
@@ -2129,7 +2115,7 @@ DataModel.prototype.migrate = function(callback)
     migration.version = self.version!==null ? self.version : '0.0';
     migration.appliesTo = self.sourceAdapter;
     migration.model = self.name;
-    migration.description = sprintf.sprintf('%s migration (version %s)', this.title, migration.version);
+    migration.description = sprintf('%s migration (version %s)', this.title, migration.version);
     if (context===null)
         throw new Error("The underlying data context cannot be empty.");
 
@@ -2454,7 +2440,7 @@ DataModel.prototype.inferMapping = function(name) {
             }
             else {
                 //this is an exception
-                throw new types.DataException("EMAP","An inherited data association cannot be mapped.");
+                throw new DataError("EMAP","An inherited data association cannot be mapped.");
             }
             //cache mapping
             conf.mappings_[name] = result;
@@ -2476,7 +2462,7 @@ DataModel.prototype.inferMapping = function(name) {
             }
             else {
                 //this is an exception
-                throw new types.DataException("EMAP","An inherited data association cannot be mapped.");
+                throw new DataError("EMAP","An inherited data association cannot be mapped.");
             }
             //cache mapping
             conf.mappings_[name] = result;
@@ -2565,12 +2551,12 @@ function validate_(obj, state, callback) {
                 }
             }
             catch (e) {
-                dataCommon.debug(sprintf.sprintf("Data validator module (%s) cannot be loaded", attr.validation.type));
-                dataCommon.debug(e);
+                TraceUtils.debug(sprintf("Data validator module (%s) cannot be loaded", attr.validation.type));
+                TraceUtils.debug(e);
                 return cb(e);
             }
             if (typeof validatorModule.createInstance !== 'function') {
-                dataCommon.debug(sprintf.sprintf("Data validator module (%s) does not export createInstance() method.", attr.validation.type));
+                TraceUtils.debug(sprintf("Data validator module (%s) does not export createInstance() method.", attr.validation.type));
                 return cb(new Error("Invalid data validator type."));
             }
             arrValidators.push(validatorModule.createInstance(attr));
@@ -2608,7 +2594,7 @@ function validate_(obj, state, callback) {
             if (typeof validator.validateSync === 'function') {
                 validationResult = validator.validateSync(value);
                 if (validationResult) {
-                    return cb(new types.DataException(validationResult.code || "EVALIDATE",validationResult.message, validationResult.innerMessage, self.name, attr.name));
+                    return cb(new DataError(validationResult.code || "EVALIDATE",validationResult.message, validationResult.innerMessage, self.name, attr.name));
                 }
                 else {
                     return cb();
@@ -2620,13 +2606,13 @@ function validate_(obj, state, callback) {
                         return cb(err);
                     }
                     if (validationResult) {
-                        return cb(new types.DataException(validationResult.code || "EVALIDATE",validationResult.message, validationResult.innerMessage, self.name, attr.name));
+                        return cb(new DataError(validationResult.code || "EVALIDATE",validationResult.message, validationResult.innerMessage, self.name, attr.name));
                     }
                     return cb();
                 });
             }
             else {
-                dataCommon.debug(sprintf.sprintf("Data validator (%s) does not have either validate() or validateSync() methods.", attr.validation.type));
+                TraceUtils.debug(sprintf("Data validator (%s) does not have either validate() or validateSync() methods.", attr.validation.type));
                 return cb(new Error("Invalid data validator type."));
             }
         }, function(err) {

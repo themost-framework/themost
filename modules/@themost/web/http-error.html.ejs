@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <!--[if IE]><meta http-equiv="x-ua-compatible" content="IE=9" /><![endif]-->
-    <title>Error <%= (locals.error.status || '500') + ' | ' + (locals.error.title || 'Internal Server Error')%></title>
+    <title>Error <%= (locals.error.statusCode || '500') + ' | ' + (locals.error.title || 'Internal Server Error')%></title>
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
     <link href='//fonts.googleapis.com/css?family=Roboto:400,700&subset=cyrillic,latin,greek' rel='stylesheet' type='text/css'>
@@ -32,7 +32,7 @@
 <body class="error-page">
 <div class="container">
     <div class="col-md-12">
-        <h1 class="error-number text-center"><%=(locals.error.status || 500)%></h1>
+        <h1 class="error-number text-center"><%=(locals.error.statusCode || 500)%></h1>
         <h1 class="text-center"><%= (locals.error.title || 'Internal Server Error')%></h1>
         <p class="text-center"><%= (locals.error.message || 'The server encountered an internal error and was unable to complete your request.')%></p>
         <% if ((process.env.NODE_ENV === 'development') && (locals.error.innerMessage)) { %>

@@ -1,41 +1,15 @@
 /**
- * MOST Web Framework
- * A JavaScript Web Framework
- * http://themost.io
- * Created by Kyriakos Barbounakis<k.barbounakis@gmail.com> on 2016-07-17.
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2017, THEMOST LP All rights reserved
  *
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- Anthi Oikonomou anthioikonomou@gmail.com
- All rights reserved.
- Redistribution and use in source and binary forms, with or without
- modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
- list of conditions and the following disclaimer.
- * Redistributions in binary form must reproduce the above copyright notice,
- this list of conditions and the following disclaimer in the documentation
- and/or other materials provided with the distribution.
- * Neither the name of MOST Web Framework nor the names of its
- contributors may be used to endorse or promote products derived from
- this software without specific prior written permission.
- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
- FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
  */
-
-/**
- * @ignore
- */
-var _ = require('lodash'),
-    sprintf = require('sprintf'),
-    util = require('util'),
-        conf = require('./data-configuration');
+var _ = require('lodash');
+var sprintf = require('sprintf');
+var LangUtils = require('@themost/common/utils').LangUtils;
+var conf = require('./data-configuration');
 
     var validators = { };
     /**
@@ -120,7 +94,7 @@ var _ = require('lodash'),
         this.pattern = pattern;
         PatternValidator.super_.call(this);
     }
-    util.inherits(PatternValidator, DataValidator);
+    LangUtils.inherits(PatternValidator, DataValidator);
     PatternValidator.DefaultMessage = "The value seems to be invalid.";
     /**
      * Validates the given value and returns a validation result or undefined if the specified value is invalid
@@ -212,7 +186,7 @@ var _ = require('lodash'),
         MinLengthValidator.super_.call(this);
     }
 
-    util.inherits(MinLengthValidator,DataValidator);
+    LangUtils.inherits(MinLengthValidator,DataValidator);
 
     MinLengthValidator.DefaultMessage = "The value is too short. It should have %s characters or more.";
 
@@ -304,7 +278,7 @@ var _ = require('lodash'),
         this.maxLength = length;
         MaxLengthValidator.super_.call(this);
     }
-    util.inherits(MaxLengthValidator, DataValidator);
+    LangUtils.inherits(MaxLengthValidator, DataValidator);
 
     MaxLengthValidator.DefaultMessage = "The value is too long. It should have %s characters or fewer.";
 
@@ -387,7 +361,7 @@ var _ = require('lodash'),
         MinValueValidator.super_.call(this);
     }
 
-    util.inherits(MinValueValidator, DataValidator);
+    LangUtils.inherits(MinValueValidator, DataValidator);
 
     MinValueValidator.DefaultMessage = "The value should be greater than or equal to %s.";
     /**
@@ -466,7 +440,7 @@ var _ = require('lodash'),
         MaxValueValidator.super_.call(this);
     }
 
-    util.inherits(MaxValueValidator, DataValidator);
+    LangUtils.inherits(MaxValueValidator, DataValidator);
 
 
     MaxValueValidator.DefaultMessage = "The value should be lower or equal to %s.";
@@ -550,7 +524,7 @@ var _ = require('lodash'),
         RangeValidator.super_.call(this);
     }
 
-    util.inherits(RangeValidator, DataValidator);
+    LangUtils.inherits(RangeValidator, DataValidator);
 
     RangeValidator.DefaultMessage = "The value should be between %s to %s.";
     /**
@@ -563,11 +537,11 @@ var _ = require('lodash'),
             return;
         }
         var minValidator, maxValidator, minValidation, maxValidation;
-        if (typeof this.minValue !== 'undefined' && this.minValue != null) {
+        if (!_.isNil(this.minValue)) {
             minValidator = new MinValueValidator(this.minValue);
             minValidation = minValidator.validateSync(val);
         }
-        if (typeof this.maxValue !== 'undefined' && this.maxValue != null) {
+        if (!_.isNil(this.maxValue)) {
             maxValidator = new MaxValueValidator(this.maxValue);
             maxValidation = maxValidator.validateSync(val);
         }
@@ -689,7 +663,7 @@ var _ = require('lodash'),
         DataTypeValidator.super_.call(this);
     }
 
-    util.inherits(DataTypeValidator, DataValidator);
+    LangUtils.inherits(DataTypeValidator, DataValidator);
 
     /**
      * @param val
@@ -911,7 +885,7 @@ var _ = require('lodash'),
     this.attr = attr;
     PriceValidator.super_.call(this);
 }
-     util.inherits(PriceValidator, most.validators.DataValidator);
+     LangUtils.inherits(PriceValidator, most.validators.DataValidator);
      PriceValidator.prototype.validateSync = function(val) {
     if (typeof val === 'number') {
         if (val<=0) {
@@ -991,7 +965,7 @@ var _ = require('lodash'),
     /**
      * Occurs before creating or updating a data object.
      * @param {DataEventArgs|*} event - An object that represents the event arguments passed to this operation.
-     * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+     * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occurred.
      */
     DataValidatorListener.prototype.beforeSave = function(event, callback) {
         if (event.state === 4) { return callback(); }
@@ -1057,7 +1031,7 @@ var _ = require('lodash'),
     function RequiredValidator() {
         RequiredValidator.super_.call(this);
     }
-    util.inherits(RequiredValidator, DataValidator);
+    LangUtils.inherits(RequiredValidator, DataValidator);
     /**
      * Validates the given value. If validation fails, the operation will return a validation result.
      * @param {*} val

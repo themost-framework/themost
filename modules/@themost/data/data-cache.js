@@ -1,21 +1,30 @@
 /**
- * @private
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2017, THEMOST LP All rights reserved
+ *
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
  */
-var types = require('./types');
+
 var _ = require('lodash');
-var util = require('util');
+var LangUtils = require("@themost/common/utils").LangUtils;
+var SequentialEventEmitter = require("@themost/common/emitter").SequentialEventEmitter;
+var Symbol = require("symbol");
+
+var currentProperty = Symbol("current");
 /**
  * @class
  * @classdesc Implements data cache mechanisms in MOST Data Applications.
  * DataCache class is used as the internal data caching engine, if any other caching mechanism is not defined.
  * @property {Number} ttl - An amount of time in seconds which is the default cached item lifetime.
  * @constructor
- * @augments EventEmitter2
+ * @augments SequentialEventEmitter
  */
 function DataCache() {
     this.initialized = false;
 }
-util.inherits(DataCache, types.EventEmitter2);
+LangUtils.inherits(DataCache, SequentialEventEmitter);
 /**
  * Initializes data caching.
  * @param {function(Error=)} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise.
@@ -201,49 +210,34 @@ DataCache.prototype.get = function(key, callback) {
         }
     });
 };
-
-(function () {
-
-    /**
-     * @exports most-data/data-cache
-     */
-    var dataCache = { };
-
-    /**
-     * @type {DataCache|*}
-     * @private
-     */
-    var currentDataCache;
-    Object.defineProperty(dataCache, 'current', { get: function () {
-        //first of all check if a global application exists
-        if (typeof global !== 'undefined' || global!=null) {
-            var app = global.application;
-            if (app) {
-                //and if this application has a cache object
-                if (app.cache) {
-                    //use this cache
-                    return app.cache;
-                }
+/**
+ * @returns DataCache
+ */
+DataCache.getCurrent = function() {
+    if (typeof global !== 'undefined' || global !== null) {
+        var app = global.application;
+        if (app) {
+            //and if this application has a cache object
+            if (app.cache) {
+                //use this cache
+                return app.cache;
             }
         }
-        //otherwise get current cache
-        if (typeof currentDataCache !== 'undefined')
-            return currentDataCache;
-        //or initialize current cache object
-        currentDataCache = new DataCache();
-        //and return it
-        return currentDataCache;
-    }, configurable: false, enumerable: false});
+    }
+    if (DataCache[currentProperty]) {
+        return DataCache[currentProperty];
+    }
+    DataCache[currentProperty] = new DataCache();
+    return DataCache[currentProperty];
+};
 
-    dataCache.DataCache = DataCache;
+if (typeof exports !== 'undefined') {
+
+    module.exports.DataCache = DataCache;
     /**
-     * Gets the current data cache
      * @returns {DataCache}
      */
-    dataCache.getCurrent = function() {
-        return this.current;
+    module.exports.getCurrent = function() {
+        return DataCache.getCurrent();
     };
-
-    module.exports = dataCache;
-
-})(this);
+}

@@ -33,10 +33,10 @@ function HttpRoute(route) {
             return "^true|false$"
         },
         decimal:function() {
-            return "^\d*\.?\d*$";
+            return "^\\d*\\.?\\d*$";
         },
         float:function() {
-            return "^\d*\.?\d*$";
+            return "^\\d*\\.?\\d*$";
         },
         guid:function() {
             return "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$";
@@ -57,13 +57,13 @@ HttpRoute.prototype.isMatch = function (urlToMatch) {
     self.routeData = self.routeData || { };
     if (typeof urlToMatch !== 'string')
         return false;
-    if (urlToMatch.length == 0)
+    if (urlToMatch.length === 0)
         return false;
     var str1 = urlToMatch, patternMatch;
     var k = urlToMatch.indexOf('?');
     if (k >= 0)
         str1 = urlToMatch.substr(0, k);
-    var re = /(\{([\w\[\]]+)(?::\s*((?:[^{}\\]+|\\.|\{(?:[^{}\\]+|\\.)*})+))?})|((:)([\w\[\]]+))/ig;
+    var re = /({([\w[\]]+)(?::\s*((?:[^{}\\]+|\\.|{(?:[^{}\\]+|\\.)*})+))?})|((:)([\w[\]]+))/ig;
     var match = re.exec(this.route.url), params = [];
     while(match) {
         if (typeof match[2] === 'undefined') {

@@ -1,42 +1,16 @@
 /**
- * MOST Web Framework
- * A JavaScript Web Framework
- * http://themost.io
- * Created by Kyriakos Barbounakis<k.barbounakis@gmail.com> on 2014-10-13.
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2017, THEMOST LP All rights reserved
  *
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- Anthi Oikonomou anthioikonomou@gmail.com
- All rights reserved.
- Redistribution and use in source and binary forms, with or without
- modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
- list of conditions and the following disclaimer.
- * Redistributions in binary form must reproduce the above copyright notice,
- this list of conditions and the following disclaimer in the documentation
- and/or other materials provided with the distribution.
- * Neither the name of MOST Web Framework nor the names of its
- contributors may be used to endorse or promote products derived from
- this software without specific prior written permission.
- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
- FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
  */
-
-/**
- * @ignore
- */
-var util = require('util'),
-    qry = require('most-query'),
-    _ = require('lodash'),
-    types = require('./types'),
-    DataQueryable = require('./data-queryable').DataQueryable;
+var LangUtils = require('@themost/common/utils').LangUtils;
+var QueryField = require('@themost/query/query').QueryField;
+var _ = require('lodash');
+var types = require('./types');
+var DataQueryable = require('./data-queryable').DataQueryable;
 
 /**
  * @classdesc Represents a collection of values associated with a data object e.g. a collection of tags of an article, a set of skills of a person etc.
@@ -219,16 +193,16 @@ function DataObjectTag(obj, association) {
     var left = {}, right = {};
     var parentAdapter = self.parent.getModel().viewAdapter;
     left[ parentAdapter ] = [ this.mapping.parentField ];
-    right[this.mapping.associationAdapter] = [ qry.fields.select("object").from(this.mapping.associationAdapter).$name ];
-    var field1 = qry.fields.select("object").from(this.mapping.associationAdapter).$name;
+    right[this.mapping.associationAdapter] = [ QueryField.select("object").from(this.mapping.associationAdapter).$name ];
+    var field1 = QueryField.select("object").from(this.mapping.associationAdapter).$name;
     this.query.join(parentAdapter, []).with([left, right]).where(field1).equal(obj[this.mapping.parentField]).prepare(false);
 }
 
-util.inherits(DataObjectTag, DataQueryable);
+LangUtils.inherits(DataObjectTag, DataQueryable);
 
 /**
  * Migrates the underlying data association adapter.
- * @param callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise.
+ * @param callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise.
  */
 DataObjectTag.prototype.migrate = function(callback) {
     this.getBaseModel().migrate(callback);
@@ -236,17 +210,24 @@ DataObjectTag.prototype.migrate = function(callback) {
 
 /**
  * Overrides DataQueryable.execute() method
- * @param callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise.
+ * @param callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise.
  * @ignore
  */
 DataObjectTag.prototype.execute = function(callback) {
     var self = this;
     self.migrate(function(err) {
         if (err) { return callback(err); }
+        // noinspection JSPotentiallyInvalidConstructorUsage
         DataObjectTag.super_.prototype.execute.call(self, callback);
     });
 };
 
+/**
+ * @this DataObjectTag
+ * @param obj
+ * @param callback
+ * @private
+ */
 function insert_(obj, callback) {
     var self = this, arr = [];
     if (_.isArray(obj))
@@ -264,13 +245,14 @@ function insert_(obj, callback) {
                 "value": x
             }
         });
-        if (self.$silent) { self.getBaseModel().silent(); }
+        if (self["$silent"]) { self.getBaseModel().silent(); }
         return self.getBaseModel().save(items, callback);
     });
 }
 
 /**
  * Inserts an array of values
+ * @param {*} obj
  * @param {Function=} callback
  * @example
  context.model('Person').where('email').equal('veronica.fletcher@example.com')
@@ -301,15 +283,20 @@ DataObjectTag.prototype.insert = function(obj, callback) {
     }
 };
 
+/**
+ * @this DataObjectTag
+ * @param callback
+ * @private
+ */
 function clear_(callback) {
     var self = this;
     self.migrate(function(err) {
         if (err) {
             return callback(err);
         }
-        if (self.$silent) { this.getBaseModel().silent(); }
+        if (self["$silent"]) { self.getBaseModel().silent(); }
         self.getBaseModel().where("object").equal(self.parent[self.mapping.parentField]).select("id").all().then(function(result) {
-            if (result.length==0) { return callback(); }
+            if (result.length===0) { return callback(); }
             return self.getBaseModel().remove(result).then(function () {
                return callback();
             });
@@ -357,6 +344,12 @@ DataObjectTag.prototype.removeAll = function(callback) {
     }
 };
 
+/**
+ * @this DataObjectTag
+ * @param {*} obj
+ * @param {Function} callback
+ * @private
+ */
 function remove_(obj, callback) {
     var self = this;
     var arr = [];
@@ -375,7 +368,7 @@ function remove_(obj, callback) {
                 "value": x
             }
         });
-        if (self.$silent) { self.getBaseModel().silent(); }
+        if (self["$silent"]) { self.getBaseModel().silent(); }
         return self.getBaseModel().remove(items, callback);
     });
 }

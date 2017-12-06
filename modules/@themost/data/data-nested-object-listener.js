@@ -1,40 +1,14 @@
 /**
- * MOST Web Framework
- * A JavaScript Web Framework
- * http://themost.io
- * Created by Kyriakos Barbounakis<k.barbounakis@gmail.com> on 2016-03-13.
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2017, THEMOST LP All rights reserved
  *
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- Anthi Oikonomou anthioikonomou@gmail.com
- All rights reserved.
- Redistribution and use in source and binary forms, with or without
- modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
- list of conditions and the following disclaimer.
- * Redistributions in binary form must reproduce the above copyright notice,
- this list of conditions and the following disclaimer in the documentation
- and/or other materials provided with the distribution.
- * Neither the name of MOST Web Framework nor the names of its
- contributors may be used to endorse or promote products derived from
- this software without specific prior written permission.
- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
- FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
  */
-
-/**
- * @private
- */
-var _ = require("lodash"),
-    types = require("./types"),
-    async = require("async");
+var _ = require("lodash");
+var async = require("async");
+var DataError = require('@themost/common/errors').DataError;
 
 function beforeSave_(attr, event, callback) {
     var context = event.model.context,
@@ -94,10 +68,10 @@ function beforeSave_(attr, event, callback) {
 }
 
 function beforeSaveMany_(attr, event, callback) {
-    var context = event.model.context,
-        name = attr.property || attr.name,
-        key = event.model.getPrimaryKey(),
-        nestedObj = event.target[name];
+    var context = event.model.context;
+    var name = attr.property || attr.name;
+    var key = event.model.getPrimaryKey();
+    var nestedObj = event.target[name];
     //if attribute is null or undefined
     if (_.isNil(nestedObj)) {
         //do nothing
@@ -106,7 +80,7 @@ function beforeSaveMany_(attr, event, callback) {
     //if nested object is not an array
     if (!_.isArray(nestedObj)) {
         //throw exception
-        return callback(new types.DataException("EJUNCT","Invalid argument type. Expected array.",null, event.model.name, name));
+        return callback(new DataError("EJUNCT","Invalid argument type. Expected array.",null, event.model.name, name));
     }
     //if nested array does not have any data
     if (nestedObj.length===0) {
@@ -124,7 +98,7 @@ function beforeSaveMany_(attr, event, callback) {
     //on insert
     if (event.state===1) {
         //enumerate nested objects and set state to new
-        nestedObj.forEach(function(x) {
+        _.forEach(nestedObj, function(x) {
             //delete identifier
             delete x[nestedKey];
             //force state to new ($state=1)
@@ -225,8 +199,8 @@ DataNestedObjectListener.prototype.beforeSave = function (event, callback) {
             return callback(err);
         });
     }
-    catch (e) {
-        return callback(e);
+    catch (err) {
+        return callback(err);
     }
 };
 
@@ -247,12 +221,13 @@ function beforeRemove_(attr, event, callback) {
             });
         });
     }
-    catch (e) {
-        callback(e)
+    catch (err) {
+        callback(err)
     }
 }
 
 
+// eslint-disable-next-line no-unused-vars
 function beforeRemoveMany_(attr, event, callback) {
     try {
         if (event.state !== 4) { return callback(); }
@@ -276,8 +251,8 @@ function beforeRemoveMany_(attr, event, callback) {
            return callback(err);
         });
     }
-    catch (e) {
-        callback(e)
+    catch (err) {
+        callback(err)
     }
 }
 
@@ -296,14 +271,12 @@ DataNestedObjectListener.prototype.beforeRemove = function (event, callback) {
             return callback(err);
         });
     }
-    catch (e) {
-        return callback(e);
+    catch (err) {
+        return callback(err);
     }
 };
 
 if (typeof exports !== 'undefined')
 {
-    module.exports = {
-        DataNestedObjectListener:DataNestedObjectListener
-    };
+    module.exports.DataNestedObjectListener = DataNestedObjectListener;
 }

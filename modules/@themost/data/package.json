@@ -1,6 +1,6 @@
 {
   "name": "@themost/data",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "MOST Web Framework 2.0 - ORM module",
   "module": "common.js",
   "peerDependencies": {},
@@ -15,8 +15,8 @@
   },
   "homepage": "https://github.com/kbarbounakis/themost#readme",
   "dependencies": {
-    "@themost/common": "^2.0.3",
-    "@themost/query": "^2.0.3",
+    "@themost/common": "^2.0.4",
+    "@themost/query": "^2.0.4",
     "async": "0.2.10",
     "lodash": "^4.17.4",
     "moment": "^2.8.4",
@@ -27,5 +27,28 @@
     "source-map-support": "^0.4.11",
     "sprintf": "^0.1.5",
     "symbol": "^0.3.1"
+  },
+  "eslintConfig": {
+    "env": {
+      "browser": true,
+      "node": true,
+      "es6": false,
+      "jquery": true
+    },
+    "globals": {
+      "describe": false,
+      "it": false
+    },
+    "extends": "eslint:recommended",
+    "rules": {
+      "no-console": "warn",
+      "no-invalid-this": "warn",
+      "no-undef": "error",
+      "no-unused-vars": "warn",
+      "strict": [
+        2,
+        "never"
+      ]
+    }
   }
 }

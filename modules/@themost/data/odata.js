@@ -10,7 +10,7 @@
  */
 
 var Symbol = require('symbol');
-var util = require('util');
+var LangUtils = require('@themost/common/utils').LangUtils;
 var sprintf = require('sprintf').sprintf;
 var Q = require('q');
 var pluralize = require('pluralize');
@@ -296,7 +296,7 @@ function ActionConfiguration(name) {
     // noinspection JSUnusedGlobalSymbols
     this.isBound = false;
 }
-util.inherits(ActionConfiguration, ProcedureConfiguration);
+LangUtils.inherits(ActionConfiguration, ProcedureConfiguration);
 
 /**
  * @class
@@ -309,7 +309,7 @@ function FunctionConfiguration(name) {
     // noinspection JSUnusedGlobalSymbols
     this.isBound = false;
 }
-util.inherits(FunctionConfiguration, ProcedureConfiguration);
+LangUtils.inherits(FunctionConfiguration, ProcedureConfiguration);
 
 /**
  * @class
@@ -768,7 +768,13 @@ function EntitySetConfiguration(builder, entityType, name) {
         }
     });
 
-    this.hasContextLink(function(context) {
+    this.hasContextLink(
+        /**
+         * @this EntitySetConfiguration
+         * @param context
+         * @returns {string|*}
+         */
+        function(context) {
         var thisBuilder = this.getBuilder();
         if (_.isNil(thisBuilder)) {
             return;
@@ -1019,7 +1025,7 @@ function SingletonConfiguration(builder, entityType, name) {
     SingletonConfiguration.super_.bind(this)(builder, entityType, name);
     this.kind = EntitySetKind.Singleton;
 }
-util.inherits(SingletonConfiguration, EntitySetConfiguration);
+LangUtils.inherits(SingletonConfiguration, EntitySetConfiguration);
 
 
 /**
@@ -1565,7 +1571,7 @@ function EntityDataContext(configuration) {
         return configuration;
     };
 }
-util.inherits(EntityDataContext, DataContext);
+LangUtils.inherits(EntityDataContext, DataContext);
 
 EntityDataContext.prototype.model = function(name) {
     if (this.getConfiguration().dataTypes.hasOwnProperty(name)) {
@@ -1592,7 +1598,7 @@ function ODataConventionModelBuilder(configuration) {
     ODataConventionModelBuilder.super_.bind(this)(configuration);
 
 }
-util.inherits(ODataConventionModelBuilder, ODataModelBuilder);
+LangUtils.inherits(ODataConventionModelBuilder, ODataModelBuilder);
     /**
      * Automatically registers an entity type from the given model
      * @param {string} entityType
@@ -1601,6 +1607,7 @@ util.inherits(ODataConventionModelBuilder, ODataModelBuilder);
      */
     ODataConventionModelBuilder.prototype.addEntitySet = function(entityType, name) {
         var self = this;
+        // noinspection JSPotentiallyInvalidConstructorUsage
         var superAddEntitySet = ODataConventionModelBuilder.super_.prototype.addEntitySet;
         /**
          * @type {EntityTypeConfiguration}
@@ -1805,6 +1812,7 @@ util.inherits(ODataConventionModelBuilder, ODataModelBuilder);
      * @returns {Promise|*}
      */
     ODataConventionModelBuilder.prototype.getEdm = function() {
+        // noinspection JSPotentiallyInvalidConstructorUsage
         var self = this, superGetEdm = ODataConventionModelBuilder.super_.prototype.getEdm;
         try{
             if (_.isObject(self[edmProperty])) {

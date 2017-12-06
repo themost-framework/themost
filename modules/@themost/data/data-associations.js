@@ -2,7 +2,7 @@
  * @ignore
  */
 var async = require('async');
-var types = require('./types');
+var parseBoolean = require('./types').parsers.parseBoolean;
 var _ = require('lodash');
 
 /**
@@ -55,7 +55,7 @@ DataObjectAssociationListener.prototype.beforeSave = function(e, callback) {
                         //change:21-Mar 2016
                         //description: check if association belongs to this model or it's inherited from any base model
                         //if current association belongs to base model
-                        if ((e.model.name !== field.model) && (!types.parsers.parseBoolean(field.cloned))) {
+                        if ((e.model.name !== field.model) && (!parseBoolean(field.cloned))) {
                             //do nothing and exit
                             return cb();
                         }

@@ -1,43 +1,17 @@
 /**
- * MOST Web Framework
- * A JavaScript Web Framework
- * http://themost.io
- * Created by Kyriakos Barbounakis<k.barbounakis@gmail.com> on 2014-10-13.
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2017, THEMOST LP All rights reserved
  *
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- Anthi Oikonomou anthioikonomou@gmail.com
- All rights reserved.
- Redistribution and use in source and binary forms, with or without
- modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
- list of conditions and the following disclaimer.
- * Redistributions in binary form must reproduce the above copyright notice,
- this list of conditions and the following disclaimer in the documentation
- and/or other materials provided with the distribution.
- * Neither the name of MOST Web Framework nor the names of its
- contributors may be used to endorse or promote products derived from
- this software without specific prior written permission.
- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
- FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
  */
-
-/**
- * @ignore
- */
-var util = require('util'),
-    _ = require('lodash'),
-    async = require('async'),
-    qry = require('most-query'),
-    DataAssociationMapping = require('./types').DataAssociationMapping,
-    DataQueryable = require('./data-queryable').DataQueryable;
+var LangUtils = require('@themost/common/utils').LangUtils;
+var _ = require('lodash');
+var async = require('async');
+var qry = require('@themost/query');
+var DataAssociationMapping = require('./types').DataAssociationMapping;
+var DataQueryable = require('./data-queryable').DataQueryable;
 
 /**
  * @classdesc Represents a many-to-many association between two data models.
@@ -232,7 +206,7 @@ function HasParentJunction(obj, association) {
      */
     this.getBaseModel = function() {
         return this.baseModel;
-    }
+    };
 
     this.getChildField = function() {
         return _.find(this.getBaseModel().attributes, function(x) {
@@ -247,9 +221,10 @@ function HasParentJunction(obj, association) {
     };
 
 }
-util.inherits(HasParentJunction, DataQueryable);
+LangUtils.inherits(HasParentJunction, DataQueryable);
 
 /**
+ * @this HasParentJunction
  * Inserts a new association between a parent and a child object.
  * @param {*} obj An object or an identifier that represents the child object
  * @param {Function} callback
@@ -287,6 +262,12 @@ function insertSingleObject_(obj, callback) {
     });
 }
 
+/**
+ * @this HasParentJunction
+ * @param {*} obj
+ * @param {Function} callback
+ * @private
+ */
 function insert_(obj, callback) {
     var self = this;
     var arr = [];
@@ -317,7 +298,7 @@ function insert_(obj, callback) {
                     //ensure silent mode
                     if (self.getBaseModel().$silent) { relatedModel.silent(); }
                     //find object by querying child object
-                    relatedModel.find(item).select([self.mapping.parentField]).first(function (err, result) {
+                    relatedModel.find(item).select(self.mapping.parentField).first(function (err, result) {
                         if (err) {
                             cb(null);
                         }
@@ -375,6 +356,7 @@ HasParentJunction.prototype.insert = function(obj, callback) {
 };
 
 /**
+ * @this HasParentJunction
  * Removes a relation between a parent and a child object.
  * @param {*} obj An object or an identifier that represents the child object
  * @param {Function} callback
@@ -406,6 +388,12 @@ function removeSingleObject_(obj, callback) {
     });
 }
 
+/**
+ * @this HasParentJunction
+ * @param obj
+ * @param callback
+ * @private
+ */
 function remove_(obj, callback) {
     var self = this, arr = [];
     if (_.isArray(obj))
@@ -427,7 +415,7 @@ function remove_(obj, callback) {
                 //get related model
                 var relatedModel = self.parent.context.model(self.mapping.parentModel);
                 //find object by querying child object
-                relatedModel.find(parent).select([self.mapping.parentField]).first(function (err, result) {
+                relatedModel.find(parent).select(self.mapping.parentField).first(function (err, result) {
                     if (err) {
                         return cb(null);
                     }
@@ -481,20 +469,6 @@ HasParentJunction.prototype.remove = function(obj, callback) {
         return remove_.call(self, obj, callback);
     }
 };
-/**
- * @memberOf HasParentJunction
- * @param {Function} callback
- * @private
- */
-function removeAll_(callback) {
-    var self = this;
-    self.migrate(function(err) {
-        if (err) {
-            return callback(err);
-        }
-
-    });
-}
 
 
 HasParentJunction.prototype.migrate = function(callback) {
@@ -504,7 +478,5 @@ HasParentJunction.prototype.migrate = function(callback) {
 
 if (typeof exports !== 'undefined')
 {
-    module.exports = {
-        HasParentJunction:HasParentJunction
-    };
+    module.exports.HasParentJunction = HasParentJunction;
 }

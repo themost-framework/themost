@@ -1,10 +1,15 @@
 /**
- * @ignore
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2017, THEMOST LP All rights reserved
+ *
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
  */
 var _ = require("lodash");
 var sprintf = require('sprintf').sprintf;
 var Symbol = require('symbol');
-var log = require('./data-common').log;
+var TraceUtils = require('@themost/common/utils').TraceUtils;
 var path = require("path");
 var fs = require("fs");
 var ModuleLoader = require('./module-loader').ModuleLoader;
@@ -82,7 +87,7 @@ function DataConfiguration(configPath) {
             try {
                 dataTypes = require(path.join(this.getConfigurationPath(), 'dataTypes.json'));
                 if (_.isNil(dataTypes)) {
-                    log('Data: Application data types are empty. The default data types will be loaded instead.');
+                    TraceUtils.log('Data: Application data types are empty. The default data types will be loaded instead.');
                     dataTypes = require('./dataTypes.json');
                 }
                 else {
@@ -111,10 +116,10 @@ function DataConfiguration(configPath) {
             }
             catch(e) {
                 if (e.code === 'MODULE_NOT_FOUND') {
-                    log('Data: Application specific data types are missing. The default data types will be loaded instead.');
+                    TraceUtils.log('Data: Application specific data types are missing. The default data types will be loaded instead.');
                 }
                 else {
-                    log('Data: An error occurred while loading application data types.');
+                    TraceUtils.log('Data: An error occurred while loading application data types.');
                     throw e;
                 }
                 dataTypes = require('./dataTypes.json');
@@ -131,24 +136,24 @@ function DataConfiguration(configPath) {
     }
     catch (e) {
         if (e.code === 'MODULE_NOT_FOUND') {
-            log('Data: The environment specific configuration cannot be found or is inaccesible.');
+            TraceUtils.log('Data: The environment specific configuration cannot be found or is inaccesible.');
             try {
                 config = require(path.join(this.getConfigurationPath(), 'app.json'));
             }
             catch(e) {
                 if (e.code === 'MODULE_NOT_FOUND') {
-                    log('Data: The default application configuration cannot be found or is inaccesible.');
+                    TraceUtils.log('Data: The default application configuration cannot be found or is inaccesible.');
                 }
                 else {
-                    log('Data: An error occurred while trying to open default application configuration.');
-                    log(e);
+                    TraceUtils.log('Data: An error occurred while trying to open default application configuration.');
+                    TraceUtils.log(e);
                 }
                 config = { adapters:[], adapterTypes:[]  };
             }
         }
         else {
-            log('Data: An error occurred while trying to open application configuration.');
-            log(e);
+            TraceUtils.log('Data: An error occurred while trying to open application configuration.');
+            TraceUtils.log(e);
             config = { adapters:[], adapterTypes:[]  };
         }
     }
@@ -190,14 +195,14 @@ function DataConfiguration(configPath) {
                         }
                         else {
                             //adapter type does not export a createInstance(options) function
-                            log(sprintf("The specified data adapter type (%s) does not have the appropriate constructor. Adapter type cannot be loaded.", x.invariantName));
+                            TraceUtils.log(sprintf("The specified data adapter type (%s) does not have the appropriate constructor. Adapter type cannot be loaded.", x.invariantName));
                         }
                     }
                     catch(e) {
                         //catch error
-                        log(e);
+                        TraceUtils.log(e);
                         //and log a specific error for this adapter type
-                        log(sprintf("The specified data adapter type (%s) cannot be instantiated. Adapter type cannot be loaded.", x.invariantName));
+                        TraceUtils.log(sprintf("The specified data adapter type (%s) cannot be instantiated. Adapter type cannot be loaded.", x.invariantName));
                     }
                     if (valid) {
                         //register adapter
@@ -209,7 +214,7 @@ function DataConfiguration(configPath) {
                     }
                 }
                 else {
-                    log(sprintf("The specified data adapter type (%s) does not have a type defined. Adapter type cannot be loaded.", x.invariantName));
+                    TraceUtils.log(sprintf("The specified data adapter type (%s) does not have a type defined. Adapter type cannot be loaded.", x.invariantName));
                 }
             });
         }
@@ -236,7 +241,7 @@ function DataConfiguration(configPath) {
                 return auth;
             }
             catch(e) {
-                log('An error occurred while trying to load auth configuration');
+                TraceUtils.log('An error occurred while trying to load auth configuration');
                 auth = {};
                 return auth;
             }

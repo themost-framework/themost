@@ -13,7 +13,7 @@ var LangUtils = require("@themost/common/utils").LangUtils;
 var sprintf = require('sprintf').sprintf;
 var expressions = require('./expressions');
 /**
- * @class OpenDataParser
+ * @class
  * @constructor
  */
 function OpenDataParser() {

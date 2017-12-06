@@ -7065,7 +7065,7 @@ jQuery.extend({
 							}
 						} else {
 							// Execute the appropriate callbacks
-							jqXHR.always( map[ jqXHR.status ] );
+							jqXHR.always( map[ jqXHR.statusCode ] );
 						}
 					}
 					return this;
@@ -7321,7 +7321,7 @@ jQuery.extend({
 			}
 
 			// Set data for the fake xhr object
-			jqXHR.status = status;
+			jqXHR.statusCode = status;
 			jqXHR.statusText = ( nativeStatusText || statusText ) + "";
 
 			// Success/Error
@@ -7744,12 +7744,12 @@ jQuery.ajaxTransport(function( options ) {
 							} else if ( type === "error" ) {
 								complete(
 									// file protocol always yields status 0, assume 404
-									xhr.status || 404,
+									xhr.statusCode || 404,
 									xhr.statusText
 								);
 							} else {
 								complete(
-									xhrSuccessStatus[ xhr.status ] || xhr.status,
+									xhrSuccessStatus[ xhr.statusCode ] || xhr.statusCode,
 									xhr.statusText,
 									// Support: IE9
 									// #11426: When requesting binary data, IE9 will throw an exception
