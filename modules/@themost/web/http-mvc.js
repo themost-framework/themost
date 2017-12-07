@@ -944,7 +944,6 @@ if (typeof exports !== 'undefined')
     module.exports.HttpFileResult =HttpFileResult;
     module.exports.HttpViewResult =HttpViewResult;
     module.exports.HttpViewContext =HttpViewContext;
-    module.exports.HtmlViewHelper =HtmlViewHelper;
     module.exports.HttpController =HttpController;
 }
 
