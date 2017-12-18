@@ -108,7 +108,7 @@ var HttpNotFoundError = require('@themost/common/errors').HttpNotFoundError;
  <pre class="prettyprint"><code>
  {
      "total": 94,
-     "records": [ ... ]
+     "value": [ ... ]
  }
   </code></pre>
  <p>The default value is false.</p>
@@ -555,9 +555,9 @@ HttpDataController.prototype.index = function(callback)
         var self = this, context = self.context,
             top = parseInt(context.params.attr('$top')),
             take = top > 0 ? top : (top === -1 ? top : 25);
-        var count = /^true$/ig.test(context.params.attr('$inlinecount')) || false,
-            first = /^true$/ig.test(context.params.attr('$first')) || false,
-            asArray = /^true$/ig.test(context.params.attr('$array')) || false;
+        var count = /^true$/ig.test(context.params.attr('$inlinecount')) || /^true$/ig.test(context.params.attr('$count')) || false;
+        var first = /^true$/ig.test(context.params.attr('$first')) || false;
+        var asArray = /^true$/ig.test(context.params.attr('$array')) || false;
         TraceUtils.debug(context.request.url);
         context.handle('GET', function() {
             if (context.request.route) {
@@ -590,7 +590,7 @@ HttpDataController.prototype.index = function(callback)
                         return q.all().then(function(result) {
                             if (count) {
                                 return callback(null, self.result({
-                                    records:result,
+                                    value:result,
                                     total:result.length
                                 }));
                             }
@@ -708,7 +708,7 @@ HttpDataController.prototype.index = function(callback)
  {
         "total": 8,
         "skip": 0,
-        "records": [
+        "value": [
             {
             "id": 37,
             "customer": 353,

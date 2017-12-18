@@ -21,6 +21,9 @@ var fs = require('fs');
 var crypto = require('crypto');
 var Q = require('q');
 var async = require('async');
+var moment = require('moment');
+var numeral = require('numeral');
+
 /**
  * @class
  * @constructor
@@ -131,10 +134,10 @@ function HttpJsonResult(data)
             }
             thisData[key] = data[key];
         });
-        this.data = JSON.stringify(thisData, _json_ignore_null_replacer);
+        this.data = thisData;
     }
     else {
-        this.data = JSON.stringify(data, _json_ignore_null_replacer);
+        this.data = data;
     }
 
     this.contentType = 'application/json;charset=utf-8';
@@ -144,6 +147,29 @@ function HttpJsonResult(data)
  * Inherits HttpAction
  * */
 LangUtils.inherits(HttpJsonResult,HttpResult);
+
+/**
+ * Executes an HttpResult instance against an existing HttpContext.
+ * @param {HttpContext} context
+ * @param {Function} callback
+ * */
+HttpJsonResult.prototype.execute = function(context, callback) {
+    callback = callback || function() {};
+    try {
+        var response = context.response;
+        if (typeof this.data === 'undefined' || this.data === null) {
+            response.writeHead(204);
+            return callback.call(context);
+        }
+        response.writeHead(this.responseStatus || 200, {"Content-Type": this.contentType});
+        response.write(JSON.stringify(this.data, _json_ignore_null_replacer), this.contentEncoding);
+
+        callback.call(context);
+    }
+    catch(e) {
+        callback.call(context, e);
+    }
+};
 
 /**
  * Represents an action that is used to send Javascript-formatted content.
@@ -179,16 +205,41 @@ function HttpXmlResult(data)
     this.contentEncoding = 'utf8';
     if (typeof data === 'undefined' || data == null)
         return;
-    if (typeof data === 'object')
-        this.data= xml.serialize(data, { item:'Item' }).outerXML();
-    else
-        this.data=data;
+    this.data = data;
+
 }
 
 /**
  * Inherits HttpAction
  * */
 LangUtils.inherits(HttpXmlResult,HttpResult);
+
+/**
+ * Executes an HttpResult instance against an existing HttpContext.
+ * @param {HttpContext} context
+ * @param {Function} callback
+ * */
+HttpXmlResult.prototype.execute = function(context, callback) {
+    callback = callback || function() {};
+    try {
+        var response = context.response;
+        if (typeof this.data === 'undefined' || this.data === null) {
+            response.writeHead(204);
+            return callback.call(context);
+        }
+        response.writeHead(this.responseStatus || 200, {"Content-Type": this.contentType});
+        if (typeof this.data === 'object') {
+            response.write(xml.serialize(this.data, { item:'Item' }).outerXML(), this.contentEncoding);
+        }
+        else {
+            response.write(this.data, this.contentEncoding);
+        }
+        callback.call(context);
+    }
+    catch(e) {
+        callback.call(context, e);
+    }
+};
 
 /**
  * Represents a redirect action to a specified URI.
@@ -817,12 +868,11 @@ LangUtils.inherits(HttpViewContext, SequentialEventEmitter);
  */
 HttpViewContext.prototype.render = function(url, callback) {
     callback = callback || function() {};
-    var app = require('./index');
     //get response cookie, if any
     var requestCookie = this.context.response.getHeader('set-cookie');
     if (typeof this.context.request.headers.cookie !== 'undefined')
         requestCookie = this.context.request.headers.cookie;
-    app.current.executeRequest( { url: url, cookie: requestCookie }, function(err, result) {
+    this.context.getApplication().executeRequest( { url: url, cookie: requestCookie }, function(err, result) {
         if (err) {
             callback(err);
         }
@@ -880,6 +930,12 @@ HttpViewContext.HtmlViewHelper = function($view)
         }
         //in all cases return default culture
         return 'en';
+    },
+    moment: function(value) {
+        return moment(value);
+    },
+    numeral: function(value) {
+        return numeral(value);
     }
 };
 };
@@ -935,6 +991,15 @@ HtmlViewHelper.prototype.lang = function() {
     //in all cases return default culture
     return 'en';
 };
+
+HtmlViewHelper.prototype.moment = function(value) {
+    return moment(value);
+};
+
+HtmlViewHelper.prototype.numeral = function(value) {
+    return numeral(value);
+};
+
 
 
 if (typeof exports !== 'undefined')

@@ -1877,7 +1877,7 @@ function listInternal(callback) {
                     }
                     else {
                         //and finally create result set
-                        var res = { total: total, skip: parseInt(self.query.$skip) || 0 , records: (result || []) };
+                        var res = { total: total, skip: parseInt(self.query.$skip) || 0 , value: (result || []) };
                         callback(null, res);
                     }
                 });
@@ -2536,7 +2536,7 @@ DataQueryable.prototype.toMD5 = function() {
     if (typeof this.$flatten!== 'undefined') { q.$flatten =this.$flatten; }
     if (typeof this.$silent!== 'undefined') { q.$silent =this.$silent; }
     if (typeof this.$asArray!== 'undefined') { q.$asArray =this.$asArray; }
-    return TextUtils.md5(q);
+    return TextUtils.toMD5(q);
 };
 
 /**
@@ -3274,7 +3274,7 @@ DataQueryable.prototype.getTypedList = function() {
     var self = this, d = Q.defer();
     process.nextTick(function() {
         self.list().then(function (result) {
-            result.records = self.model.convert(result.records.slice(0));
+            result.value = self.model.convert(result.value.slice(0));
             return d.resolve(result);
         }).catch(function(err) {
             return d.reject(err);

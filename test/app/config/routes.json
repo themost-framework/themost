@@ -9,7 +9,8 @@
     { "url":"/:action", "controller":"root" },
     { "url":"/:action.html", "controller":"root" },
     { "url":"/:controller/:action.json", "mime":"application/json" },
-    { "url":"/:controller/:action.html", "mime":"text/html", "static":true },
-    { "url":"/:controller/:id/:action.html", "mime":"text/html", "static":true }
+    { "url":"/:controller/:action.html", "mime":"text/html" },
+    { "url":"/:controller/:action.xml", "mime":"application/xml" },
+    { "url":"/:controller/:id/:action.html", "mime":"text/html" }
 
 ]

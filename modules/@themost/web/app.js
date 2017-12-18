@@ -20,7 +20,7 @@ var fs = require("fs");
 var url = require('url');
 var http = require('http');
 var SequentialEventEmitter = require('@themost/common/emitter').SequentialEventEmitter;
-var DataConfiguration = require('@themost/data/data-configuration').DataConfiguration;
+var DataConfigurationStrategy = require('@themost/data/data-configuration').DataConfigurationStrategy;
 var querystring = require('querystring');
 var crypto = require('crypto');
 var Symbol = require('symbol');
@@ -115,7 +115,10 @@ LangUtils.inherits(HttpContextProvider,HttpApplicationService);
  * @returns {HttpContext}
  */
 HttpContextProvider.prototype.createInstance = function(req,res) {
-    return new HttpContext(req,res);
+    var context = new HttpContext(req,res);
+    //set context application
+    context.application = this.getApplication();
+    return context;
 };
 /**
  * @class
@@ -180,6 +183,8 @@ function HttpApplication(executionPath) {
     self.useStrategy(EncryptionStrategy, DefaultEncryptionStrategy);
     //set localization strategy
     self.useStrategy(LocalizationStrategy, DefaulLocalizationStrategy);
+    //set authentication strategy
+    self.getConfiguration().useStrategy(DataConfigurationStrategy, DataConfigurationStrategy);
     /**
      * Gets or sets a boolean that indicates whether the application is in development mode
      * @type {string}
@@ -275,18 +280,6 @@ HttpApplication.prototype.getConfigurationPath = function() {
  */
 HttpApplication.prototype.init = function () {
 
-    //load data types (if empty)
-    if (_.isNil(this.config.dataTypes))
-    {
-        try {
-            var dataConfiguration = new DataConfiguration(this[configPathProperty]);
-            this.config.dataTypes = dataConfiguration.dataTypes;
-        }
-        catch(e) {
-            TraceUtils.log('Init: An error occured while trying to load application data types configuration.');
-            throw e;
-        }
-    }
     //initialize basic directives collection
     var directives = require("./angular/directives");
     directives.apply(this);
@@ -752,7 +745,7 @@ HttpApplication.prototype.executeRequest = function (options, callback) {
 };
 
 /**
- * @private
+ * @this HttpApplication
  * @param {ClientRequest} request
  * @param {ServerResponse} response
  * @param callback

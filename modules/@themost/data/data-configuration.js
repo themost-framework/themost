@@ -23,6 +23,8 @@ var modelPathProperty = Symbol('modelPath');
 var filesProperty = Symbol('files');
 var dataTypesProperty = Symbol('dataTypes');
 var adapterTypesProperty =  Symbol('adapterTypes');
+var currentConfiguration = Symbol('current');
+var namedConfigurations = Symbol('namedConfigurations');
 
 /**
  *
@@ -305,6 +307,46 @@ LangUtils.inherits(DataConfiguration, ConfigurationBase);
  */
 DataConfiguration.prototype.getDataConfiguration = function() {
     return this.getStrategy(DataConfigurationStrategy);
+};
+/**
+ * @returns {DataConfiguration}
+ */
+DataConfiguration.getCurrent = function() {
+    if (DataConfiguration[currentConfiguration] instanceof DataConfiguration) {
+        return DataConfiguration[currentConfiguration]
+    }
+    DataConfiguration[currentConfiguration] = new DataConfiguration();
+    return DataConfiguration[currentConfiguration];
+};
+/**
+ * @param DataConfiguration config
+ * @returns {DataConfiguration}
+ */
+DataConfiguration.setCurrent = function(config) {
+    Args.check(config instanceof DataConfiguration, 'Invalid argument. Expected an instance of DataConfiguration class.');
+    DataConfiguration[currentConfiguration] = config;
+    return DataConfiguration[currentConfiguration];
+};
+
+/**
+ * @param {string=} name
+ */
+DataConfiguration.getNamedConfiguration = function(name) {
+  if (_.isNil(name)) {
+      return DataConfiguration.getCurrent();
+  }
+  Args.notString(name, "Configuration Name");
+  Args.notEmpty(name, "Configuration name");
+    if (/^current$/i.test(name)) {
+        return DataConfiguration.getCurrent();
+    }
+    if (_.isNil(DataConfiguration[namedConfigurations])) {
+        DataConfiguration[namedConfigurations] = { };
+    }
+    if (typeof DataConfiguration[namedConfigurations][name] !== 'undefined')
+        return DataConfiguration[namedConfigurations][name];
+    DataConfiguration[namedConfigurations][name] = new DataConfiguration();
+    return DataConfiguration[namedConfigurations][name];
 };
 
 /**
@@ -794,22 +836,13 @@ DefaultModelClassLoaderStrategy.prototype.resolve = function(model) {
     return DataObjectClass;
 };
 
-var namedConfigurations_ = { };
-
 var cfg = {
 
 };
-/**
- * @type DataConfiguration
- * @private
- */
-var cfg_;
+
 Object.defineProperty(cfg, 'current', {
     get: function() {
-        if (cfg_)
-            return cfg_;
-        cfg_ = new DataConfiguration();
-        return cfg_;
+        return DataConfiguration.getCurrent();
     }, configurable:false, enumerable:false
     });
 /**
@@ -817,7 +850,7 @@ Object.defineProperty(cfg, 'current', {
  * @returns DataConfiguration - An instance of DataConfiguration class which represents the current data configuration
  */
 cfg.getCurrent = function() {
-    return this.current;
+    return DataConfiguration.getCurrent();
 };
 /**
  * Sets the current data configuration
@@ -825,11 +858,7 @@ cfg.getCurrent = function() {
  * @returns DataConfiguration - An instance of DataConfiguration class which represents the current data configuration
  */
 cfg.setCurrent = function(configuration) {
-    if (configuration instanceof DataConfiguration) {
-        cfg_ = configuration;
-        return cfg_;
-    }
-    throw new TypeError('Invalid argument. Expected an instance of DataConfiguration class.');
+    return DataConfiguration.setCurrent(configuration);
 };
 /**
  * Creates an instance of DataConfiguration class
@@ -846,19 +875,7 @@ cfg.createInstance= function() {
  * @returns {DataConfiguration}
  */
 cfg.getNamedConfiguration = function(name) {
-    if (typeof name !== 'string') {
-        throw new Error("Invalid configuration name. Expected string.");
-    }
-    if (name.length === 0) {
-        throw new Error("Invalid argument. Configuration name may not be empty string.");
-    }
-    if (/^current$/i.test(name)) {
-        return cfg.current;
-    }
-    if (typeof namedConfigurations_[name] !== 'undefined')
-        return namedConfigurations_[name];
-    namedConfigurations_[name] = new DataConfiguration();
-    return namedConfigurations_[name];
+    return DataConfiguration.getNamedConfiguration(name);
 };
 
 cfg.DataTypePropertiesConfiguration = DataTypePropertiesConfiguration;

@@ -950,13 +950,13 @@ function DataModelPrivilege() {
  * @class
  * @property {number} total - The total number of records
  * @property {number} skip - The number of skipped records
- * @property {Array} records - An array of objects which represents the query results.
+ * @property {Array} value - An array of objects which represents the query results.
  * @constructor
   */
 function DataResultSet() {
     this.total = 0;
     this.skip = 0;
-    this.records = [];
+    this.value = [];
 }
 
 /**

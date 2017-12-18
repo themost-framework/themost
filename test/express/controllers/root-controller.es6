@@ -1,9 +1,9 @@
 import {HttpController} from '../../../modules/@themost/web/mvc';
-import {httpAction,httpGet} from './../../../modules/@themost/web/decorators';
+import {httpAction,httpGet,httpController} from './../../../modules/@themost/web/decorators';
 import Q from 'q';
 import 'source-map-support/register';
 
-
+@httpController()
 export default class RootController extends HttpController {
 
     constructor() {

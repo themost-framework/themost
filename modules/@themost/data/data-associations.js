@@ -76,7 +76,7 @@ DataObjectAssociationListener.prototype.beforeSave = function(event, callback) {
                                 return cb(new DataError('EDATA','An associated object is defined more than once and cannot be bound.',null, associatedModel.name));
                             }
                             else {
-                                event.target[childField][mapping.parentField]=result.records[0][mapping.parentField];
+                                event.target[childField][mapping.parentField]=result.value[0][mapping.parentField];
                                 cb();
                             }
                         });

@@ -7,20 +7,67 @@
  * found in the LICENSE file at https://themost.io/license
  */
 import Q from 'q';
-import {HttpController} from '../../../modules/@themost/web/mvc';
+import _ from 'lodash';
+import HttpDataController from '../../../modules/@themost/web/controllers/data';
 import {httpAction, httpGet, httpController} from '../../../modules/@themost/web/decorators';
+import url from 'url';
+import {LangUtils} from '../../../modules/@themost/common/utils'
+import {TraceUtils} from "../../../modules/@themost/common";
 
 @httpController()
-export default class OrderController extends HttpController {
+export default class OrderController extends HttpDataController {
 
     constructor(context) {
         super(context);
     }
 
+    getNextLink(result) {
+        if (result.hasOwnProperty("total")) {
+            const urlObject = url.parse(this.context.request.url, true);
+            //get next link
+            const $skip = LangUtils.parseInt(urlObject.query.$skip);
+            const $top = LangUtils.parseInt(urlObject.query.$top) || 25;
+            if (result.total>=$skip+$top) {
+                urlObject.query.$skip = $skip+$top;
+                urlObject.query.$top = $top;
+                urlObject.query.$count = true;
+                delete urlObject.search;
+                return url.format(urlObject);
+            }
+        }
+    }
+
+    getPrevLink(result) {
+        if (result.hasOwnProperty("total")) {
+            const urlObject = url.parse(this.context.request.url, true);
+            //get next link
+            const $skip = LangUtils.parseInt(urlObject.query.$skip);
+            const $top = LangUtils.parseInt(urlObject.query.$top) || 25;
+            if ($skip-$top>=0) {
+                urlObject.query.$skip = $skip-$top;
+                urlObject.query.$top = $top;
+                urlObject.query.$count = true;
+                delete urlObject.search;
+                return url.format(urlObject);
+            }
+        }
+    }
+
+    mapResult(result) {
+        _.assign({
+            total:result.total,
+            skip:result.skip,
+            nextLink:this.getNextLink(result),
+            prevLink:this.getPrevLink(result)
+        }, {
+            value:result.value
+        });
+    }
+
     @httpGet()
     @httpAction('index')
     getItems() {
-        return this.context.model('Order').take(25).getItems();
+        return Q.nbind(super.index, this)();
     }
 
 }

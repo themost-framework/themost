@@ -8,7 +8,7 @@
         "primary": true
     },
     {
-        "name": "user1",
+        "name": "user",
         "title": "User",
         "description": "The user associated with this person.",
         "type": "User"

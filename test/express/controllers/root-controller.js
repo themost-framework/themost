@@ -7,7 +7,7 @@ exports.default = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _dec, _dec2, _dec3, _dec4, _desc, _value, _class;
+var _dec, _dec2, _dec3, _dec4, _dec5, _class, _desc, _value, _class2;
 
 var _mvc = require('../../../modules/@themost/web/mvc');
 
@@ -17,6 +17,7 @@ var _decorators = require('./../../../modules/@themost/web/decorators');
 
 var httpAction = _decorators.httpAction;
 var httpGet = _decorators.httpGet;
+var httpController = _decorators.httpController;
 
 var _q = require('q');
 
@@ -61,7 +62,7 @@ function _applyDecoratedDescriptor(target, property, decorators, descriptor, con
     return desc;
 }
 
-var RootController = (_dec = httpGet(), _dec2 = httpAction("index"), _dec3 = httpGet(), _dec4 = httpAction("person"), (_class = function (_HttpController) {
+var RootController = (_dec = httpController(), _dec2 = httpGet(), _dec3 = httpAction("index"), _dec4 = httpGet(), _dec5 = httpAction("person"), _dec(_class = (_class2 = function (_HttpController) {
     _inherits(RootController, _HttpController);
 
     function RootController() {
@@ -86,7 +87,7 @@ var RootController = (_dec = httpGet(), _dec2 = httpAction("index"), _dec3 = htt
     }]);
 
     return RootController;
-}(HttpController), (_applyDecoratedDescriptor(_class.prototype, 'index', [_dec, _dec2], Object.getOwnPropertyDescriptor(_class.prototype, 'index'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'person', [_dec3, _dec4], Object.getOwnPropertyDescriptor(_class.prototype, 'person'), _class.prototype)), _class));
+}(HttpController), (_applyDecoratedDescriptor(_class2.prototype, 'index', [_dec2, _dec3], Object.getOwnPropertyDescriptor(_class2.prototype, 'index'), _class2.prototype), _applyDecoratedDescriptor(_class2.prototype, 'person', [_dec4, _dec5], Object.getOwnPropertyDescriptor(_class2.prototype, 'person'), _class2.prototype)), _class2)) || _class);
 exports.default = RootController;
 module.exports = exports['default'];
 //# sourceMappingURL=root-controller.js.map

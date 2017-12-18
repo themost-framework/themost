@@ -29,6 +29,7 @@
     "lodash": "^4.17.4",
     "moment": "^2.19.3",
     "node-cache": "^1.1.0",
+    "numeral": "^2.0.6",
     "pagedown": "^1.1.0",
     "pluralize": "^7.0.0",
     "pug": "^0.1.0",

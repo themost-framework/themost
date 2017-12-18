@@ -109,7 +109,7 @@ LangUtils.inherits(DefaultDataContext, DataContext);
 
 /**
  * Gets an instance of DataConfiguration class which is associated with this data context
- * @returns {DataConfiguration|*}
+ * @returns {ConfigurationBase|*}
  */
 DefaultDataContext.prototype.getConfiguration = function() {
     return cfg.current;

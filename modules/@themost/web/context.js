@@ -216,6 +216,14 @@ HttpContext.prototype.getApplication = function() {
   return this.application;
 };
 
+/**
+ * Get an instance of HttpApplication class which represents the parent application of this context
+ * @returns {ConfigurationBase|*}
+ */
+HttpContext.prototype.getConfiguration = function() {
+    return this.application.getConfiguration();
+};
+
 HttpContext.prototype.getParam = function(name) {
     if (typeof name === 'string') {
         if (this.hasOwnProperty('params')) {

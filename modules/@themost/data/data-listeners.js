@@ -387,7 +387,7 @@ DataCachingListener.prototype.beforeExecute = function(event, callback) {
             }
             else {
                 //else calculate hash
-                hash = TextUtils.md5({ query: event.query });
+                hash = TextUtils.toMD5({ query: event.query });
             }
             //format cache key
             var key = '/' + event.model.name + '/?query=' + hash;
@@ -462,7 +462,7 @@ DataCachingListener.prototype.afterExecute = function(event, callback) {
                 }
                 else {
                     //else calculate hash
-                    hash = TextUtils.md5({ query: event.query });
+                    hash = TextUtils.toMD5({ query: event.query });
                 }
                 var key = '/' + event.model.name + '/?query=' + hash;
                 if (process.env.NODE_ENV==='development') {

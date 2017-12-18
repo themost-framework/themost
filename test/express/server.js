@@ -15,8 +15,10 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 /**
  * initialize themost application as middleware
  */
-var theApp = new HttpApplication("./test/express/");
+var theApp = new HttpApplication("./test/app/");
 var app = express();
+//serve static files
+app.use(express.static('./test/app/app'));
 //register @themost middleware
 app.use(theApp.runtime());
 app.listen(process.env.PORT || 3000);

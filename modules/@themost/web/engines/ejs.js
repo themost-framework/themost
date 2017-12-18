@@ -100,14 +100,30 @@ EjsEngine.prototype.render = function(filename, data, callback) {
                     if (self.context && self.context.request.route) {
                         partial = parseBoolean(self.context.request.route[partialProperty]);
                     }
-                    var model = _.assign(properties, data, {
-                        getContext: function getContext() {
-                            return self.getContext();
-                        },
-                        getViewContext: function getViewContext() {
-                            return viewContext;
-                        }
-                    });
+                    var model;
+                    if (_.isArray(data)) {
+                        //pass data as [items] property
+                        model = _.assign(properties, {
+                            "value": data
+                        }, {
+                            getContext: function getContext() {
+                                return self.getContext();
+                            },
+                            getViewContext: function getViewContext() {
+                                return viewContext;
+                            }
+                        });
+                    }
+                    else {
+                        model = _.assign(properties, data, {
+                            getContext: function getContext() {
+                                return self.getContext();
+                            },
+                            getViewContext: function getViewContext() {
+                                return viewContext;
+                            }
+                        });
+                    }
                     //for backward compatibility issues add locals.context property
                     //this property is going to be deprecated (use locals.getContext() instead)
                     Object.defineProperty(model, 'context', {
@@ -124,7 +140,7 @@ EjsEngine.prototype.render = function(filename, data, callback) {
                         }
                         else {
                             //relative to view file path e.g. ./../master.html.html.ejs
-                            layout = path.resolve(filename, properties.layout);
+                            layout = path.resolve(path.dirname(filename), properties.layout);
                         }
                         //set current view buffer (after rendering)
                         var body = ejs.render(str, {
