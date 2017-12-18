@@ -334,7 +334,7 @@ DataContext.prototype.model = function(name) {
 
 /**
  * Gets an instance of DataConfiguration class which is associated with this data context
- * @returns {DataConfiguration}
+ * @returns {ConfigurationBase}
  * @abstract
  */
 DataContext.prototype.getConfiguration = function() {

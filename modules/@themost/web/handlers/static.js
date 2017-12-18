@@ -1,28 +1,29 @@
 /**
- * MOST Web Framework
- * A JavaScript Web Framework
- * http://themost.io
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2017, THEMOST LP All rights reserved
  *
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com, Anthi Oikonomou anthioikonomou@gmail.com
- *
- * Released under the BSD3-Clause license
- * Date: 2014-05-07
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
  */
-/**
- * @ignore
- */
-var app = require('../index'),
-    fs = require('fs'),
-    path = require("path"),
-    crypto = require('crypto');
+
+var HttpNotFoundError = require('@themost/common/errors').HttpNotFoundError;
+var HttpServerError = require('@themost/common/errors').HttpServerError;
+var HttpForbiddenError = require('@themost/common/errors').HttpForbiddenError;
+var TraceUtils = require('@themost/common/utils').TraceUtils;
+var fs = require('fs');
+var path = require("path");
+var crypto = require('crypto');
+var _  = require('lodash');
 /**
  * Static File Handler
- * @class StaticHandler
+ * @class
  * @augments HttpHandler
+ * @param {string=} rootDir
  * @constructor
  */
-function StaticHandler() {
-    //
+function StaticHandler(rootDir) {
+    this.rootDir = rootDir;
 }
 
 StaticHandler.prototype.validateRequest = function(context, callback) {
@@ -31,29 +32,20 @@ StaticHandler.prototype.validateRequest = function(context, callback) {
 };
 
 /*
-StaticHandler.prototype.beginRequest = function(context) {	};
-*/
-
-/*
-StaticHandler.prototype.authenticateRequest = function(context)	{ };
-*/
-
-/*
-StaticHandler.prototype.postAuthenticateRequest = function(context) { };
-*/
-/*
-StaticHandler.prototype.authorizeRequest = function(context) {	};
-*/
-
-/*
  * Maps the current request handler with the underlying HTTP request.
  * */
 StaticHandler.prototype.mapRequest = function(context, callback)
 {
     callback = callback || function() {};
     try {
+        if (typeof this.rootDir !== 'string') {
+            return callback();
+        }
+        if (_.isEmpty(this.rootDir)) {
+            return callback();
+        }
         //get file path
-        var filePath = app.current.mapPath(context.request.url);
+        var filePath = path.join(this.rootDir ,context.request.url);
         fs.exists(filePath, function(exists) {
            if (!exists) {
                callback(null);
@@ -82,21 +74,13 @@ StaticHandler.prototype.mapRequest = function(context, callback)
         callback(e);
     }
 };
+
 /**
- * @param p
- * @returns {*}
+ *
+ * @param {HttpContext} context
+ * @param {string} executionPath
+ * @param {Function} callback
  */
-StaticHandler.prototype.mapPath = function(p) {
-    return app.current.mapPath(p)
-};
-
-/*
-StaticHandler.prototype.preRequestHandlerExecute = function(context)
-{
-    //
-};
-*/
-
 StaticHandler.prototype.unmodifiedRequest = function(context, executionPath, callback) {
     try {
         var requestETag = context.request.headers['if-none-match'];
@@ -129,14 +113,14 @@ StaticHandler.prototype.unmodifiedRequest = function(context, executionPath, cal
                     callback(null, false);
                 }
             }
-            catch (e) {
-                console.log(e);
+            catch (err) {
+                TraceUtils.error(err);
                 callback(null, false);
             }
         });
     }
-    catch (e) {
-        console.log(e);
+    catch (err) {
+        TraceUtils.error(err);
         callback(null, false);
     }
 };
@@ -175,6 +159,7 @@ StaticHandler.prototype.postMapRequest = function(context, callback) {
 
 /**
  * @param {HttpContext} context
+ * @param {Function} callback
  */
 StaticHandler.prototype.processRequest = function(context, callback)
 {
@@ -187,11 +172,11 @@ StaticHandler.prototype.processRequest = function(context, callback)
             //get current execution path and validate once again file presence and MIME type
         var stats = context.request.currentExecutionFileStats;
         if (typeof stats === 'undefined' || stats === null) {
-            callback(new app.common.HttpServerError('Invalid request handler.'));
+            callback(new HttpServerError('Invalid request handler.'));
             return;
         }
         if (!stats.isFile()) {
-            return callback(new app.common.HttpNotFoundException());
+            return callback(new HttpNotFoundError());
         }
         else {
             //get if-none-match header
@@ -209,9 +194,8 @@ StaticHandler.prototype.processRequest = function(context, callback)
                 }
             //get file extension
             var extensionName  = path.extname(context.request.currentExecutionPath);
-            var app = require('../index');
             //get MIME collection
-            var mimes = app.current.config.mimes;
+            var mimes = context.getApplication().getConfiguration().mimes;
             var contentType = null, contentEncoding=null;
             //find MIME type by extension
             var mime =mimes.filter(function(x) { return x.extension===extensionName; })[0];
@@ -222,7 +206,7 @@ StaticHandler.prototype.processRequest = function(context, callback)
             }
             //throw exception (MIME not found or access denied)
             if (contentType===null) {
-                callback(new app.common.HttpForbiddenException())
+                callback(new HttpForbiddenError())
             }
             else {
                 //create stream
@@ -247,21 +231,11 @@ StaticHandler.prototype.processRequest = function(context, callback)
     }
 };
 
-/*
-StaticHandler.prototype.postRequestHandlerExecute = function(context) { };
-*/
-
-/*
-StaticHandler.prototype.endRequest = function(context) { };
-*/
-
 
 if (typeof exports !== 'undefined') {
-    module.exports = {
-        StaticHandler:StaticHandler,
-        createInstance : function() {
+    module.exports.StaticHandler = StaticHandler;
+    module.exports.createInstance = function() {
         return new StaticHandler();
-    }
     };
 }
 

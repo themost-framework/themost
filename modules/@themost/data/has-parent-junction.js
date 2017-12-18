@@ -11,6 +11,7 @@ var _ = require('lodash');
 var async = require('async');
 var qry = require('@themost/query');
 var DataAssociationMapping = require('./types').DataAssociationMapping;
+var DataConfigurationStrategy = require('./data-configuration').DataConfigurationStrategy;
 var DataQueryable = require('./data-queryable').DataQueryable;
 
 /**
@@ -165,10 +166,13 @@ function HasParentJunction(obj, association) {
         get: function() {
             if (baseModel)
                 return baseModel;
-            var conf = self.parent.context.getConfiguration();
+            /**
+             * @type {*|DataConfigurationStrategy}
+             */
+            var conf = self.parent.context.getConfiguration().getStrategy(DataConfigurationStrategy);
             //search in cache (configuration.current.cache)
-            if (conf.models[self.mapping.associationAdapter]) {
-                baseModel = new DataModel(conf.models[self.mapping.associationAdapter]);
+            if (conf.getModelDefinition(self.mapping.associationAdapter)) {
+                baseModel = new DataModel(conf.getModelDefinition(self.mapping.associationAdapter));
                 baseModel.context = self.parent.context;
                 return baseModel;
             }
@@ -180,10 +184,10 @@ function HasParentJunction(obj, association) {
             var adapter = self.mapping.associationAdapter;
             baseModel = self.parent.context.model(adapter);
             if (_.isNil(baseModel)) {
-                conf.models[adapter] = { name:adapter, title: adapter, sealed:false, hidden:true, type:"hidden", source:adapter, view:adapter, version:'1.0', fields:[
-                    { name: "id", type:"Counter", primary: true },
-                    { name: 'parentId', indexed: true, nullable:false, type: (parentField.type==='Counter') ? 'Integer' : parentField.type },
-                    { name: 'valueId', indexed: true, nullable:false, type: (childField.type==='Counter') ? 'Integer' : childField.type } ],
+                var modelDefinition = { name:adapter, title: adapter, sealed:false, hidden:true, type:"hidden", source:adapter, view:adapter, version:'1.0', fields:[
+                        { name: "id", type:"Counter", primary: true },
+                        { name: 'parentId', indexed: true, nullable:false, type: (parentField.type==='Counter') ? 'Integer' : parentField.type },
+                        { name: 'valueId', indexed: true, nullable:false, type: (childField.type==='Counter') ? 'Integer' : childField.type } ],
                     constraints: [
                         {
                             description: "The relation between two objects must be unique.",
@@ -193,8 +197,9 @@ function HasParentJunction(obj, association) {
                     ], "privileges":[
                         { "mask":15, "type":"global" }
                     ]};
+                conf.setModelDefinition(modelDefinition);
                 //initialize base model
-                baseModel = new DataModel(conf.models[adapter]);
+                baseModel = new DataModel(modelDefinition);
                 baseModel.context = self.parent.context;
             }
             return baseModel;

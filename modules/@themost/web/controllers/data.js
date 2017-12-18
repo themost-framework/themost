@@ -7,7 +7,7 @@
  * found in the LICENSE file at https://themost.io/license
  */
 var sprintf = require('sprintf').sprintf;
-var HttpController = require('../http-mvc').HttpController;
+var HttpController = require('../mvc').HttpController;
 var _ = require('lodash');
 var pluralize = require('pluralize');
 var TraceUtils = require('@themost/common/utils').TraceUtils;

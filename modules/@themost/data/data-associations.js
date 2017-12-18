@@ -3,6 +3,7 @@
  */
 var async = require('async');
 var parseBoolean = require('./types').parsers.parseBoolean;
+var DataError = require('@themost/common/errors').DataError;
 var _ = require('lodash');
 
 /**
@@ -14,22 +15,22 @@ function DataObjectAssociationListener() {
 }
 /**
  *
- * @param {DataEventArgs} e
+ * @param {DataEventArgs} event
  * @param {function(Error=)} callback
  */
-DataObjectAssociationListener.prototype.beforeSave = function(e, callback) {
+DataObjectAssociationListener.prototype.beforeSave = function(event, callback) {
     try {
-        if (_.isNil(e.target)) {
+        if (_.isNil(event.target)) {
             return callback();
         }
         else {
-            var keys = Object.keys(e.target);
+            var keys = Object.keys(event.target);
             var mappings = [];
             keys.forEach(function(x) {
-                if (e.target.hasOwnProperty(x) && typeof e.target[x] === 'object' && e.target[x] !== null) {
+                if (event.target.hasOwnProperty(x) && typeof event.target[x] === 'object' && event.target[x] !== null) {
                         //try to find field mapping, if any
-                        var mapping = e.model.inferMapping(x);
-                        if (mapping && mapping.associationType==='association' && mapping.childModel===e.model.name)
+                        var mapping = event.model.inferMapping(x);
+                        if (mapping && mapping.associationType==='association' && mapping.childModel===event.model.name)
                             mappings.push(mapping);
                 }
             });
@@ -39,47 +40,43 @@ DataObjectAssociationListener.prototype.beforeSave = function(e, callback) {
                  * @param {function(Error=)} cb
                  */
                 function(mapping, cb) {
-                    if (mapping.associationType==='association' && mapping.childModel===e.model.name) {
+                    if (mapping.associationType==='association' && mapping.childModel===event.model.name) {
                         /**
                          * @type {DataField|*}
                          */
-                        var field = e.model.field(mapping.childField),
+                        var field = event.model.field(mapping.childField),
                             childField = field.property || field.name;
                         //foreign key association
-                        if (typeof e.target[childField] !== 'object') {
+                        if (typeof event.target[childField] !== 'object') {
                             return cb();
                         }
-                        if (e.target[childField].hasOwnProperty(mapping.parentField)) {
+                        if (event.target[childField].hasOwnProperty(mapping.parentField)) {
                             return cb();
                         }
                         //change:21-Mar 2016
                         //description: check if association belongs to this model or it's inherited from any base model
                         //if current association belongs to base model
-                        if ((e.model.name !== field.model) && (!parseBoolean(field.cloned))) {
+                        if ((event.model.name !== field.model) && (!parseBoolean(field.cloned))) {
                             //do nothing and exit
                             return cb();
                         }
                         //get associated mode
-                        var associatedModel = e.model.context.model(mapping.parentModel),
-                            er;
-                        associatedModel.find(e.target[childField]).select(mapping.parentField).silent().flatten().take(1).list(function(err, result) {
+                        var associatedModel = event.model.context.model(mapping.parentModel);
+                        associatedModel.find(event.target[childField]).select(mapping.parentField).silent().flatten().take(1).list(function(err, result) {
                             if (err) {
                                 cb(err);
                             }
                             else if (_.isNil(result)) {
-                                er = new Error('An associated object cannot be found.');er.code = 'EDATA';er.model = associatedModel.name;
-                                cb(er);
+                                return cb(new DataError('EDATA','An associated object cannot be found.',null, associatedModel.name));
                             }
                             else if (result.total===0) {
-                                er = new Error('An associated object cannot be found.');er.code = 'EDATA';er.model = associatedModel.name;
-                                cb(er);
+                                return cb(new DataError('EDATA','An associated object cannot be found.',null, associatedModel.name));
                             }
                             else if (result.total>1) {
-                                er = new Error('An associated object is defined more than once and cannot be bound.'); er.code = 'EDATA';er.model = associatedModel.name;
-                                cb(er);
+                                return cb(new DataError('EDATA','An associated object is defined more than once and cannot be bound.',null, associatedModel.name));
                             }
                             else {
-                                e.target[childField][mapping.parentField]=result.records[0][mapping.parentField];
+                                event.target[childField][mapping.parentField]=result.records[0][mapping.parentField];
                                 cb();
                             }
                         });
@@ -93,8 +90,8 @@ DataObjectAssociationListener.prototype.beforeSave = function(e, callback) {
                 });
         }
     }
-    catch (e) {
-        callback(e);
+    catch (err) {
+        callback(err);
     }
 
 };

@@ -12,7 +12,7 @@ var async = require('async');
 var qry = require('@themost/query');
 var DataAssociationMapping = require('./types').DataAssociationMapping;
 var DataQueryable = require('./data-queryable').DataQueryable;
-
+var DataConfigurationStrategy = require('./data-configuration').DataConfigurationStrategy;
 /**
  * @classdesc Represents a many-to-many association between two data models.
  * <p>
@@ -161,10 +161,15 @@ function DataObjectJunction(obj, association) {
             if (baseModel)
                 return baseModel;
             //get parent context
-            var context = self.parent.context, conf = context.getConfiguration();
+            var context = self.parent.context;
+            /**
+             * @type {*|DataConfigurationStrategy}
+             */
+            var conf = context.getConfiguration().getStrategy(DataConfigurationStrategy);
             //search in cache (configuration.current.cache)
-            if (conf.models[self.mapping.associationAdapter]) {
-                baseModel = new DataModel(conf.models[self.mapping.associationAdapter]);
+            var modelDefinition = conf.getModelDefinition(self.mapping.associationAdapter);
+            if (modelDefinition) {
+                baseModel = new DataModel(modelDefinition);
                 baseModel.context = self.parent.context;
                 return baseModel;
             }
@@ -176,10 +181,11 @@ function DataObjectJunction(obj, association) {
             var adapter = self.mapping.associationAdapter;
             baseModel = self.parent.context.model(adapter);
             if (_.isNil(baseModel)) {
-                conf.models[self.mapping.associationAdapter] = { name:adapter, title: adapter, source:adapter, type:"hidden", hidden:true, sealed:false, view:adapter, version:'1.0', fields:[
-                    { name: "id", type:"Counter", primary: true },
-                    { name: "parentId", indexed: true, nullable:false, type: (parentField.type === 'Counter') ? 'Integer' : parentField.type },
-                    { name: "valueId", indexed: true, nullable:false, type: (childField.type === 'Counter') ? 'Integer' : childField.type } ],
+
+                modelDefinition = { name:adapter, title: adapter, source:adapter, type:"hidden", hidden:true, sealed:false, view:adapter, version:'1.0', fields:[
+                        { name: "id", type:"Counter", primary: true },
+                        { name: "parentId", indexed: true, nullable:false, type: (parentField.type === 'Counter') ? 'Integer' : parentField.type },
+                        { name: "valueId", indexed: true, nullable:false, type: (childField.type === 'Counter') ? 'Integer' : childField.type } ],
                     "constraints": [
                         {
                             "description": "The relation between two objects must be unique.",
@@ -189,8 +195,10 @@ function DataObjectJunction(obj, association) {
                     ], "privileges":[
                         { "mask":15, "type":"global" }
                     ]};
+
+                conf.setModelDefinition(modelDefinition);
                 //initialize base model
-                baseModel = new DataModel(conf.models[self.mapping.associationAdapter]);
+                baseModel = new DataModel(modelDefinition);
                 baseModel.context = self.parent.context;
             }
             return baseModel;

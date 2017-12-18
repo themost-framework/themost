@@ -42,7 +42,8 @@
 			"mapping": {
 				"associationAdapter": "GroupMembers", "parentModel": "Group",
 				"parentField": "id", "childModel": "User", "childField": "id",
-				"associationType": "junction", "cascade": "delete",
+				"associationType": "junction",
+				"cascade": "delete",
 				"select": [
 					"id",
 					"name",

@@ -7,25 +7,19 @@
  * found in the LICENSE file at https://themost.io/license
  */
 import 'source-map-support/register';
-import {HttpApplication} from '../../modules/@themost/web/resources/app';
+import {HttpApplication} from '../../modules/@themost/web/app';
 import {AngularServerModule} from "../../modules/@themost/web/angular/module";
 import {ODataConventionModelBuilder, ODataModelBuilder} from "../../modules/@themost/data/odata";
 //initialize application
 let app = new HttpApplication('./test/app');
+//use static content
+app.useStaticContent('./test/app/app');
 
 app.useService(AngularServerModule)
     .getService(AngularServerModule)
     .useBootstrapModule(app.mapExecutionPath('./modules/server-app'));
 
 app.getConfiguration().useStrategy(ODataModelBuilder,ODataConventionModelBuilder);
-
-app.useAuthentication()
-    .useJsonContent()
-    .usePostContent()
-    .useMultipartContent()
-    .useFormatterStrategy()
-    .useStaticContent("./test/app/app");
-app.useViewContent();
 
 const builder = app.getConfiguration().getStrategy(ODataModelBuilder);
 builder.hasContextLink(function(context) {

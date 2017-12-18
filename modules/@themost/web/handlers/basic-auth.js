@@ -56,8 +56,9 @@ BasicAuthHandler.prototype.authenticateRequest = function (context, callback) {
         var authorizationArgs = BasicAuthHandler.parseBasicAuthorization(context.request.headers['authorization']);
         if (typeof authorizationArgs !== 'undefined') {
             //ensure settings
-            context.getApplication().config.settings.auth = context.getApplication().config.settings.auth || { };
-            var providerPath = context.getApplication().settings.auth.provider || './auth-service';
+            var settings = context.getApplication().getConfiguration().settings;
+            settings.auth = settings.auth || { };
+            var providerPath = settings.auth.provider || './auth-service';
             //get auth provider
             var svc;
             if (/^\//.test(providerPath)) {

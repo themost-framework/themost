@@ -55,14 +55,15 @@ AuthHandler.prototype.authenticateRequest = function (context, callback) {
     try {
         callback = callback || function() {};
         var cookies = {}, model = context.model('User');
-        var settings = context.getApplication().config.settings ? (context.getApplication().config.settings.auth || { }) : { } ;
+        var config = context.getApplication().getConfiguration();
+        var settings = config.settings ? (config.settings.auth || { }) : { } ;
         settings.name = settings.name || '.MAUTH';
         if (context && context.request)
             cookies = AuthHandler.parseCookies(context.request);
         if (cookies[settings.name]) {
             var str = null;
             try {
-                str =context.getApplication().decrypt(cookies[settings.name]);
+                str =context.getApplication().getEncryptionStrategy().decrypt(cookies[settings.name]);
             }
             catch (err) {
                 TraceUtils.log(err);
@@ -82,7 +83,6 @@ AuthHandler.prototype.authenticateRequest = function (context, callback) {
             }
             //search for user
             if (userName) {
-                //todo::validate that user exists
                 //set user identity
                 context.user = model.convert({ name: userName, authenticationType:'Basic' });
             }
@@ -116,8 +116,7 @@ AuthHandler.prototype.preExecuteResult = function (args, callback) {
         callback = callback || function() {};
         var context = args.context, model = context.model('User');
         if (typeof model === 'undefined' || model === null) {
-            callback();
-            return;
+            return callback();
         }
         var authenticationType = context.user.authenticationType;
         model.where('name').equal(context.user.name).expand('groups').silent().first(function(err, result) {
@@ -130,15 +129,14 @@ AuthHandler.prototype.preExecuteResult = function (args, callback) {
             }
             else if (context.user.name!=='anonymous') {
                 model.where('name').equal('anonymous').expand('groups').silent().first(function(err, result) {
-                    if (err) { return callback(err); }
+                    if (err) {
+                        return callback(err);
+                    }
                     if (result) {
                         context.user = model.convert(result);
                         context.user.authenticationType = authenticationType;
-                        return callback();
                     }
-                    else {
-                        return callback();
-                    }
+                    return callback();
                 });
             }
             else {
@@ -147,8 +145,8 @@ AuthHandler.prototype.preExecuteResult = function (args, callback) {
             }
         });
     }
-    catch (e) {
-        callback(e);
+    catch (err) {
+        callback(err);
     }
 };
 
@@ -285,7 +283,7 @@ DefaultAuthStrategy.prototype.setAuthCookie = function(thisContext, userName, op
             expires = moment(new Date()).add(expirationTimeout,'minutes').toDate().toUTCString();
         }
     }
-    var str = this[optionsProperty].name.concat('=', this.getApplication().encrypt(value)) + ';path=/';
+    var str = this[optionsProperty].name.concat('=', this.getApplication().getEncryptionStrategy().encrypt(value)) + ';path=/';
     if (typeof expires === 'string') {
         str +=';expires=' + expires;
     }
@@ -369,7 +367,7 @@ DefaultAuthStrategy.prototype.getAuthCookie = function(thisContext) {
     var name = this.getOptions().name;
     var cookie = thisContext.getCookie(name);
     if (cookie) {
-        return this.getApplication().decrypt(cookie);
+        return this.getApplication().getEncryptionStrategy().decrypt(cookie);
     }
 };
 
@@ -399,6 +397,7 @@ LangUtils.inherits(EncryptionStrategy, HttpApplicationService);
 /**
  * Encrypts the given data
  * @param {*} data
+ * @returns {*}
  * */
 // eslint-disable-next-line no-unused-vars
 EncryptionStrategy.prototype.encrypt = function(data) {
@@ -408,6 +407,7 @@ EncryptionStrategy.prototype.encrypt = function(data) {
 /**
  * Decrypts the given data
  * @param {string} data
+ * @returns {*}
  * */
 // eslint-disable-next-line no-unused-vars
 EncryptionStrategy.prototype.decrypt = function(data) {
@@ -437,6 +437,7 @@ DefaultEncryptionStrategy.prototype.getOptions = function() {
 /**
  * Encrypts the given data
  * @param {*} data
+ * @returns {*}
  * */
 DefaultEncryptionStrategy.prototype.encrypt = function(data) {
     if (_.isNil(data)) {
@@ -455,6 +456,7 @@ DefaultEncryptionStrategy.prototype.encrypt = function(data) {
 /**
  * Decrypts the given data
  * @param {string} data
+ * @returns {*}
  * */
 DefaultEncryptionStrategy.prototype.decrypt = function(data) {
     if (_.isNil(data))

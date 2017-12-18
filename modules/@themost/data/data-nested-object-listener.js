@@ -210,13 +210,28 @@ function beforeRemove_(attr, event, callback) {
         var context = event.model.context,
             name = attr.property || attr.name,
             key = event.model.getPrimaryKey();
+        /**
+         * @type {DataModel}
+         */
         var nestedModel = context.model(attr.type);
         if (_.isNil(nestedModel)) { return callback(); }
         event.model.where(key).equal(event.target[key]).select(key,name).flatten().silent().first(function(err, result) {
             if (err) { return callback(err); }
             if (_.isNil(result)) { return callback(); }
             if (_.isNil(result[name])) { return callback(); }
-            nestedModel.remove({id:result[name]}, function(err) {
+            //set silent mode (if parent model is in silent mode)
+            if (event.model.isSilent()) {
+                nestedModel.silent();
+            }
+            var nestedKey =  result[name];
+            //Update target object (remove the association between target object and nested object).
+            //This operation must be done before trying to remove nested object otherwise the operation will fail with foreign key reference error
+            result[name] = null;
+            return event.model.save(result).then(function() {
+                nestedModel.remove({id:nestedKey}, function() {
+                    return callback();
+                });
+            }).catch(function(err) {
                 return callback(err);
             });
         });

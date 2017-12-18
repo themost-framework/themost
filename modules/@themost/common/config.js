@@ -86,6 +86,12 @@ function ConfigurationBase(configPath) {
     //initialize settings object
     this[configProperty]['settings'] = this[configProperty]['settings'] || { };
 
+    /**
+     * @property
+     * @name ConfigurationBase#settings
+     * @type {*}
+     */
+
     Object.defineProperty(this, 'settings',{
         get: function() {
             return this[configProperty]['settings'];
@@ -166,7 +172,7 @@ ConfigurationBase.prototype.getConfigurationPath = function() {
 ConfigurationBase.prototype.useStrategy = function(configStrategyCtor, strategyCtor) {
     Args.notFunction(configStrategyCtor,"Configuration strategy constructor");
     Args.notFunction(strategyCtor,"Strategy constructor");
-    this[strategiesProperty]["$".concat(configStrategyCtor.constructor.name)] = new strategyCtor(this);
+    this[strategiesProperty]["$".concat(configStrategyCtor.name)] = new strategyCtor(this);
     return this;
 };
 //noinspection JSUnusedGlobalSymbols
@@ -176,7 +182,7 @@ ConfigurationBase.prototype.useStrategy = function(configStrategyCtor, strategyC
  */
 ConfigurationBase.prototype.getStrategy = function(configStrategyCtor) {
     Args.notFunction(configStrategyCtor,"Configuration strategy constructor");
-    return this[strategiesProperty]["$".concat(configStrategyCtor.constructor.name)];
+    return this[strategiesProperty]["$".concat(configStrategyCtor.name)];
 };
 
 /**
@@ -185,7 +191,7 @@ ConfigurationBase.prototype.getStrategy = function(configStrategyCtor) {
  */
 ConfigurationBase.prototype.hasStrategy = function(configStrategyCtor) {
     Args.notFunction(configStrategyCtor,"Configuration strategy constructor");
-    return typeof this[strategiesProperty]["$".concat(configStrategyCtor.constructor.name)] !== 'undefined';
+    return typeof this[strategiesProperty]["$".concat(configStrategyCtor.name)] !== 'undefined';
 };
 
 /**

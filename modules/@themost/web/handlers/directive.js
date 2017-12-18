@@ -6,6 +6,100 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+var HttpError = require('@themost/common/errors').HttpError;
+var AngularServerModule = require('./../angular/module').AngularServerModule;
+var _ = require('lodash');
+
+/**
+ * @interface
+ * @constructor
+ */
+function PostExecuteResultArgs() {
+    /**
+     * @property
+     * @name PostExecuteResultArgs#context
+     * @type {HttpContext}
+     */
+
+    /**
+     * @property
+     * @name PostExecuteResultArgs#target
+     * @type {*}
+     */
+
+}
+
+/**
+ * @class
+ * @param {HttpContext|*} $context
+ * @param {*} $async
+ * @param {*} $q
+ * @returns {$http}
+ * @constructor
+ * @private
+ */
+function HttpInternalProvider($context, $async, $q) {
+
+    function $http(requestConfig) {
+        var config = {
+            method: 'get',
+            cookie: $context.request.headers.cookie
+        };
+        _.assign(config, requestConfig);
+        var deferred = $q.defer(), promise = deferred.promise;
+
+        $async(function(resolve, reject) {
+
+            promise.success = function(fn) {
+                promise.then(function(response) {
+                    fn(response.data, response.status, response.headers, config);
+                    resolve();
+                });
+                return promise;
+            };
+            promise.error = function(fn) {
+                promise.then(null, function(response) {
+                    fn(response.data, response.status, response.headers, config);
+                    reject(new HttpError(response.status));
+                });
+                return promise;
+            };
+
+            $context.getApplication().executeRequest(config).then(function(response) {
+                response.status = response.statusCode;
+            response.data = response.body;
+            deferred.resolve(response);
+        }).catch(function(err) {
+                if (err) {
+                    deferred.reject({ data: err.message, status:500, headers:{} });
+                }
+            });
+        });
+        return promise;
+
+    }
+
+    ['get', 'delete', 'head', 'jsonp'].forEach(function(name) {
+        $http[name] = function(url, config) {
+            return $http(_.assign(config || {}, {
+                method: name,
+                url: url
+            }));
+        };
+    });
+
+    ['post', 'put'].forEach(function(name) {
+        $http[name] = function(url, data, config) {
+            return $http(_.assign(config || {}, {
+                method: name,
+                url: url,
+                data: data
+            }));
+        };
+    });
+
+    return $http;
+}
 
 /**
  * @class
@@ -16,194 +110,122 @@ function DirectiveEngine() {
     //
 }
 /**
- * @param {{context: HttpContext, target: HttpResult}} args
+ * @param {PostExecuteResultArgs|*} args
  * @param callback
  */
 DirectiveEngine.prototype.postExecuteResult = function(args, callback) {
     try {
+
         callback = callback || function() {};
         //get context and view
-        var context = args.context,
-            view = args.target;
+        const context = args.context, view = args.target;
         //ensure context
         if (typeof context === 'undefined' || context === null) {
-            callback();
-            return;
+            return callback();
         }
         //ensure view
         if (typeof view === 'undefined' || view === null) {
-            callback();
-            return;
-        }
-        //ensure view content type (text/html)
-        if (!/^text\/html/.test(view.contentType)) {
-            callback();
-            return;
+            return callback();
         }
         //ensure view result data
-        if (typeof view.result !== 'string') {
-            callback();
-            return;
+        if (typeof view.body !== 'string') {
+            return callback();
         }
-        //process result
-        var document = context.application.document(view.result);
-        //create server module
-        var angular = document.parentWindow.angular;
-        var app = angular.module('server',[]), promises = [];
 
+        if (!args.context.getApplication().hasService(AngularServerModule)) {
+            args.context.getApplication().useService(AngularServerModule);
+        }
+        /**
+         * @type {AngularServerModule}
+         */
+        const angularServer = args.context.getApplication().getService(AngularServerModule);
+
+        //process result
+        const document = angularServer.createDocument(view.body);
+        //create server module
+        const angular = document.parentWindow.angular;
+
+        const app = angularServer.doBootstrap(angular);
+        /**
+         * @type {Array}
+         */
+
+        const promises = [];
         app.config(function($sceDelegateProvider) {
+            /**
+             * @method resourceUrlWhitelist
+             * @param {Array} whiteList
+             * @methodOf $sceDelegateProvider
+             */
             $sceDelegateProvider.resourceUrlWhitelist([
                 '/templates/server/*.html'
             ]);
         });
-
         app.service('$context', function() {
             return context;
-        }).service('$qs', function($q) {
-            return {
-                /**
-                 * @ngdoc method
-                 * @name $qs#defer
-                 * @kind function
-                 * @returns {Deferred}
-                 */
-                defer :function() {
-                    var deferred = $q.defer();
-                    promises.push(deferred.promise);
-                    return deferred;
-                },
-                /**
-                 * @ngdoc method
-                 * @name $qs#when
-                 * @kind function
-                 * @param {*} value
-                 * @returns {Promise}
-                 */
-                when:  $q.when,
-                /**
-                 * @ngdoc method
-                 * @name $qs#all
-                 * @kind function
-                 * @param {Array.<Promise>|Object.<Promise>} promises
-                 * @returns {Promise}
-                 */
-                all: $q.all,
-                /**
-                 * @ngdoc method
-                 * @name $q#reject
-                 * @kind function
-                 * @param {*} reason
-                 * @returns {Promise}
-                 */
-                reject: $q.reject
-            }
-        }).service('$angular', function() {
-            return angular;
+        }).service('$async', function($q) {
+            /**
+             * @param {Function} fn
+             */
+            return function $async(fn) {
+                const deferred = $q.defer();
+                promises.push(deferred.promise);
+                try {
+                    fn.call(document.parentWindow,function() {
+                        deferred.resolve();
+                }, function(err) {
+                        deferred.reject(err);
+                    });
+                }
+                catch(err) {
+                    deferred.reject(err);
+                }
+            };
         });
-
-        /**
-         * @class HttpInternalProvider
-         * @param $context
-         * @param $qs
-         * @returns {$http}
-         * @constructor
-         * @private
-         */
-        function HttpInternalProvider($context, $qs) {
-
-            function $http(requestConfig) {
-                var config = {
-                    method: 'get',
-                    cookie: $context.request.headers.cookie
-                };
-                angular.extend(config, requestConfig);
-                var deferred = $qs.defer(), promise = deferred.promise;
-                promise.success = function(fn) {
-                    promise.then(function(response) {
-                        fn(response.data, response.statusCode, response.headers, config);
-                    });
-                    return promise;
-                };
-                promise.error = function(fn) {
-                    promise.then(null, function(response) {
-                        fn(response.data, response.statusCode, response.headers, config);
-                    });
-                    return promise;
-                };
-
-                $context.application.executeRequest(config, function(err, response) {
-                    if (err) {
-                        deferred.reject({ data: err.message, statusCode:500, headers:{} });
-                    }
-                    else {
-                        response.data = response.body;
-                        deferred.resolve(response);
-                    }
-                });
-
-                return promise;
-
-            }
-
-            ['get', 'delete', 'head', 'jsonp'].forEach(function(name) {
-                $http[name] = function(url, config) {
-                    return $http(angular.extend(config || {}, {
-                        method: name,
-                        url: url
-                    }));
-                };
-            });
-
-            ['post', 'put'].forEach(function(name) {
-                $http[name] = function(url, data, config) {
-                    return $http(angular.extend(config || {}, {
-                        method: name,
-                        url: url,
-                        data: data
-                    }));
-                };
-            });
-
-            return $http;
-        }
-
         app.service('$http', HttpInternalProvider);
-
         //copy application directives
-        Object.keys(context.application.module.directives).forEach(function(name) {
-            app.directive(name, context.application.module.directives[name]);
+
+        _.forEach(_.keys(angularServer.directives), function(name) {
+            app.directive(name, angularServer.directives[name]);
         });
         //copy application services
-        Object.keys(context.application.module.services).forEach(function(name) {
-            app.service(name, context.application.module.services[name]);
+        _.forEach(_.keys(angularServer.services), function(name) {
+            app.service(name, angularServer.services[name]);
         });
         //copy application filters
-        Object.keys(context.application.module.filters).forEach(function(name) {
-            app.filter(name, context.application.module.filters[name]);
+        _.forEach(_.keys(angularServer.filters), function(name) {
+            app.filter(name, angularServer.filters[name]);
         });
         //copy application controllers
-        Object.keys(context.application.module.controllers).forEach(function(name) {
-            app.controller(name, context.application.module.controllers[name]);
+        _.forEach(_.keys(angularServer.controllers), function(name) {
+            app.controller(name, angularServer.controllers[name]);
         });
-
         //get application element
-        var appElement = angular.element(document).find('*[ejs-app=\'server\']').get(0);
+        var appElement = angular.element(document).find('*[server-app=\'server\']').get(0);
+        if (typeof appElement === 'undefined') {
+            appElement = angular.element(document).find('body').get(0);
+        }
         if (appElement) {
             //get $q
             var $q = angular.injector(['ng']).get('$q');
+            //set $rootScope
+            app.run(function($rootScope) {
+                if (_.isObject(view.data)) {
+                    _.assign($rootScope, view.data);
+                }
+            });
             //initialize app element
             angular.bootstrap(appElement, ['server']);
             //wait for promises
             $q.all(promises).then(function() {
-                view.result = document.innerHTML;
-                callback();
+                view.body = document.innerHTML;
+                return callback();
             }, function(reason) {
-                //throw exception
                 callback(new Error(reason));
             });
         }
         else {
-            callback();
+            return callback();
         }
     }
     catch (e) {
@@ -220,5 +242,6 @@ DirectiveEngine.createInstance = function() {
 
 if (typeof exports !== 'undefined') {
     module.exports.createInstance = DirectiveEngine.createInstance;
-    //module.exports.DirectiveEngine = DirectiveEngine;
+    module.exports.DirectiveEngine = DirectiveEngine;
+    module.exports.PostExecuteResultArgs = PostExecuteResultArgs;
 }

@@ -8,8 +8,7 @@
         { "name":"multipart","type":"./handlers/multipart" },
         { "name":"json","type":"./handlers/json" },
         { "name":"post","type":"./handlers/post" },
-        { "name":"route","type":"./handlers/route-params" },
-        { "name":"directive","type":"./handlers/directive" }
+        { "name":"route","type":"./handlers/route-params" }
     ],
     "engines": [
         { "name": "EJS View Engine", "extension": "ejs", "type": "./engines/ejs" },

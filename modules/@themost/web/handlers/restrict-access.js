@@ -84,7 +84,11 @@ RestrictHandler.prototype.authorizeRequest = function (context, callback) {
         callback(e);
     }
 };
-
+/**
+ * @param {HttpContext} context
+ * @param {Function} callback
+ * @returns {*}
+ */
 RestrictHandler.prototype.isNotRestricted = function(context, callback) {
     try {
         if (_.isNil(context)) {
@@ -93,16 +97,16 @@ RestrictHandler.prototype.isNotRestricted = function(context, callback) {
         if (_.isNil(context.request)) {
             return callback(new HttpBadRequestError());
         }
-        //ensure settings (and auth settings)
-        context.application.config.settings = context.application.config.settings || {};
+        //get application settings
+        var settings = context.getApplication().getConfiguration().settings;
         /**
          * @type {{loginPage:string=,locations:Array}|*}
          */
-        context.application.config.settings.auth = context.application.config.settings.auth || {};
+        settings.auth = settings.auth || {};
         //get login page, request url and locations
-        var loginPage = context.application.config.settings.auth.loginPage || '/login.html',
+        var loginPage = settings.auth.loginPage || '/login.html',
             requestUrl = url.parse(context.request.url),
-            locations = context.application.config.settings.auth.locations || [];
+            locations = settings.auth.locations || [];
         if (requestUrl.pathname===loginPage) {
             return callback(null, true);
         }

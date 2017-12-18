@@ -18,7 +18,6 @@ function JsonHandler() {
 }
 var DateTimeRegex = /^(\d{4})(?:-?W(\d+)(?:-?(\d+)D?)?|(?:-(\d+))?-(\d+))(?:[T ](\d+):(\d+)(?::(\d+)(?:\.(\d+))?)?)?(?:Z(-?\d*))?([+-](\d+):(\d+))?$/g;
 function reviveDates(key, value){
-    var match;
     if (typeof value === "string" && DateTimeRegex.test(value) ) {
         return new Date(value);
     }
@@ -33,12 +32,12 @@ JsonHandler.prototype.beginRequest = function(context, callback) {
         //change: 15-Feb 2016
         //description get json body limit from application configuration (settings#json.limit)
         if (typeof jsonParser === 'undefined') {
-            //ensure settings
-            context.application.config.settings = context.application.config.settings || { };
+            //get application settings
+            var settings = context.getApplication().getConfiguration().settings;
             //ensure json settings (the default limit is 100kb)
-            context.application.config.settings.json = context.application.config.settings.json || { limit:102400 };
+            settings.json = settings.json || { limit:102400 };
             //get json parser
-            jsonParser = bodyParser.json(_.assign(context.application.config.settings.json, {
+            jsonParser = bodyParser.json(_.assign(settings.json, {
                 reviver:reviveDates
             }));
         }

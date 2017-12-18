@@ -1,4 +1,7 @@
 {
+    "handlers": [
+        { "name":"node-modules", "type":"./handlers/node-modules" }
+    ],
     "engines": [
         { "name": "EJS View Engine", "extension": "ejs", "type": "./engines/ejs" },
         { "name": "Markdown View Engine", "extension": "md", "type": "./engines/md" },

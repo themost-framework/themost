@@ -7,7 +7,7 @@ exports.default = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _dec, _dec2, _desc, _value, _class;
+var _dec, _dec2, _dec3, _dec4, _desc, _value, _class;
 
 var _mvc = require('../../../modules/@themost/web/mvc');
 
@@ -18,7 +18,13 @@ var _decorators = require('./../../../modules/@themost/web/decorators');
 var httpAction = _decorators.httpAction;
 var httpGet = _decorators.httpGet;
 
+var _q = require('q');
+
+var Q = _interopRequireDefault(_q).default;
+
 require('source-map-support/register');
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -55,7 +61,7 @@ function _applyDecoratedDescriptor(target, property, decorators, descriptor, con
     return desc;
 }
 
-var RootController = (_dec = httpGet(), _dec2 = httpGet(), (_class = function (_HttpController) {
+var RootController = (_dec = httpGet(), _dec2 = httpAction("index"), _dec3 = httpGet(), _dec4 = httpAction("person"), (_class = function (_HttpController) {
     _inherits(RootController, _HttpController);
 
     function RootController() {
@@ -67,20 +73,20 @@ var RootController = (_dec = httpGet(), _dec2 = httpGet(), (_class = function (_
     _createClass(RootController, [{
         key: 'index',
         value: function index() {
-            return this.content('<p>Hello World</p>').toPromise();
+            return Q(this.content('<p>Hello World</p>'));
         }
     }, {
         key: 'person',
         value: function person() {
-            return this.json({
+            return Q({
                 givenName: 'Peter',
                 familyName: 'Adams'
-            }).toPromise();
+            });
         }
     }]);
 
     return RootController;
-}(HttpController), (_applyDecoratedDescriptor(_class.prototype, 'index', [_dec], Object.getOwnPropertyDescriptor(_class.prototype, 'index'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'person', [_dec2], Object.getOwnPropertyDescriptor(_class.prototype, 'person'), _class.prototype)), _class));
+}(HttpController), (_applyDecoratedDescriptor(_class.prototype, 'index', [_dec, _dec2], Object.getOwnPropertyDescriptor(_class.prototype, 'index'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'person', [_dec3, _dec4], Object.getOwnPropertyDescriptor(_class.prototype, 'person'), _class.prototype)), _class));
 exports.default = RootController;
 module.exports = exports['default'];
 //# sourceMappingURL=root-controller.js.map

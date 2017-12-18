@@ -40,11 +40,11 @@ function getBlockElements(angular, nodes) {
 
 var directives = {
     /**
-     * @param {HttpApplication} app
+     * @param {AngularServerModule} app
      */
     apply: function(app) {
 // eslint-disable-next-line no-unused-vars
-        app.module.directive('ejsInclude', function($context, $angular, $qs, $sce) {
+        app.directive('serverInclude', function($context, $angular, $qs, $sce) {
             return {
                 replace:true,
                 restrict:'EA',
@@ -71,7 +71,7 @@ var directives = {
                     }
                 }
             };
-        }).directive('ejsInit', function() {
+        }).directive('serverInit', function() {
             return {
                 priority:400,
                 restrict:'A',
@@ -79,7 +79,7 @@ var directives = {
                     scope.$eval(attrs['ejsInit']);
                 }
             };
-        }).directive('ejsIf', function($animate, $document) {
+        }).directive('serverIf', function($animate, $document) {
             return {
                 transclude: 'element',
                 priority: 600,
@@ -122,7 +122,7 @@ var directives = {
                     });
                 }
             };
-        }).directive('ejsIfPermission', ['$context','$compile', '$qs', function($context, $compile, $qs) {
+        }).directive('serverIfPermission', ['$context','$compile', '$qs', function($context, $compile, $qs) {
             return {
                 restrict:'E',
                 replace: true,
@@ -173,7 +173,7 @@ var directives = {
                     }
                 }
             };
-        }]).directive('ejsLoc', ['$context', function($context) {
+        }]).directive('serverLoc', ['$context', function($context) {
             return {
                 restrict: 'A',
                 link: function(scope, element, attrs) {
@@ -189,7 +189,17 @@ var directives = {
                         element.attr('placeholder', $context.translate(attrs.placeholder, attrs.ejsLoc));
                 }
             };
-        }]).directive('ejsLocHtml', ['$context', function($context) {
+        }]).directive('serverUiView', ['$context', '$async', function($context, $async) {
+            return {
+                restrict: 'A',
+// eslint-disable-next-line no-unused-vars
+                link: function(scope, element) {
+                    return $async(function(resolve) {
+                       return resolve();
+                    });
+                }
+            };
+        }]).directive('serverLocHtml', ['$context', function($context) {
             return {
                 restrict: 'A',
                 link: function(scope, element, attrs) {
@@ -205,7 +215,7 @@ var directives = {
                 }
             };
 // eslint-disable-next-line no-unused-vars
-        }]).directive('ejsUserInRole', ['$context', '$compile', function($context, $compile) {
+        }]).directive('serverUserInRole', ['$context', '$compile', function($context, $compile) {
             return {
                 restrict:'A',
                 replace: true,
@@ -256,4 +266,6 @@ var directives = {
     }
 };
 
-if (typeof exports !== 'undefined') module.exports.apply = directives.apply;
+if (typeof exports !== 'undefined') {
+    module.exports.apply = directives.apply;
+}

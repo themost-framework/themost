@@ -26,13 +26,13 @@ function NotNullConstraintListener() {
 }
 /**
  * Occurs before creating or updating a data object and validates not nullable fields.
- * @param {DataEventArgs|*} e - An object that represents the event arguments passed to this operation.
+ * @param {DataEventArgs|*} event - An object that represents the event arguments passed to this operation.
  * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
  */
-NotNullConstraintListener.prototype.beforeSave = function(e, callback) {
+NotNullConstraintListener.prototype.beforeSave = function(event, callback) {
 
     //find all attributes that have not null flag
-    var attrs = e.model.attributes.filter(
+    var attrs = event.model.attributes.filter(
         function(x) {
             return !x.primary && !(typeof x.nullable === 'undefined' ? true: x.nullable);
         });
@@ -42,11 +42,11 @@ NotNullConstraintListener.prototype.beforeSave = function(e, callback) {
     }
     async.eachSeries(attrs, function(attr, cb)
     {
-        var name = attr.property || attr.name, value = e.target[name];
-        if ((((value === null) || (value===undefined))  && (e.state===1))
-            || ((value === null) && (typeof value!=='undefined') && (e.state === 2)))
+        var name = attr.property || attr.name, value = event.target[name];
+        if ((((value === null) || (value===undefined))  && (event.state===1))
+            || ((value === null) && (typeof value!=='undefined') && (event.state === 2)))
         {
-            var er = new NotNullError('A value is required.', null, e.model.name, attr.name);
+            var er = new NotNullError('A value is required.', null, event.model.name, attr.name);
             TraceUtils.debug(er);
             return cb(er);
         }
@@ -67,20 +67,20 @@ function UniqueContraintListener() {
 }
 /**
  * Occurs before creating or updating a data object and validates the unique constraints of data model.
- * @param {DataEventArgs|*} e - An object that represents the event arguments passed to this operation.
+ * @param {DataEventArgs|*} event - An object that represents the event arguments passed to this operation.
  * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
  */
-UniqueContraintListener.prototype.beforeSave = function(e, callback) {
+UniqueContraintListener.prototype.beforeSave = function(event, callback) {
 
     //there are no constraints
-    if (e.model.constraints===null)
+    if (event.model.constraints===null)
     {
         //do nothing
         callback(null);
         return;
     }
     //get unique constraints
-    var constraints = e.model.constraints.filter(function(x) {
+    var constraints = event.model.constraints.filter(function(x) {
         return (x.type==='unique');
     });
     if (constraints.length===0) {
@@ -97,16 +97,16 @@ UniqueContraintListener.prototype.beforeSave = function(e, callback) {
         //build query
         for (var i = 0; i < constraint.fields.length; i++) {
             var attr = constraint.fields[i];
-            var value = e.target[attr];
+            var value = event.target[attr];
             if (typeof value === 'undefined') {
                 cb(null);
                 return;
             }
             //check field mapping
-            var mapping = e.model.inferMapping(attr);
+            var mapping = event.model.inferMapping(attr);
             if (typeof mapping !== 'undefined' && mapping !== null) {
-                if (typeof e.target[attr] === 'object') {
-                    value=e.target[attr][mapping.parentField];
+                if (typeof event.target[attr] === 'object') {
+                    value=event.target[attr][mapping.parentField];
                 }
             }
             if (typeof value=== 'undefined')
@@ -115,13 +115,13 @@ UniqueContraintListener.prototype.beforeSave = function(e, callback) {
                 q.and(attr).equal(value);
             }
             else {
-                q = e.model.where(attr).equal(value);
+                q = event.model.where(attr).equal(value);
             }
         }
         if (typeof q === 'undefined')
             cb(null);
         else {
-            q.silent().select(e.model.primaryKey).first(function(err, result) {
+            q.silent().select(event.model.primaryKey).first(function(err, result) {
                 if (err) {
                     cb(err);
                     return;
@@ -132,19 +132,19 @@ UniqueContraintListener.prototype.beforeSave = function(e, callback) {
                 }
                 else {
                     var objectExists = true;
-                    if (e.state===2) {
+                    if (event.state===2) {
                         //validate object id (check if target object is the same with the returned object)
-                        objectExists = (result[e.model.primaryKey]!== e.target[e.model.primaryKey]);
+                        objectExists = (result[event.model.primaryKey]!== event.target[event.model.primaryKey]);
                     }
                     //if object already exists
                     if (objectExists) {
                         var er;
                         //so throw exception
                         if (constraint.description) {
-                            er = new UniqueConstraintError(constraint.description, null, e.model.name);
+                            er = new UniqueConstraintError(constraint.description, null, event.model.name);
                         }
                         else {
-                            er = new UniqueConstraintError("Object already exists. A unique constraint violated.", null, e.model.name);
+                            er = new UniqueConstraintError("Object already exists. A unique constraint violated.", null, event.model.name);
                         }
                         TraceUtils.debug(er);
                         return cb(er);
@@ -220,22 +220,22 @@ function CalculatedValueListener() {
 }
 /**
  * Occurs before creating or updating a data object and calculates field values with the defined calculation expression.
- * @param {DataEventArgs} e - An object that represents the event arguments passed to this operation.
+ * @param {DataEventArgs} event - An object that represents the event arguments passed to this operation.
  * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
  */
-CalculatedValueListener.prototype.beforeSave = function(e, callback) {
+CalculatedValueListener.prototype.beforeSave = function(event, callback) {
     //get function context
     var functions = require('./functions'),
         functionContext = functions.createContext();
-    _.assign(functionContext, e);
-    functionContext.context = e.model.context;
+    _.assign(functionContext, event);
+    functionContext.context = event.model.context;
     //find all attributes that have a default value
-    var attrs = e.model.attributes.filter(function(x) { return (x.calculation!==undefined); });
+    var attrs = event.model.attributes.filter(function(x) { return (x.calculation!==undefined); });
     async.eachSeries(attrs, function(attr, cb) {
         var expr = attr.calculation;
         //validate expression
         if (typeof expr !== 'string') {
-            e.target[attr.name] = expr;
+            event.target[attr.name] = expr;
             return cb();
         }
         //check javascript: keyword for code evaluation
@@ -259,14 +259,14 @@ CalculatedValueListener.prototype.beforeSave = function(e, callback) {
                     //we have a promise, so we need to wait for answer
                     value1.then(function(result) {
                         //otherwise set result
-                        e.target[attr.name] = result;
+                        event.target[attr.name] = result;
                         return cb();
                     }).catch(function(err) {
                         cb(err);
                     });
                 }
                 else {
-                    e.target[attr.name] = value1;
+                    event.target[attr.name] = value1;
                     return cb();
                 }
             }
@@ -274,7 +274,7 @@ CalculatedValueListener.prototype.beforeSave = function(e, callback) {
                 //we have a promise, so we need to wait for answer
                 value.then(function(result) {
                     //otherwise set result
-                    e.target[attr.name] = result;
+                    event.target[attr.name] = result;
                     return cb();
                 }).catch(function(err) {
                     cb(err);
@@ -282,7 +282,7 @@ CalculatedValueListener.prototype.beforeSave = function(e, callback) {
             }
             else {
                 //otherwise get value
-                e.target[attr.name] = value;
+                event.target[attr.name] = value;
                 return cb();
             }
         }
@@ -295,7 +295,7 @@ CalculatedValueListener.prototype.beforeSave = function(e, callback) {
                     cb(err);
                 }
                 else {
-                    e.target[attr.name] = result;
+                    event.target[attr.name] = result;
                     cb(null);
                 }
             });
@@ -507,12 +507,12 @@ function DefaultValueListener() {
 }
 /**
  * Occurs before creating or updating a data object and calculates default values with the defined value expression.
- * @param {DataEventArgs|*} e - An object that represents the event arguments passed to this operation.
+ * @param {DataEventArgs|*} event - An object that represents the event arguments passed to this operation.
  * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
  */
-DefaultValueListener.prototype.beforeSave = function(e, callback) {
+DefaultValueListener.prototype.beforeSave = function(event, callback) {
 
-    var state = typeof e.state !== 'number' ? e.state : 0;
+    var state = typeof event.state === 'number' ? event.state : 0;
     if (state!==1)
     {
         return callback();
@@ -520,20 +520,20 @@ DefaultValueListener.prototype.beforeSave = function(e, callback) {
     else {
         //get function context
         var functions = require('./functions'), functionContext = functions.createContext();
-        _.assign(functionContext, e);
+        _.assign(functionContext, event);
         //find all attributes that have a default value
-        var attrs = e.model.attributes.filter(function(x) { return (x.value!==undefined); });
+        var attrs = event.model.attributes.filter(function(x) { return (typeof x.value!== 'undefined'); });
         async.eachSeries(attrs, function(attr, cb) {
             var expr = attr.value;
             //if attribute is already defined
-            if (typeof e.target[attr.name] !== 'undefined') {
+            if (typeof event.target[attr.name] !== 'undefined') {
                 //do nothing
                 cb(null);
                 return;
             }
             //validate expression
             if (typeof expr !== 'string') {
-                e.target[attr.name] = expr;
+                event.target[attr.name] = expr;
                 return cb();
             }
             //check javascript: keyword for code evaluation
@@ -557,14 +557,14 @@ DefaultValueListener.prototype.beforeSave = function(e, callback) {
                         //we have a promise, so we need to wait for answer
                         value1.then(function(result) {
                             //otherwise set result
-                            e.target[attr.name] = result;
+                            event.target[attr.name] = result;
                             return cb();
                         }).catch(function(err) {
                             cb(err);
                         });
                     }
                     else {
-                        e.target[attr.name] = value1;
+                        event.target[attr.name] = value1;
                         return cb();
                     }
                 }
@@ -572,7 +572,7 @@ DefaultValueListener.prototype.beforeSave = function(e, callback) {
                     //we have a promise, so we need to wait for answer
                     value.then(function(result) {
                         //otherwise set result
-                        e.target[attr.name] = result;
+                        event.target[attr.name] = result;
                         return cb();
                     }).catch(function(err) {
                        cb(err);
@@ -580,7 +580,7 @@ DefaultValueListener.prototype.beforeSave = function(e, callback) {
                 }
                 else {
                     //otherwise get value
-                    e.target[attr.name] = value;
+                    event.target[attr.name] = value;
                     return cb();
                 }
             }
@@ -594,7 +594,7 @@ DefaultValueListener.prototype.beforeSave = function(e, callback) {
                         cb(err);
                     }
                     else {
-                        e.target[attr.name] = result;
+                        event.target[attr.name] = result;
                         cb(null);
                     }
                 });

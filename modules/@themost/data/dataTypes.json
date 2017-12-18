@@ -42,7 +42,7 @@
       },
         "url": "https://www.w3.org/TR/xmlschema-2/#float",
         "type": "number",
-        "sqltype":"DateTime",
+        "sqltype":"Float",
       "version":"1.0"
     },
     "Integer": {

@@ -144,6 +144,7 @@ function HttpConfiguration(configPath) {
     if (!this.hasSourceAt('mimes')) { this.setSourceAt('mimes',[]); }
     if (!this.hasSourceAt('engines')) { this.setSourceAt('engines',[]); }
     if (!this.hasSourceAt('controllers')) { this.setSourceAt('controllers',[]); }
+    if (!this.hasSourceAt('handlers')) { this.setSourceAt('handlers',[]); }
     try {
         this[routesProperty] = require(PathUtils.join(this.getConfigurationPath(),'routes.json'))
     }
@@ -168,6 +169,7 @@ function HttpConfiguration(configPath) {
             return this.getSourceAt('engines');
         }
     });
+
 
     /**
      * @property

@@ -62,7 +62,7 @@ ArithmeticExpression.prototype.exprOf = function()
 };
 
 /**
- * @class MemberExpression
+ * @class
  * @param {String} name The name of the current member
  * @constructor
  */
@@ -75,9 +75,9 @@ MemberExpression.prototype.exprOf = function() {
 
 /**
  * @class
+ * @constructor
  * @param {string} oper
  * @param {*} args
- * @constructor
  */
 function LogicalExpression(oper, args) {
     this.operator = oper || '$and' ;
@@ -108,7 +108,7 @@ LogicalExpression.prototype.exprOf = function() {
 };
 
 /**
- * @class LiteralExpression
+ * @class
  * @param {*} value The literal value
  * @constructor
  */
@@ -122,9 +122,9 @@ LiteralExpression.prototype.exprOf = function() {
 };
 
 /**
- *
+ * @class
  * @param {*} left
- * @param {String=} op
+ * @param {string=} op
  * @param {*=} right
  * @constructor
  */
@@ -206,7 +206,7 @@ ComparisonExpression.prototype.exprOf = function()
 
 /**
  * Creates a method call expression
- * @class MethodCallExpression
+ * @class
  * @constructor
  */
 function MethodCallExpression(name, args) {

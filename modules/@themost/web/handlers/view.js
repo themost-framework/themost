@@ -18,6 +18,7 @@ var xml = require('@themost/xml');
 var path = require('path');
 var _ = require('lodash');
 var HttpConsumer = require('../consumers').HttpConsumer;
+var HttpResult = require('../mvc').HttpResult;
 
 /**
  *
@@ -29,6 +30,16 @@ function _dasherize(s) {
     if (_.isString(s))
         return _.trim(s).replace(/[_\s]+/g, '-').replace(/([A-Z])/g, '-$1').replace(/-+/g, '-').replace(/^-/,'').toLowerCase();
     return s;
+}
+
+
+/**
+ * @method dasherize
+ * @memberOf _
+ */
+
+if (typeof _.dasherize !== 'function') {
+    _.mixin({'dasherize' : _dasherize});
 }
 
 function _isPromise(f) {
@@ -46,14 +57,6 @@ if (typeof _.isPromise !== 'function') {
     _.mixin({'isPromise' : _isPromise});
 }
 
-/**
- * @method dasherize
- * @memberOf _
- */
-
-if (typeof _.dasherize !== 'function') {
-    _.mixin({'dasherize' : _dasherize});
-}
 
 /**
  * @class ViewHandler
@@ -133,7 +136,7 @@ ViewHandler.queryControllerClass = function(controllerName, context, callback) {
                         });
                     }
                     else {
-                        var ControllerCtor = context.application.config.controllers[controllerName] || require('../controllers/base');
+                        var ControllerCtor = context.getApplication().getConfiguration().controllers[controllerName] || require('../controllers/base');
                         callback(null, ControllerCtor);
                     }
                 }
@@ -142,8 +145,8 @@ ViewHandler.queryControllerClass = function(controllerName, context, callback) {
                     callback(null, require(controllerPath));
                 }
             }
-            catch (e) {
-                callback(e);
+            catch (err) {
+                callback(err);
             }
         });
     }
@@ -235,8 +238,8 @@ ViewHandler.prototype.mapRequest = function (context, callback) {
                 }
                 return callback();
             }
-            catch(e) {
-                return callback(e);
+            catch(err) {
+                return callback(err);
             }
         });
 
@@ -441,9 +444,23 @@ ViewHandler.prototype.processRequest = function (context, callback) {
                             }
                         }
                         if (useHttpMethodNamingConvention) {
-                            return fn.apply(controller, params).then(function(result) {
-                                //execute http result
-                                return result.execute(context, callback);
+                            var source = fn.apply(controller, params);
+                            return source.then(function(result) {
+                                if (result instanceof HttpResult) {
+                                    //execute http result
+                                    return result.execute(context, callback);
+                                }
+                                else {
+                                    //convert result to HttpResult
+                                    if (typeof controller.result === 'function') {
+                                        var httpResult = controller.result(result);
+                                        return httpResult.execute(context, callback);
+                                    }
+                                    else {
+                                        return callback(new TypeError('Invalid controller prototype.'));
+                                    }
+                                }
+
                             }).catch(function(err) {
                                 return callback.bind(context)(err);
                             });
@@ -490,7 +507,7 @@ function queryRoute(requestUri,context) {
     /**
      * @type Array
      * */
-    var routes = context.getApplication().config.routes;
+    var routes = context.getApplication().getConfiguration().routes;
     //enumerate registered routes
     var httpRoute = route.createInstance();
     for (var i = 0; i < routes.length; i++) {

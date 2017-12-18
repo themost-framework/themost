@@ -31,6 +31,9 @@ var entityTypeProperty = Symbol('entityType');
 // noinspection JSUnusedLocalSymbols
 var edmProperty = Symbol('edm');
 var initializeProperty = Symbol('initialize');
+var DataConfigurationStrategy = require('./data-configuration').DataConfigurationStrategy;
+var SchemaLoaderStrategy = require('./data-configuration').SchemaLoaderStrategy;
+var DefaultSchemaLoaderStrategy = require('./data-configuration').DefaultSchemaLoaderStrategy;
 
 function Args() {
     //
@@ -1031,7 +1034,7 @@ LangUtils.inherits(SingletonConfiguration, EntitySetConfiguration);
 /**
  * @classdesc Represents the OData model builder of an HTTP application
  * @property {string} serviceRoot - Gets or sets the service root URI
- * @param {DataConfiguration} configuration
+ * @param {ConfigurationBase} configuration
  * @class
  */
 function ODataModelBuilder(configuration) {
@@ -1039,6 +1042,9 @@ function ODataModelBuilder(configuration) {
     this[entityTypesProperty] = {};
     this[ignoreEntityTypesProperty] = [];
     this[entityContainerProperty] = [];
+    /**
+     * @returns {ConfigurationBase}
+     */
     this.getConfiguration = function() {
         return configuration;
     };
@@ -1561,12 +1567,15 @@ ODataModelBuilder.prototype.hasJsonFormatter = function(jsonFormatterFunc) {
  * @class
  * @returns {*}
  * @constructor
- * @param {DataConfiguration} configuration
+ * @param {ConfigurationBase} configuration
  * @augments DataContext
  * @extends DataContext
  */
 function EntityDataContext(configuration) {
     EntityDataContext.super_.bind(this)();
+    /**
+     * @returns {ConfigurationBase}
+     */
     this.getConfiguration = function() {
         return configuration;
     };
@@ -1574,10 +1583,11 @@ function EntityDataContext(configuration) {
 LangUtils.inherits(EntityDataContext, DataContext);
 
 EntityDataContext.prototype.model = function(name) {
-    if (this.getConfiguration().dataTypes.hasOwnProperty(name)) {
+    var strategy = this.getConfiguration().getStrategy(DataConfigurationStrategy);
+    if (strategy.dataTypes.hasOwnProperty(name)) {
         return;
     }
-    var definition = this.getConfiguration().model(name);
+    var definition = strategy.model(name);
     if (_.isNil(definition)) {
         return;
     }
@@ -1616,10 +1626,10 @@ LangUtils.inherits(ODataConventionModelBuilder, ODataModelBuilder);
             return this.getEntitySet(name);
         }
         /**
-         * @type {*}
+         * @type {DataConfigurationStrategy}
          */
-        var configuration = self.getConfiguration();
-        if (configuration) {
+        var strategy = self.getConfiguration().getStrategy(DataConfigurationStrategy);
+        if (strategy) {
             /**
              * @type {EntitySetConfiguration}
              */
@@ -1631,13 +1641,13 @@ LangUtils.inherits(ODataConventionModelBuilder, ODataModelBuilder);
             /**
              * @type {DataModel}
              */
-            var definition = configuration.model(entityType);
+            var definition = strategy.model(entityType);
             if (definition) {
                 /**
                  * @type {DataModel}
                  */
                 var model = new DataModel(definition);
-                model.context = new EntityDataContext(configuration);
+                model.context = new EntityDataContext(self.getConfiguration());
                 var inheritedAttributes = [];
                 var primaryKey = _.find(model.attributes, function(x) {
                     return x.primary;
@@ -1662,7 +1672,7 @@ LangUtils.inherits(ODataConventionModelBuilder, ODataModelBuilder);
                     var mapping = model.inferMapping(x.name);
                     if (_.isNil(mapping)) {
                         //find data type
-                        var dataType = configuration.dataTypes[x.type];
+                        var dataType = strategy.dataTypes[x.type];
                         //add property
                         var edmType = _.isObject(dataType) ? (dataType.hasOwnProperty("edmtype") ? dataType["edmtype"]: "Edm." + x.type) : x.type;
                         modelEntityType.addProperty(name, edmType, x.hasOwnProperty('nullable') ? x.nullable : true);
@@ -1676,7 +1686,7 @@ LangUtils.inherits(ODataConventionModelBuilder, ODataModelBuilder);
                         var isNullable = x.hasOwnProperty('nullable') ? x.nullable : true;
                         modelEntityType.addNavigationProperty(name, namespacedType, x.many ? EdmMultiplicity.Many: (isNullable ? EdmMultiplicity.ZeroOrOne : EdmMultiplicity.One));
                         //add navigation property entity (if type is not a primitive type)
-                        if (!configuration.dataTypes.hasOwnProperty(x.type)) {
+                        if (!strategy.dataTypes.hasOwnProperty(x.type)) {
                             self.addEntitySet(x.type, pluralize(x.type));
                         }
                     }
@@ -1752,14 +1762,16 @@ LangUtils.inherits(ODataConventionModelBuilder, ODataModelBuilder);
             return Q.resolve();
         }
         return Q.promise(function(resolve, reject) {
+
             /**
-             * @type {DataConfiguration|*}
+             * @type {*|DataConfigurationStrategy}
              */
-            var configuration = self.getConfiguration();
-            if (typeof configuration.getModelPath === 'function') {
+            var dataConfiguration = self.getConfiguration().getStrategy(DataConfigurationStrategy);
+            var schemaLoader = self.getConfiguration().getStrategy(SchemaLoaderStrategy);
+            if (schemaLoader instanceof DefaultSchemaLoaderStrategy) {
                 var nativeFsModule = 'fs';
                 var fs = require(nativeFsModule);
-                var modelPath = configuration.getModelPath();
+                var modelPath = schemaLoader.getModelPath();
                 if (_.isNil(modelPath)) {
                     self[initializeProperty] = true;
                     return resolve();
@@ -1784,7 +1796,7 @@ LangUtils.inherits(ODataConventionModelBuilder, ODataModelBuilder);
                             var x = self[entityContainerProperty][i];
                             //get model
                             var entityTypeName = x.entityType.name;
-                            var definition = self.getConfiguration().model(x.entityType.name);
+                            var definition = dataConfiguration.model(x.entityType.name);
                             if (definition && definition.hidden) {
                                 self.removeEntitySet(x.name);
                                 if (!definition.abstract) {

@@ -1,6 +1,0 @@
-<div server-app="server">
-    <div hello-text="Hello World!"></div>
-    <span server-if="message">
-        {{=message}}
-    </span>
-</div>

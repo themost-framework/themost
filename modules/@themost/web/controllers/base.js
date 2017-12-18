@@ -7,7 +7,7 @@
  * found in the LICENSE file at https://themost.io/license
  */
 var LangUtils = require('@themost/common/utils').LangUtils;
-var HttpController = require('../http-mvc').HttpController;
+var HttpController = require('../mvc').HttpController;
 /**
  * @classdesc HttpBaseController class describes a base controller.
  * @class

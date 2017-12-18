@@ -7,7 +7,7 @@
  * found in the LICENSE file at https://themost.io/license
  */
 var _ = require('lodash');
-var HttpViewContext = require('../http-mvc').HttpViewContext;
+var HttpViewContext = require('../mvc').HttpViewContext;
 var HttpNotFoundError = require('@themost/common/errors').HttpNotFoundError;
 var parseBoolean = require('@themost/common/utils').LangUtils.parseBoolean;
 var ejs = require('ejs');
@@ -120,14 +120,16 @@ EjsEngine.prototype.render = function(filename, data, callback) {
                         var layout;
                         if (/^\//.test(properties.layout)) {
                             //relative to application folder e.g. /views/shared/master.html.ejs
-                            layout = self.context.getApplication().mapPath(properties.layout);
+                            layout = self.context.getApplication().mapExecutionPath(properties.layout);
                         }
                         else {
                             //relative to view file path e.g. ./../master.html.html.ejs
                             layout = path.resolve(filename, properties.layout);
                         }
                         //set current view buffer (after rendering)
-                        viewContext.body = ejs.render(str, viewContext);
+                        var body = ejs.render(str, {
+                            model: model
+                        });
                         //render master layout
                         fs.readFile(layout,'utf-8', function(err, layoutData) {
                             try {
@@ -138,7 +140,8 @@ EjsEngine.prototype.render = function(filename, data, callback) {
                                     return callback(err);
                                 }
                                 var result = ejs.render(layoutData, {
-                                    model: model
+                                    model: model,
+                                    body: body
                                 });
                                 return callback(null, result);
                             }
@@ -177,5 +180,11 @@ EjsEngine.createInstance = function(context) {
 
 if (typeof exports !== 'undefined') {
     module.exports.EjsEngine = EjsEngine;
-    module.exports.createInstance = EjsEngine.prototype.createInstance;
+    /**
+     * @param  {HttpContext=} context
+     * @returns {EjsEngine}
+     */
+    module.exports.createInstance = function(context) {
+        return EjsEngine.createInstance(context);
+    };
 }

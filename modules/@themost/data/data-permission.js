@@ -11,6 +11,7 @@ var qry = require('@themost/query');
 var async = require('async');
 var AccessDeniedError = require("@themost/common/errors").AccessDeniedError;
 var RandomUtils = require("@themost/common/utils").RandomUtils;
+var DataConfigurationStrategy = require("./data-configuration").DataConfigurationStrategy;
 var _ = require("lodash");
 var cache = require('./data-cache');
 
@@ -100,59 +101,61 @@ function DataPermissionEventListener() {
 }
 /**
  * Occurs before creating or updating a data object.
- * @param {DataEventArgs} e - An object that represents the event arguments passed to this operation.
+ * @param {DataEventArgs} event - An object that represents the event arguments passed to this operation.
  * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
  */
-DataPermissionEventListener.prototype.beforeSave = function(e, callback)
+DataPermissionEventListener.prototype.beforeSave = function(event, callback)
 {
-    DataPermissionEventListener.prototype.validate(e, callback);
+    DataPermissionEventListener.prototype.validate(event, callback);
 };
 /**
  * Occurs before removing a data object.
- * @param {DataEventArgs} e - An object that represents the event arguments passed to this operation.
+ * @param {DataEventArgs} event - An object that represents the event arguments passed to this operation.
  * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
  * @returns {DataEventListener}
  */
-DataPermissionEventListener.prototype.beforeRemove = function(e, callback)
+DataPermissionEventListener.prototype.beforeRemove = function(event, callback)
 {
-    DataPermissionEventListener.prototype.validate(e, callback);
+    DataPermissionEventListener.prototype.validate(event, callback);
 };
 /**
  * Validates permissions against the event arguments provided.
- * @param {DataEventArgs} e - An object that represents the event arguments passed to this operation.
+ * @param {DataEventArgs} event - An object that represents the event arguments passed to this operation.
  * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
  */
-DataPermissionEventListener.prototype.validate = function(e, callback) {
-    var model = e.model,
-        context = e.model.context,
-        requestMask = 1,
-        workspace = 1;
+DataPermissionEventListener.prototype.validate = function(event, callback) {
+    var model = event.model;
+    /**
+     * @type {DataContext|*}
+     */
+    var context = event.model.context;
+    var requestMask = 1;
+    var workspace = 1;
     //ensure silent operation
-    if (e.model && e.model.$silent) {
-        callback();
-        return;
+    if (event.model && event.model.$silent) {
+        return callback();
     }
-    if (e.state === 0)
+    if (event.state === 0)
         requestMask = PermissionMask.Read;
-    else if (e.state === 1)
+    else if (event.state === 1)
         requestMask = PermissionMask.Create;
-    else if (e.state === 2)
+    else if (event.state === 2)
         requestMask = PermissionMask.Update;
-    else if (e.state === 4)
+    else if (event.state === 4)
         requestMask = PermissionMask.Delete;
-    else if (e.state === 16)
+    else if (event.state === 16)
         requestMask = PermissionMask.Execute;
     else {
         callback(new Error('Target object has an invalid state.'));
         return;
     }
     //validate throwError
-    if (typeof e.throwError === 'undefined')
-        e.throwError = true;
+    if (typeof event.throwError === 'undefined')
+        event.throwError = true;
     context.user = context.user || { name:'anonymous',authenticationType:'None' };
     //change: 2-May 2015
     //description: Use unattended execution account as an escape permission check account
-    var authSettings = context.getConfiguration().getAuthSettings();
+    var authSettings = context.getConfiguration().getStrategy(DataConfigurationStrategy).getAuthSettings();
     if (authSettings)
     {
         var unattendedExecutionAccount=authSettings.unattendedExecutionAccount;
@@ -160,7 +163,7 @@ DataPermissionEventListener.prototype.validate = function(e, callback) {
             || unattendedExecutionAccount != null)
             && (unattendedExecutionAccount===context.user.name))
         {
-            e.result = true;
+            event.result = true;
             callback();
             return;
         }
@@ -185,7 +188,7 @@ DataPermissionEventListener.prototype.validate = function(e, callback) {
         //get all enabled privileges
         var privileges = model.privileges.filter(function(x) { return !x.disabled && ((x.mask & requestMask) === requestMask) });
         if (privileges.length===0) {
-            if (e.throwError) {
+            if (event.throwError) {
                 //if the target model has privileges but it has no privileges with the requested mask
                 if (permEnabled) {
                     //throw error
@@ -200,14 +203,14 @@ DataPermissionEventListener.prototype.validate = function(e, callback) {
             }
             else {
                 //set result to false (or true if model has no privileges at all)
-                e.result = !permEnabled;
+                event.result = !permEnabled;
                 //and exit
                 callback(null);
             }
         }
         else {
             var cancel = false;
-            e.result = false;
+            event.result = false;
             //enumerate privileges
             async.eachSeries(privileges, function(item, cb) {
                 if (cancel) {
@@ -221,13 +224,13 @@ DataPermissionEventListener.prototype.validate = function(e, callback) {
                         if (item.account==='*') {
                             //get permission and exit
                             cancel=true;
-                            e.result = true;
+                            event.result = true;
                             return cb();
                         }
                         else if (item.hasOwnProperty("account")) {
                             if (accounts.findIndex(function(x) { return x.name === item.account })>=0) {
                                 cancel=true;
-                                e.result = true;
+                                event.result = true;
                                 return cb();
                             }
                         }
@@ -245,7 +248,7 @@ DataPermissionEventListener.prototype.validate = function(e, callback) {
                             else {
                                 if (count>=1) {
                                     cancel=true;
-                                    e.result = true;
+                                    event.result = true;
                                 }
                                 cb(null);
                             }
@@ -260,7 +263,7 @@ DataPermissionEventListener.prototype.validate = function(e, callback) {
                     if (requestMask===PermissionMask.Create) {
                         permissions.where('privilege').equal(mapping.childModel).
                             and('parentPrivilege').equal(mapping.parentModel).
-                            and('target').equal(e.target[mapping.childField]).
+                            and('target').equal(event.target[mapping.childField]).
                             and('workspace').equal(workspace).
                             and('account').in(accounts.map(function(x) { return x.id; })).
                             and('mask').bit(requestMask).silent().count(function(err, count) {
@@ -270,7 +273,7 @@ DataPermissionEventListener.prototype.validate = function(e, callback) {
                                 else {
                                     if (count>=1) {
                                         cancel=true;
-                                        e.result = true;
+                                        event.result = true;
                                     }
                                     cb(null);
                                 }
@@ -278,7 +281,7 @@ DataPermissionEventListener.prototype.validate = function(e, callback) {
                     }
                     else {
                         //get original value
-                        model.where(model.primaryKey).equal(e.target[model.primaryKey]).select(mapping.childField).first(function(err, result) {
+                        model.where(model.primaryKey).equal(event.target[model.primaryKey]).select(mapping.childField).first(function(err, result) {
                             if (err) {
                                 cb(err);
                             }
@@ -295,7 +298,7 @@ DataPermissionEventListener.prototype.validate = function(e, callback) {
                                         else {
                                             if (count>=1) {
                                                 cancel=true;
-                                                e.result = true;
+                                                event.result = true;
                                             }
                                             cb(null);
                                         }
@@ -315,7 +318,7 @@ DataPermissionEventListener.prototype.validate = function(e, callback) {
                     }
                     permissions.where('privilege').equal(model.name).
                         and('parentPrivilege').equal(null).
-                        and('target').equal(e.target[model.primaryKey]).
+                        and('target').equal(event.target[model.primaryKey]).
                         and('workspace').equal(workspace).
                         and('account').in(accounts.map(function(x) { return x.id; })).
                         and('mask').bit(requestMask).silent().count(function(err, count) {
@@ -325,7 +328,7 @@ DataPermissionEventListener.prototype.validate = function(e, callback) {
                             else {
                                 if (count>=1) {
                                     cancel=true;
-                                    e.result = true;
+                                    event.result = true;
                                 }
                                 cb(null);
                             }
@@ -336,7 +339,7 @@ DataPermissionEventListener.prototype.validate = function(e, callback) {
                         var query = qry.query(model.viewAdapter);
                         var fields=[], field;
                         //cast target
-                        var name, obj = e.target;
+                        var name, obj = event.target;
                         model.attributes.forEach(function(x) {
                             name = obj.hasOwnProperty(x.property) ? x.property : x.name;
                             if (obj.hasOwnProperty(name))
@@ -349,7 +352,7 @@ DataPermissionEventListener.prototype.validate = function(e, callback) {
                                 }
                                 else if ((mapping.associationType==='association') && (mapping.childModel===model.name)) {
                                     if (typeof obj[name] === 'object') {
-                                        //set associated key value (e.g. primary key value)
+                                        //set associated key value (event.g. primary key value)
                                         field = {};
                                         field[x.name] = { $value: obj[name][mapping.parentField] };
                                         fields.push(field);
@@ -381,7 +384,7 @@ DataPermissionEventListener.prototype.validate = function(e, callback) {
                                     else {
                                         if (result.length===1) {
                                             cancel=true;
-                                            e.result = true;
+                                            event.result = true;
                                         }
                                         cb(null);
                                     }
@@ -397,11 +400,11 @@ DataPermissionEventListener.prototype.validate = function(e, callback) {
                             }
                             else {
                                 //prepare query and append primary key expression
-                                q.where(model.primaryKey).equal(e.target[model.primaryKey]).silent().count(function(err, count) {
+                                q.where(model.primaryKey).equal(event.target[model.primaryKey]).silent().count(function(err, count) {
                                     if (err) { cb(err); return; }
                                     if (count>=1) {
                                         cancel=true;
-                                        e.result = true;
+                                        event.result = true;
                                     }
                                     cb(null);
                                 })
@@ -419,7 +422,7 @@ DataPermissionEventListener.prototype.validate = function(e, callback) {
                     callback(err);
                 }
                 else {
-                    if (e.throwError && !e.result) {
+                    if (event.throwError && !event.result) {
                         var error = new AccessDeniedError();
                         error.model = model.name;
                         callback(error);
@@ -553,25 +556,33 @@ function effectiveAccounts(context, callback) {
 
 /**
  * Occurs before executing a data operation.
- * @param {DataEventArgs} e - An object that represents the event arguments passed to this operation.
+ * @param {DataEventArgs} event - An object that represents the event arguments passed to this operation.
  * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
  */
-DataPermissionEventListener.prototype.beforeExecute = function(e, callback)
+DataPermissionEventListener.prototype.beforeExecute = function(event, callback)
 {
-    if (_.isNil(e.model)) {
+    if (_.isNil(event.model)) {
         return callback();
     }
     //ensure silent query operation
-    if (e.emitter && e.emitter.$silent) {
+    if (event.emitter && event.emitter.$silent) {
         callback();
         return;
     }
-    var model= e.model, context = e.model.context, requestMask = 1, workspace = 1, privilege = model.name, parentPrivilege=null;
-    //get privilege from event arguments if it's defined (e.g. the operation requests execute permission User.ChangePassword where
+    var model = event.model;
+    /**
+     * @type {DataContext|*}
+     */
+    var context = event.model.context;
+    var requestMask = 1;
+    var workspace = 1;
+    var privilege = model.name;
+    var parentPrivilege = null;
+    //get privilege from event arguments if it's defined (event.g. the operation requests execute permission User.ChangePassword where
     // privilege=ChangePassword and parentPrivilege=User)
-    if (e.privilege) {
+    if (event.privilege) {
         //event argument is the privilege
-        privilege = e.privilege;
+        privilege = event.privilege;
         //and model is the parent privilege
         parentPrivilege = model.name;
     }
@@ -581,22 +592,22 @@ DataPermissionEventListener.prototype.beforeExecute = function(e, callback)
         return;
     }
     //infer permission mask
-    if (typeof e.mask !== 'undefined') {
-        requestMask = e.mask;
+    if (typeof event.mask !== 'undefined') {
+        requestMask = event.mask;
     }
     else {
-        if (e.query) {
+        if (event.query) {
             //infer mask from query type
-            if (e.query.$select)
+            if (event.query.$select)
             //read permissions
                 requestMask=1;
-            else if (e.query.$insert)
+            else if (event.query.$insert)
             //create permissions
                 requestMask=2;
-            else if (e.query.$update)
+            else if (event.query.$update)
             //update permissions
                 requestMask=4;
-            else if (e.query.$delete)
+            else if (event.query.$delete)
             //delete permissions
                 requestMask=8;
         }
@@ -605,7 +616,7 @@ DataPermissionEventListener.prototype.beforeExecute = function(e, callback)
     context.user = context.user || { name:'anonymous',authenticationType:'None' };
     //change: 2-May 2015
     //description: Use unattended execution account as an escape permission check account
-    var authSettings = context.getConfiguration().getAuthSettings();
+    var authSettings = context.getConfiguration().getStrategy(DataConfigurationStrategy).getAuthSettings();
     if (authSettings)
     {
         var unattendedExecutionAccount=authSettings.unattendedExecutionAccount;
@@ -617,7 +628,7 @@ DataPermissionEventListener.prototype.beforeExecute = function(e, callback)
             return;
         }
     }
-    if (e.query) {
+    if (event.query) {
 
         //get user key
         var users = context.model('User'), permissions = context.model('Permission');
@@ -768,9 +779,9 @@ DataPermissionEventListener.prototype.beforeExecute = function(e, callback)
                 }
                 if (!assigned) {
                     //prepare no access query
-                    e.query.prepare();
+                    event.query.prepare();
                     //add no record parameter
-                    e.query.where(e.model.fieldOf(e.model.primaryKey)).equal(null).prepare();
+                    event.query.where(event.model.fieldOf(event.model.primaryKey)).equal(null).prepare();
                     return callback();
                 }
                 else if (expr) {
@@ -785,7 +796,7 @@ DataPermissionEventListener.prototype.beforeExecute = function(e, callback)
                         }
                         q.join(perms1).with(expr);
                         var pqAlias = 'pq' + RandomUtils.randomInt(100000,999999).toString();
-                        e.query.join(q.as(pqAlias)).with(qry.where(entity.select(model.primaryKey)).equal(qry.entity(pqAlias).select(model.primaryKey)));
+                        event.query.join(q.as(pqAlias)).with(qry.where(entity.select(model.primaryKey)).equal(qry.entity(pqAlias).select(model.primaryKey)));
                         return callback();
                     });
                 }

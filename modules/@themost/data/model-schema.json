@@ -62,13 +62,17 @@
             "type": "string",
             "description":"A string which represents a literal unique identifier for this attribute e.g. https://example.com/models/attributes/name"
           },
+          "description": {
+            "type": "string",
+            "description":"A string which represents a short description of this attribute"
+          },
           "name": {
             "type": "string",
             "description":"A string which represents the name of this attribute e.g. title, description, dateCreated etc"
           },
           "title": {
             "type": "string",
-            "description":"A string which represents a short description for this attribute"
+            "description":"A string which represents a title for this attribute e.g. Date Created etc"
           },
           "type": {
             "type": "string",

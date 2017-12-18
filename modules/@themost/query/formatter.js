@@ -8,7 +8,7 @@
  * Released under the BSD3-Clause license
  * Date: 2014-07-16
  */
-var sqlEscape = require('./sql-utils').escape;
+var SqlUtils = require('./utils').SqlUtils;
 var sprintf = require('sprintf').sprintf;
 var _ = require('lodash');
 var query = require('./query');
@@ -131,13 +131,13 @@ SqlFormatter.prototype.isComparison = function(obj) {
 SqlFormatter.prototype.escape = function(value,unquoted)
 {
     if (_.isNil(value))
-        return sqlEscape(null);
+        return SqlUtils.escape(null);
 
     if (typeof value === 'object')
     {
         //add an exception for Date object
         if (value instanceof Date)
-            return sqlEscape(value);
+            return SqlUtils.escape(value);
         if (value.hasOwnProperty('$name'))
             return this.escapeName(value.$name);
         else {
@@ -157,7 +157,7 @@ SqlFormatter.prototype.escape = function(value,unquoted)
     if (unquoted)
         return value.valueOf();
     else
-        return sqlEscape(value);
+        return SqlUtils.escape(value);
 };
 
 /**

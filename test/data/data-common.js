@@ -6,29 +6,21 @@ var _path = require('path');
 
 var path = _interopRequireDefault(_path).default;
 
-var _config = require('../../modules/@themost/common/config');
+var _chai = require('chai');
 
-var ConfigurationBase = _config.ConfigurationBase;
+var assert = _chai.assert;
 
-var _config2 = require('../../modules/@themost/data/config');
+var _dataConfiguration = require('../../modules/@themost/data/data-configuration');
 
-var DataConfigurationStrategy = _config2.DataConfigurationStrategy;
+var DataConfiguration = _dataConfiguration.DataConfiguration;
 
-var _context = require('../../modules/@themost/data/context');
+var _dataContext = require('../../modules/@themost/data/data-context');
 
-var DefaultDataContext = _context.DefaultDataContext;
+var DefaultDataContext = _dataContext.DefaultDataContext;
 
 var _utils = require('../../modules/@themost/common/utils');
 
 var TraceUtils = _utils.TraceUtils;
-
-var _mostXml = require('most-xml');
-
-var XDocument = _mostXml.XDocument;
-
-var _lodash = require('lodash');
-
-var _ = _interopRequireDefault(_lodash).default;
 
 var _xmlFormatter = require('xml-formatter');
 
@@ -38,6 +30,10 @@ var _odata = require('../../modules/@themost/data/odata');
 
 var ODataConventionModelBuilder = _odata.ODataConventionModelBuilder;
 var ODataModelBuilder = _odata.ODataModelBuilder;
+
+var _randoms = require('./randoms');
+
+var Randoms = _interopRequireDefault(_randoms).default;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -68,15 +64,114 @@ var TestDataContext = function (_DefaultDataContext) {
 }(DefaultDataContext);
 
 describe('most data common tests', function () {
-    var config = new ConfigurationBase(path.resolve(process.cwd(), "./test/app/config"));
-    config.useStrategy(DataConfigurationStrategy, DataConfigurationStrategy);
+    var config = new DataConfiguration(path.resolve(process.cwd(), "./test/app/config"));
     it('should use query resolver', function (done) {
         //initialize
-        var context = new TestDataContext(config.getStrategy(DataConfigurationStrategy));
+        var context = new TestDataContext(config);
         context.model('User').where('name').equal('victoria.hartley@example.com').expand('groups').getTypedItem().then(function (user) {
-            TraceUtils.log(user);
+            TraceUtils.log(JSON.stringify(user, null, 2));
             context.finalize(function () {
                 return done();
+            });
+        }).catch(function (err) {
+            context.finalize(function () {
+                return done(err);
+            });
+        });
+    });
+
+    it('should infer a many-to-many association', function (done) {
+        //initialize
+        var context = new TestDataContext(config);
+        var field = context.model('Person').field('children');
+        TraceUtils.log("DataField");
+        TraceUtils.log(JSON.stringify(field, null, 2));
+        var mapping = context.model('Person').inferMapping('children');
+        TraceUtils.log("DataAssociationMapping");
+        TraceUtils.log(JSON.stringify(mapping, null, 2));
+        assert.equal(mapping.associationType, 'junction');
+        return done();
+    });
+
+    it('should infer a one-to-many association', function (done) {
+        //initialize
+        var context = new TestDataContext(config);
+        var field = context.model('PaymentMethod').field('orders');
+        TraceUtils.log("DataField");
+        TraceUtils.log(JSON.stringify(field, null, 2));
+        var mapping = context.model('PaymentMethod').inferMapping('orders');
+        TraceUtils.log("DataAssociationMapping");
+        TraceUtils.log(JSON.stringify(mapping, null, 2));
+        assert.equal(mapping.associationType, 'association');
+        return done();
+    });
+
+    it('should infer a many-to-one association', function (done) {
+        //initialize
+        var context = new TestDataContext(config);
+        var field = context.model('Order').field('paymentMethod');
+        TraceUtils.log("DataField");
+        TraceUtils.log(JSON.stringify(field, null, 2));
+        var mapping = context.model('Order').inferMapping('paymentMethod');
+        TraceUtils.log("DataAssociationMapping");
+        TraceUtils.log(JSON.stringify(mapping, null, 2));
+        assert.equal(mapping.associationType, 'association');
+        return done();
+    });
+
+    it('should infer a one-to-one association', function (done) {
+        //initialize
+        var context = new TestDataContext(config);
+        var field = context.model('Person').field('spouse');
+        TraceUtils.log("DataField");
+        TraceUtils.log(JSON.stringify(field, null, 2));
+        var mapping = context.model('Person').inferMapping('spouse');
+        TraceUtils.log("DataAssociationMapping");
+        TraceUtils.log(JSON.stringify(mapping, null, 2));
+        assert.equal(mapping.associationType, 'association');
+        return done();
+    });
+
+    it('should infer a many-to-many association #2', function (done) {
+        //initialize
+        var context = new TestDataContext(config);
+        var field = context.model('Person').field('children');
+        TraceUtils.log("DataField");
+        TraceUtils.log(JSON.stringify(field, null, 2));
+        var mapping = context.model('Person').inferMapping('children');
+        TraceUtils.log("DataAssociationMapping");
+        TraceUtils.log(JSON.stringify(mapping, null, 2));
+        assert.equal(mapping.associationType, 'junction');
+        return done();
+    });
+
+    it('should use infer a many-to-many mapping', function (done) {
+        //initialize
+        var context = new TestDataContext(config);
+        var mapping = context.model('Person').inferMapping('children');
+        TraceUtils.log(JSON.stringify(mapping, null, 2));
+        assert.equal(mapping.associationType, 'junction');
+        return done();
+    });
+
+    it('should use DataModel.save() and DataModel.remove() methods', function (done) {
+        //initialize
+        var context = new TestDataContext(config);
+        var newPerson = Randoms.person();
+        TraceUtils.log("New Person Data");
+        TraceUtils.log(JSON.stringify(newPerson, null, 2));
+        context.model('Person').silent().save(newPerson).then(function () {
+            var id = newPerson.id;
+            assert.isNumber(id, "Object identifier must be a number");
+            TraceUtils.log(JSON.stringify(newPerson, null, 2));
+            return context.model('Person').silent().remove(newPerson).then(function () {
+                //try to find person again
+                return context.model('Person').silent().where('id').equal(id).count().then(function (exists) {
+                    assert.equal(exists, 0, 'The object must have been deleted');
+                    context.finalize(function () {
+                        return done();
+                    });
+                });
             });
         }).catch(function (err) {
             context.finalize(function () {
@@ -93,7 +188,7 @@ describe('most data common tests', function () {
         var builder = config.getStrategy(ODataModelBuilder);
         builder.addEntity("User");
         builder.getEdm().then(function (edm) {
-            console.log(JSON.stringify(edm, null, 4));
+            TraceUtils.log(JSON.stringify(edm, null, 4));
             return done();
         }).catch(function (err) {
             return done(err);
@@ -109,7 +204,7 @@ describe('most data common tests', function () {
 
         builder.initialize().then(function () {
             return builder.getEdmDocument().then(function (doc) {
-                console.log(format(doc.outerXML()));
+                TraceUtils.log(format(doc.outerXML()));
                 return done();
             });
         }).catch(function (err) {

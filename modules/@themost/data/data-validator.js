@@ -9,6 +9,7 @@
 var _ = require('lodash');
 var sprintf = require('sprintf');
 var LangUtils = require('@themost/common/utils').LangUtils;
+var DataConfigurationStrategy = require('./data-configuration').DataConfigurationStrategy;
 var conf = require('./data-configuration');
 
     var validators = { };
@@ -653,14 +654,22 @@ var conf = require('./data-configuration');
      </code></pre>
      */
     function DataTypeValidator(type) {
-        if (typeof type === 'string')
-            /**
-             * @type {{name:string,properties:*,label:string,supertypes:Array,type:string}|*}
-             */
-            this.dataType = conf.current.dataTypes[type];
-        else
-            this.dataType = type;
         DataTypeValidator.super_.call(this);
+        /**
+         * @property
+         * @name DataTypeValidator#type
+         * @type {*}
+         */
+        Object.defineProperty(this, 'dataType', {
+            get: function() {
+                if (typeof type === 'string') {
+                    return this.getContext().getConfiguration().getStrategy(DataConfigurationStrategy).dataTypes[type];
+                }
+                else {
+                    return type;
+                }
+            }
+        });
     }
 
     LangUtils.inherits(DataTypeValidator, DataValidator);

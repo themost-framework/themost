@@ -7,6 +7,7 @@
  * found in the LICENSE file at https://themost.io/license
  */
 var LangUtils = require('@themost/common/utils').LangUtils;
+var DataConfigurationStrategy = require('./data-configuration').DataConfigurationStrategy;
 var QueryField = require('@themost/query/query').QueryField;
 var _ = require('lodash');
 var types = require('./types');
@@ -136,8 +137,11 @@ function DataObjectTag(obj, association) {
                 return baseModel_;
             //get parent context
             var context = self.parent.context;
-            var conf = context.getConfiguration();
-            var definition = conf.getModelDefinition(self.mapping.associationAdapter);
+            /**
+             * @type {DataConfigurationStrategy}
+             */
+            var strategy = context.getConfiguration().getStrategy(DataConfigurationStrategy);
+            var definition = strategy.getModelDefinition(self.mapping.associationAdapter);
             if (_.isNil(definition)) {
                 var parentModel = self.parent.getModel(),
                     refersToType = parentModel.getAttribute(self.mapping.refersTo).type,
@@ -169,7 +173,7 @@ function DataObjectTag(obj, association) {
                         }
                     ]
                 };
-                conf.setModelDefinition(definition);
+                strategy.setModelDefinition(definition);
             }
             baseModel_ = new DataModel(definition);
             baseModel_.context = self.parent.context;

@@ -9,11 +9,11 @@
 var HttpError = require('@themost/common/errors').HttpError;
 var HttpServerError = require('@themost/common/errors').HttpServerError;
 var HttpNotFoundError = require('@themost/common/errors').HttpNotFoundError;
+var Args = require('@themost/common/utils').Args;
 var TraceUtils = require('@themost/common/utils').TraceUtils;
-var RandomUtils = require('@themost/common/utils').RandomUtils;
 var sprintf = require('sprintf').sprintf;
 var _ = require('lodash');
-var mvc = require('./http-mvc');
+var mvc = require('./mvc');
 var LangUtils = require('@themost/common/utils').LangUtils;
 var path = require("path");
 var fs = require("fs");
@@ -25,9 +25,24 @@ var querystring = require('querystring');
 var crypto = require('crypto');
 var Symbol = require('symbol');
 var HttpHandler = require('./types').HttpHandler;
+var AuthStrategy = require('./handlers/auth').AuthStrategy;
+var DefaultAuthStrategy = require('./handlers/auth').DefaultAuthStrategy;
+var EncryptionStrategy = require('./handlers/auth').EncryptionStrategy;
+var DefaultEncryptionStrategy = require('./handlers/auth').DefaultEncryptionStrategy;
+var CacheStrategy = require('./cache').CacheStrategy;
+var DefaulCacheStrategy = require('./cache').DefaulCacheStrategy;
+var LocalizationStrategy = require('./localization').LocalizationStrategy;
+var DefaulLocalizationStrategy = require('./localization').DefaulLocalizationStrategy;
+var HttpConfiguration = require('./config').HttpConfiguration;
+var HttpApplicationService = require('./types').HttpApplicationService;
+var HttpContext = require('./context').HttpContext;
+var StaticHandler = require('./handlers/static').StaticHandler;
+
 var executionPathProperty = Symbol('executionPath');
 var configPathProperty = Symbol('configPath');
+var configProperty = Symbol('config');
 var currentProperty = Symbol('current');
+var servicesProperty = Symbol('services');
 
 /**
  * @classdesc ApplicationOptions class describes the startup options of a MOST Web Framework application.
@@ -52,60 +67,6 @@ var currentProperty = Symbol('current');
  */
 // eslint-disable-next-line no-unused-vars
 function ApplicationOptions() {
-
-}
-
-/**
- * Represents a configuration file that is applicable to an application or service.
- * @constructor
- */
-// eslint-disable-next-line no-unused-vars
-function ApplicationConfig() {
-    /**
-     * Gets an array of data adapters.
-     * @type {Array}
-     */
-    this.adapters = [];
-    /**
-     * Gets an array of HTTP view engines configuration
-     * @type {Array}
-     */
-    this.engines = [];
-    /**
-     *  Gets an array of all registered MIME types
-     * @type {Array}
-     */
-    this.mimes = [];
-    /**
-     * Gets an array of all registered HTTP handlers.
-     * @type {Array}
-     */
-    this.handlers = [];
-    /**
-     * Gets an array of all registered HTTP routes.
-     * @type {Array}
-     */
-    this.routes = [];
-    /**
-     * Gets or sets a collection of data adapter types that are going to be use in data operation
-     * @type {Array}
-     */
-    this.adapterTypes = null;
-    /**
-     * Gets or sets a collection of data types that are going to be use in data operation
-     * @type {Array}
-     */
-    this.dataTypes = null;
-    /**
-     * Gets or sets an object that holds application settings
-     * @type {Array}
-     */
-    this.settings = { };
-    /**
-     * Gets or sets an object that holds application locales
-     * @type {*}
-     */
-    this.locales = { };
 
 }
 
@@ -142,84 +103,83 @@ HttpDataContext.prototype.dataTypes = function (type) {
 };
 
 /**
+ *
+ * @param {HttpApplication} app
+ * @constructor
+ */
+function HttpContextProvider(app) {
+    HttpContextProvider.super_.bind(this)(app);
+}
+LangUtils.inherits(HttpContextProvider,HttpApplicationService);
+/**
+ * @returns {HttpContext}
+ */
+HttpContextProvider.prototype.createInstance = function(req,res) {
+    return new HttpContext(req,res);
+};
+/**
  * @class
  * @constructor
  * @param {string=} executionPath
  * @augments SequentialEventEmitter
+ * @augments IApplication
  */
 function HttpApplication(executionPath) {
-    /**
-     * sets the current execution path
-     */
-    this[executionPathProperty] = _.isNil(executionPath) ? path.join(process.cwd(), 'app') : path.join(executionPath, 'app');
-    /**
-     * Gets the current application configuration path
-     * @type {*}
-     */
-    this[configPathProperty] = _.isNil(executionPath) ? path.join(process.cwd(), 'config') : path.join(executionPath, 'config');
-    /**
-     * Gets or sets application configuration settings
-     * @type {ApplicationConfig}
-     */
-    this.config = null;
+
+    //Sets the current execution path
+    this[executionPathProperty] = _.isNil(executionPath) ? path.join(process.cwd()) : path.resolve(executionPath);
+    //Gets the current application configuration path
+    this[configPathProperty] = _.isNil(executionPath) ? path.join(process.cwd(), 'config') : path.resolve(executionPath, 'config');
+    //initialize services
+    this[servicesProperty] = { };
+    //set configuration
+    this[configProperty] = new HttpConfiguration(this[configPathProperty]);
     /**
      * Gets or sets a collection of application handlers
      * @type {Array}
      */
     this.handlers = [];
-
-    //initialize angular server module
-    var ng = require('./angular/module');
-    /**
-     * @type {AngularServerModule}
-     */
-    this.module = null;
-    //init module
-    ng.init(this);
-    //register auth service
     var self = this;
-    self.module.service('$auth', function($context) {
-        //ensure settings
-        self.config.settings.auth = self.config.settings.auth || { };
-        var providerPath = self.config.settings.auth.provider || './auth-service';
-        //get auth provider
-        if (providerPath.indexOf('/')===0)
-            providerPath = self.mapPath(providerPath);
-        var svc = require(providerPath);
-        if (typeof svc.createInstance !== 'function')
-            throw new Error('Invalid authentication provider module.');
-        return svc.createInstance($context);
-    });
-    /**
-     * @type {HttpCache}
-     */
-    var $cache;
-    self.module.service('$cache', function() {
+    //initialize handlers collection
+    var configurationHandlers = this.getConfiguration().handlers;
+    var defaultHandlers = require('./resources/app.json').handlers;
+    for (var i = 0; i < defaultHandlers.length; i++) {
+        (function(item) {
+            if (typeof configurationHandlers.filter(function(x) { return x.name === item.name; })[0] === 'undefined') {
+                configurationHandlers.push(item);
+            }
+        })(defaultHandlers[i]);
+    }
+    _.forEach(configurationHandlers, function (handlerConfiguration) {
         try {
-            return self.cache;
+            var handlerPath = handlerConfiguration.type;
+            if (handlerPath.indexOf('/')===0)
+                handlerPath = self.mapPath(handlerPath);
+            var handlerModule = require(handlerPath), handler = null;
+            if (handlerModule) {
+                if (typeof handlerModule.createInstance !== 'function') {
+                    TraceUtils.log('The specified handler (%s) cannot be instantiated. The module does not export createInstance() function.', handlerConfiguration.name);
+                    return;
+                }
+                handler = handlerModule.createInstance();
+                if (handler)
+                    self.handlers.push(handler);
+            }
         }
-        catch (e) {
-            throw e;
+        catch (err) {
+            throw new Error(sprintf('The specified handler (%s) cannot be loaded. %s', handlerConfiguration.name, err.message));
         }
     });
-
-    Object.defineProperty(self, 'cache', {
-        get: function () {
-            if (!_.isNil($cache))
-                return $cache;
-            var HttpCache = require( "./http-cache" );
-            /**
-             * @type {HttpCache|*}
-             */
-            $cache = new HttpCache();
-            return $cache;
-        },
-        set: function(value) {
-            $cache = value;
-        },
-        configurable: false,
-        enumerable: false
-    });
+    //set default context provider
+    self.useService(HttpContextProvider);
+    //set authentication strategy
+    self.useStrategy(AuthStrategy, DefaultAuthStrategy);
+    //set cache strategy
+    self.useStrategy(CacheStrategy, DefaulCacheStrategy);
+    //set encryption strategy
+    self.useStrategy(EncryptionStrategy, DefaultEncryptionStrategy);
+    //set localization strategy
+    self.useStrategy(LocalizationStrategy, DefaulLocalizationStrategy);
     /**
      * Gets or sets a boolean that indicates whether the application is in development mode
      * @type {string}
@@ -232,12 +192,78 @@ function HttpApplication(executionPath) {
     this.errors = httpApplicationErrors(this);
 
 }
-
 LangUtils.inherits(HttpApplication, SequentialEventEmitter);
+
+/**
+ * @returns {HttpApplication}
+ */
+HttpApplication.getCurrent = function() {
+    if (typeof HttpApplication[currentProperty] === 'object') {
+        return HttpApplication[currentProperty];
+    }
+    HttpApplication[currentProperty] = new HttpApplication();
+    return HttpApplication[currentProperty];
+};
+/**
+ * @returns {HttpConfiguration}
+ */
+HttpApplication.prototype.getConfiguration = function() {
+    return this[configProperty];
+};
+
+/**
+ * @returns {EncryptionStrategy}
+ */
+HttpApplication.prototype.getEncryptionStrategy = function() {
+    return this.getStrategy(EncryptionStrategy);
+};
+
+/**
+ * @returns {AuthStrategy}
+ */
+HttpApplication.prototype.getAuthStrategy = function() {
+    return this.getStrategy(AuthStrategy);
+};
+
+/**
+ * @returns {LocalizationStrategy}
+ */
+HttpApplication.prototype.getLocalizationStrategy = function() {
+    return this.getStrategy(LocalizationStrategy);
+};
+
 
 HttpApplication.prototype.getExecutionPath = function() {
     return this[executionPathProperty];
 };
+
+/**
+ * Resolves the given path
+ * @param {string} arg
+ */
+HttpApplication.prototype.mapExecutionPath = function(arg) {
+    Args.check(_.isString(arg),'Path must be a string');
+    return path.resolve(this.getExecutionPath(), arg);
+};
+
+/**
+ * Sets static content root directory
+ * @param {string} rootDir
+ */
+HttpApplication.prototype.useStaticContent = function(rootDir) {
+    /**
+     * @type {StaticHandler}
+     */
+    var staticHandler = _.find(this.handlers, function(x) {
+       return x.constructor === StaticHandler;
+    });
+    if (typeof staticHandler === 'undefined') {
+        throw new Error('An instance of StaticHandler class cannot be found in application handlers');
+    }
+    staticHandler.rootDir = rootDir;
+    return this;
+};
+
 
 HttpApplication.prototype.getConfigurationPath = function() {
     return this[configPathProperty];
@@ -249,76 +275,6 @@ HttpApplication.prototype.getConfigurationPath = function() {
  */
 HttpApplication.prototype.init = function () {
 
-    /**
-     * Gets or sets application configuration settings
-     */
-        //get node environment
-    var env = process.env['NODE_ENV'] || 'production', str;
-    //first of all try to load environment specific configuration
-    try {
-        TraceUtils.log('Init: Loading environment specific configuration file (app.%s.json)', env);
-        str = path.join(this.getConfigurationPath(), 'app.' + env + '.json');
-        /**
-         * @type {ApplicationConfig}
-         */
-        this.config = require(str);
-        TraceUtils.log('Init: Environment specific configuration file (app.%s.json) was succesfully loaded.', env);
-    }
-    catch (e) {
-        if (e.code === 'MODULE_NOT_FOUND') {
-            TraceUtils.log('Init: Environment specific configuration file (app.%s.json) is missing.', env);
-            //try to load default configuration file
-            try {
-                TraceUtils.log('Init: Loading environment default configuration file (app.json)');
-                str = path.join(this.getConfigurationPath(), 'app.json');
-                /**
-                 * @type {ApplicationConfig}
-                 */
-                this.config = require(str);
-                TraceUtils.log('Init: Default configuration file (app.json) was succesfully loaded.');
-            }
-            catch (e) {
-                if (e.code === 'MODULE_NOT_FOUND') {
-                    TraceUtils.log('Init: An error occured while loading default configuration (app.json). Configuration cannot be found or is inaccesible.');
-                    //load internal configuration file
-                    /**
-                     * @type {ApplicationConfig}
-                     */
-                    this.config = require('./resources/app.json');
-                    this.config.settings.crypto = {
-                        "algorithm": "aes256",
-                        "key": RandomUtils.randomHex(32)
-                    };
-                    TraceUtils.log('Init: Internal configuration file (app.json) was succesfully loaded.');
-                }
-                else {
-                    TraceUtils.log('Init: An error occured while loading default configuration (app.json)');
-                    throw e;
-                }
-            }
-        }
-        else {
-            TraceUtils.log(sprintf('Init: An error occured while loading application specific configuration (app).', env));
-            throw e;
-        }
-    }
-    //load routes (if empty)
-    if (_.isNil(this.config.routes)) {
-        try {
-            this.config.routes = require(path.resolve(this.getConfigurationPath(),'routes.json'));
-        }
-        catch(e) {
-            if (e.code === 'MODULE_NOT_FOUND') {
-                //load internal default route file
-                TraceUtils.log('Init: Application specific routes configuration cannot be found. The default routes configuration will be loaded instead.');
-                this.config.routes = require('./resources/routes.json');
-            }
-            else {
-                TraceUtils.log('Init: An error occured while trying to load application routes configuration.');
-                throw e;
-            }
-        }
-    }
     //load data types (if empty)
     if (_.isNil(this.config.dataTypes))
     {
@@ -331,47 +287,8 @@ HttpApplication.prototype.init = function () {
             throw e;
         }
     }
-
-    //set settings default
-    this.config.settings = this.config.settings || {};
-
-    //initialize handlers list
-    //important note: Applications handlers are static classes (they will be initialized once),
-    //so they should not hold information about http context and execution lifecycle.
-    var self = this;
-
-    var handlers = self.config.handlers || [], defaultApplicationConfig = require('./resources/app.json');
-    //default handlers
-    var defaultHandlers = defaultApplicationConfig.handlers;
-    for (var i = 0; i < defaultHandlers.length; i++) {
-        (function(item) {
-            if (typeof handlers.filter(function(x) { return x.name === item.name; })[0] === 'undefined') {
-                handlers.push(item);
-            }
-        })(defaultHandlers[i]);
-    }
-    _.forEach(handlers, function (h) {
-        try {
-            var handlerPath = h.type;
-            if (handlerPath.indexOf('/')===0)
-                handlerPath = self.mapPath(handlerPath);
-            var handlerModule = require(handlerPath), handler = null;
-            if (handlerModule) {
-                if (typeof handlerModule.createInstance !== 'function') {
-                    TraceUtils.log('The specified handler (%s) cannot be instantiated. The module does not export createInstance() function.', h.name);
-                    return;
-                }
-                handler = handlerModule.createInstance();
-                if (handler)
-                    self.handlers.push(handler);
-            }
-        }
-        catch (err) {
-            throw new Error(sprintf('The specified handler (%s) cannot be loaded. %s', h.name, err.message));
-        }
-    });
     //initialize basic directives collection
-    var directives = require("./angular/angular-server-directives");
+    var directives = require("./angular/directives");
     directives.apply(this);
     return this;
 };
@@ -462,97 +379,11 @@ HttpApplication.prototype.resolveMime = function (request) {
     else {
         return;
     }
-    return _.find(this.config.mimes, function(x) {
+    return _.find(this.getConfiguration().mimes, function(x) {
         return (x.extension === extensionName);
     });
 };
 
-/**
- * Encrypts the given data
- * */
-HttpApplication.prototype.encrypt = function (data)
-{
-    if (typeof data === 'undefined' || data===null)
-        return null;
-    //validate settings
-    if (!this.config.settings.crypto)
-        throw new Error('Data encryption configuration section is missing. The operation cannot be completed');
-    if (!this.config.settings.crypto.algorithm)
-        throw new Error('Data encryption algorithm is missing. The operation cannot be completed');
-    if (!this.config.settings.crypto.key)
-        throw new Error('Data encryption key is missing. The operation cannot be completed');
-    //encrypt
-    var cipher = crypto.createCipher(this.config.settings.crypto.algorithm, this.config.settings.crypto.key);
-    return cipher.update(data, 'utf8', 'hex') + cipher.final('hex');
-};
-
-/**
- * Decrypts the given data.
- * */
-HttpApplication.prototype.decrypt = function (data)
-{
-    if (typeof data === 'undefined' || data==null)
-        return null;
-    //validate settings
-    if (!this.config.settings.crypto)
-        throw new Error('Data encryption configuration section is missing. The operation cannot be completed');
-    if (!this.config.settings.crypto.algorithm)
-        throw new Error('Data encryption algorithm is missing. The operation cannot be completed');
-    if (!this.config.settings.crypto.key)
-        throw new Error('Data encryption key is missing. The operation cannot be completed');
-    //decrypt
-    var decipher = crypto.createDecipher(this.config.settings.crypto.algorithm, this.config.settings.crypto.key);
-    return decipher.update(data, 'hex', 'utf8') + decipher.final('utf8');
-};
-/**
- * Sets the authentication cookie that is associated with the given user.
- * @param {HttpContext} context
- * @param {String} username
- * @param {*=} options
- */
-HttpApplication.prototype.setAuthCookie = function (context, username, options)
-{
-    var defaultOptions = { user:username, dateCreated:new Date()}, value, expires;
-    if (typeof options !== 'undefined' && options != null) {
-        value = JSON.stringify(_.assign(options, defaultOptions));
-        if (_.isDate(options.expires)) {
-            expires = options.expires.toUTCString();
-        }
-    }
-    else {
-        value = JSON.stringify(defaultOptions);
-    }
-    var settings = this.config.settings ? (this.config.settings.auth || { }) : { } ;
-    settings.name = settings.name || '.MAUTH';
-    var str = settings.name.concat('=', this.encrypt(value)) + ';path=/';
-    if (typeof expires === 'string') {
-        str +=';expires=' + expires;
-    }
-    context.response.setHeader('Set-Cookie',str);
-};
-
-// noinspection JSUnusedGlobalSymbols
-/**
- * Sets the authentication cookie that is associated with the given user.
- * @param {HttpContext} context
- */
-HttpApplication.prototype.getAuthCookie = function (context)
-{
-    try {
-        var settings = this.config.settings ? (this.config.settings.auth || { }) : { } ;
-        settings.name = settings.name || '.MAUTH';
-        var cookie = context.cookie(settings.name);
-        if (cookie) {
-            return this.decrypt(cookie);
-        }
-        return null;
-    }
-    catch(err) {
-        TraceUtils.error('GetAuthCookie failed.');
-        TraceUtils.error(err.message);
-        return null;
-    }
-};
 
 
 /**
@@ -684,28 +515,11 @@ HttpApplication.prototype.db = function () {
     }
 };
 
-HttpApplication.prototype.setContextProvider = function(provider) {
-    if (typeof provider === 'undefined' || provider === null) {
-        throw new TypeError('Context provider may not be null.');
-    }
-    if (typeof provider.createInstance !== 'function') {
-        throw new TypeError('Context provider does not implement createInstance() method.');
-    }
-    this.module.service('contextProvider', function() {
-        return provider;
-    });
-};
-
+/**
+ * @returns {HttpContextProvider}
+ */
 HttpApplication.prototype.getContextProvider = function() {
-    var contextProviderSvc = this.module.service('contextProvider');
-    if (typeof contextProviderSvc !== 'function') {
-        var httpContext = require('./http-context');
-        this.module.service('contextProvider', function() {
-            return httpContext;
-        });
-        return httpContext;
-    }
-    return contextProviderSvc();
+    return this.getService(HttpContextProvider);
 };
 
 
@@ -721,13 +535,12 @@ HttpApplication.prototype.createContext = function (request, response) {
     context.application = this;
     //set handler events
     for (var i = 0; i < HttpHandler.Events.length; i++) {
-        var ev = HttpHandler.Events[i];
+        var eventName = HttpHandler.Events[i];
         for (var j = 0; j < this.handlers.length; j++) {
             var handler = this.handlers[j];
-            if (typeof handler[ev] === 'function') {
-                context.on(ev, handler[ev]);
+            if (typeof handler[eventName] === 'function') {
+                context.on(eventName, handler[eventName].bind(handler));
             }
-
         }
     }
     return context;
@@ -792,11 +605,7 @@ HttpApplication.prototype.unattended = function (fn) {
     //create context
     var request = createRequestInternal.call(this), context =  this.createContext(request, createResponseInternal.call(this,request));
     //get unattended account
-    /**
-     * @type {{unattendedExecutionAccount:string}|*}
-     */
-    this.config.settings.auth = this.config.settings.auth || {};
-    var account = this.config.settings.auth.unattendedExecutionAccount;
+    var account = this.getAuthStrategy().getUnattendedExecutionAccount();
     //set unattended execution account
     if (typeof account !== 'undefined' || account!==null) {
         context.user = { name: account, authenticationType: 'Basic'};
@@ -1288,74 +1097,6 @@ HttpApplication.prototype.start = function (options, callback) {
         startInternal.bind(this)(options, callback);
     }
 };
-/**
- * @param {string|Function} name
- * @param {function=} ctor - The class constructor associated with this controller
- * @returns {HttpApplication|function()}
- */
-HttpApplication.prototype.service = function(name, ctor) {
-    if (typeof name !== 'function' && typeof name !== 'string') {
-        throw new TypeError('Service name must be a string or function.')
-    }
-    var serviceName= (typeof name === 'function') ?  name.name : name;
-    if (typeof ctor === 'undefined') {
-        return this.module.service(serviceName);
-    }
-    this.module.service(serviceName, ctor);
-    return this;
-};
-
-/**
- * @param {string} name
- * @param {function} ctor - The class constructor associated with this controller
- * @returns {HttpApplication|function()}
- */
-HttpApplication.prototype.directive = function(name, ctor) {
-    this.module.directive(name, ctor);
-    return this;
-};
-
-/**
- * Get or sets an HTTP controller
- * @param {string} name
- * @param {Function|*} ctor
- * @returns {*}
- */
-HttpApplication.prototype.controller = function(name, ctor) {
-    this.config.controllers = this.config.controllers || {};
-    var er;
-    if (typeof ctor === 'undefined') {
-        var c = this.config.controllers[name];
-        if (typeof c === 'string') {
-            return require(c);
-        }
-        else if (typeof c === 'function') {
-            return c;
-        }
-        else {
-            er =  new Error('Invalid HTTP Controller constructor. Expected string or function.'); er.code='EARG';
-            throw er;
-        }
-    }
-    //if ctor is not a function (constructor) throw invalid argument exception
-    if (typeof ctor !== 'function') {
-        er =  new Error('Invalid HTTP Controller constructor. Expected function.'); er.code='EARG';
-        throw er;
-    }
-    //append controller to application controller (or override an already existing controller)
-    this.config.controllers[name] = ctor;
-    return this;
-};
-/**
- * @returns {HttpApplication}
- */
-HttpApplication.getCurrent = function() {
-  if (typeof HttpApplication[currentProperty] === 'object') {
-      return HttpApplication[currentProperty];
-  }
-  HttpApplication[currentProperty] = new HttpApplication();
-  return HttpApplication[currentProperty];
-};
 
 /**
  * Registers HttpApplication as express framework middleware
@@ -1393,6 +1134,66 @@ HttpApplication.prototype.runtime = function() {
             }
         });
     };
+};
+/**
+ * Registers an application strategy e.g. an singleton service which to be used in application contextr
+ * @param {Function} serviceCtor
+ * @param {Function} strategyCtor
+ * @returns HttpApplication
+ */
+HttpApplication.prototype.useStrategy = function(serviceCtor, strategyCtor) {
+    Args.notFunction(strategyCtor,"Service constructor");
+    Args.notFunction(strategyCtor,"Strategy constructor");
+    this[servicesProperty][serviceCtor.name] = new strategyCtor(this);
+    return this;
+};
+/**
+ * Register a service type in application services
+ * @param {Function} serviceCtor
+ * @returns HttpApplication
+ */
+HttpApplication.prototype.useService = function(serviceCtor) {
+    Args.notFunction(serviceCtor,"Service constructor");
+    this[servicesProperty][serviceCtor.name] = new serviceCtor(this);
+    return this;
+};
+
+/**
+ * @param {Function} serviceCtor
+ * @returns {boolean}
+ */
+HttpApplication.prototype.hasStrategy = function(serviceCtor) {
+    Args.notFunction(serviceCtor,"Service constructor");
+    return this[servicesProperty].hasOwnProperty(serviceCtor.name);
+};
+
+/**
+ * @param {Function} serviceCtor
+ * @returns {boolean}
+ */
+HttpApplication.prototype.hasService = function(serviceCtor) {
+    Args.notFunction(serviceCtor,"Service constructor");
+    return this[servicesProperty].hasOwnProperty(serviceCtor.name);
+};
+
+/**
+ * Gets an application strategy based on the given base service type
+ * @param {Function} serviceCtor
+ * @return {*}
+ */
+HttpApplication.prototype.getStrategy = function(serviceCtor) {
+    Args.notFunction(serviceCtor,"Service constructor");
+    return this[servicesProperty][serviceCtor.name];
+};
+
+/**
+ * Gets an application service based on the given base service type
+ * @param {Function} serviceCtor
+ * @return {*}
+ */
+HttpApplication.prototype.getService = function(serviceCtor) {
+    Args.notFunction(serviceCtor,"Service constructor");
+    return this[servicesProperty][serviceCtor.name];
 };
 
 /**

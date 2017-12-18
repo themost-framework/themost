@@ -10,6 +10,7 @@ var _ = require("lodash");
 var TraceUtils = require('@themost/common/utils').TraceUtils;
 var LangUtils = require('@themost/common/utils').LangUtils;
 var DataContext = require('./types').DataContext;
+var DataConfigurationStrategy = require('./data-configuration').DataConfigurationStrategy;
 var cfg = require('./data-configuration');
 /**
  * @classdesc Represents the default data context of MOST Data Applications.
@@ -61,7 +62,8 @@ function DefaultDataContext()
             return db_;
         var er;
         //otherwise load database options from configuration
-        var adapter = _.find(self.getConfiguration().adapters, function(x) {
+        var strategy = self.getConfiguration().getStrategy(DataConfigurationStrategy);
+        var adapter = _.find(strategy.adapters, function(x) {
             return x["default"];
         });
         if (_.isNil(adapter)) {
@@ -69,9 +71,9 @@ function DefaultDataContext()
             throw er;
         }
         /**
-         * @type {{createInstance:Function}|*}
+         * @type {*}
          */
-        var adapterType = self.getConfiguration().adapterTypes[adapter.invariantName];
+        var adapterType = strategy.adapterTypes[adapter.invariantName];
         //validate data adapter type
         if (_.isNil(adapterType)) {
             er = new Error('Invalid adapter type.'); er.code = 'EADAPTER';
@@ -107,7 +109,7 @@ LangUtils.inherits(DefaultDataContext, DataContext);
 
 /**
  * Gets an instance of DataConfiguration class which is associated with this data context
- * @returns {DataConfiguration}
+ * @returns {DataConfiguration|*}
  */
 DefaultDataContext.prototype.getConfiguration = function() {
     return cfg.current;
@@ -122,7 +124,7 @@ DefaultDataContext.prototype.model = function(name) {
     var self = this;
     if ((name === null) || (name === undefined))
         return null;
-    var obj = self.getConfiguration().model(name);
+    var obj = self.getConfiguration().getStrategy(DataConfigurationStrategy).model(name);
     if (_.isNil(obj))
         return null;
     var DataModel = require('./data-model').DataModel,
@@ -179,8 +181,9 @@ function NamedDataContext(name)
     self.getDb = function() {
         if (db_)
             return db_;
+        var strategy = self.getConfiguration().getStrategy(DataConfigurationStrategy);
         //otherwise load database options from configuration
-        var adapter = self.getConfiguration().adapters.find(function(x) {
+        var adapter = strategy.adapters.find(function(x) {
             return x.name === name_;
         });
         var er;
@@ -189,7 +192,7 @@ function NamedDataContext(name)
             throw er;
         }
         //get data adapter type
-        var adapterType = self.getConfiguration().adapterTypes[adapter.invariantName];
+        var adapterType = strategy.adapterTypes[adapter.invariantName];
         //validate data adapter type
         if (_.isNil(adapterType)) {
             er = new Error('Invalid adapter type.'); er.code = 'EADAPTER';
@@ -240,7 +243,7 @@ NamedDataContext.prototype.model = function(name) {
     var self = this;
     if ((name === null) || (name === undefined))
         return null;
-    var obj = self.getConfiguration().model(name);
+    var obj = self.getConfiguration().getStrategy(DataConfigurationStrategy).model(name);
     if (_.isNil(obj))
         return null;
     var DataModel = require('./data-model').DataModel;

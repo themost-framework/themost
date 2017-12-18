@@ -829,6 +829,34 @@ function timestamp() {
 }
 
 /**
+ * @this TraceLogger
+ * @param level
+ * @param err
+ */
+function writeError(level, err) {
+
+    var keys = _.filter(_.keys(err), function(x) {
+        return err.hasOwnProperty(x) && x!=='message' && typeof err[x] !== 'undefined' && err[x] != null;
+    });
+    if (err instanceof Error) {
+        if (err.hasOwnProperty('stack')) {
+            this.write(level, err.stack);
+        }
+        else {
+            this.write(level, err.toString());
+        }
+    }
+    else {
+        this.write(level, err.toString());
+    }
+    if (keys.length>0) {
+        this.write(level, "Error: " + _.map(keys, function(x) {
+            return "[" + x + "]=" + err[x].toString()
+        }).join(', '));
+    }
+}
+
+/**
  * @class
  * @param {*} options
  * @constructor
@@ -865,6 +893,15 @@ TraceLogger.prototype.level = function(level) {
 // eslint-disable-next-line no-unused-vars
 TraceLogger.prototype.log = function(data) {
     var args = Array.prototype.slice.call(arguments);
+    if (typeof data === 'undefined' || data === null) {
+        return;
+    }
+    if (data instanceof Error) {
+        return writeError.bind(this)("info",data);
+    }
+    if (typeof data !== 'string') {
+        return this.write("info", data.toString());
+    }
     this.write("info", sprintf.apply(null, args));
 };
 /**
@@ -873,6 +910,15 @@ TraceLogger.prototype.log = function(data) {
 // eslint-disable-next-line no-unused-vars
 TraceLogger.prototype.info = function(data) {
     var args = Array.prototype.slice.call(arguments);
+    if (typeof data === 'undefined' || data === null) {
+        return;
+    }
+    if (data instanceof Error) {
+        return writeError.bind(this)("info",data);
+    }
+    if (typeof data !== 'string') {
+        return this.write("info", data.toString());
+    }
     this.write("info", sprintf.apply(null, args));
 };
 /**
@@ -881,6 +927,15 @@ TraceLogger.prototype.info = function(data) {
 // eslint-disable-next-line no-unused-vars
 TraceLogger.prototype.error = function(data) {
     var args = Array.prototype.slice.call(arguments);
+    if (typeof data === 'undefined' || data === null) {
+        return;
+    }
+    if (data instanceof Error) {
+        return writeError.bind(this)("error",data);
+    }
+    if (typeof data !== 'string') {
+        return this.write("error", data.toString());
+    }
     this.write("error", sprintf.apply(null, args));
 };
 /**
@@ -889,6 +944,15 @@ TraceLogger.prototype.error = function(data) {
 // eslint-disable-next-line no-unused-vars
 TraceLogger.prototype.warn = function(data) {
     var args = Array.prototype.slice.call(arguments);
+    if (typeof data === 'undefined' || data === null) {
+        return;
+    }
+    if (data instanceof Error) {
+        return writeError.bind(this)("warn",data);
+    }
+    if (typeof data !== 'string') {
+        return this.write("warn", data.toString());
+    }
     this.write("warn", sprintf.apply(null, args));
 };
 /**
@@ -897,6 +961,15 @@ TraceLogger.prototype.warn = function(data) {
 // eslint-disable-next-line no-unused-vars
 TraceLogger.prototype.verbose = function(data) {
     var args = Array.prototype.slice.call(arguments);
+    if (typeof data === 'undefined' || data === null) {
+        return;
+    }
+    if (data instanceof Error) {
+        return writeError.bind(this)("verbose",data);
+    }
+    if (typeof data !== 'string') {
+        return this.write("verbose", data.toString());
+    }
     this.write("verbose", sprintf.apply(null, args));
 };
 /**
@@ -905,6 +978,15 @@ TraceLogger.prototype.verbose = function(data) {
 // eslint-disable-next-line no-unused-vars
 TraceLogger.prototype.debug = function(data) {
     var args = Array.prototype.slice.call(arguments);
+    if (typeof data === 'undefined' || data === null) {
+        return;
+    }
+    if (data instanceof Error) {
+        return writeError.bind(this)("debug",data);
+    }
+    if (typeof data !== 'string') {
+        return this.write("debug", data.toString());
+    }
     this.write("debug", sprintf.apply(null, args));
 };
 

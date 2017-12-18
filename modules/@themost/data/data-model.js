@@ -9,10 +9,14 @@
 
 var _ = require("lodash");
 var sprintf = require('sprintf').sprintf;
+var Symbol = require('symbol');
 var path = require("path");
+var pluralize = require("pluralize");
 var async = require('async');
 var qry = require('@themost/query');
+var OpenDataParser = require('@themost/query/odata').OpenDataParser;
 var types = require('./types');
+var parseBoolean = require('./types').parsers.parseBoolean;
 var DataAssociationMapping = require('./types').DataAssociationMapping;
 var dataListeners = require('./data-listeners');
 var validators = require('./data-validator');
@@ -29,8 +33,13 @@ var SequentialEventEmitter = require("@themost/common/emitter").SequentialEventE
 var LangUtils = require("@themost/common/utils").LangUtils;
 var TraceUtils = require("@themost/common/utils").TraceUtils;
 var DataError = require("@themost/common/errors").DataError;
+var DataConfigurationStrategy = require('./data-configuration').DataConfigurationStrategy;
+var ModelClassLoaderStrategy = require('./data-configuration').ModelClassLoaderStrategy;
+
+var mappingsProperty = Symbol('mappings');
 
 /**
+ * @this DataModel
  * @param {DataField} field
  * @private
  */
@@ -49,7 +58,7 @@ function inferTagMapping_(field) {
     }
     //check if the type of the given field is a primitive data type
     //(a data type that is defined in the collection of data types)
-    var conf = self.context.getConfiguration(), dataType = conf.dataTypes[field.type];
+    var dataType = self.context.getConfiguration().getStrategy(DataConfigurationStrategy).dataTypes[field.type];
     if (_.isNil(dataType)) {
         return;
     }
@@ -219,9 +228,7 @@ function EmptyQueryExpression() {
  * @property {DataModelPrivilege[]} privileges - Gets or sets the array of privileges which are defined for this model
  * @property {string} source - Gets or sets a string which represents the source database object for this model.
  * @property {string} view - Gets or sets a string which represents the view database object for this model.
- * @property {DataContext|*} - Gets or sets the data context of this model.
- * @property {DataField[]} attributes - Gets an array of DataField objects which represents the collection of model fields (including fields which are inherited from the base model).
- * @property {Array} seed - An array of objects which represents a collection of items to be seeded when the model is being generated for the first time
+  * @property {Array} seed - An array of objects which represents a collection of items to be seeded when the model is being generated for the first time
  * @constructor
  * @augments SequentialEventEmitter
  * @param {*=} obj An object instance that holds data model attributes. This parameter is optional.
@@ -253,6 +260,13 @@ function DataModel(obj) {
      */
     var context_ = null;
     var self = this;
+
+    /**
+     * @property
+     * @name DataModel#context
+     * @type {DataContext|*}
+     */
+
     Object.defineProperty(this, 'context', { get: function() {
         return context_;
     }, set: function(value) {
@@ -292,19 +306,14 @@ function DataModel(obj) {
      * @type {Array}
      */
     var attributes;
-    /**
-     * @private
-     */
-    this._clearAttributes = function() {
-        attributes = null;
-    };
 
     /**
-     * Gets an array of objects that represents the collection of fields for this model.
-     * This collection contains the fields defined in the current model and its parent.
-     * @type {Array}
-     *
+     * @property
+     * @description Gets an array of DataField objects which represents the collection of model fields (including fields which are inherited from the base model).
+     * @name DataModel#attributes
+     * @type {Array.<DataField>}
      */
+
     Object.defineProperty(this, 'attributes', { get: function() {
         //validate self field collection
         if (typeof attributes !== 'undefined' && attributes !== null)
@@ -314,9 +323,10 @@ function DataModel(obj) {
         //get base model (if any)
         var baseModel = self.base(), field;
         //enumerate fields
+        var strategy = self.context.getConfiguration().getStrategy(DataConfigurationStrategy);
         self.fields.forEach(function(x) {
             if (typeof x.many === 'undefined') {
-                if (typeof self.context.getConfiguration().dataTypes[x.type] === 'undefined')
+                if (typeof strategy.dataTypes[x.type] === 'undefined')
                     //set one-to-many attribute (based on a naming convention)
                     x.many = pluralExpression.test(x.name) || (x.mapping && x.mapping.associationType === 'junction');
                 else
@@ -336,7 +346,7 @@ function DataModel(obj) {
                     clone = { };
                     //get all inherited properties
                     _.assign(clone, field);
-                    //get all overriden properties
+                    //get all overridden properties
                     _.assign(clone, x);
                     //set field model
                     clone.model = field.model;
@@ -372,7 +382,7 @@ function DataModel(obj) {
 
     this.getPrimaryKey = function() {
         if (typeof primaryKey_ !== 'undefined') { return primaryKey_; }
-        var p = self.fields.find(function(x) { return x.primary==true; });
+        var p = self.fields.find(function(x) { return x.primary===true; });
         if (p) {
             primaryKey_ = p.name;
             return primaryKey_;
@@ -422,10 +432,17 @@ function DataModel(obj) {
 LangUtils.inherits(DataModel, SequentialEventEmitter);
 
 /**
+ * Gets a boolean which indicates whether data model is in silent mode or not
+ */
+DataModel.prototype.isSilent = function() {
+    return this.$silent;
+};
+
+/**
  * @returns {Function}
  */
 DataModel.prototype.getDataObjectType = function() {
-    return getDataObjectClass_.bind(this)();
+    return this.context.getConfiguration().getStrategy(ModelClassLoaderStrategy).resolve(this);
 };
 
 /**
@@ -447,6 +464,7 @@ DataModel.prototype.clone = function(context) {
     return result;
 };
 /**
+ * @this DataModel
  * @private
  */
  function registerListeners_() {
@@ -486,11 +504,11 @@ DataModel.prototype.clone = function(context) {
     this.on('before.save', CalculatedValueListener.prototype.beforeSave);
 
     //register before execute caching
-    if (this.caching=='always' || this.caching=='conditional') {
+    if (this.caching==='always' || this.caching==='conditional') {
         this.on('before.execute', DataCachingListener.prototype.beforeExecute);
     }
     //register after execute caching
-    if (this.caching=='always' || this.caching=='conditional') {
+    if (this.caching==='always' || this.caching==='conditional') {
         this.on('after.execute', DataCachingListener.prototype.afterExecute);
     }
 
@@ -596,14 +614,14 @@ DataModel.prototype.asQueryable = function() {
 
 /**
  * @private
- * @memberOf DataModel
+ * @this DataModel
  * @param {*} params
  * @param {Function} callback
  * @returns {*}
  */
 function filterInternal(params, callback) {
     var self = this;
-    var parser = qry.openData.createParser(), $joinExpressions = [], view;
+    var parser = OpenDataParser.create(), $joinExpressions = [], view;
     if (typeof params !== 'undefined' && params !== null && typeof params.$select === 'string') {
         //split select
         var arr = params.$select.split(',');
@@ -875,9 +893,10 @@ DataModel.prototype.find = function(obj) {
  * @param {...string} attr - An array of fields, a field or a view name
  * @returns {DataQueryable}
  */
+// eslint-disable-next-line no-unused-vars
 DataModel.prototype.select = function(attr) {
     var result = new DataQueryable(this);
-    return result.select.apply(result, arguments);
+    return result.select.apply(result, Array.prototype.slice.call(arguments));
 };
 
 /**
@@ -947,7 +966,7 @@ DataModel.prototype.getList = function() {
 */
 DataModel.prototype.first = function(callback) {
     var result = new DataQueryable(this);
-    return result.select(this.attributeNames).first(callback);
+    return result.select.apply(result,this.attributeNames).first(callback);
 };
 
 /**
@@ -979,7 +998,7 @@ DataModel.prototype.get = function(key, callback) {
  */
 DataModel.prototype.last = function(callback) {
     var result = new DataQueryable(this);
-    return result.orderByDescending(this.primaryKey).select(this.attributeNames).first(callback);
+    return result.orderByDescending(this.primaryKey).select.apply(result,this.attributeNames).first(callback);
 };
 
 /**
@@ -988,7 +1007,7 @@ DataModel.prototype.last = function(callback) {
 */
 DataModel.prototype.all = function(callback) {
     var result = new DataQueryable(this);
-    return result.select(this.attributeNames).all(callback);
+    return result.select.apply(result, this.attributeNames).all(callback);
 };
 
 /**
@@ -1045,13 +1064,14 @@ DataModel.prototype.min = function(attr, callback) {
  */
 DataModel.prototype.base = function()
 {
-    if (typeof this.inherits === 'undefined' || this.inherits === null)
+    if (_.isNil(this.inherits))
         return null;
     if (typeof this.context === 'undefined' || this.context === null)
         throw new Error("The underlying data context cannot be empty.");
     return this.context.model(this.inherits);
 };
 /**
+ * @this DataModel
  * @private
  * @param {*} obj
  */
@@ -1104,6 +1124,7 @@ function dasherize(data) {
 }
 
 /**
+ * @this DataModel
  * @returns {*}
  * @constructor
  * @private
@@ -1133,7 +1154,7 @@ function getDataObjectClass_() {
                     }
                     catch(e) {
                         if (e.code === 'MODULE_NOT_FOUND') {
-                            if (typeof self.inherits === 'undefined' || self.inherits === null) {
+                            if (_.isNil(self.inherits)) {
                                 //if , finally, we are unable to find class file, load default DataObject class
                                 DataObjectClass = require('./data-object').DataObject;
                             }
@@ -1152,7 +1173,12 @@ function getDataObjectClass_() {
             }
         }
         //cache DataObject class property
-        self.context.getConfiguration().models[self.name]['DataObjectClass'] = self['DataObjectClass'] = DataObjectClass;
+        /**
+         * @type {DataConfigurationStrategy}
+         */
+        var strategy = self.context.getConfiguration().getStrategy(DataConfigurationStrategy);
+        var modelDefinition = strategy.getModelDefinition(self.name);
+        modelDefinition['DataObjectClass'] = self['DataObjectClass'] = DataObjectClass;
     }
     return DataObjectClass;
 }
@@ -1299,6 +1325,7 @@ DataModel.prototype.cast = function(obj, state)
    return cast_.call(this, obj, state);
 };
 /**
+ * @this DataModel
  * @param {*} obj
  * @param {number=} state
  * @returns {*}
@@ -1322,16 +1349,16 @@ function cast_(obj, state) {
         self.attributes.filter(function(x) {
             if (x.model!==self.name) { return false; }
             return (!x.readonly) ||
-                (x.readonly && (typeof x.calculation!=='undefined') && state==2) ||
-                (x.readonly && (typeof x.value!=='undefined') && state==1) ||
-                (x.readonly && (typeof x.calculation!=='undefined') && state==1);
+                (x.readonly && (typeof x.calculation!=='undefined') && state===2) ||
+                (x.readonly && (typeof x.value!=='undefined') && state===1) ||
+                (x.readonly && (typeof x.calculation!=='undefined') && state===1);
         }).filter(function(y) {
             /*
             change: 2016-02-27
             author:k.barbounakis@gmail.com
             description:exclude non editable attributes on update operation
              */
-            return (y.state==2) ? (y.hasOwnProperty("editable") ? y.editable : true) : true;
+            return (y.state===2) ? (y.hasOwnProperty("editable") ? y.editable : true) : true;
         }).forEach(function(x) {
             name = obj.hasOwnProperty(x.property) ? x.property : x.name;
             if (obj.hasOwnProperty(name))
@@ -1355,6 +1382,7 @@ function cast_(obj, state) {
 
 
 /**
+ * @this DataModel
  * @param {*} obj
  * @param {number=} state
  * @returns {*}
@@ -1498,14 +1526,14 @@ DataModel.prototype.new = function(obj)
 };
 
 /**
- *
+ * @this DataModel
  * @param {*|Array} obj
  * @param {Function} callback
  * @private
  */
 function save_(obj, callback) {
     var self = this;
-    if (typeof obj=='undefined' || obj === null) {
+    if (_.isNil(obj)) {
         callback.call(self, null);
         return;
     }
@@ -1578,7 +1606,7 @@ DataModel.prototype.save = function(obj, callback)
 /**
  * Infers the state of the given object.
  * @param {DataObject|*} obj - The source object
- * @param {function(Error=,DataObjectState=)} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain the result.
+ * @param {Function} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain the result.
  * @see DataObjectState
  */
 DataModel.prototype.inferState = function(obj, callback) {
@@ -1593,6 +1621,7 @@ DataModel.prototype.inferState = function(obj, callback) {
     });
 };
 /**
+ * @this DataModel
  * @param {*} obj
  * @param {Function} callback
  * @private
@@ -1620,6 +1649,7 @@ function saveBaseObject_(obj, callback) {
     }
 }
 /**
+ * @this DataModel
  * @param {*} obj
  * @param {Function} callback
  * @private
@@ -1684,7 +1714,7 @@ function saveBaseObject_(obj, callback) {
                 //create insert query
                 var target = self.cast(e.target, e.state);
                 var q = null, key = target[self.primaryKey];
-                if (e.state==1)
+                if (e.state===1)
                     //create insert statement
                     q = qry.insert(target).into(self.sourceAdapter);
                 else
@@ -1719,7 +1749,7 @@ function saveBaseObject_(obj, callback) {
                 else {
                     var pm = e.model.field(self.primaryKey), nextIdentity, adapter = e.model.sourceAdapter;
                     //search if adapter has a nextIdentity function (also primary key must be a counter and state equal to insert)
-                    if (pm.type === 'Counter' && typeof db.nextIdentity === 'function' && e.state==1) {
+                    if (pm.type === 'Counter' && typeof db.nextIdentity === 'function' && e.state===1) {
                         nextIdentity = db.nextIdentity;
                     }
                     else {
@@ -1751,7 +1781,7 @@ function saveBaseObject_(obj, callback) {
                                         callback.call(self, err);
                                     }
                                     else {
-                                        if (pm.type==='Counter' && typeof db.nextIdentity !== 'function' && e.state==1) {
+                                        if (pm.type==='Counter' && typeof db.nextIdentity !== 'function' && e.state===1) {
                                             //if data adapter contains lastIdentity function
                                             var lastIdentity = db.lastIdentity || function(lastCallback) {
                                                     if (_.isNil(result))
@@ -1802,6 +1832,7 @@ DataModel.prototype.getSuperTypes = function() {
 };
 
 /**
+ * @this DataModel
  * @param {*|Array} obj
  * @param {Function} callback
  * @private
@@ -1845,6 +1876,7 @@ DataModel.prototype.update = function(obj, callback)
 };
 
 /**
+ * @this DataModel
  * @param {*|Array} obj
  * @param {Function} callback
  * @private
@@ -1888,7 +1920,7 @@ DataModel.prototype.insert = function(obj, callback)
 };
 
 /**
- *
+ * @this DataModel
  * @param {*|Array} obj
  * @param {Function} callback
  * @private
@@ -1964,6 +1996,7 @@ DataModel.prototype.remove = function(obj, callback)
 };
 
 /**
+ * @this DataModel
  * @param {Object} obj
  * @param {Function} callback
  * @private
@@ -2024,6 +2057,7 @@ DataModel.prototype.remove = function(obj, callback)
 }
 
 /**
+ * @this DataModel
  * @param {*} obj
  * @param {Function} callback
  * @private
@@ -2058,27 +2092,6 @@ function removeBaseObject_(obj, callback) {
  * @private
  */
 DataModel.PluralExpression = /([a-zA-Z]+?)([e']s|[^aiou]s)$/;
-/**
- * Ensures model data adapter.
- * @param callback
- * @private
- */
-DataModel.prototype.ensureModel = function(callback) {
-    var self = this;
-    if (self.name==='Migration') {
-        //do nothing
-        return callback();
-    }
-    //get migration model
-    var migrationModel = self.context.model("migration");
-    //ensure migration
-    var version = _.isString(self.version) ? self.version : '0.0';
-    migrationModel.where('appliesTo').equal(self.sourceAdapter).and('version').equal(version).count(function(err, result) {
-        if (err) { return callback(err); }
-        if (result>0) { return callback(); }
-        self.migrate(callback);
-    });
-};
 
 /**
  * Performing an automatic migration of current data model based on the current model's definition.
@@ -2112,7 +2125,7 @@ DataModel.prototype.migrate = function(callback)
     migration.add = _.map(fields, function(x) {
         return _.assign({ }, x);
     });
-    migration.version = self.version!==null ? self.version : '0.0';
+    migration.version = _.isNil(self.version) ? '0.0' : self.version;
     migration.appliesTo = self.sourceAdapter;
     migration.model = self.name;
     migration.description = sprintf('%s migration (version %s)', this.title, migration.version);
@@ -2294,9 +2307,16 @@ DataModel.prototype.getDataView = function(name) {
 };
 
 
-function inferDefaultMapping_(conf, name) {
-      var self = this,
-          field = self.field(name);
+/**
+ * @this DataModel
+ * @param conf
+ * @param name
+ * @returns {*}
+ * @private
+ */
+function inferDefaultMapping(conf, name) {
+    var self = this;
+    var field = self.field(name);
     //get field model type
     var associatedModel = self.context.model(field.type);
     if ((typeof associatedModel === 'undefined') || (associatedModel === null))
@@ -2315,11 +2335,38 @@ function inferDefaultMapping_(conf, name) {
         }
         return null;
     }
+    var associatedField;
     //in this case we have two possible associations. Junction or Foreign Key association
     //try to find a field that belongs to the associated model and holds the foreign key of this model.
-    var associatedField = associatedModel.attributes.find(function(x) {
-        return x.type === self.name;
+
+    //get all associated model fields with type equal to this model
+    var testFields = _.filter(associatedModel.attributes, function(x) {
+       return x.type === self.name;
     });
+    if (field.many === true) {
+        //if associated model has only one field with type equal to this model
+        if (testFields.length === 1) {
+            //create a regular expression that is going to be used to test
+            // if field name is equal to the pluralized string of associated model name
+            // e.g. orders -> Order
+            var reTestFieldName = new RegExp('^' + pluralize.plural(associatedModel.name)  + '$', 'ig');
+            //create a regular expression to test
+            // if the name of the associated field is equal to this model name
+            // e.g. Person model has a field named user with type User
+            var reTestName = new RegExp('^' + self.name + '$','ig');
+            if (reTestName.test(testFields[0].name) && reTestFieldName.test(field.name)) {
+                //then we have a default one-to-many association
+                associatedField = testFields[0];
+            }
+        }
+    }
+    else {
+        /*
+        associatedField = associatedModel.attributes.find(function (x) {
+            return x.type === self.name;
+        });
+        */
+    }
     if (associatedField)
     {
         if (associatedField.many)
@@ -2350,8 +2397,8 @@ function inferDefaultMapping_(conf, name) {
     }
     else {
 
-        var re = new RegExp(DataModel.PluralExpression.source),
-            many = _.isBoolean(field.many) ? field.many : re.test(field.name);
+        var re = new RegExp(DataModel.PluralExpression.source);
+        var many = _.isBoolean(field.many) ? field.many : re.test(field.name);
         if (many) {
             //return a data junction
             return new DataAssociationMapping({
@@ -2376,6 +2423,7 @@ function inferDefaultMapping_(conf, name) {
     }
 }
 
+
 /**
  * Gets a field association mapping based on field attributes, if any. Otherwise returns null.
  * @param {string} name - The name of the field
@@ -2385,28 +2433,30 @@ DataModel.prototype.inferMapping = function(name) {
 
     var self = this;
     //ensure model cached mappings
-    var conf = self.context.getConfiguration().model(self.name);
+    var conf = self.context.model(self.name);
     if (typeof conf === "undefined" || conf === null) {
         return;
     }
-    if (_.isNil(conf.mappings_)) {
-        conf.mappings_ = { };
+    if (_.isNil(conf[mappingsProperty])) {
+        conf[mappingsProperty] = { };
     }
 
-    if (_.isObject(conf.mappings_[name])) {
-        if (conf.mappings_[name] instanceof DataAssociationMapping)
-            return conf.mappings_[name];
+    if (_.isObject(conf[mappingsProperty][name])) {
+        if (conf[mappingsProperty][name] instanceof DataAssociationMapping)
+            return conf[mappingsProperty][name];
         else
-            return  new DataAssociationMapping(conf.mappings_[name]);
+            return  new DataAssociationMapping(conf[mappingsProperty][name]);
     }
 
-    var field = self.field(name), result;
+    var field = self.field(name);
+    var result;
     if (_.isNil(field))
         return null;
     //get default mapping
-    var defaultMapping = inferDefaultMapping_.bind(this)(conf, name);
+    var defaultMapping = inferDefaultMapping.bind(this)(conf, name);
     if (_.isNil(defaultMapping)) {
-        conf.mappings_[name] = defaultMapping;
+        //set mapping to null
+        conf[mappingsProperty][name] = defaultMapping;
         return defaultMapping;
     }
     //extend default mapping attributes
@@ -2417,9 +2467,9 @@ DataModel.prototype.inferMapping = function(name) {
         // (child or parent model is equal to the current model)
         if ((mapping.childModel===self.name) || (mapping.parentModel===self.name)) {
             //cache mapping
-            conf.mappings_[name] = new DataAssociationMapping(mapping);
+            conf[mappingsProperty][name] = new DataAssociationMapping(mapping);
             //do nothing and return field mapping
-            return conf.mappings_[name];
+            return conf[mappingsProperty][name];
         }
         //get super types
         var superTypes = self.getSuperTypes();
@@ -2443,7 +2493,7 @@ DataModel.prototype.inferMapping = function(name) {
                 throw new DataError("EMAP","An inherited data association cannot be mapped.");
             }
             //cache mapping
-            conf.mappings_[name] = result;
+            conf[mappingsProperty][name] = result;
             //and finally return the newly created DataAssociationMapping object
             return result;
         }
@@ -2465,7 +2515,7 @@ DataModel.prototype.inferMapping = function(name) {
                 throw new DataError("EMAP","An inherited data association cannot be mapped.");
             }
             //cache mapping
-            conf.mappings_[name] = result;
+            conf[mappingsProperty][name] = result;
             //and finally return the newly created DataAssociationMapping object
             return result;
         }
@@ -2473,13 +2523,13 @@ DataModel.prototype.inferMapping = function(name) {
     //in any other case return the association mapping object
     if (mapping instanceof DataAssociationMapping) {
         //cache mapping
-        conf.mappings_[name] = mapping;
+        conf[mappingsProperty][name] = mapping;
         //and return
         return mapping;
     }
     result = _.assign(new DataAssociationMapping(), mapping);
     //cache mapping
-    conf.mappings_[name] = result;
+    conf[mappingsProperty][name] = result;
     //and return
     return result;
 
@@ -2487,7 +2537,7 @@ DataModel.prototype.inferMapping = function(name) {
 
 
 /**
- *
+ * @this DataModel
  * @param {*} obj
  * @param {number} state
  * @param {Function} callback
@@ -2510,15 +2560,15 @@ function validate_(obj, state, callback) {
                 return false;
         }
         return (!x.readonly) ||
-            (x.readonly && (typeof x.calculation!=='undefined') && state==2) ||
-            (x.readonly && (typeof x.value!=='undefined') && state==1) ||
-            (x.readonly && (typeof x.calculation!=='undefined') && state==1);
+            (x.readonly && (typeof x.calculation!=='undefined') && state===2) ||
+            (x.readonly && (typeof x.value!=='undefined') && state===1) ||
+            (x.readonly && (typeof x.calculation!=='undefined') && state===1);
     }).filter(function(y) {
-        return (state==2) ? (y.hasOwnProperty("editable") ? y.editable : true) : true;
+        return (state===2) ? (y.hasOwnProperty("editable") ? y.editable : true) : true;
     });
 
     async.eachSeries(attributes, function(attr, cb) {
-        var validator, validationResult;
+        var validationResult;
         //get value
         var value = objCopy[attr.name];
         //build validators array
@@ -2526,10 +2576,10 @@ function validate_(obj, state, callback) {
         //-- RequiredValidator
         if (attr.hasOwnProperty('nullable') && !attr.nullable)
         {
-            if (state==1 && !attr.primary) {
+            if (state===1 && !attr.primary) {
                 arrValidators.push(new validators.RequiredValidator());
             }
-            else if (state==2 && !attr.primary && objCopy.hasOwnProperty(attr.name)) {
+            else if (state===2 && !attr.primary && objCopy.hasOwnProperty(attr.name)) {
                 arrValidators.push(new validators.RequiredValidator());
             }
         }
@@ -2727,7 +2777,7 @@ DataModel.prototype.getSubTypes = function () {
 };
 /**
  * @param {boolean=} deep
- * @returns {Promise<T>}
+ * @returns {Promise}
  */
 DataModel.prototype.getReferenceMappings = function (deep) {
     var self = this,

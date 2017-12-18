@@ -6,9 +6,9 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-var _mvc = require('./http-mvc');
+var _mvc = require('./mvc');
 var _app = require('./app');
-var _context = require('./http-context');
+var _context = require('./context');
 var _config = require('./config');
 var _types = require('./types');
 var HttpBaseController = require('./controllers/base');

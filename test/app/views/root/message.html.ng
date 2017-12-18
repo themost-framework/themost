@@ -1,0 +1,6 @@
+<div>
+    <div hello-text="Hello World!"></div>
+    <h3 server-if="message">
+        {{=message}}
+    </h3>
+</div>

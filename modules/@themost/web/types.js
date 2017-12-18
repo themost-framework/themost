@@ -13,12 +13,14 @@ var AbstractMethodError = require('@themost/common/errors').AbstractMethodError;
 var AbstractClassError = require('@themost/common/errors').AbstractClassError;
 var Symbol = require('symbol');
 var applicationProperty = Symbol('application');
+var IApplicationService = require('@themost/common/app').IApplicationService;
 
 /**
  * @abstract
  * @class
  * @constructor
  * @param {HttpApplication} app
+ * @augments IApplicationService
  */
 function HttpApplicationService(app) {
     if (this.constructor === HttpApplicationService.prototype.constructor) {
@@ -27,7 +29,7 @@ function HttpApplicationService(app) {
     Args.notNull(app, 'HTTP Application');
     this[applicationProperty] = app;
 }
-
+LangUtils.inherits(HttpApplicationService,IApplicationService);
 /**
  * @returns {HttpApplication}
  */
