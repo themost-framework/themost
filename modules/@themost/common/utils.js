@@ -902,7 +902,10 @@ TraceLogger.prototype.log = function(data) {
     if (typeof data !== 'string') {
         return this.write("info", data.toString());
     }
-    this.write("info", sprintf.apply(null, args));
+    if (args.length>1) {
+        return this.write("info", sprintf.apply(null, args));
+    }
+    this.write("info", data);
 };
 /**
  * @param {...*} data
@@ -919,7 +922,10 @@ TraceLogger.prototype.info = function(data) {
     if (typeof data !== 'string') {
         return this.write("info", data.toString());
     }
-    this.write("info", sprintf.apply(null, args));
+    if (args.length>1) {
+        return this.write("info", sprintf.apply(null, args));
+    }
+    this.write("info", data);
 };
 /**
  * @param {...*} data
@@ -936,7 +942,10 @@ TraceLogger.prototype.error = function(data) {
     if (typeof data !== 'string') {
         return this.write("error", data.toString());
     }
-    this.write("error", sprintf.apply(null, args));
+    if (args.length>1) {
+        return this.write("error", sprintf.apply(null, args));
+    }
+    this.write("error", data);
 };
 /**
  * @param {...*} data
@@ -953,7 +962,10 @@ TraceLogger.prototype.warn = function(data) {
     if (typeof data !== 'string') {
         return this.write("warn", data.toString());
     }
-    this.write("warn", sprintf.apply(null, args));
+    if (args.length>1) {
+        return this.write("warn", sprintf.apply(null, args));
+    }
+    this.write("warn", data);
 };
 /**
  * @param {...*} data
@@ -970,7 +982,10 @@ TraceLogger.prototype.verbose = function(data) {
     if (typeof data !== 'string') {
         return this.write("verbose", data.toString());
     }
-    this.write("verbose", sprintf.apply(null, args));
+    if (args.length>1) {
+        return this.write("verbose", sprintf.apply(null, args));
+    }
+    this.write("verbose", data);
 };
 /**
  * @param {...*} data
@@ -987,7 +1002,11 @@ TraceLogger.prototype.debug = function(data) {
     if (typeof data !== 'string') {
         return this.write("debug", data.toString());
     }
-    this.write("debug", sprintf.apply(null, args));
+    if (args.length>1) {
+        return this.write("debug", sprintf.apply(null, args));
+    }
+    this.write("debug", data);
+
 };
 
 TraceLogger.prototype.write = function(level, text) {
