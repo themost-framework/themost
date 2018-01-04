@@ -46,7 +46,7 @@
         }
     },
     "adapterTypes": [
-        { "name":"SQLite Data Adapter", "invariantName": "sqlite", "type":"most-data-sqlite" }
+        { "name":"SQLite Data Adapter", "invariantName": "sqlite", "type":"@themost/sqlite" }
     ],
     "adapters": [
         {
