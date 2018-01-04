@@ -8,21 +8,30 @@
             <thead>
             <tr>
                 <th>#</th>
-                <th>Customer</th>
-                <th>Item</th>
-                <th>Price</th>
-                <th>Order Date</th>
+                <th><a href="<%=html.getRequestLink().orderBy("customer/familyName")%>">
+                        Customer
+                    </a>
+                    </th>
+                <th><a href="<%=html.getRequestLink().orderBy("orderedItem/name")%>">
+                        Item
+                    </a></th>
+                <th><a href="<%=html.getRequestLink().orderBy("orderedItem/price")%>">
+                        Price
+                    </a></th>
+                <th><a href="<%=html.getRequestLink().orderBy("orderDate")%>">
+                        Order Date
+                    </a></th>
             </tr>
             </thead>
             <tbody>
-            <% model.value.forEach(function(x,k) {
+            <% model.forEach(function(x,k) {
                 %>
             <tr>
                 <th scope="row"><%=(k+1)%></th>
                 <td><%=x.customer.familyName%> <%=x.customer.givenName%></td>
                 <td><%=x.orderedItem.name%></td>
-                <td><%=model.getViewContext().html.numeral(x.orderedItem.price).format("$0,0.00")%></td>
-                <td><%=model.getViewContext().html.moment(x.orderDate).format("LLL") %></td>
+                <td><%=html.numeral(x.orderedItem.price).format("$0,0.00")%></td>
+                <td><%=html.moment(x.orderDate).format("LLL") %></td>
             </tr>
             <%
             }) %>
@@ -32,11 +41,22 @@
                 <td colspan="5">
                     <nav aria-label="Page navigation">
                         <ul class="pagination justify-content-end">
-                            <li class="page-item"><a class="page-link" href="#">Previous</a></li>
-                            <li class="page-item"><a class="page-link" href="#">1</a></li>
-                            <li class="page-item"><a class="page-link" href="#">2</a></li>
-                            <li class="page-item"><a class="page-link" href="#">3</a></li>
-                            <li class="page-item"><a class="page-link" href="#">Next</a></li>
+                            <li class="page-item">
+                                <a class="page-link" href="<%=html.getRequestLink().takePrevious(25)%>">Previous</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="<%=html.getRequestLink().take(25)%>">1</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="<%=html.getRequestLink().take(25).skip(25)%>">2</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="<%=html.getRequestLink().take(25).skip(50)%>">3</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link"href="<%=html.getRequestLink().takeNext(25)%>">
+                                    Next</a>
+                            </li>
                         </ul>
                     </nav>
                 </td>

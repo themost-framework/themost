@@ -8,6 +8,7 @@
  */
 var _ = require('lodash');
 var HttpViewContext = require('../mvc').HttpViewContext;
+var HttpViewHelper = require('../helpers').HtmlViewHelper;
 var HttpNotFoundError = require('@themost/common/errors').HttpNotFoundError;
 var parseBoolean = require('@themost/common/utils').LangUtils.parseBoolean;
 var ejs = require('ejs');
@@ -95,43 +96,17 @@ EjsEngine.prototype.render = function(filename, data, callback) {
                         str = str.replace(matcher,'');
                     }
                     //create view context
-                    var viewContext = new HttpViewContext(self.context);
                     var partial = false;
                     if (self.context && self.context.request.route) {
                         partial = parseBoolean(self.context.request.route[partialProperty]);
                     }
                     var model;
                     if (_.isArray(data)) {
-                        //pass data as [items] property
-                        model = _.assign(properties, {
-                            "value": data
-                        }, {
-                            getContext: function getContext() {
-                                return self.getContext();
-                            },
-                            getViewContext: function getViewContext() {
-                                return viewContext;
-                            }
-                        });
+                        model = _.assign([], properties, data);
                     }
                     else {
-                        model = _.assign(properties, data, {
-                            getContext: function getContext() {
-                                return self.getContext();
-                            },
-                            getViewContext: function getViewContext() {
-                                return viewContext;
-                            }
-                        });
+                        model = _.assign(properties, data);
                     }
-                    //for backward compatibility issues add locals.context property
-                    //this property is going to be deprecated (use locals.getContext() instead)
-                    Object.defineProperty(model, 'context', {
-                        get: function get() {
-                            return self.getContext();
-                        },
-                        enumerable: false, configurable: false
-                    });
                     if (properties.layout && !partial) {
                         var layout;
                         if (/^\//.test(properties.layout)) {
@@ -144,7 +119,8 @@ EjsEngine.prototype.render = function(filename, data, callback) {
                         }
                         //set current view buffer (after rendering)
                         var body = ejs.render(str, {
-                            model: model
+                            model: model,
+                            html:new HttpViewHelper(self.context)
                         });
                         //render master layout
                         fs.readFile(layout,'utf-8', function(err, layoutData) {
@@ -157,6 +133,7 @@ EjsEngine.prototype.render = function(filename, data, callback) {
                                 }
                                 var result = ejs.render(layoutData, {
                                     model: model,
+                                    html:new HttpViewHelper(self.context),
                                     body: body
                                 });
                                 return callback(null, result);
@@ -168,7 +145,8 @@ EjsEngine.prototype.render = function(filename, data, callback) {
                     }
                     else {
                         var result = ejs.render(str, {
-                            model: model
+                            model: model,
+                            html: new HttpViewHelper(self.context)
                         });
                         callback(null, result);
                     }

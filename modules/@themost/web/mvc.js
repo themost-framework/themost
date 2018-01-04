@@ -21,8 +21,6 @@ var fs = require('fs');
 var crypto = require('crypto');
 var Q = require('q');
 var async = require('async');
-var moment = require('moment');
-var numeral = require('numeral');
 
 /**
  * @class
@@ -853,7 +851,6 @@ function HttpViewContext(context) {
         }, configurable:false, enumerable:false
     });
 
-    this.html = new HtmlViewHelper(this);
     //class extension initiators
     if (typeof this.init === 'function') {
         //call init() method
@@ -895,112 +892,6 @@ HttpViewContext.prototype.init = function() {
 HttpViewContext.prototype.translate = function(s, lib) {
     return this.context.translate(s, lib);
 };
-
-/**
- * @param {HttpViewContext} $view
- * @returns {*}
- * @private
- */
-HttpViewContext.HtmlViewHelper = function($view)
-{
-    var doc;
-    return {
-    antiforgery: function() {
-        //create token
-        var context = $view.context,  value = context.getApplication().getEncryptionStrategy().encrypt(JSON.stringify({ id: Math.floor(Math.random() * 1000000), url:context.request.url, date:new Date() }));
-        //try to set cookie
-        context.response.setHeader('Set-Cookie','.CSRF='.concat(value));
-        return $view.writer.writeAttribute('type', 'hidden')
-            .writeAttribute('id', '_CSRFToken')
-            .writeAttribute('name', '_CSRFToken')
-            .writeAttribute('value', value)
-            .writeFullBeginTag('input')
-            .toString();
-    },
-    element: function(obj) {
-        if (typeof doc === 'undefined') { doc = $view.context.application.document(); }
-        return doc.parentWindow.angular.element(obj);
-    },
-    lang: function() {
-        var context = $view.context, c= context.culture();
-        if (typeof c === 'string') {
-            if (c.length>=2) {
-                return c.toLowerCase().substring(0,2);
-            }
-        }
-        //in all cases return default culture
-        return 'en';
-    },
-    moment: function(value) {
-        return moment(value);
-    },
-    numeral: function(value) {
-        return numeral(value);
-    }
-};
-};
-
-/**
- * @class
- * @param {HttpViewContext} view
- * @constructor
- * @property {HttpViewContext} parent - The parent HTTP View Context
- * @property {HTMLDocument|*} document - The in-process HTML Document
- */
-function HtmlViewHelper(view) {
-    var document, self = this;
-    Object.defineProperty(this, 'parent', {
-        get: function() {
-            return view;
-        } , configurable:false, enumerable:false
-    });
-    Object.defineProperty(this, 'document', {
-        get: function() {
-            if (typeof document !== 'undefined') { return document; }
-            document = self.view.context.application.document();
-            return document;
-        } , configurable:false, enumerable:false
-    });
-}
-HtmlViewHelper.prototype.antiforgery = function() {
-    var $view = this.parent;
-    //create token
-    var context = $view.context,  value = context.getApplication().getEncryptionStrategy().encrypt(JSON.stringify({ id: Math.floor(Math.random() * 1000000), url:context.request.url, date:new Date() }));
-    //try to set cookie
-    context.response.setHeader('Set-Cookie','.CSRF='.concat(value));
-    return $view.writer.writeAttribute('type', 'hidden')
-        .writeAttribute('id', '_CSRFToken')
-        .writeAttribute('name', '_CSRFToken')
-        .writeAttribute('value', value)
-        .writeFullBeginTag('input')
-        .toString();
-};
-
-HtmlViewHelper.prototype.element = function(obj) {
-    return this.document.parentWindow.angular.element(obj);
-};
-
-HtmlViewHelper.prototype.lang = function() {
-    var $view = this.parent;
-    var context = $view.context, c= context.culture();
-    if (typeof c === 'string') {
-        if (c.length>=2) {
-            return c.toLowerCase().substring(0,2);
-        }
-    }
-    //in all cases return default culture
-    return 'en';
-};
-
-HtmlViewHelper.prototype.moment = function(value) {
-    return moment(value);
-};
-
-HtmlViewHelper.prototype.numeral = function(value) {
-    return numeral(value);
-};
-
-
 
 if (typeof exports !== 'undefined')
 {

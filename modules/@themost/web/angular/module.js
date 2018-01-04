@@ -171,7 +171,7 @@ AngularServerModule.prototype.controller = function(name, ctor) {
 
 /**
  * Create an HTML document
- * @param {string} s A string which represents the HTML markup of the document
+ * @param {string=} s A string which represents the HTML markup of the document
  * @returns {HTMLDocument}
  */
 AngularServerModule.prototype.createDocument = function(s) {
