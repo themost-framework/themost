@@ -39,7 +39,6 @@
     "body-parser": "~1.10.1",
     "domino": "1.0.18",
     "dtsmake": "0.0.10",
-    "ejs": "0.8.5",
     "eslint": "^4.12.1",
     "esprima": "~2.1.0",
     "formidable": "1.0.14",
