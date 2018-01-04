@@ -7,7 +7,6 @@
  * found in the LICENSE file at https://themost.io/license
  */
 var _ = require('lodash');
-var HttpViewContext = require('../mvc').HttpViewContext;
 var HttpViewHelper = require('../helpers').HtmlViewHelper;
 var HttpNotFoundError = require('@themost/common/errors').HttpNotFoundError;
 var parseBoolean = require('@themost/common/utils').LangUtils.parseBoolean;
