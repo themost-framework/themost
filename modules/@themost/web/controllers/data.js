@@ -656,7 +656,7 @@ HttpDataController.prototype.index = function(callback)
             }
             catch(err) {
                 TraceUtils.log(err);
-                var er = new HttpError(422, "An error occured while converting data objects.", err.message);
+                var er = new HttpError(422, "An error occurred while converting data objects.", err.message);
                 er.code = 'EDATA';
                 return callback(er);
             }
