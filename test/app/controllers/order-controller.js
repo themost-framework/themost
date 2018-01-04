@@ -9,14 +9,14 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
-var _dec, _dec2, _dec3, _class, _desc, _value, _class2; /**
-                                                         * @license
-                                                         * MOST Web Framework 2.0 Codename Blueshift
-                                                         * Copyright (c) 2017, THEMOST LP All rights reserved
-                                                         *
-                                                         * Use of this source code is governed by an BSD-3-Clause license that can be
-                                                         * found in the LICENSE file at https://themost.io/license
-                                                         */
+var _dec, _dec2, _dec3, _dec4, _dec5, _class, _desc, _value, _class2; /**
+                                                                       * @license
+                                                                       * MOST Web Framework 2.0 Codename Blueshift
+                                                                       * Copyright (c) 2017, THEMOST LP All rights reserved
+                                                                       *
+                                                                       * Use of this source code is governed by an BSD-3-Clause license that can be
+                                                                       * found in the LICENSE file at https://themost.io/license
+                                                                       */
 
 
 var _q = require('q');
@@ -44,10 +44,6 @@ var url = _interopRequireDefault(_url).default;
 var _utils = require('../../../modules/@themost/common/utils');
 
 var LangUtils = _utils.LangUtils;
-
-var _common = require('../../../modules/@themost/common');
-
-var TraceUtils = _common.TraceUtils;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -86,7 +82,7 @@ function _applyDecoratedDescriptor(target, property, decorators, descriptor, con
     return desc;
 }
 
-var OrderController = (_dec = httpController(), _dec2 = httpGet(), _dec3 = httpAction('index'), _dec(_class = (_class2 = function (_HttpDataController) {
+var OrderController = (_dec = httpController(), _dec2 = httpGet(), _dec3 = httpAction('index'), _dec4 = httpGet(), _dec5 = httpAction('edit'), _dec(_class = (_class2 = function (_HttpDataController) {
     _inherits(OrderController, _HttpDataController);
 
     function OrderController(context) {
@@ -146,10 +142,15 @@ var OrderController = (_dec = httpController(), _dec2 = httpGet(), _dec3 = httpA
         value: function getItems() {
             return Q.nbind(_get(OrderController.prototype.__proto__ || Object.getPrototypeOf(OrderController.prototype), 'index', this), this)();
         }
+    }, {
+        key: 'getEdit',
+        value: function getEdit(id) {
+            return this.model.where('id').equal(id).getItem();
+        }
     }]);
 
     return OrderController;
-}(HttpDataController), (_applyDecoratedDescriptor(_class2.prototype, 'getItems', [_dec2, _dec3], Object.getOwnPropertyDescriptor(_class2.prototype, 'getItems'), _class2.prototype)), _class2)) || _class);
+}(HttpDataController), (_applyDecoratedDescriptor(_class2.prototype, 'getItems', [_dec2, _dec3], Object.getOwnPropertyDescriptor(_class2.prototype, 'getItems'), _class2.prototype), _applyDecoratedDescriptor(_class2.prototype, 'getEdit', [_dec4, _dec5], Object.getOwnPropertyDescriptor(_class2.prototype, 'getEdit'), _class2.prototype)), _class2)) || _class);
 exports.default = OrderController;
 module.exports = exports['default'];
 //# sourceMappingURL=order-controller.js.map

@@ -11,8 +11,7 @@ import _ from 'lodash';
 import HttpDataController from '../../../modules/@themost/web/controllers/data';
 import {httpAction, httpGet, httpController} from '../../../modules/@themost/web/decorators';
 import url from 'url';
-import {LangUtils} from '../../../modules/@themost/common/utils'
-import {TraceUtils} from "../../../modules/@themost/common";
+import {LangUtils} from '../../../modules/@themost/common/utils';
 
 @httpController()
 export default class OrderController extends HttpDataController {
@@ -68,6 +67,12 @@ export default class OrderController extends HttpDataController {
     @httpAction('index')
     getItems() {
         return Q.nbind(super.index, this)();
+    }
+
+    @httpGet()
+    @httpAction('edit')
+    getEdit(id) {
+        return this.model.where('id').equal(id).getItem();
     }
 
 }
