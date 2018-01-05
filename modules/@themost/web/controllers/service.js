@@ -716,7 +716,7 @@ defineDecorator(HttpServiceController.prototype, 'getEntityAction', httpAction("
  * @returns {ODataModelBuilder}
  */
 HttpServiceController.prototype.getBuilder = function() {
-    return this.context.getApplication().service(ODataModelBuilder)();
+    return this.context.getApplication().getService(ODataModelBuilder);
 };
 
 if (typeof module !== 'undefined') {

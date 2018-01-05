@@ -47,7 +47,7 @@ function ODataModelBuilderConfiguration() {
 /**
  *
  * @param {HttpApplication} app
- * @returns Promise<ODataModelBuilder>
+ * @returns Promise<ODataModelBuilder|TypeError>
  */
 ODataModelBuilderConfiguration.config = function(app) {
     if (typeof app === 'undefined' || app === null) {
@@ -58,7 +58,7 @@ ODataModelBuilderConfiguration.config = function(app) {
     //initialize builder
     return builder.initialize().then(function() {
         //register service
-        app.service(ODataModelBuilder, function() {
+        app.useStrategy(ODataModelBuilder, function() {
             return builder;
         });
         //return newly created builder for further processing

@@ -10,12 +10,17 @@ var HttpApplication = _index.HttpApplication;
 
 require('source-map-support/register');
 
+var _odata = require('./../../modules/@themost/web/odata');
+
+var ODataModelBuilderConfiguration = _odata.ODataModelBuilderConfiguration;
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /**
- * initialize themost application as middleware
+ * @type {HttpApplication|*}
  */
 var theApp = new HttpApplication("./test/app/");
+ODataModelBuilderConfiguration.config(theApp).then(function () {});
 var app = express();
 //serve static files
 app.use(express.static('./test/app/app'));
