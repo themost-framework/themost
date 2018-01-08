@@ -157,7 +157,7 @@ DefaultLocalizationStrategy.prototype.getLocaleString = function(locale, text, l
         return locLibrary[locale][text];
     }
     catch (err) {
-        if (err.code === 'ENOENT') {
+        if (err.code === 'ENOENT' || err.code === 'MODULE_NOT_FOUND') {
             TraceUtils.error(err);
             return text;
         }

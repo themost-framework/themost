@@ -2635,35 +2635,40 @@ function validate_(obj, state, callback) {
         //do validation
         async.eachSeries(arrValidators, function(validator, cb) {
 
-            //set context
-            if (typeof validator.setContext === 'function') {
-                validator.setContext(self.context);
-            }
-            //set target
-            validator.target = obj;
-            if (typeof validator.validateSync === 'function') {
-                validationResult = validator.validateSync(value);
-                if (validationResult) {
-                    return cb(new DataError(validationResult.code || "EVALIDATE",validationResult.message, validationResult.innerMessage, self.name, attr.name));
+            try {
+                //set context
+                if (typeof validator.setContext === 'function') {
+                    validator.setContext(self.context);
                 }
-                else {
-                    return cb();
-                }
-            }
-            else if (typeof validator.validate === 'function') {
-                return validator.validate(value, function(err, validationResult) {
-                    if (err) {
-                        return cb(err);
-                    }
+                //set target
+                validator.target = obj;
+                if (typeof validator.validateSync === 'function') {
+                    validationResult = validator.validateSync(value);
                     if (validationResult) {
                         return cb(new DataError(validationResult.code || "EVALIDATE",validationResult.message, validationResult.innerMessage, self.name, attr.name));
                     }
-                    return cb();
-                });
+                    else {
+                        return cb();
+                    }
+                }
+                else if (typeof validator.validate === 'function') {
+                    return validator.validate(value, function(err, validationResult) {
+                        if (err) {
+                            return cb(err);
+                        }
+                        if (validationResult) {
+                            return cb(new DataError(validationResult.code || "EVALIDATE",validationResult.message, validationResult.innerMessage, self.name, attr.name));
+                        }
+                        return cb();
+                    });
+                }
+                else {
+                    TraceUtils.debug(sprintf("Data validator (%s) does not have either validate() or validateSync() methods.", attr.validation.type));
+                    return cb(new Error("Invalid data validator type."));
+                }
             }
-            else {
-                TraceUtils.debug(sprintf("Data validator (%s) does not have either validate() or validateSync() methods.", attr.validation.type));
-                return cb(new Error("Invalid data validator type."));
+            catch(err) {
+                return cb(err);
             }
         }, function(err) {
             return cb(err);

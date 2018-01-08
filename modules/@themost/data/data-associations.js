@@ -86,6 +86,9 @@ DataObjectAssociationListener.prototype.beforeSave = function(event, callback) {
                     }
 
                 }, function(err) {
+                    if (err) {
+                        console.log(err);
+                    }
                     callback(err);
                 });
         }

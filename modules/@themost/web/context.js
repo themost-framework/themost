@@ -648,7 +648,7 @@ HttpContext.prototype.unhandle = function(fn) {
 
 /**
  * Invokes the given function if the current HTTP method is equal to POST
- * @param {Function()} fn
+ * @param {Function} fn
  * @returns {HttpContext}
  */
 HttpContext.prototype.handlePost = function(fn) {
@@ -657,7 +657,7 @@ HttpContext.prototype.handlePost = function(fn) {
 
 /**
  * Invokes the given function if the current HTTP method is equal to GET
- * @param {Function()} fn
+ * @param {Function} fn
  * @returns {HttpContext}
  */
 HttpContext.prototype.handleGet = function(fn) {
@@ -667,7 +667,7 @@ HttpContext.prototype.handleGet = function(fn) {
 
 /**
  * Invokes the given function if the current HTTP method is equal to PUT
- * @param {Function()} fn
+ * @param {Function} fn
  * @returns {HttpContext}
  */
 HttpContext.prototype.handlePut = function(fn) {
@@ -676,7 +676,7 @@ HttpContext.prototype.handlePut = function(fn) {
 
 /**
  * Invokes the given function if the current HTTP method is equal to PUT
- * @param {Function()} fn
+ * @param {Function} fn
  */
 HttpContext.prototype.handleDelete = function(fn) {
     return this.handle('DELETE', fn);
@@ -703,7 +703,7 @@ HttpContext.prototype.currentHandler = function (value) {
  * @returns {*}
  */
 HttpContext.prototype.translate = function(text, lib) {
-    return this.getApplication().getLocalizationStrategy().getLocaleString(text,lib);
+    return this.getApplication().getLocalizationStrategy().getLocaleString(this.culture(),text,lib);
 };
 
 /**
