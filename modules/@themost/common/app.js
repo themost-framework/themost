@@ -68,7 +68,9 @@ IApplication.prototype.getConfiguration = function() {
  */
 // eslint-disable-next-line no-unused-vars
 function IApplicationService(app) {
-    throw new AbstractClassError();
+    if (this.constructor === IApplicationService.prototype.constructor) {
+        throw new AbstractClassError();
+    }
 }
 
 /**

@@ -109,6 +109,44 @@ HttpServiceController.prototype.getItems = function(entitySet) {
 defineDecorator(HttpServiceController.prototype, 'getItems', httpGet());
 defineDecorator(HttpServiceController.prototype, 'getItems', httpAction("items"));
 
+/**
+ *
+ * @param {string} entitySet
+ */
+HttpServiceController.prototype.postItems = function(entitySet) {
+    var self = this;
+    var context = self.context;
+    try {
+        //get entity set
+        var thisEntitySet = this.getBuilder().getEntitySet(entitySet);
+        if (_.isNil(thisEntitySet)) {
+            return Q.reject(new HttpNotFoundError("EntitySet not found"));
+        }
+        /**
+         * @type {DataModel}
+         */
+        var model = context.model(thisEntitySet.entityType.name);
+        if (_.isNil(model)) {
+            return Q.reject(new HttpNotFoundError("Entity not found"));
+        }
+        var body = context.request.body;
+        return model.save(body).then(function () {
+            if (_.isArray(body)) {
+                return Q.resolve(self.json(thisEntitySet.mapInstanceSet(context,body)));
+            }
+            else {
+                return Q.resolve(self.json(thisEntitySet.mapInstance(context,body)));
+            }
+        });
+    }
+    catch (err) {
+        return Q.reject(err);
+    }
+};
+
+defineDecorator(HttpServiceController.prototype, 'postItems', httpPost());
+defineDecorator(HttpServiceController.prototype, 'postItems', httpPut());
+defineDecorator(HttpServiceController.prototype, 'postItems', httpAction("items"));
 
 /**
  * @param {*} id

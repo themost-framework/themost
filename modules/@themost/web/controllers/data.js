@@ -157,7 +157,9 @@ function HttpDataController()
         },
         set: function(value) {
             model_ = value;
-        }, configurable:false, enumerable:false
+        },
+        configurable:true,
+        enumerable:false
     });
 }
 LangUtils.inherits(HttpDataController, HttpController);
@@ -256,7 +258,7 @@ HttpDataController.prototype.edit = function (callback) {
                     if (_.isNil(result)) {
                         return callback(null, self.result());
                     }
-                    return callback(null, self.result([result]));
+                    return callback(null, self.result(result));
                 }).catch(function(err) {
                     return callback(err);
                 });
@@ -340,11 +342,11 @@ HttpDataController.prototype.schema = function (callback) {
                 m.views.forEach(function(view) {
                     if (view.fields) {
                         view.fields.forEach(function(field) {
-                            if (/\./.test(field.name)==false) {
+                            if (/\./.test(field.name)===false) {
                                 //extend view field
                                 var name = field.name;
                                 var mField = m.attributes.filter(function(y) {
-                                    return (y.name==name);
+                                    return (y.name===name);
                                 })[0];
                                 if (mField) {
                                     for (var key in mField) {
@@ -404,7 +406,7 @@ HttpDataController.prototype.show = function (callback) {
                         }
                         else {
                             if (result.length>0)
-                                callback(null, self.result(result));
+                                callback(null, self.result(result[0]));
                             else
                                 callback(new HttpNotFoundError('Item Not Found'));
                         }
