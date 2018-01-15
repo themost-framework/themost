@@ -154,7 +154,7 @@ describe('most data common tests', function () {
         return done();
     });
 
-    it('should use DataModel.save() and DataModel.remove() methods', function (done) {
+    it.only('should use DataModel.save() and DataModel.remove() methods', function (done) {
         //initialize
         var context = new TestDataContext(config);
         var newPerson = Randoms.person();

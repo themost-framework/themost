@@ -205,6 +205,14 @@ function HasParentJunction(obj, association) {
             return baseModel;
         },configurable:false, enumerable:false
     });
+
+    /**
+     * @method
+     * @description Gets an instance of DataModel class which represents the data adapter of this association
+     * @name HasParentJunction#getBaseModel
+     * @returns {DataModel}
+     */
+
     /**
      * Gets an instance of DataModel class which represents the data adapter of this association
      * @returns {DataModel}
@@ -212,6 +220,7 @@ function HasParentJunction(obj, association) {
     this.getBaseModel = function() {
         return this.baseModel;
     };
+
 
     this.getChildField = function() {
         return _.find(this.getBaseModel().attributes, function(x) {

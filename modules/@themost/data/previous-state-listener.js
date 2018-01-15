@@ -7,13 +7,8 @@
  * found in the LICENSE file at https://themost.io/license
  */
 
-/**
- * @ignore
- * Occurs before creating or updating a data object and validates not nullable fields.
- * @param {DataEventArgs|*} event - An object that represents the event arguments passed to this operation.
- * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
- */
-exports.beforeSave = function(event, callback) {
+
+function previousStateListener(event, callback) {
     var _ = require("lodash");
     if (event.state===1) { return callback(); }
     var key = event.model.primaryKey;
@@ -29,4 +24,17 @@ exports.beforeSave = function(event, callback) {
             return callback();
         }
     });
-};
+}
+
+/**
+ * Occurs before creating or updating a data object.
+ * @param {DataEventArgs|*} event - An object that represents the event arguments passed to this operation.
+ * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+ */
+exports.beforeSave = previousStateListener;
+/**
+ * Occurs before removing a data objects.
+ * @param {DataEventArgs|*} event - An object that represents the event arguments passed to this operation.
+ * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+ */
+exports.beforeRemove = previousStateListener;

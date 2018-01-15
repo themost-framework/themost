@@ -263,9 +263,6 @@ NamedDataContext.prototype.finalize = function(cb) {
 
 if (typeof exports !== 'undefined')
 {
-    module.exports = {
-        DefaultDataContext:DefaultDataContext,
-        NamedDataContext:NamedDataContext
-
-    };
+    module.exports.DefaultDataContext = DefaultDataContext;
+    module.exports.NamedDataContext = NamedDataContext;
 }

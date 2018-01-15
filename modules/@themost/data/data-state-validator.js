@@ -188,7 +188,7 @@ DataStateValidatorListener.prototype.beforeSave = function(e, callback) {
             e.state = 2
         }
         //if state is Update (2)
-        if (e.state == 2) {
+        if (e.state === 2) {
             //if key exists exit
             if (keyState)
                 return callback();
@@ -200,7 +200,7 @@ DataStateValidatorListener.prototype.beforeSave = function(e, callback) {
                 });
             }
         }
-        else if (e.state == 1) {
+        else if (e.state === 1) {
             if (!keyState) {
                 return mapKey_.call(model, target, function(err, result) {
                     if (err) { return callback(err); }

@@ -35,7 +35,7 @@ var TraceUtils = require("@themost/common/utils").TraceUtils;
 var DataError = require("@themost/common/errors").DataError;
 var DataConfigurationStrategy = require('./data-configuration').DataConfigurationStrategy;
 var ModelClassLoaderStrategy = require('./data-configuration').ModelClassLoaderStrategy;
-
+var ModuleLoader = require('@themost/common/config').ModuleLoaderStrategy;
 var mappingsProperty = Symbol('mappings');
 
 /**
@@ -271,11 +271,31 @@ function DataModel(obj) {
         return context_;
     }, set: function(value) {
         context_ = value;
+        if (_.isNil(context_)) {
+            unregisterContextListeners.bind(this)();
+        }
+        else {
+            registerContextListeners.bind(this)();
+        }
     }, enumerable: false, configurable: false});
+
+    /**
+     * @property
+     * @description Gets the database object associated with this data model
+     * @name DataModel#sourceAdapter
+     * @type {string}
+     */
 
     Object.defineProperty(this, 'sourceAdapter', { get: function() {
         return _.isString(self.source) ? self.source :  self.name.concat('Base');
     }, enumerable: false, configurable: false});
+
+    /**
+     * @property
+     * @description Gets the database object associated with this data model view
+     * @name DataModel#viewAdapter
+     * @type {string}
+     */
 
     Object.defineProperty(this, 'viewAdapter', { get: function() {
         return _.isString(self.view) ? self.view :  self.name.concat('Data');
@@ -402,7 +422,7 @@ function DataModel(obj) {
     Object.defineProperty(this, 'constraintCollection' , { get: function() {
         var arr = [];
         if (_.isArray(self.constraints)) {
-            //apend constraints to collection
+            //append constraints to collection
             self.constraints.forEach(function(x) {
                 arr.push(x);
             });
@@ -422,8 +442,6 @@ function DataModel(obj) {
         return arr;
     }, enumerable: false, configurable: false});
 
-    //register listeners
-    registerListeners_.call(this);
     //call initialize method
     if (typeof this.initialize === 'function')
         this.initialize();
@@ -467,24 +485,8 @@ DataModel.prototype.clone = function(context) {
  * @this DataModel
  * @private
  */
- function registerListeners_() {
-
-    //change: 2015-01-19
-    //description: change default max listeners (10) to 32 in order to avoid node.js message
-    // for reaching the maximum number of listeners
-    //author: k.barbounakis@gmail.com
-    if (typeof this.setMaxListeners === 'function') {
-        this.setMaxListeners(32);
-    }
-
-    var CalculatedValueListener = dataListeners.CalculatedValueListener,
-        DefaultValueListener = dataListeners.DefaultValueListener,
-        DataCachingListener = dataListeners.DataCachingListener,
-        DataModelCreateViewListener = dataListeners.DataModelCreateViewListener,
-        DataModelSeedListener = dataListeners.DataModelSeedListener,
-        DataStateValidatorListener = require('./data-state-validator').DataStateValidatorListener;
-
-    //register system event listeners
+function unregisterContextListeners() {
+    //unregister event listeners
     this.removeAllListeners('before.save');
     this.removeAllListeners('after.save');
     this.removeAllListeners('before.remove');
@@ -492,6 +494,25 @@ DataModel.prototype.clone = function(context) {
     this.removeAllListeners('before.execute');
     this.removeAllListeners('after.execute');
     this.removeAllListeners('after.upgrade');
+}
+/**
+ * @this DataModel
+ * @private
+ */
+ function registerContextListeners() {
+
+    //description: change default max listeners (10) to 64 in order to avoid node.js message
+    // for reaching the maximum number of listeners
+    //author: k.barbounakis@gmail.com
+    if (typeof this.setMaxListeners === 'function') {
+        this.setMaxListeners(64);
+    }
+    var CalculatedValueListener = dataListeners.CalculatedValueListener;
+    var DefaultValueListener = dataListeners.DefaultValueListener;
+    var DataCachingListener = dataListeners.DataCachingListener;
+    var DataModelCreateViewListener = dataListeners.DataModelCreateViewListener;
+    var DataModelSeedListener = dataListeners.DataModelSeedListener;
+    var DataStateValidatorListener = require('./data-state-validator').DataStateValidatorListener;
 
     //0. Permission Event Listener
     var perms = require('./data-permission');
@@ -516,17 +537,11 @@ DataModel.prototype.clone = function(context) {
     this.on('after.upgrade',DataModelCreateViewListener.prototype.afterUpgrade);
     this.on('after.upgrade',DataModelSeedListener.prototype.afterUpgrade);
 
+    //get module loader
     /**
-     * change:8-Jun 2015
-     * description: Set lookup default listeners as obsolete.
+     * @type {ModuleLoader|*}
      */
-    ////register lookup model listeners
-    //if (this.type === 'lookup') {
-    //    //after save (clear lookup caching)
-    //    this.on('after.save', DataModelLookupCachingListener.afterSave);
-    //    //after remove (clear lookup caching)
-    //    this.on('after.remove', DataModelLookupCachingListener.afterRemove);
-    //}
+    const moduleLoader = this.context.getConfiguration().getStrategy(ModuleLoader);
     //register configuration listeners
     if (this.eventListeners) {
         var listenerModulePath;
@@ -535,18 +550,11 @@ DataModel.prototype.clone = function(context) {
             //get listener type (e.g. type: require('./custom-listener.js'))
             if (listener.type && !listener.disabled)
             {
-                listenerModulePath = listener.type;
-                if (/^\./.test(listener.type)) {
-                    listenerModulePath = path.resolve(process.cwd(),listener.type);
-                }
-                else if (/^\//.test(listener.type)) {
-                    listenerModulePath = path.join(process.cwd(), listener.type);
-                }
                 /**
                  * Load event listener from the defined type
                  * @type DataEventListener
                  */
-                var m = require(listenerModulePath);
+                var m = moduleLoader.require(listener.type);
                 //if listener exports beforeSave function then register this as before.save event listener
                 if (typeof m.beforeSave === 'function')
                     this.on('before.save', m.beforeSave);
@@ -1255,13 +1263,13 @@ DataModel.prototype.convert = function(obj, typeConvert)
      * @augments DataObject
      * @ignore
      */
-    var DataObjectClass = getDataObjectClass_.call(self);
+    var DataObjectTypeCtor = self.getDataObjectType();
 
     if (_.isArray(obj)) {
         var arr = [], src;
         obj.forEach(function(x) {
             if (typeof x !== 'undefined' && x!=null) {
-                var o = new DataObjectClass();
+                var o = new DataObjectTypeCtor();
                 if (typeof x === 'object') {
                     _.assign(o, x);
                 }
@@ -1279,7 +1287,7 @@ DataModel.prototype.convert = function(obj, typeConvert)
         return arr;
     }
     else {
-        var result = new DataObjectClass();
+        var result = new DataObjectTypeCtor();
         if (typeof obj === 'object') {
             _.assign(result, obj);
         }
@@ -2291,7 +2299,7 @@ DataModel.prototype.dataviews = function(name) {
  */
 DataModel.prototype.getDataView = function(name) {
     var self = this;
-    var re = new RegExp('^' + name.replace('$','\$') + '$', 'ig');
+    var re = new RegExp('^' + name.replace('$','\\$') + '$', 'ig');
     var view = self.views.filter(function(x) { return re.test(x.name);})[0];
     if (_.isNil(view))
     {
@@ -2567,6 +2575,11 @@ function validate_(obj, state, callback) {
         return (state===2) ? (y.hasOwnProperty("editable") ? y.editable : true) : true;
     });
 
+    /**
+     * @type {ModuleLoader|*}
+     */
+    var moduleLoader = this.context.getConfiguration().getStrategy(ModuleLoader);
+
     async.eachSeries(attributes, function(attr, cb) {
         var validationResult;
         //get value
@@ -2592,18 +2605,12 @@ function validate_(obj, state, callback) {
         if (attr.validation && attr.validation['validator'] && objCopy.hasOwnProperty(attr.name)) {
             var validatorModule;
             try {
-                if (/^\./ig.test(attr.validation['validator'])) {
-                    var modulePath = path.resolve(process.cwd(), attr.validation['validator']);
-                    validatorModule = require(modulePath);
-                }
-                else {
-                    validatorModule = require(attr.validation['validator']);
-                }
+                validatorModule = moduleLoader.require(attr.validation['validator']);
             }
-            catch (e) {
-                TraceUtils.debug(sprintf("Data validator module (%s) cannot be loaded", attr.validation.type));
-                TraceUtils.debug(e);
-                return cb(e);
+            catch (err) {
+                TraceUtils.debug(sprintf("Data validator module (%s) cannot be loaded", attr.validation['validator']));
+                TraceUtils.debug(err);
+                return cb(err);
             }
             if (typeof validatorModule.createInstance !== 'function') {
                 TraceUtils.debug(sprintf("Data validator module (%s) does not export createInstance() method.", attr.validation.type));

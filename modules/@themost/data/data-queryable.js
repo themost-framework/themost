@@ -3237,7 +3237,7 @@ DataQueryable.prototype.getItem = function() {
 };
 /**
  * Gets an instance of DataObject by executing the defined query.
- * @returns {Promise|*}
+ * @returns {Promise.<DataObject>}
  */
 DataQueryable.prototype.getTypedItem = function() {
     var self = this, d = Q.defer();

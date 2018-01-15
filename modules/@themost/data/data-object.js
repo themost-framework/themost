@@ -1,8 +1,14 @@
 /**
- * @ignore
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2017, THEMOST LP All rights reserved
+ *
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
  */
-var sprintf = require('sprintf');
+var sprintf = require('sprintf').sprintf;
 var _ = require("lodash");
+var Q = require('q');
 var Symbol = require('symbol');
 var DataObjectJunction = require('./data-object-junction').DataObjectJunction;
 var DataObjectTag = require('./data-object-tag').DataObjectTag;
@@ -13,17 +19,124 @@ var SequentialEventEmitter = require("@themost/common/emitter").SequentialEventE
 var LangUtils = require("@themost/common/utils").LangUtils;
 var DataError = require("@themost/common/errors").DataError;
 
-
 var selectorsProperty = Symbol('selectors');
 var typeProperty = Symbol('type');
 var modelProperty = Symbol('model');
 var contextProperty = Symbol('context');
 
+var STR_MISSING_CALLBACK_ARGUMENT = 'Missing argument. Callback function expected.';
+
+
 /**
- * @ignore
+ * @this DataObject
+ * @param {DataContext} context - The underlying data context
+ * @param {Function} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise.
+ * @private
  */
-var STR_MISSING_CALLBACK_ARGUMENT = 'Missing argument. Callback function expected.',
-    STR_MISSING_ARGUMENT_CODE = 'EARGM';
+function save_(context, callback) {
+    var self = this;
+    //get current application
+    var model = self.getModel();
+    if (_.isNil(model)) {
+        return callback.call(self, new DataError('EMODEL','Data model cannot be found.'));
+    }
+    var i;
+    //register before listeners
+    var beforeListeners = self.listeners('before.save');
+    for (i = 0; i < beforeListeners.length; i++) {
+        var beforeListener = beforeListeners[i];
+        model.on('before.save', beforeListener);
+    }
+    //register after listeners
+    var afterListeners = self.listeners('after.save');
+    for (i = 0; i < afterListeners.length; i++) {
+        var afterListener = afterListeners[i];
+        model.on('after.save', afterListener);
+    }
+    model.save(self, callback);
+}
+
+
+/**
+ * @this DataObject
+ * @param {DataContext} context
+ * @param {Function} callback
+ * @private
+ */
+function remove_(context, callback) {
+    var self = this;
+    //get current application
+    var model = self.getModel();
+    if (_.isNil(model)) {
+        return callback.call(self, new DataError('EMODEL','Data model cannot be found.'));
+    }
+    //register before listeners
+    var beforeListeners = self.listeners('before.remove');
+    for (var i = 0; i < beforeListeners.length; i++) {
+        var beforeListener = beforeListeners[i];
+        model.on('before.remove', beforeListener);
+    }
+    //register after listeners
+    var afterListeners = self.listeners('after.remove');
+    for (var j = 0; j < afterListeners.length; j++) {
+        var afterListener = afterListeners[j];
+        model.on('after.remove', afterListener);
+    }
+    model.remove(self, callback);
+}
+
+
+/**
+ * @this DataObject
+ * @param {string} name - The name of the attribute
+ * @param {Function} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain the result.
+ * @private
+ */
+function attrOf_(name, callback) {
+    var self = this, model = this.$$model,
+        mapping = model.inferMapping(name);
+    if (_.isNil(mapping)) {
+        if (self.hasOwnProperty(name)) {
+            return callback(null, self[name]);
+        }
+        else {
+            return model.where(model.primaryKey).equal(self[model.primaryKey]).select(name).value(function(err, result) {
+                if (err) { return callback(err); }
+                self[name] = result;
+                return callback(null, result);
+            });
+        }
+    }
+    //if mapping association defines foreign key association
+    if (mapping.associationType==='association' && mapping.childModel === model.name) {
+        //if object has already this property
+        if (self.hasOwnProperty(name)) {
+            //if property is an object
+            if (typeof self[name] === 'object' && self[name] !== null) {
+                //return the defined parent field
+                callback(null, self[name][mapping.parentField]);
+            }
+            else if (self[name] === null) {
+                callback();
+            }
+            else {
+                callback(null, self[name]);
+            }
+        }
+        else {
+            //otherwise get value from db
+            model.where(model.primaryKey).equal(this[model.primaryKey]).select(mapping.childField).flatten().value(function(err, result) {
+                if (err) { return callback(err); }
+                self[name] = result;
+                return callback(null, result);
+            });
+        }
+    }
+    else {
+        return callback();
+    }
+}
+
 
 /**
  * @class
@@ -36,16 +149,15 @@ var STR_MISSING_CALLBACK_ARGUMENT = 'Missing argument. Callback function expecte
  * @property {string} $$type - A string that represents the type of this object.
  * @property {DataModel} $$model - The data model which is associated with this object.
  * @property {*} $$id - Gets the identifier of this object based on the associated model's primary key
- * @property {*} selectors - An object that represents a collection of selectors associated with this data object e.g is(':new'), is(':valid'), is(':enabled') etc
  */
 function DataObject(type, obj)
 {
     var self = this;
     /**
-     * @property context
-     * @type {DataContext}
+     * @property
+     * @name DataObject#context
+     * @type DataContext
      * @description An instance of DataContext class associated with this object.
-     * @memberOf DataObject#
      */
     Object.defineProperty(this,'context',{
         get: function() { return this[contextProperty]; } ,
@@ -56,8 +168,11 @@ function DataObject(type, obj)
     if (type)
         this[typeProperty] = type;
     else {
+        if (this.constructor.hasOwnProperty('entityTypeDecorator')) {
+            this[typeProperty] = this.constructor['entityTypeDecorator'];
+        }
         //get type from constructor name
-        if (/Model$/.test(this.constructor.name)) {
+        else if (/Model$/.test(this.constructor.name)) {
             this[typeProperty] = this.constructor.name.replace(/Model$/,'');
         }
         else {
@@ -109,6 +224,12 @@ function DataObject(type, obj)
     });
 
     this[selectorsProperty] = {};
+    /**
+     * @property
+     * @name DataObject#selectors
+     * @type Array.<Function>
+     * @description A collection of selectors based on this data object.
+     */
     Object.defineProperty(this,'selectors',{
         get: function() {
             return this[selectorsProperty];
@@ -117,22 +238,36 @@ function DataObject(type, obj)
         configurable:false
     });
 
-    this.selector('new', function(callback) {
-        if (typeof callback !== 'function') { return new Error(STR_MISSING_CALLBACK_ARGUMENT, STR_MISSING_ARGUMENT_CODE); }
-        var self = this,
-            model = self.$$model;
-        model.inferState(self, function(err, state) {
-            if (err) { return callback(err); }
-            callback(null, (state===1));
-        });
-    }).selector('live', function(callback) {
-        if (typeof callback !== 'function') { return new Error(STR_MISSING_CALLBACK_ARGUMENT, STR_MISSING_ARGUMENT_CODE); }
-        var self = this,
-            model = self.$$model;
-        model.inferState(self, function(err, state) {
-            if (err) { return callback(err); }
-            callback(null, (state===2));
-        });
+    this.selector('new',
+        /**
+         * @this DataObject
+         * @param {Function} callback
+         */
+        function(callback) {
+            if (typeof callback !== 'function') {
+                throw new Error(STR_MISSING_CALLBACK_ARGUMENT);
+            }
+            var self = this;
+            var model = self.$$model;
+            model.inferState(self, function(err, state) {
+                if (err) { return callback(err); }
+                callback(null, (state===1));
+            });
+    }).selector('live',
+        /**
+         * @this DataObject
+         * @param {Function} callback
+         */
+        function(callback) {
+            if (typeof callback !== 'function') {
+                throw new Error(STR_MISSING_CALLBACK_ARGUMENT);
+            }
+            var self = this;
+            var model = self.$$model;
+            model.inferState(self, function(err, state) {
+                if (err) { return callback(err); }
+                callback(null, (state===2));
+            });
     });
 
     if (typeof obj !== 'undefined' && obj !== null) {
@@ -234,7 +369,7 @@ DataObject.prototype.is = function(selector) {
     this.selectors = this.selectors || {};
     var fn = this.selectors[selector.substr(1)];
     if (typeof fn !== 'function') {
-        throw new Error('The specified selector is no associated with this object.','EUNDEF');
+        throw new Error('The specified selector is no associated with this object.');
     }
     var Q = require('q'), deferred = Q.defer();
     fn.call(this, function(err, result) {
@@ -338,57 +473,6 @@ DataObject.prototype.property = function(name) {
 };
 
 /**
- * @param {string} name - The name of the attribute
- * @param {Function} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain the result.
- * @private
- */
-function attrOf_(name, callback) {
-    var self = this, model = this.$$model,
-        mapping = model.inferMapping(name);
-    if (_.isNil(mapping)) {
-        if (self.hasOwnProperty(name)) {
-            return callback(null, self[name]);
-        }
-        else {
-         return model.where(model.primaryKey).equal(self[model.primaryKey]).select(name).value(function(err, result) {
-                if (err) { return callback(err); }
-                self[name] = result;
-                return callback(null, result);
-            });
-        }
-    }
-    //if mapping association defines foreign key association
-    if (mapping.associationType==='association' && mapping.childModel === model.name) {
-        //if object has already this property
-        if (self.hasOwnProperty(name)) {
-            //if property is an object
-            if (typeof self[name] === 'object' && self[name] !== null) {
-                //return the defined parent field
-                callback(null, self[name][mapping.parentField]);
-            }
-            else if (self[name] === null) {
-                callback();
-            }
-            else {
-                callback(null, self[name]);
-            }
-        }
-        else {
-            //otherwise get value from db
-            model.where(model.primaryKey).equal(this[model.primaryKey]).select(mapping.childField).flatten().value(function(err, result) {
-                if (err) { return callback(err); }
-                self[name] = result;
-                return callback(null, result);
-            });
-        }
-    }
-    else {
-        return callback();
-    }
-
-}
-
-/**
  * Gets the value of the specified attribute.
  * If the object has already a property with the specified name and the property does not have
  * an association mapping then returns the property value.
@@ -440,7 +524,7 @@ DataObject.prototype.attr = function(name, callback)
                 }
                 else {
                     if (model.constraints.length===0) {
-                        callback(new Error( sprintf.sprintf('The value of property [%s] cannot be retrieved. The target data model has no constraints defined.', name)));
+                        callback(new Error( sprintf('The value of property [%s] cannot be retrieved. The target data model has no constraints defined.', name)));
                     }
                     else {
                         var arr = model.constraints.filter(function(x) {
@@ -457,7 +541,7 @@ DataObject.prototype.attr = function(name, callback)
                             return valid;
                         });
                         if (arr.length===0) {
-                            callback(new Error( sprintf.sprintf('The value of property [%s] cannot be retrieved. The target data model has constraints but the required properties are missing.', name)));
+                            callback(new Error( sprintf('The value of property [%s] cannot be retrieved. The target data model has constraints but the required properties are missing.', name)));
                         }
                         else {
                             //get first constraint
@@ -495,17 +579,6 @@ DataObject.prototype.attr = function(name, callback)
 };
 
 /**
- * Sets the context of this data object
- * @param {DataContext} value
- * @returns {DataObject}
- * @private
- * @deprecated This function is deprecated. Use DataObject.context property instead
- * @ignore
- */
-DataObject.prototype.setContext = function(value) {
-    this.context = value;
-};
-/**
  *
  * @param {DataContext} context The current data context
  * @param {Function} fn - A function that represents the code to be invoked
@@ -513,9 +586,11 @@ DataObject.prototype.setContext = function(value) {
  */
 DataObject.prototype.execute = function(context, fn) {
     var self = this;
-    self.setContext(context);
-    fn = fn || function() {};
-    fn.call(self);
+    if (typeof fn !== 'function') {
+        throw new TypeError('Wrong argument. Expected function.');
+    }
+    self.context = context;
+    return fn.bind(self)();
 };
 
 /**
@@ -529,34 +604,6 @@ DataObject.prototype.query = function(attr)
     if (_.isNil(mapping)) { new DataError('EASSOCIATION','The given attribute does not define an association of any type.'); }
     return this.property(attr)
 };
-
-/**
- * @param {DataContext} context - The underlying data context
- * @param {Function} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise.
- * @private
- */
-function save_(context, callback) {
-    var self = this;
-    //get current application
-    var model = self.getModel();
-    if (_.isNil(model)) {
-        return callback.call(self, new DataError('EMODEL','Data model cannot be found.'));
-    }
-    var i;
-    //register before listeners
-    var beforeListeners = self.listeners('before.save');
-    for (i = 0; i < beforeListeners.length; i++) {
-        var beforeListener = beforeListeners[i];
-        model.on('before.save', beforeListener);
-    }
-    //register after listeners
-    var afterListeners = self.listeners('after.save');
-    for (i = 0; i < afterListeners.length; i++) {
-        var afterListener = afterListeners[i];
-        model.on('after.save', afterListener);
-    }
-    model.save(self, callback);
-}
 
 /**
  * Saves the current data object.
@@ -582,43 +629,17 @@ function save_(context, callback) {
 DataObject.prototype.save = function(context, callback) {
     var self = this;
     if (typeof callback !== 'function') {
-        var Q = require('q'), deferred = Q.defer();
-        save_.call(self, context || self.context, function(err) {
-            if (err) { return deferred.reject(err); }
-            deferred.resolve(null);
+        return Q.promise(function(resolve, reject) {
+            return save_.call(self, context || self.context, function(err) {
+                if (err) { return reject(err); }
+                return resolve();
+            });
         });
-        return deferred.promise;
     }
     else {
         return save_.call(self, context || self.context, callback);
     }
 };
-/**
- * @param {DataContext} context
- * @param {Function} callback
- * @private
- */
-function remove_(context, callback) {
-    var self = this;
-    //get current application
-    var model = self.getModel();
-    if (_.isNil(model)) {
-        return callback.call(self, new DataError('EMODEL','Data model cannot be found.'));
-    }
-    //register before listeners
-    var beforeListeners = self.listeners('before.remove');
-    for (var i = 0; i < beforeListeners.length; i++) {
-        var beforeListener = beforeListeners[i];
-        model.on('before.remove', beforeListener);
-    }
-    //register after listeners
-    var afterListeners = self.listeners('after.remove');
-    for (var j = 0; j < afterListeners.length; j++) {
-        var afterListener = afterListeners[j];
-        model.on('after.remove', afterListener);
-    }
-    model.remove(self, callback);
-}
 
 /**
  * Deletes the current data object.
@@ -643,12 +664,13 @@ function remove_(context, callback) {
 DataObject.prototype.remove = function(context, callback) {
     var self = this;
     if (typeof callback !== 'function') {
-        var Q = require('q'), deferred = Q.defer();
-        remove_.call(self, context || self.context, function(err) {
-            if (err) { return deferred.reject(err); }
-            deferred.resolve();
+
+        return Q.promise(function(resolve, reject) {
+            return remove_.call(self, context || self.context, function(err) {
+                if (err) { return reject(err); }
+                return resolve();
+            });
         });
-        return deferred.promise;
     }
     else {
         return remove_.call(self, context || self.context, callback);
@@ -775,4 +797,6 @@ DataObject.prototype.silent = function(value) {
     return this;
 };
 
-module.exports.DataObject = DataObject;
+if (typeof exports !== 'undefined') {
+    module.exports.DataObject = DataObject;
+}
