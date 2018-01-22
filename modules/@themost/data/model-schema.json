@@ -143,6 +143,51 @@
         ]
       }
     },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description":"A string which represents the type of this constraint e.g. unique",
+            "enum": ["unique"]
+          },
+          "description": {
+            "type": "string",
+            "description": "A short description for this constraint e.g. Unique identifier field must be unique across different records."
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "type"
+        ]
+      }
+    },
+    "eventListeners": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description":"A string which the name of this event listener e.g. update person user listener"
+          },
+          "type": {
+            "type": "string",
+            "description": "A string which represents the path of the module that exports this listener. This path may be a relative to execution folder path of a module exists in package modules e.g. ./listeners/add-user-listener or my-module/send-mail-listener"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      }
+    },
     "privileges": {
       "type": "array",
       "items": {

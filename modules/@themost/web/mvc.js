@@ -21,6 +21,17 @@ var fs = require('fs');
 var crypto = require('crypto');
 var Q = require('q');
 var async = require('async');
+var PassThrough = require('stream').PassThrough;
+
+/**
+ * @param {Buffer} buffer
+ */
+function bufferToStream(buffer) {
+    var stream = new PassThrough();
+    stream.push(buffer);
+    stream.push(null);
+    return stream;
+}
 
 /**
  * @class
@@ -50,21 +61,34 @@ HttpResult.prototype.execute = function(context, callback) {
         var response = context.response;
         if (typeof this.data === 'undefined' || this.data === null) {
             response.writeHead(204);
-            return callback.call(context);
+            return callback();
         }
         response.writeHead(this.responseStatus || 200, {"Content-Type": this.contentType});
-       if (this.data)
-            response.write(this.data, this.contentEncoding);
-        callback.call(context);
+       if (this.data) {
+           if (this.contentEncoding === 'binary') {
+               var source = bufferToStream(this.data);
+               source.on('end', function() {
+                   return callback();
+               });
+               source.on('error', function(err) {
+                   return callback(err);
+               });
+               return source.pipe(response);
+           }
+           else {
+               response.write(this.data, this.contentEncoding);
+           }
+       }
+       return callback();
     }
-    catch(e) {
-        callback.call(context, e);
+    catch(err) {
+        return callback(err);
     }
 };
 /**
  * Represents a user-defined content type that is a result of an action.
  * @class
- * @param {string} content
+ * @param {*} content
  * @augments HttpResult
  * */
 function HttpContentResult(content) {
