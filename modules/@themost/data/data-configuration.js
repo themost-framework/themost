@@ -15,7 +15,7 @@ var Args = require('@themost/common/utils').Args;
 var ConfigurationBase = require('@themost/common/config').ConfigurationBase;
 var ConfigurationStrategy = require('@themost/common/config').ConfigurationStrategy;
 var PathUtils = require('@themost/common/utils').PathUtils;
-var RandomUtils = require('@themost/common/utils').PathUtils;
+var RandomUtils = require('@themost/common/utils').RandomUtils;
 var AbstractMethodError = require('@themost/common/errors').AbstractMethodError;
 
 var modelsProperty = Symbol('models');

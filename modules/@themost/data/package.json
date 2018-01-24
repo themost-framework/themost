@@ -17,10 +17,10 @@
   "dependencies": {
     "@themost/common": "^2.0.4",
     "@themost/query": "^2.0.4",
+    "@themost/xml": "^2.0.5",
     "async": "0.2.10",
     "lodash": "^4.17.4",
     "moment": "^2.19.3",
-    "most-xml": "^0.3.7",
     "node-cache": "^1.1.0",
     "pluralize": "^7.0.0",
     "q": "~1.1.1",
