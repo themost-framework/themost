@@ -147,8 +147,19 @@ DefaultLocalizationStrategy.prototype.getLocaleString = function(locale, text, l
             return locLibrary[locale][text];
         }
     }
-    var libraryFile = path.resolve(this.getApplication().getExecutionPath(),'locales/'.concat(lib,'.',locale,'.json'));
+    var libraryFile;
     try {
+        libraryFile = path.resolve(this.getApplication().getExecutionPath(),'locales/'.concat(lib,'.',locale,'.json'));
+    }
+    catch(err) {
+        if (err.code === 'ENOENT' || err.code === 'MODULE_NOT_FOUND') {
+            TraceUtils.debug('Localization library cannot be found at ' + libraryFile + '.');
+            return text;
+        }
+        throw err;
+    }
+    try {
+
         if (libraries.hasOwnProperty(lib))
             locLibrary = libraries[lib];
         else
