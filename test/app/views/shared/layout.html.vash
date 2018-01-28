@@ -103,7 +103,7 @@
 
 <!-- CoreUI main scripts -->
 
-<script src="js/app.js"></script>
+<script src="js/app.es6"></script>
 
 <!-- Plugins and scripts required by this views -->
 

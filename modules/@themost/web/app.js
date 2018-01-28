@@ -153,20 +153,33 @@ function HttpApplication(executionPath) {
             }
         })(defaultHandlers[i]);
     }
+    var reModule = /^@themost\/web/i;
     _.forEach(configurationHandlers, function (handlerConfiguration) {
         try {
             var handlerPath = handlerConfiguration.type;
-            if (handlerPath.indexOf('/')===0)
+            if (reModule.test(handlerPath)) {
+                handlerPath = handlerPath.replace(reModule,'');
+            }
+            else if (handlerPath.indexOf('/')===0) {
                 handlerPath = self.mapPath(handlerPath);
+            }
             var handlerModule = require(handlerPath), handler = null;
             if (handlerModule) {
-                if (typeof handlerModule.createInstance !== 'function') {
-                    TraceUtils.log('The specified handler (%s) cannot be instantiated. The module does not export createInstance() function.', handlerConfiguration.name);
-                    return;
+                //if module exports a constructor
+                if (typeof handlerModule === 'function') {
+                    self.handlers.push(new handlerModule());
                 }
-                handler = handlerModule.createInstance();
-                if (handler)
-                    self.handlers.push(handler);
+                //else if module exports a method called createInstance()
+                else if (typeof handlerModule.createInstance === 'function') {
+                    //call createInstance
+                    handler = handlerModule.createInstance();
+                    if (handler) {
+                        self.handlers.push(handler);
+                    }
+                }
+                else {
+                    TraceUtils.log('The specified handler (%s) cannot be instantiated. The module does not export a class constructor or createInstance() function.', handlerConfiguration.name);
+                }
             }
         }
         catch (err) {

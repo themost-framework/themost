@@ -639,6 +639,11 @@ HttpViewResult.prototype.execute = function(context, callback)
  * @param {HttpContext} context - The executing HTTP context.
  * */
 function HttpController(context) {
+    /**
+     * @property
+     * @name HttpController#context
+     * @type {HttpContext}
+     */
     this.context = context;
 }
 

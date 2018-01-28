@@ -66,7 +66,7 @@ AngularServerModule.prototype.doBootstrap = function(angular) {
  *   //and set bootstrap module
  *   .useBootstrapModule(app.mapExecutionPath('./modules/server-app'));
  * @example
- * //#server-app.js
+ * //#server.js
  *   'use strict';
  *   export function bootstrap(angular) {
      *       //initialize extensions module
