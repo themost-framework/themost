@@ -1,14 +1,14 @@
 {
     "handlers": [
-        { "name":"query","type":"./handlers/querystring" },
-        { "name":"auth","type":"./handlers/auth" },
-        { "name":"basic-auth","type":"./handlers/basic-auth" },
-        { "name":"static","type":"./handlers/static" },
-        { "name":"mvc","type":"./handlers/view" },
-        { "name":"multipart","type":"./handlers/multipart" },
-        { "name":"json","type":"./handlers/json" },
-        { "name":"post","type":"./handlers/post" },
-        { "name":"route","type":"./handlers/route-params" }
+        { "name":"query","type":"@themost/web/handlers/querystring" },
+        { "name":"auth","type":"@themost/web/handlers/auth" },
+        { "name":"basic-auth","type":"@themost/web/handlers/basic-auth" },
+        { "name":"static","type":"@themost/web/handlers/static" },
+        { "name":"mvc","type":"@themost/web/handlers/view" },
+        { "name":"multipart","type":"@themost/web/handlers/multipart" },
+        { "name":"json","type":"@themost/web/handlers/json" },
+        { "name":"post","type":"@themost/web/handlers/post" },
+        { "name":"route","type":"@themost/web/handlers/route-params" }
     ],
     "engines": [
         { "name": "EJS View Engine", "extension": "ejs", "type": "./engines/ejs" },

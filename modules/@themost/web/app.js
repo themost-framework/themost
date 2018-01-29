@@ -153,14 +153,14 @@ function HttpApplication(executionPath) {
             }
         })(defaultHandlers[i]);
     }
-    var reModule = /^@themost\/web/i;
+    var reModule = /^@themost\/web\//i;
     _.forEach(configurationHandlers, function (handlerConfiguration) {
         try {
             var handlerPath = handlerConfiguration.type;
             if (reModule.test(handlerPath)) {
-                handlerPath = handlerPath.replace(reModule,'');
+                handlerPath = handlerPath.replace(reModule,'./');
             }
-            else if (handlerPath.indexOf('/')===0) {
+            else if (/^\//.test(handlerPath)) {
                 handlerPath = self.mapPath(handlerPath);
             }
             var handlerModule = require(handlerPath), handler = null;
