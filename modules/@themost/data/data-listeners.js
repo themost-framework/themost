@@ -524,82 +524,83 @@ DefaultValueListener.prototype.beforeSave = function(event, callback) {
         //find all attributes that have a default value
         var attrs = event.model.attributes.filter(function(x) { return (typeof x.value!== 'undefined'); });
         async.eachSeries(attrs, function(attr, cb) {
-            var expr = attr.value;
-            //if attribute is already defined
-            if (typeof event.target[attr.name] !== 'undefined') {
-                //do nothing
-                cb(null);
-                return;
-            }
-            //validate expression
-            if (typeof expr !== 'string') {
-                event.target[attr.name] = expr;
-                return cb();
-            }
-            //check javascript: keyword for code evaluation
-            if (expr.indexOf('javascript:')===0) {
-                //get expression
-                var fnstr = expr.substring('javascript:'.length);
-                //if expression starts with function add parenthesis (fo evaluation)
-                if (fnstr.indexOf('function')===0) {
-                    fnstr = '('.concat(fnstr,')');
+            try {
+                var expr = attr.value;
+                //if attribute is already defined
+                if (typeof event.target[attr.name] !== 'undefined') {
+                    //do nothing
+                    cb(null);
+                    return;
                 }
-                //if expression starts with return then normalize expression (surround with function() {} keyword)
-                else if (fnstr.indexOf('return')===0) {
-                    fnstr = '(function() { '.concat(fnstr,'})');
+                //validate expression
+                if (typeof expr !== 'string') {
+                    event.target[attr.name] = expr;
+                    return cb();
                 }
-                var value = eval(fnstr);
-                //if value is function
-                if (typeof value === 'function') {
-                    //then call function against the target object
-                    var value1 = value.call(functionContext);
-                    if (typeof value1 !== 'undefined' && value1 !=null && typeof value1.then === 'function') {
+                //check javascript: keyword for code evaluation
+                if (expr.indexOf('javascript:')===0) {
+                    //get expression
+                    var fnstr = expr.substring('javascript:'.length);
+                    //if expression starts with function add parenthesis (fo evaluation)
+                    if (fnstr.indexOf('function')===0) {
+                        fnstr = '('.concat(fnstr,')');
+                    }
+                    //if expression starts with return then normalize expression (surround with function() {} keyword)
+                    else if (fnstr.indexOf('return')===0) {
+                        fnstr = '(function() { '.concat(fnstr,'})');
+                    }
+                    var value = eval(fnstr);
+                    //if value is function
+                    if (typeof value === 'function') {
+                        //then call function against the target object
+                        var value1 = value.call(functionContext);
+                        if (typeof value1 !== 'undefined' && value1 !=null && typeof value1.then === 'function') {
+                            //we have a promise, so we need to wait for answer
+                            value1.then(function(result) {
+                                //otherwise set result
+                                event.target[attr.name] = result;
+                                return cb();
+                            }).catch(function(err) {
+                                return cb(err);
+                            });
+                        }
+                        else {
+                            event.target[attr.name] = value1;
+                            return cb();
+                        }
+                    }
+                    else if (typeof value !== 'undefined' && value !=null && typeof value.then === 'function') {
                         //we have a promise, so we need to wait for answer
-                        value1.then(function(result) {
+                        value.then(function(result) {
                             //otherwise set result
                             event.target[attr.name] = result;
                             return cb();
                         }).catch(function(err) {
-                            cb(err);
+                            return cb(err);
                         });
                     }
                     else {
-                        event.target[attr.name] = value1;
+                        //otherwise get value
+                        event.target[attr.name] = value;
                         return cb();
                     }
                 }
-                else if (typeof value !== 'undefined' && value !=null && typeof value.then === 'function') {
-                    //we have a promise, so we need to wait for answer
-                    value.then(function(result) {
-                        //otherwise set result
+                else if (expr.indexOf('fn:')===0) {
+                    return cb(new Error ('fn: syntax is deprecated.'));
+                }
+                else  {
+                    functionContext.eval(expr, function(err, result) {
+                        if (err) {
+                            return cb(err);
+                        }
                         event.target[attr.name] = result;
                         return cb();
-                    }).catch(function(err) {
-                       cb(err);
                     });
                 }
-                else {
-                    //otherwise get value
-                    event.target[attr.name] = value;
-                    return cb();
-                }
             }
-            else if (expr.indexOf('fn:')===0) {
-                return cb(new Error ('fn: syntax is deprecated.'));
+            catch(err) {
+                return cb(err);
             }
-            else  {
-
-                functionContext.eval(expr, function(err, result) {
-                    if (err) {
-                        cb(err);
-                    }
-                    else {
-                        event.target[attr.name] = result;
-                        cb(null);
-                    }
-                });
-            }
-
         }, function(err) {
             callback(err);
         });
