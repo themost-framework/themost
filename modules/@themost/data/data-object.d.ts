@@ -2,7 +2,7 @@ import {DataQueryable} from "./data-queryable";
 import {DataContext} from "./types";
 import {DataModel} from "./data-model";
 
-export declare interface DataObject {
+export declare class DataObject {
     constructor(type?: string, obj?: any);
     context:DataContext;
     silent(value?:boolean):DataObject;

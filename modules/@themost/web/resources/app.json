@@ -7,6 +7,7 @@
         { "name":"mvc","type":"@themost/web/handlers/view" },
         { "name":"multipart","type":"@themost/web/handlers/multipart" },
         { "name":"json","type":"@themost/web/handlers/json" },
+        { "name":"xml","type":"@themost/web/handlers/xml" },
         { "name":"post","type":"@themost/web/handlers/post" },
         { "name":"route","type":"@themost/web/handlers/route-params" }
     ],

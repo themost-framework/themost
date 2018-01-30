@@ -1,6 +1,6 @@
 {
   "name": "@themost/common",
-  "version": "2.0.6",
+  "version": "2.0.7",
   "description": "MOST Web Framework Common Module",
   "main": "index.js",
   "peerDependencies": {},

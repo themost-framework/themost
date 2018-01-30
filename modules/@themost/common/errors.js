@@ -8,7 +8,7 @@
  */
 var LangUtils = require("./utils").LangUtils;
 var _ = require('lodash');
-var errors = require('./http-error-codes');
+var errors = require('./http-error-codes').Errors;
 /**
  * @classdesc Thrown when an application tries to call an abstract method.
  * @class

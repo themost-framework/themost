@@ -259,21 +259,7 @@ ViewHandler.prototype.postMapRequest = function (context, callback) {
             if (err) { return callback(err); }
             var obj;
             if (context.is('POST')) {
-                if (context.format==='xml') {
-                    //get current model
-                    if (context.request.body) {
-                        //load xml
-                        try {
-                            var doc = xml.loadXML(context.request.body);
-                            obj = xml.deserialize(doc.documentElement);
-                            context.params.data = obj;
-                        }
-                        catch (e) {
-                            return callback(e);
-                        }
-                    }
-                }
-                else if (context.format==='json') {
+                if (context.format==='json') {
                     if (typeof context.request.body === 'string') {
                         //parse json data
                         try {

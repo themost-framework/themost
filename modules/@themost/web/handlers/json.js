@@ -8,9 +8,6 @@
  * Released under the BSD3-Clause license
  * Date: 2014-12-02
  */
-/**
- * @ignore
- */
 var bodyParser = require('body-parser'), jsonParser;
 var _ = require('lodash');
 function JsonHandler() {

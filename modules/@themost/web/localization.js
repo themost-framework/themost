@@ -153,7 +153,7 @@ DefaultLocalizationStrategy.prototype.getLocaleString = function(locale, text, l
     }
     catch(err) {
         if (err.code === 'ENOENT' || err.code === 'MODULE_NOT_FOUND') {
-            TraceUtils.debug('Localization library cannot be found at ' + libraryFile + '.');
+            TraceUtils.debug('Cannot find localization module' + libraryFile + '.');
             return text;
         }
         throw err;
@@ -169,7 +169,7 @@ DefaultLocalizationStrategy.prototype.getLocaleString = function(locale, text, l
     }
     catch (err) {
         if (err.code === 'ENOENT' || err.code === 'MODULE_NOT_FOUND') {
-            TraceUtils.error(err);
+            TraceUtils.debug('Cannot find localization module' + libraryFile + '.');
             return text;
         }
         throw err;
