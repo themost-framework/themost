@@ -19,7 +19,7 @@
     "lodash": "^4.17.4",
     "source-map-support": "^0.4.11",
     "sprintf": "^0.1.5",
-    "async": "0.2.10",
+    "async": "0.2.10"
   },
   "devDependencies": {
     "eslint": "^4.12.1"
