@@ -32,7 +32,19 @@ if (typeof Object.key !== 'function') {
     }
 }
 
-
+var aliasKeyword = ' AS ';
+/**
+ * @this SqlFormatter
+ */
+function getAliasKeyword() {
+    if (this.settings.hasOwnProperty('useAliasKeyword') === false) {
+        return aliasKeyword;
+    }
+    if (this.settings.useAliasKeyword) {
+        return aliasKeyword;
+    }
+    return ' ';
+}
 
 /**
  * Initializes an SQL formatter class.
@@ -44,7 +56,7 @@ function SqlFormatter() {
     this.provider = null;
     /**
      * Gets or sets formatter settings
-     * @type {{nameFormat: string}|*}
+     * @type {{nameFormat: string, forceAlias: boolean, useAliasKeyword: boolean}|*}
      */
     this.settings = {
         /**
@@ -57,9 +69,14 @@ function SqlFormatter() {
          * (e.g. SELECT Person.name as name or SELECT Person.name).
          * @type {boolean}
          */
-        forceAlias: false
+        forceAlias: false,
+        /**
+         * Gets or sets a boolean which indicates whether AS keyword must be used in alias expression e.g. SELECT * FROM Table1 AS T1 or SELECT * FROM Table1 T1
+         */
+        useAliasKeyword: true
     }
 }
+
 /**
  * Formats a JSON comparison object to the equivalent sql expression eg. { $gt: 100} as >100, or { $in:[5, 8] } as IN {5,8} etc
  * @param {*} comparison
@@ -664,7 +681,7 @@ SqlFormatter.prototype.formatSelect = function(obj)
     if (obj.$ref && obj.$ref[entity]) {
         var entityRef = obj.$ref[entity];
         //escape entity ref
-        escapedEntity = entityRef.$as ?  $this.escapeName(entityRef.name) + ' AS ' + $this.escapeName(entityRef.$as) : $this.escapeName(entityRef.name);
+        escapedEntity = entityRef.$as ?  $this.escapeName(entityRef.name) + getAliasKeyword.bind($this)() + $this.escapeName(entityRef.$as) : $this.escapeName(entityRef.name);
     }
     else {
         //escape entity name
@@ -693,7 +710,7 @@ SqlFormatter.prototype.formatSelect = function(obj)
                 sql = sql.concat(sprintf(' INNER JOIN (%s)', $this.format(x.$entity)));
                 //add alias
                 if (x.$entity.$alias)
-                    sql = sql.concat(' AS ').concat($this.escapeName(x.$entity.$alias));
+                    sql = sql.concat(getAliasKeyword.bind($this)()).concat($this.escapeName(x.$entity.$alias));
             }
             else {
                 //get join table name
@@ -703,7 +720,7 @@ SqlFormatter.prototype.formatSelect = function(obj)
                 sql = sql.concat(' '+ joinType + ' JOIN ').concat($this.escapeName(table));
                 //add alias
                 if (x.$entity.$as)
-                    sql = sql.concat(' AS ').concat($this.escapeName(x.$entity.$as));
+                    sql = sql.concat(getAliasKeyword.bind($this)()).concat($this.escapeName(x.$entity.$as));
             }
             if (_.isArray(x.$with))
             {
