@@ -660,7 +660,7 @@ DataQueryable.prototype.search = function(text) {
     var options = { multiword:true };
     var terms = [];
     if (typeof text !== 'string') { return self; }
-    var re = /("(.*?)")|(\w+)/g;
+    var re = /("(.*?)")|([^\s]+)/g;
     var match = re.exec(text);
     while(match) {
         if (match[2]) {

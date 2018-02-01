@@ -675,7 +675,7 @@ OpenDataParser.prototype.parseIdentifier = function(minus)
 
 OpenDataParser.DurationRegex = /^(-)?P(?:(\\d+)Y)?(?:(\\d+)M)?(?:(\\d+)D)?T?(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+(?:\\.\\d*)?)S)?$/g;
 OpenDataParser.GuidRegex = /^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$/g;
-OpenDataParser.DateTimeRegex = /^(\\d{4})-(\\d{1,2})-(\\d{1,2})T(\\d{1,22}):(\\d{2})(?::(\\d{2})(?:\\.(\\d{7}))?)?$/g;
+OpenDataParser.DateTimeRegex = /^(\d{4})(?:-?W(\d+)(?:-?(\d+)D?)?|(?:-(\d+))?-(\d+))(?:[T ](\d+):(\d+)(?::(\d+)(?:\.(\d+))?)?)?(?:Z(-?\d*))?$/;
 
 /**
  * Parses a guid string and returns an open data token.
@@ -745,15 +745,7 @@ OpenDataParser.prototype.parseDateTimeString = function(value) {
     var match = value.match(OpenDataParser.DateTimeRegex);
     if (match)
     {
-        var year = parseInt(match[1]),
-        month = parseInt(match[2]),
-        day = parseInt(match[3]),
-        hour = parseInt(match[4]),
-        minute = parseInt(match[5]),
-        second = match[6].length > 0 ? parseInt(match[6]) : 0;
-        //var nanoSecond = match[7].length > 0 ? parseInt(match[7]) : 0;
-        //return new LiteralToken(new Date(year, month, day, hour, minute, second, nanoSecond / 1000), LiteralType.DateTime);
-        return new LiteralToken(new Date(year, month, day, hour, minute, second), LiteralToken.LiteralType.DateTime);
+        return new LiteralToken(new Date(value), LiteralToken.LiteralType.DateTime);
     }
     else
     {
