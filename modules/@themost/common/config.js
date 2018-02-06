@@ -254,6 +254,9 @@ ModuleLoaderStrategy.prototype.require = function(modulePath) {
     Args.notEmpty(modulePath,'Module Path');
     if (!/^.\//i.test(modulePath)) {
         //load module which is not starting with ./
+        if (require.main && typeof require.main.require === 'function') {
+            return require.main.require(modulePath)
+        }
         return require(modulePath);
     }
     return require(PathUtils.join(this.getConfiguration().getExecutionPath(),modulePath));

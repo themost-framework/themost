@@ -83,6 +83,12 @@ HttpServiceController.prototype.getItems = function(entitySet) {
         if (_.isNil(model)) {
             return Q.reject(new HttpNotFoundError("Entity not found"));
         }
+        //set default $top property
+        if (!context.params.hasOwnProperty('$top')) {
+            _.assign(context.params, {
+                $top:DefaultTopQueryOption
+            });
+        }
         //parse query filter and return a DataQueryable
         return Q.nbind(model.filter,model)(context.params).then(function(query) {
             var count = parseBoolean(self.context.params['$count']);

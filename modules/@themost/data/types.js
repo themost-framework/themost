@@ -288,7 +288,7 @@ DataAdapter.prototype.createView = function(name, query, callback) {
  * @property {Number|*} state - Represents the operation state (Update, Insert, Delete).
  * @property {DataQueryable|*} emitter - Represents the event emitter, normally a DataQueryable object instance.
  * @property {*} query - Represents the underlying query expression. This property may be null.
- * @property {*} previous - Represents the underlying data object.
+ * @property {DataObject|*} previous - Represents the underlying data object.
  */
 function DataEventArgs() {
     //

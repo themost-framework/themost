@@ -223,7 +223,7 @@ DataAttributeResolver.prototype.testAttribute = function(s) {
      * attribute aggregate function with alias e.g. f(x) as a
      * @ignore
      */
-    matches = /^(\w+)\((\w+)\)\sas\s(\w+)$/i.exec(s);
+    matches = /^(\w+)\((\w+)\)\sas\s([\u0001-\u007F\u0080-\uFFFF]+)$/i.exec(s);
     if (matches) {
         return { name: matches[1] + '(' + matches[2] + ')' , property:matches[3] };
     }
@@ -231,7 +231,7 @@ DataAttributeResolver.prototype.testAttribute = function(s) {
      * attribute aggregate function with alias e.g. x as a
      * @ignore
      */
-    matches = /^(\w+)\sas\s(\w+)$/i.exec(s);
+    matches = /^(\w+)\sas\s([\u0001-\u007F\u0080-\uFFFF]+)$/i.exec(s);
     if (matches) {
         return { name: matches[1] , property:matches[2] };
     }
@@ -264,7 +264,7 @@ DataAttributeResolver.prototype.testAggregatedNestedAttribute = function(s) {
      * nested attribute aggregate function with alias e.g. f(x/b) as a
      * @ignore
      */
-    matches = /^(\w+)\((\w+)\/(\w+)\)\sas\s(\w+)$/i.exec(s);
+    matches = /^(\w+)\((\w+)\/(\w+)\)\sas\s([\u0001-\u007F\u0080-\uFFFF]+)$/i.exec(s);
     if (matches) {
         return { aggr: matches[1], name: matches[2] + '/' + matches[3], property:matches[4] };
     }
@@ -272,7 +272,7 @@ DataAttributeResolver.prototype.testAggregatedNestedAttribute = function(s) {
      * nested attribute aggregate function with alias e.g. f(x/b/c) as a
      * @ignore
      */
-    matches = /^(\w+)\((\w+)\/(\w+)\/(\w+)\)\sas\s(\w+)$/i.exec(s);
+    matches = /^(\w+)\((\w+)\/(\w+)\/(\w+)\)\sas\s([\u0001-\u007F\u0080-\uFFFF]+)$/i.exec(s);
     if (matches) {
         return { aggr: matches[1], name: matches[2] + '/' + matches[3] + '/' + matches[4], property:matches[5] };
     }
@@ -309,7 +309,7 @@ DataAttributeResolver.prototype.testNestedAttribute = function(s) {
      * nested attribute aggregate function with alias e.g. f(x/b) as a
      * @ignore
      */
-    matches = /^(\w+)\((\w+)\/(\w+)\)\sas\s(\w+)$/i.exec(s);
+    matches = /^(\w+)\((\w+)\/(\w+)\)\sas\s([\u0001-\u007F\u0080-\uFFFF]+)$/i.exec(s);
     if (matches) {
         return { name: matches[1] + '(' + matches[2] + '/' + matches[3]  + ')', property:matches[4] };
     }
@@ -317,7 +317,7 @@ DataAttributeResolver.prototype.testNestedAttribute = function(s) {
      * nested attribute aggregate function with alias e.g. f(x/b/c) as a
      * @ignore
      */
-    matches = /^(\w+)\((\w+)\/(\w+)\/(\w+)\)\sas\s(\w+)$/i.exec(s);
+    matches = /^(\w+)\((\w+)\/(\w+)\/(\w+)\)\sas\s([\u0001-\u007F\u0080-\uFFFF]+)$/i.exec(s);
     if (matches) {
         return { name: matches[1] + '(' + matches[2] + '/' + matches[3] + '/' + matches[4]  + ')', property:matches[5] };
     }
@@ -325,7 +325,7 @@ DataAttributeResolver.prototype.testNestedAttribute = function(s) {
      * nested attribute aggregate function with alias e.g. f(x/b/c/d) as a
      * @ignore
      */
-    matches = /^(\w+)\((\w+)\/(\w+)\/(\w+)\/(\w+)\)\sas\s(\w+)$/i.exec(s);
+    matches = /^(\w+)\((\w+)\/(\w+)\/(\w+)\/(\w+)\)\sas\s([\u0001-\u007F\u0080-\uFFFF]+)$/i.exec(s);
     if (matches) {
         return { name: matches[1] + '(' + matches[2] + '/' + matches[3] + '/' + matches[4] + '/' + matches[5]  + ')', property:matches[6] };
     }
@@ -333,7 +333,7 @@ DataAttributeResolver.prototype.testNestedAttribute = function(s) {
      * nested attribute with alias e.g. x/b as a
      * @ignore
      */
-    matches = /^(\w+)\/(\w+)\sas\s(\w+)$/i.exec(s);
+    matches = /^(\w+)\/(\w+)\sas\s([\u0001-\u007F\u0080-\uFFFF]+)$/i.exec(s);
     if (matches) {
         return { name: matches[1] + '/' + matches[2], property:matches[3] };
     }
@@ -341,7 +341,7 @@ DataAttributeResolver.prototype.testNestedAttribute = function(s) {
      * nested attribute with alias e.g. x/b/c as a
      * @ignore
      */
-    matches = /^(\w+)\/(\w+)\/(\w+)\sas\s(\w+)$/i.exec(s);
+    matches = /^(\w+)\/(\w+)\/(\w+)\sas\s([\u0001-\u007F\u0080-\uFFFF]+)$/i.exec(s);
     if (matches) {
         return { name: matches[1] + '/' + matches[2] + '/' + matches[3], property:matches[4] };
     }
@@ -349,7 +349,7 @@ DataAttributeResolver.prototype.testNestedAttribute = function(s) {
      * nested attribute with alias e.g. x/b/c/d as a
      * @ignore
      */
-    matches = /^(\w+)\/(\w+)\/(\w+)\/(\w+)\sas\s(\w+)$/i.exec(s);
+    matches = /^(\w+)\/(\w+)\/(\w+)\/(\w+)\sas\s([\u0001-\u007F\u0080-\uFFFF]+)$/i.exec(s);
     if (matches) {
         return { name: matches[1] + '/' + matches[2] + '/' + matches[3] + '/' + matches[4], property:matches[5] };
     }
@@ -1408,7 +1408,7 @@ DataQueryable.prototype.fieldOf = function(attr, alias) {
             //if nested attribute exists
             if (nestedAttr) {
                 if (_.isNil(alias)) {
-                    var nestedMatches = /as\s(\w+)$/i.exec(attr);
+                    var nestedMatches = /as\s([\u0001-\u007F\u0080-\uFFFF]+)$/i.exec(attr);
                     alias = _.isNil(nestedMatches) ? aggr.concat('Of_', matches[2].replace(/\//g, "_")) : nestedMatches[1];
                 }
                 /**
@@ -1422,7 +1422,7 @@ DataQueryable.prototype.fieldOf = function(attr, alias) {
         if (typeof  field === 'undefined' || field === null)
             throw new Error(sprintf('The specified field %s cannot be found in target model.', matches[2]));
         if (_.isNil(alias)) {
-            matches = /as\s(\w+)$/i.exec(attr);
+            matches = /as\s([\u0001-\u007F\u0080-\uFFFF]+)$/i.exec(attr);
             if (matches) {
                 alias = matches[1];
             }
@@ -1450,7 +1450,7 @@ DataQueryable.prototype.fieldOf = function(attr, alias) {
             if (typeof  field === 'undefined' || field === null)
                 throw new Error(sprintf('The specified field %s cannot be found in target model.', matches[2]));
             if (_.isNil(alias)) {
-                matches = /as\s(\w+)$/i.exec(attr);
+                matches = /as\s([\u0001-\u007F\u0080-\uFFFF]+)$/i.exec(attr);
                 if (matches) {
                     alias = matches[1];
                 }
@@ -1476,8 +1476,12 @@ DataQueryable.prototype.fieldOf = function(attr, alias) {
                 if (typeof  field === 'undefined' || field === null)
                     throw new Error(sprintf('The specified field %s cannot be found in target model.', attr));
                 var f = qry.fields.select(field.name).from(this.model.viewAdapter);
-                if (field.property)
+                if (alias) {
+                    return f.as(alias);
+                }
+                else if (field.property) {
                     return f.as(field.property);
+                }
                 return f;
             }
         }

@@ -232,6 +232,14 @@ AuthStrategy.prototype.logout = function(thisContext) {
 AuthStrategy.prototype.getUnattendedExecutionAccount = function() {
     throw new AbstractMethodError();
 };
+/**
+ * Gets the options of this authentication strategy
+ * @abstract
+ * @returns {*}
+ */
+AuthStrategy.prototype.getOptions = function() {
+    throw new AbstractMethodError();
+};
 
 /**
  * @class
@@ -257,6 +265,14 @@ function DefaultAuthStrategy(app) {
 }
 LangUtils.inherits(DefaultAuthStrategy, AuthStrategy);
 
+/**
+ * Gets the options of this authentication strategy
+ * @abstract
+ * @returns {*}
+ */
+DefaultAuthStrategy.prototype.getOptions = function() {
+    return this[optionsProperty];
+};
 /**
  * Sets the authentication cookie for the given context
  * @param {HttpContext} thisContext - The current HTTP context

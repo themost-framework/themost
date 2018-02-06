@@ -8,6 +8,8 @@ export declare class DefaultDataContext extends DataContext {
 
 export declare class NamedDataContext extends DataContext {
     new(name:string);
+    readonly name:string;
+    getName():string
     getDb():DataAdapter;
     setDb(db:DataAdapter);
 }

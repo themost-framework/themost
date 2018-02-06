@@ -114,7 +114,7 @@ LangUtils.inherits(HttpContextProvider,HttpApplicationService);
 /**
  * @returns {HttpContext}
  */
-HttpContextProvider.prototype.createInstance = function(req,res) {
+HttpContextProvider.prototype.create = function(req,res) {
     var context = new HttpContext(req,res);
     //set context application
     context.application = this.getApplication();
@@ -536,7 +536,7 @@ HttpApplication.prototype.getContextProvider = function() {
  * @returns {HttpContext}
  */
 HttpApplication.prototype.createContext = function (request, response) {
-    var context = this.getContextProvider().createInstance(request, response);
+    var context = this.getContextProvider().create(request, response);
     //set context application
     context.application = this;
     //set handler events
@@ -1308,4 +1308,5 @@ function httpApplicationErrors(application) {
 if (typeof exports !== 'undefined')
 {
     module.exports.HttpApplication = HttpApplication;
+    module.exports.HttpContextProvider = HttpContextProvider;
 }

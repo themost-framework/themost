@@ -12,6 +12,8 @@ var LangUtils = require('@themost/common/utils').LangUtils;
 var DataContext = require('./types').DataContext;
 var DataConfigurationStrategy = require('./data-configuration').DataConfigurationStrategy;
 var cfg = require('./data-configuration');
+var Symbol = require('symbol');
+var nameProperty = Symbol('name');
 /**
  * @classdesc Represents the default data context of MOST Data Applications.
  * The default data context uses the adapter which is registered as the default adapter in application configuration.
@@ -155,7 +157,7 @@ DefaultDataContext.prototype.finalize = function(cb) {
  */
 function NamedDataContext(name)
 {
-    NamedDataContext.super_.call();
+    NamedDataContext.super_.bind(this)();
     /**
      * @type {DataAdapter}
      * @private
@@ -175,8 +177,8 @@ function NamedDataContext(name)
         }
         db_ = null;
     };
-    //set the name specified
-    var self = this, name_ = name;
+    var self = this;
+    self[nameProperty] = name;
 
     self.getDb = function() {
         if (db_)
@@ -184,7 +186,7 @@ function NamedDataContext(name)
         var strategy = self.getConfiguration().getStrategy(DataConfigurationStrategy);
         //otherwise load database options from configuration
         var adapter = strategy.adapters.find(function(x) {
-            return x.name === name_;
+            return x.name === self[nameProperty];
         });
         var er;
         if (typeof adapter ==='undefined' || adapter===null) {
@@ -212,14 +214,10 @@ function NamedDataContext(name)
     };
 
     /**
-     * Gets an instance of DataConfiguration class which is associated with this data context
-     * @returns {DataConfiguration}
+     * @property
+     * @name NamedDataContext#db
+     * @type {DataAdapter}
      */
-    this.getConfiguration = function() {
-        return cfg.getNamedConfiguration(name_);
-    };
-
-    delete self.db;
 
     Object.defineProperty(self, 'db', {
         get : function() {
@@ -231,9 +229,35 @@ function NamedDataContext(name)
         configurable : true,
         enumerable:false });
 
+    /**
+     * @property
+     * @name NamedDataContext#name
+     * @type {string}
+     */
+    Object.defineProperty(self, 'name', {
+        get: function () {
+            return self[nameProperty];
+        }
+    });
+
 }
 LangUtils.inherits(NamedDataContext, DataContext);
 
+/**
+ * Gets a string which represents the name of this context
+ * @returns {string}
+ */
+NamedDataContext.prototype.getName = function() {
+    return this[nameProperty];
+};
+
+/**
+ * Gets an instance of DataConfiguration class which is associated with this data context
+ * @returns {DataConfiguration}
+ */
+NamedDataContext.prototype.getConfiguration = function() {
+    return cfg.getNamedConfiguration(this.name);
+};
 /**
  * Gets an instance of DataModel class based on the given name.
  * @param name {string} - A string that represents the model name.
@@ -252,6 +276,7 @@ NamedDataContext.prototype.model = function(name) {
     model.context = self;
     //return model
     return model;
+
 };
 
 NamedDataContext.prototype.finalize = function(cb) {

@@ -62,14 +62,7 @@ RestrictHandler.prototype.authorizeRequest = function (context, callback) {
                     callback(new HttpUnauthorizedError('Access denied'));
                 }
                 else if (result) {
-                    var er = new HttpUnauthorizedError();
-                    context.application.errors.unauthorized(context,er,function(err) {
-                        if (err) {
-                            return callback(err);
-                        }
-                        context.response.end();
-                        return callback(er);
-                    });
+                    return callback(new HttpUnauthorizedError());
                 }
                 else {
                     callback();
