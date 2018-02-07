@@ -23,6 +23,10 @@
       "type": "string",
       "description":"A string which represents the model which is inherited by this model e.g. User inherits Account, Person inherits Party etc"
     },
+    "implements": {
+      "type": "string",
+      "description":"A string which represents the model which is implemented by this model e.g. ActionStatusType model implements Enumeration model etc"
+    },
     "sealed": {
       "default": false,
       "type": "boolean",

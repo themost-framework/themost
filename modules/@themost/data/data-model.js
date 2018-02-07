@@ -75,6 +75,15 @@ function inferTagMapping_(field) {
     });
 }
 
+function getImplementedModel() {
+    if (_.isNil(this['implements'])) {
+        return null;
+    }
+    if (typeof this.context === 'undefined' || this.context === null)
+        throw new Error("The underlying data context cannot be empty.");
+    return this.context.model(this['implements']);
+}
+
 /**
  * @ignore
  * @class
@@ -221,6 +230,7 @@ function EmptyQueryExpression() {
  * @property {string} type - Gets or sets an internal type for this model.
  * @property {DataCachingType|string} caching - Gets or sets a string that indicates the caching type for this model. The default value is none.
  * @property {string} inherits - Gets or sets a string that contains the model that is inherited by the current model.
+ * @property {string} implements - Gets or sets a string that contains the model that is implemented by the current model.
  * @property {DataField[]} fields - Gets or sets an array that represents the collection of model fields.
  * @property {DataModelEventListener[]} eventListeners - Gets or sets an array that represents the collection of model listeners.
  * @property {Array} constraints - Gets or sets the array of constraints which are defined for this model
@@ -342,6 +352,7 @@ function DataModel(obj) {
         attributes = [];
         //get base model (if any)
         var baseModel = self.base(), field;
+        var implementedModel = getImplementedModel.bind(self)();
         //enumerate fields
         var strategy = self.context.getConfiguration().getStrategy(DataConfigurationStrategy);
         self.fields.forEach(function(x) {
@@ -384,6 +395,18 @@ function DataModel(obj) {
                     field = self.fields.find(function(y) { return y.name === x.name; });
                     if (typeof field === 'undefined')
                         attributes.push(x);
+                }
+            });
+        }
+        if (implementedModel) {
+            implementedModel.attributes.forEach(function(x) {
+                field = _.find(self.fields, function(y) {
+                    return y.name === x.name;
+                });
+                if (_.isNil(field)) {
+                    attributes.push(_.assign({}, x, {
+                        model:self.name
+                    }));
                 }
             });
         }
@@ -1085,6 +1108,7 @@ DataModel.prototype.base = function()
         throw new Error("The underlying data context cannot be empty.");
     return this.context.model(this.inherits);
 };
+
 /**
  * @this DataModel
  * @private
@@ -2123,6 +2147,9 @@ DataModel.prototype.migrate = function(callback)
     if (conf.cache[self.name].version===self.version) {
         //model has already been migrated, so do nothing
         return callback();
+    }
+    if (self.abstract) {
+        return new callback(new DataError('EABSTRACT','An abstract model cannot be instantiated.',null,self.name));
     }
     //do not migrate sealed models
     if (self.sealed) {

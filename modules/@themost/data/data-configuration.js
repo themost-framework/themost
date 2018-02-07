@@ -815,9 +815,15 @@ DefaultModelClassLoaderStrategy.prototype.resolve = function(model) {
                 }
                 catch(err) {
                     if (err.code === 'MODULE_NOT_FOUND') {
-                        if (typeof this['inherits'] === 'undefined' || this['inherits'] === null) {
-                            //use default DataObject class
-                            modelDefinition[dataObjectClassProperty] = DataObjectClass = require('./data-object').DataObject;
+                        if (_.isNil(this['inherits'])) {
+                            if (_.isNil(this['implements'])) {
+                                //use default DataObject class
+                                modelDefinition[dataObjectClassProperty] = DataObjectClass = require('./data-object').DataObject;
+                            }
+                            else {
+                                //use implemented data model class
+                                modelDefinition[dataObjectClassProperty] = DataObjectClass = this.resolve(model.context.model(this['implements']));
+                            }
                         }
                         else {
                             modelDefinition[dataObjectClassProperty] = DataObjectClass = this.resolve(model.base());
