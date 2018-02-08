@@ -996,8 +996,11 @@ EntitySetConfiguration.prototype.mapInstanceSet = function(context, any) {
     if (any.hasOwnProperty("total") && /^\+?\d+$/.test(any["total"])) {
         result["@odata.count"] = parseInt(any["total"]);
     }
-    if (any.hasOwnProperty("count") && /^\+?\d+$/.test(any["count"])) {
+    else if (any.hasOwnProperty("count") && /^\+?\d+$/.test(any["count"])) {
         result["@odata.count"] = parseInt(any["count"]);
+    }
+    if (any.hasOwnProperty("skip") && /^\+?\d+$/.test(any["skip"])) {
+        result["@odata.skip"] = parseInt(any["skip"]);
     }
     result["value"] = [];
     if (_.isArray(any)) {

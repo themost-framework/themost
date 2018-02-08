@@ -624,7 +624,9 @@ HttpServiceController.prototype.getNavigationProperty = function(entitySet, navi
                         return Q.reject(new HttpNotFoundError("Associated model not found"));
                     }
                     var associatedEntitySet = self.getBuilder().getEntityTypeEntitySet(associatedModel.name);
-                    return Q.nbind(associatedModel.filter, associatedModel)(self.context.params).then(function(q) {
+                    return Q.nbind(associatedModel.filter, associatedModel)( _.extend({
+                        "$top":DefaultTopQueryOption
+                    },context.params)).then(function(q) {
                         if (count) {
                             return q.where(mapping.childField).equal(key).getList().then(function (result) {
                                 return Q.resolve(self.json(associatedEntitySet.mapInstanceSet(context,result)));
