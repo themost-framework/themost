@@ -8,6 +8,7 @@
  */
 var formidable = require('formidable');
 var _ = require('lodash');
+var LangUtils = require('@themost/common/utils').LangUtils;
 
 if (process.version>="v6.0.0") {
     var multipart_parser = require('formidable/lib/multipart_parser'),
@@ -44,11 +45,20 @@ MultipartHandler.prototype.beginRequest = function(context, callback) {
             try {
                 //add form
                 if (form) {
-                    _.assign(context.params, web.common.parseForm(form));
+                    _.assign(context.params, LangUtils.parseForm(form));
                 }
                 //add files
-                if (files)
-                    _.assign(context.params, files);
+                if (files) {
+                    _.forEach(_.keys(files),(key)=> {
+                        if (context.params.hasOwnProperty(key)) {
+                            _.assign(context.params[key], files[key]);
+                        }
+                        else {
+                            context.params[key] = files[key];
+                        }
+                    });
+
+                }
                 callback();
             }
             catch (e) {
