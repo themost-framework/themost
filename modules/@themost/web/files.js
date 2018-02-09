@@ -185,10 +185,11 @@ AttachmentFileSystemStorage.prototype.save = function(context, item, callback) {
             item.version = item.version || 1;
             //file status (false) not published
             item.published = item.published || false;
-            //set oid explicitly
-            item.oid = RandomUtils.randomChars(12);
+            if (typeof item.alternateName === 'undefined' || item.alternateName === null) {
+                item.alternateName = RandomUtils.randomChars(12);
+            }
             //set url
-            item.url = path.join(self.virtualPath, item.oid);
+            item.url = path.join(self.virtualPath, item.alternateName);
             //save attachment
             attachments.save(item, function(err) {
                 callback(err);
@@ -258,9 +259,9 @@ AttachmentFileSystemStorage.prototype.resolvePhysicalPath = function(context, it
  * @param {function(Error=,string=)} callback
  */
 AttachmentFileSystemStorage.prototype.resolveUrl = function(context, item, callback) {
-    var oid = item.oid, self = this;
-    if (oid) {
-        callback(null, path.join(self.virtualPath, oid));
+    var alternateName = item.alternateName, self = this;
+    if (alternateName) {
+        callback(null, path.join(self.virtualPath, alternateName));
     }
     else {
         self.findOne(context, item, function(err, result) {
@@ -272,7 +273,7 @@ AttachmentFileSystemStorage.prototype.resolveUrl = function(context, item, callb
                     callback(new Error('Item cannot be found'));
                 }
                 else {
-                    callback(null, path.join(self.virtualPath, item.oid));
+                    callback(null, path.join(self.virtualPath, item.alternateName));
                 }
             }
         });
@@ -382,7 +383,7 @@ AttachmentFileSystemStorage.prototype.copyFrom = function(context, src, attrs, c
             var filename = path.basename(src);
             attrs = attrs || {};
             //set file composition name
-            attrs.filename = attrs.filename || filename;
+            attrs.name = attrs.name || filename;
             //check source file
             fs.exists(src, function(exists) {
                 if (!exists) {
@@ -458,7 +459,7 @@ AttachmentFileSystemStorage.prototype.copyTo = function(context, item, dest, cal
                                     callback(new Error('The source file cannot be found.'));
                                 }
                                 else {
-                                    var destFile = path.join(dest, result.filename);
+                                    var destFile = path.join(dest, result.name);
                                     copyFile(src, destFile, function(err) {
                                         callback(err, destFile);
                                     });
