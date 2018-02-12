@@ -815,14 +815,14 @@ DefaultModelClassLoaderStrategy.prototype.resolve = function(model) {
                 }
                 catch(err) {
                     if (err.code === 'MODULE_NOT_FOUND') {
-                        if (_.isNil(this['inherits'])) {
-                            if (_.isNil(this['implements'])) {
+                        if (_.isNil(model['inherits'])) {
+                            if (_.isNil(model['implements'])) {
                                 //use default DataObject class
                                 modelDefinition[dataObjectClassProperty] = DataObjectClass = require('./data-object').DataObject;
                             }
                             else {
                                 //use implemented data model class
-                                modelDefinition[dataObjectClassProperty] = DataObjectClass = this.resolve(model.context.model(this['implements']));
+                                modelDefinition[dataObjectClassProperty] = DataObjectClass = this.resolve(model.context.model(model['implements']));
                             }
                         }
                         else {

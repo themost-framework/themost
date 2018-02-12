@@ -377,6 +377,7 @@ DataPermissionEventListener.prototype.validate = function(event, callback) {
                             else {
                                 //set where from DataQueryable.query
                                 query.$where = q.query.$prepared;
+                                query.$expand = q.query.$expand;
                                 model.context.db.execute(query,null, function(err, result) {
                                     if (err) {
                                         cb(err);

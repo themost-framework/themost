@@ -151,10 +151,6 @@ function DataObjectJunction(obj, association) {
     }).map(function(x) {
         return qry.fields.select(x.name).from(adapter);
     }));
-    left[adapter] = [ relatedModel.primaryKey ];
-    right[this.mapping.associationAdapter] = [qry.fields.select(DataObjectJunction.STR_VALUE_FIELD).from(this.mapping.associationAdapter).$name];
-    var field1 = qry.fields.select(DataObjectJunction.STR_OBJECT_FIELD).from(this.mapping.associationAdapter).$name;
-    this.query.join(this.mapping.associationAdapter, []).with([left, right]).where(field1).equal(obj[this.mapping.parentField]).prepare();
     var baseModel;
     Object.defineProperty(this, 'baseModel', {
         get: function() {
@@ -224,6 +220,13 @@ function DataObjectJunction(obj, association) {
             return x.name === DataObjectJunction.STR_OBJECT_FIELD;
         });
     };
+
+    left[adapter] = [ relatedModel.primaryKey ];
+    var baseAdapter = this.getBaseModel().viewAdapter;
+    right[baseAdapter] = [qry.fields.select(DataObjectJunction.STR_VALUE_FIELD).from(baseAdapter).$name];
+    var field1 = qry.fields.select(DataObjectJunction.STR_OBJECT_FIELD).from(baseAdapter).$name;
+    this.query.join(baseAdapter, []).with([left, right]).where(field1).equal(obj[this.mapping.parentField]).prepare();
+
 
 
 }

@@ -2444,7 +2444,7 @@ function inferDefaultMapping(conf, name) {
         if (many) {
             //return a data junction
             return new DataAssociationMapping({
-                associationAdapter: self.name.concat(_.upperFirst(field.name)),
+                associationAdapter: field.model.concat(_.upperFirst(field.name)),
                 parentModel: self.name, parentField: self.primaryKey,
                 childModel: associatedModel.name,
                 childField: associatedModel.primaryKey,

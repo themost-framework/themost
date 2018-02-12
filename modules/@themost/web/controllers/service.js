@@ -515,7 +515,13 @@ HttpServiceController.prototype.getNavigationProperty = function(entitySet, navi
                             //find method
                             var memberFunc = EdmMapping.hasOwnFunction(obj,  action.name);
                             if (memberFunc) {
-                                return Q.resolve(memberFunc.bind(obj)()).then(function(result) {
+                                var funcParameters = [];
+                                _.forEach(action.parameters, (x)=> {
+                                    if (x.name !== 'bindingParameter') {
+                                        funcParameters.push( LangUtils.parseValue(context.params[x.name]));
+                                    }
+                                });
+                                return Q.resolve(memberFunc.apply(obj, funcParameters)).then(function(result) {
                                     if (result instanceof DataQueryable) {
                                         if (_.isNil(returnModel)) {
                                             return Q.reject(new HttpNotFoundError("Result Entity not found"));
