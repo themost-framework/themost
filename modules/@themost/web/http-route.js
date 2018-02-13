@@ -33,13 +33,28 @@ function HttpRoute(route) {
             return "^true|false$"
         },
         decimal:function() {
-            return "^\\d*\\.?\\d*$";
+            return "^[+-]?\\d+\\.?\\d+$";
         },
         float:function() {
-            return "^\\d*\\.?\\d*$";
+            return "^[+-]?\\d+\\.?\\d+$";
         },
         guid:function() {
             return "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$";
+        }
+    };
+
+    this.parsers = {
+        int:function(v) {
+            return parseInt(v);
+        },
+        boolean:function(v) {
+            return (/^true$/ig.test(v));
+        },
+        decimal:function(v) {
+            return parseFloat(v);
+        },
+        float:function(v) {
+            return parseFloat(v);
         }
     }
 
@@ -59,7 +74,7 @@ HttpRoute.prototype.isMatch = function (urlToMatch) {
         return false;
     if (urlToMatch.length === 0)
         return false;
-    var str1 = urlToMatch, patternMatch;
+    var str1 = urlToMatch, patternMatch, parser;
     var k = urlToMatch.indexOf('?');
     if (k >= 0)
         str1 = urlToMatch.substr(0, k);
@@ -75,12 +90,17 @@ HttpRoute.prototype.isMatch = function (urlToMatch) {
         else if (typeof match[3] !== 'undefined') {
             //common expressions
             patternMatch = match[3];
+            parser = null;
             if (typeof self.patterns[match[3]] === 'function') {
                 patternMatch = self.patterns[match[3]]();
+                if (typeof self.parsers[match[3]] === 'function') {
+                    parser = self.parsers[match[3]];
+                }
             }
             params.push({
                 name: match[2],
-                pattern: new RegExp(patternMatch, "ig")
+                pattern: new RegExp(patternMatch, "ig"),
+                parser: parser
             });
         }
         else {
@@ -90,7 +110,7 @@ HttpRoute.prototype.isMatch = function (urlToMatch) {
         }
         match = re.exec(this.route.url);
     }
-    var str = this.route.url.replace(re,"([\\$_\\-%0-9\\w-]+)"),
+    var str = this.route.url.replace(re,"([\\$_\\-.%0-9\\w-]+)"),
         matcher = new RegExp("^" + str + "$", "ig");
     match = matcher.exec(str1);
     if (typeof match === 'undefined' || match === null) {
@@ -105,19 +125,30 @@ HttpRoute.prototype.isMatch = function (urlToMatch) {
             }
         }
         decodedMatch = decodeURIComponent(match[i+1]);
-        param.value = (match[i+1] !== decodedMatch) ? decodedMatch : match[i+1];
+        if (typeof param.parser === 'function') {
+            param.value = param.parser((match[i+1] !== decodedMatch) ? decodedMatch : match[i+1]);
+        }
+        else {
+            param.value = (match[i+1] !== decodedMatch) ? decodedMatch : match[i+1];
+        }
+
     }
     params.forEach(function(x) {
         self.routeData[x.name] = x.value;
     });
-    if (self.route.hasOwnProperty("controller")) { self.routeData["controller"] = self.route["controller"]; }
-    if (self.route.hasOwnProperty("action")) { self.routeData["action"] = self.route["action"]; }
+    if (self.route.hasOwnProperty("controller")) {
+        self.routeData["controller"] = self.route["controller"];
+    }
+    if (self.route.hasOwnProperty("action")) {
+        self.routeData["action"] = self.route["action"];
+    }
     return true;
 };
 
 
 if (typeof exports !== 'undefined') {
     module.exports = {
+        HttpRoute:HttpRoute,
         /**
          * Creates a new instance of HttpRoute class
          * @param {string|*=} route
