@@ -1,6 +1,6 @@
 {
   "name": "@themost/query",
-  "version": "2.0.7",
+  "version": "2.0.8",
   "description": "MOST Web Framework 2.0 - query module",
   "module": "common.js",
   "peerDependencies": {},
