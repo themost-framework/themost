@@ -223,6 +223,12 @@ SqlFormatter.prototype.formatWhere = function(where)
                 op = '$eq';
                 comparison = {$eq:propertyValue};
             }
+            else if (_.isArray(comparison)) {
+                op = "$in";
+                comparison = {
+                    "$in": propertyValue
+                }
+            }
             else if (typeof comparison === 'object' && comparison !== null) {
                 //get comparison operator
                 op = Object.keys(comparison)[0];
@@ -252,8 +258,12 @@ SqlFormatter.prototype.formatWhere = function(where)
                 case '$ne':
                     if (_.isNil(comparison.$ne))
                         return sprintf('(NOT %s IS NULL)', escapedProperty);
-                    if (comparison!==null)
+                    if (comparison!==null) {
+                        if (_.isArray(comparison.$ne)) {
+                            return sprintf('(NOT %s IN (%s))', escapedProperty, self.escape(comparison.$ne));
+                        }
                         return sprintf('(NOT %s=%s)', escapedProperty, self.escape(comparison.$ne));
+                    }
                     else
                         return sprintf('(NOT %s IS NULL)', escapedProperty);
                 case '$regex':
