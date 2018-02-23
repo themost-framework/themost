@@ -192,7 +192,7 @@ DataNestedObjectListener.prototype.beforeSave = function (event, callback) {
         if (nested.length === 0) { return callback(); }
         async.eachSeries(nested, function(attr, cb) {
             if (attr.many===true) {
-                return beforeSaveMany_(attr, event, cb);
+                return cb();
             }
             return beforeSave_(attr, event, cb);
         }, function(err) {
@@ -290,6 +290,154 @@ DataNestedObjectListener.prototype.beforeRemove = function (event, callback) {
         return callback(err);
     }
 };
+
+
+function afterSaveMany_(attr, event, callback) {
+    var context = event.model.context;
+    var name = attr.property || attr.name;
+    var key = event.model.getPrimaryKey();
+    var nestedObj = event.target[name];
+    //if attribute is null or undefined
+    if (_.isNil(nestedObj)) {
+        //do nothing
+        return callback();
+    }
+    //if nested object is not an array
+    if (!_.isArray(nestedObj)) {
+        //throw exception
+        return callback(new DataError("EASSOCIATION","Invalid argument type. Expected array.",null, event.model.name, name));
+    }
+    //if nested array does not have any data
+    if (nestedObj.length===0) {
+        //do nothing
+        return callback();
+    }
+    //get mapping
+    var mapping = event.model.inferMapping(attr.name);
+    if (_.isNil(mapping)) {
+        return callback(new DataError('EASSOCIATION','Association mapping may not be empty.', null, event.model.name, attr.name));
+    }
+    if (mapping.associationType === 'junction') {
+        return callback(new DataError('EASSOCIATION','Junction nested association type is not supported.', null, event.model.name, attr.name));
+    }
+    if (mapping.associationType === 'association' && mapping.parentModel !== event.model.name) {
+        return callback(new DataError('EASSOCIATION','Invalid nested association type.', null, event.model.name, attr.name));
+    }
+    //get target model
+    var nestedModel = context.model(attr.type);
+    //if target model cannot be found
+    if (_.isNil(nestedModel)) {
+        return callback();
+    }
+    //get nested primary key
+    var nestedKey = nestedModel.getPrimaryKey();
+    //on insert
+    if (event.state===1) {
+        //enumerate nested objects and set state to new
+        _.forEach(nestedObj, function(x) {
+            //delete identifier
+            delete x[nestedKey];
+            //force state to new ($state=1)
+            x.$state = 1;
+            //set parent field for mapping
+            x[mapping.childField] = event.target[mapping.parentField];
+        });
+        //save nested objects
+        nestedModel.silent().save(nestedObj, function(err) {
+            //remove $state attribute
+            nestedObj.forEach(function(x) { delete x.$state; });
+            //and return
+            callback(err);
+        });
+    }
+    //on update
+    else if (event.state === 2) {
+        //first of all get original associated object, if any
+        event.model.where(key)
+            .equal(event.target[key])
+            .select(key,name)
+            .expand(name)
+            .silent()
+            .first(function(err, result) {
+                if (err) { return callback(err); }
+                //if original object cannot be found, throw an invalid state exception
+                if (_.isNil(result)) { return callback(new Error('Invalid object state.')); }
+                //get original nested objects
+                var originalNestedObjects = result[name] || [];
+                //enumerate nested objects
+
+                _.forEach(nestedObj, function(x) {
+                    var obj = _.find(originalNestedObjects, function (y) {
+                        return y[nestedKey] === x[nestedKey];
+                    });
+                    if (obj) {
+                        //force state to update ($state=2)
+                        x.$state = 2;
+                    }
+                    else {
+                        //delete identifier
+                        delete x[nestedKey];
+                        //force state to new ($state=1)
+                        x.$state = 1;
+                    }
+                    x[mapping.childField] = event.target[mapping.parentField];
+                });
+
+                _.forEach(originalNestedObjects, function(x) {
+                    var obj = _.find(nestedObj, function(y) {
+                        return y[nestedKey] === x[nestedKey];
+                    });
+                    if (_.isNil(obj)) {
+                        //force state to delete ($state=4)
+                        x.$state = 4;
+                        nestedObj.push(x);
+                    }
+                });
+
+                //and finally save objects
+                nestedModel.silent().save(nestedObj, function(err) {
+                    //remove $state attribute
+                    _.forEach(nestedObj, function(x) {
+                        delete x.$state;
+                    });
+                    if (err) { return callback(err); }
+                    return callback();
+                });
+            });
+    }
+    else {
+        return callback();
+    }
+}
+
+
+/**
+ * @param {DataEventArgs} event
+ * @param {Function} callback
+ */
+DataNestedObjectListener.prototype.afterSave = function (event, callback) {
+    try {
+        //get attributes with nested property set to on
+        var nested = event.model.attributes.filter(function(x) {
+            //only if these attributes belong to current model
+            return x.nested && (x.model === event.model.name);
+        });
+        //if there are no attribute defined as nested do nothing
+        if (nested.length === 0) { return callback(); }
+        async.eachSeries(nested, function(attr, cb) {
+            if (attr.many===true) {
+                return afterSaveMany_(attr, event, cb);
+            }
+            return cb();
+        }, function(err) {
+            return callback(err);
+        });
+    }
+    catch (err) {
+        return callback(err);
+    }
+};
+
 
 if (typeof exports !== 'undefined')
 {
