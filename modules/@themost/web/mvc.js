@@ -22,6 +22,7 @@ var crypto = require('crypto');
 var Q = require('q');
 var async = require('async');
 var PassThrough = require('stream').PassThrough;
+var ModuleLoaderStrategy = require('@themost/common/config').ModuleLoaderStrategy;
 
 /**
  * @param {Buffer} buffer
@@ -576,8 +577,15 @@ HttpViewResult.prototype.execute = function(context, callback)
             return callback(err);
         }
         if (viewEngine) {
+            var moduleLoader = context.getApplication().getConfiguration().getStrategy(ModuleLoaderStrategy);
             return Q.promise(function(resolve, reject) {
-                var engine = require(viewEngine.type);
+                var engine;
+                if (/^@themost\/web\//.test(viewEngine.type)) {
+                    engine = require(viewEngine.type.replace(/^@themost\/web\//,"./"));
+                }
+                else {
+                    engine = _.isObject(moduleLoader) ? moduleLoader.require(viewEngine.type) : require(viewEngine.type);
+                }
                 /**
                  * @type {HttpViewEngine|*}
                  */

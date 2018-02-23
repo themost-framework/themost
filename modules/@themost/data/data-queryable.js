@@ -10,6 +10,7 @@ var mappingExtensions = require('./data-mapping-extensions');
 var DataAssociationMapping = require('./types').DataAssociationMapping;
 var DataError = require("@themost/common/errors").DataError;
 var qry = require('@themost/query');
+var QueryExpression = require('@themost/query/query').QueryExpression;
 var Q = require('q');
 
 var aliasProperty = Symbol('alias');
@@ -1937,9 +1938,30 @@ function countInternal(callback) {
     delete self.query.$skip;
     delete self.query.$take;
     delete self.query.$order;
-    delete self.query.$group;
     //append count expression
-    self.query.select([qry.fields.count(field.name).from(self.model.viewAdapter)]);
+    if (self.query.$group) {
+        //get first field
+        var selectEntity = _.keys(self.query.$select)[0];
+        if (typeof selectEntity === 'undefined' || selectEntity === null) {
+            return callback(new Error('Query entity cannot be empty at this context'));
+        }
+        var selectField = self.query.$select[selectEntity][0];
+        if (typeof selectField === 'undefined' || selectField === null) {
+            return callback(new Error('Query entity select field cannot be empty at this context'));
+        }
+        if (typeof selectField.name !== 'function') {
+            return callback(new Error('Query entity field is invalid'));
+        }
+        //clone query
+        var q1 = self.clone();
+        field = {
+            "name": selectField.name()
+        };
+        self.query.select([qry.fields.count(field.name).as(field.name)]).from(q1.query);
+    }
+    else {
+        self.query.select([qry.fields.count(field.name).from(self.model.viewAdapter)]);
+    }
     //execute select
     execute_.call(self, function(err, result) {
         if (err) { callback.call(self, err, result); return; }

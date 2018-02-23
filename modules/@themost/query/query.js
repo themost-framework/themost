@@ -11,7 +11,7 @@ var _ = require('lodash');
 // eslint-disable-next-line no-unused-vars
 //noinspection JSUnusedLocalSymbols
 var natives = require('./natives');
-
+var Symbol = require('symbol');
 /**
  * @class QueryParameter
  * @constructor
@@ -520,6 +520,11 @@ QueryExpression.prototype.from = function(entity) {
     var name;
     if (entity instanceof QueryEntity) {
         name  = entity.$as || entity.name;
+        this.$ref = this.$ref || {};
+        this.$ref[name] = entity;
+    }
+    else if (entity instanceof QueryExpression) {
+        name  = entity.$alias || "s0";
         this.$ref = this.$ref || {};
         this.$ref[name] = entity;
     }
@@ -2161,7 +2166,6 @@ OpenDataQuery.prototype.in = function(values) {
 OpenDataQuery.prototype.notIn = function(values) {
     this.privates.op = 'nin';this.privates.right = values; return this.append();
 };
-
 
 if (typeof exports !== 'undefined') {
     module.exports.QueryExpression = QueryExpression;

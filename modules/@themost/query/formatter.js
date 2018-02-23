@@ -681,7 +681,12 @@ SqlFormatter.prototype.formatSelect = function(obj)
     if (obj.$ref && obj.$ref[entity]) {
         var entityRef = obj.$ref[entity];
         //escape entity ref
-        escapedEntity = entityRef.$as ?  $this.escapeName(entityRef.name) + getAliasKeyword.bind($this)() + $this.escapeName(entityRef.$as) : $this.escapeName(entityRef.name);
+        if (entityRef instanceof QueryExpression) {
+            escapedEntity = "(" + this.format(entityRef) + ") " + $this.escapeName(entity);
+        }
+        else {
+            escapedEntity = entityRef.$as ?  $this.escapeName(entityRef.name) + getAliasKeyword.bind($this)() + $this.escapeName(entityRef.$as) : $this.escapeName(entityRef.name);
+        }
     }
     else {
         //escape entity name
