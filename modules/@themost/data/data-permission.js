@@ -722,7 +722,7 @@ DataPermissionEventListener.prototype.beforeExecute = function(event, callback)
                             and(perms1.select('privilege')).equal(mapping.childModel).
                             and(perms1.select('parentPrivilege')).equal(mapping.parentModel).
                             and(perms1.select('workspace')).equal(workspace).
-                            and(perms1.select('mask')).bit(requestMask).
+                            and(perms1.select('mask')).bit(requestMask,requestMask).
                             and(perms1.select('account')).in(accounts.map(function(x) { return x.id; })).prepare(true);
                         assigned=true;
                         cb();

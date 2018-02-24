@@ -1719,6 +1719,8 @@ function saveBaseObject_(obj, callback) {
     };
     //register nested objects listener (before save)
     self.once('before.save', DataNestedObjectListener.prototype.beforeSave);
+    //register data association listener (after save)
+    self.once('after.save', DataNestedObjectListener.prototype.afterSave);
     //register data association listener (before save)
     self.once('before.save', DataObjectAssociationListener.prototype.beforeSave);
     //register data association listener
