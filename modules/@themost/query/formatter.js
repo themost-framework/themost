@@ -653,6 +653,24 @@ SqlFormatter.prototype.$bit = function(p0, p1)
 
 /**
  *
+ * @param query {QueryExpression|*}
+ * @returns {string}
+ */
+SqlFormatter.prototype.formatCount = function(query) {
+    //validate select expression
+    if (_.isNil(query.$select)) {
+        throw new Error('Invalid query expression. Expected a valid select expression.')
+    }
+    //get count alias
+    var alias = this.$count || "__count__";
+    //format select statement (ignore paging parameters even if there are exist)
+    var sql = this.formatSelect(query);
+    //return final count expression by setting the derived sql statement as sub-query
+    return "SELECT COUNT(*) AS " + this.escapeName(alias) + " FROM (" + sql + ") " + this.escapeName("c0");
+};
+
+/**
+ *
  * @param obj {QueryExpression|*}
  * @returns {string}
  */
@@ -1084,6 +1102,9 @@ SqlFormatter.prototype.format = function(obj, s)
         query = _.assign(new QueryExpression(), obj);
     //format query
     if (_.isObject(query.$select)) {
+        if (_.isString(query.$count)) {
+            return this.formatCount(query);
+        }
         if (!query.hasPaging())
             return this.formatSelect(query);
         else

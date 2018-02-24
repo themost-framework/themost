@@ -1,5 +1,10 @@
 /**
- * @ignore
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2017, THEMOST LP All rights reserved
+ *
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
  */
 var async = require('async');
 var sprintf = require('sprintf').sprintf;
@@ -11,6 +16,7 @@ var DataAssociationMapping = require('./types').DataAssociationMapping;
 var DataError = require("@themost/common/errors").DataError;
 var qry = require('@themost/query');
 var QueryExpression = require('@themost/query/query').QueryExpression;
+var QueryField = require('@themost/query/query').QueryField;
 var Q = require('q');
 
 var aliasProperty = Symbol('alias');
@@ -1866,8 +1872,7 @@ function listInternal(callback) {
         var take = self.query.$take || 25;
         //ensure that fields are already selected (or select all)
         self.select();
-        //clone object
-        var q1 = self.clone();
+
         //take objects
         self.take(take, function(err, result)
         {
@@ -1875,6 +1880,10 @@ function listInternal(callback) {
                 callback(err);
             }
             else {
+                /**
+                 * @type {DataQueryable|*}
+                 */
+                var q1 = self.clone();
                 // get count of records
                 q1.count(function(err, total) {
                     if (err) {
@@ -1921,7 +1930,7 @@ DataQueryable.prototype.sumOf = function(name, alias) {
 };
 
 /**
- * @memberOf DataQueryable#
+ * @this DataQueryable
  * @private
  * @param callback {Function}
  * @returns {*} - A collection of objects that meet the query provided
@@ -1929,49 +1938,23 @@ DataQueryable.prototype.sumOf = function(name, alias) {
 function countInternal(callback) {
     var self = this;
     callback = callback || function() {};
-    //add a count expression
-    var field = self.model.attributes[0];
-    if (_.isNil(field)) {
-        return callback.call(this, new Error('Queryable collection does not have any property.'));
+    //clone query
+    var cloned = self.clone();
+    cloned.query.count("__count__");
+    if (cloned.query.hasFields() === false) {
+        cloned.select();
     }
-    //normalize query and remove skip
-    delete self.query.$skip;
-    delete self.query.$take;
-    delete self.query.$order;
-    //append count expression
-    if (self.query.$group) {
-        //get first field
-        var selectEntity = _.keys(self.query.$select)[0];
-        if (typeof selectEntity === 'undefined' || selectEntity === null) {
-            return callback(new Error('Query entity cannot be empty at this context'));
+    return  execute_.bind(cloned)(function(err, result) {
+        if (err) {
+            return callback(err);
         }
-        var selectField = self.query.$select[selectEntity][0];
-        if (typeof selectField === 'undefined' || selectField === null) {
-            return callback(new Error('Query entity select field cannot be empty at this context'));
-        }
-        if (typeof selectField.name !== 'function') {
-            return callback(new Error('Query entity field is invalid'));
-        }
-        //clone query
-        var q1 = self.clone();
-        field = {
-            "name": selectField.name()
-        };
-        self.query.select([qry.fields.count(field.name).as(field.name)]).from(q1.query);
-    }
-    else {
-        self.query.select([qry.fields.count(field.name).from(self.model.viewAdapter)]);
-    }
-    //execute select
-    execute_.call(self, function(err, result) {
-        if (err) { callback.call(self, err, result); return; }
         var value = null;
         if (_.isArray(result)) {
             //get first value
             if (result.length>0)
-                value = result[0][field.name];
+                value = result[0]["__count__"];
         }
-        callback.call(self, err, value);
+        return callback(null, value);
     });
 }
 
@@ -1990,16 +1973,19 @@ function countInternal(callback) {
     });
  */
 DataQueryable.prototype.count = function(callback) {
+    var self = this;
     if (typeof callback !== 'function') {
-        var d = Q.defer();
-        countInternal.call(this, function(err, result) {
-            if (err) { return d.reject(err); }
-            d.resolve(result);
+        return Q.promise(function(resolve, reject) {
+            countInternal.bind(self)(function(err, result) {
+                if (err) {
+                    return reject(err);
+                }
+                return resolve(result);
+            });
         });
-        return d.promise;
     }
     else {
-        return countInternal.call(this, callback);
+        return countInternal.bind(self)(callback);
     }
 };
 
@@ -2167,7 +2153,7 @@ DataQueryable.prototype.postExecute = function(result, callback) {
 
 /**
  * Executes the underlying query statement.
- * @memberOf DataQueryable#
+ * @this DataQueryable
  * @param {Function} callback
  * @private
  */
@@ -2175,7 +2161,7 @@ DataQueryable.prototype.postExecute = function(result, callback) {
     var self = this;
     self.migrate(function(err) {
         if (err) { callback(err); return; }
-        var e = { model:self.model, query:self.query, type:'select' };
+        var event = { model:self.model, query:self.query, type:'select' };
         var flatten = self.$flatten || (self.getLevels()===0);
         if (!flatten) {
             //get expandable fields
@@ -2234,37 +2220,37 @@ DataQueryable.prototype.postExecute = function(result, callback) {
                 else {
                     //prepare current filter
                     if (q.query.$prepared) {
-                        if (e.query.$where)
-                            e.query.prepare();
-                        e.query.$where = q.query.$prepared;
+                        if (event.query.$where)
+                            event.query.prepare();
+                        event.query.$where = q.query.$prepared;
                     }
                     if (q.query.$group)
                     //replace group fields
-                        e.query.$group = q.query.$group;
+                        event.query.$group = q.query.$group;
                     //add order fields
                     if (q.query.$order) {
-                        if (_.isArray(e.query.$order)) {
-                            q.query.$order.forEach(function(x) { e.query.$order.push(x); });
+                        if (_.isArray(event.query.$order)) {
+                            q.query.$order.forEach(function(x) { event.query.$order.push(x); });
                         }
                         else {
-                            e.query.$order = q.query.$order;
+                            event.query.$order = q.query.$order;
                         }
                     }
                     //execute query
-                    finalExecuteInternal_.call(self, e, callback);
+                    finalExecuteInternal_.call(self, event, callback);
                 }
             });
         }
         else {
             //execute query
-            finalExecuteInternal_.call(self, e, callback);
+            finalExecuteInternal_.call(self, event, callback);
         }
     });
 }
 
 /**
  * @private
- * @memberOf DataQueryable#
+ * @this DataQueryable
  * @param {*} event
  * @param {Function} callback
  */
@@ -2282,26 +2268,25 @@ DataQueryable.prototype.postExecute = function(result, callback) {
             if (typeof event['result'] !== 'undefined') {
                 //call after execute
                 var result = event['result'];
-                afterExecute_.call(self, result, function(err, result) {
-                    if (err) { callback(err); return; }
-                    if (afterListenerCount===0) { callback(null, result); return; }
+                return afterExecute_.call(self, result, function(err, result) {
+                    if (err) { return callback(err); }
+                    if (afterListenerCount===0) { return callback(null, result); }
                     //raise after execute event
                     self.model.emit('after.execute', event, function(err) {
-                        if (err) { callback(err); return; }
+                        if (err) { return callback(err); }
                         callback(null, result);
                     });
                 });
-                return;
             }
             context.db.execute(event.query, null, function(err, result) {
-                if (err) { callback(err); return; }
+                if (err) { return callback(err); }
                 afterExecute_.call(self, result, function(err, result) {
-                    if (err) { callback(err); return; }
-                    if (afterListenerCount===0) { callback(null, result); return; }
+                    if (err) { return callback(err); }
+                    if (afterListenerCount===0) { return callback(null, result); }
                     //raise after execute event
                     event.result = result;
                     self.model.emit('after.execute', event, function(err) {
-                        if (err) { callback(err); return; }
+                        if (err) { return callback(err); }
                         callback(null, result);
                     });
                 });
@@ -2312,7 +2297,7 @@ DataQueryable.prototype.postExecute = function(result, callback) {
 
 /**
  * @private
- * @memberOf DataQueryable#
+ * @this DataQueryable
  * @param {*} result
  * @param {Function} callback
  * @private
@@ -2320,6 +2305,9 @@ DataQueryable.prototype.postExecute = function(result, callback) {
 function afterExecute_(result, callback) {
     var self = this;
     var field;
+    if (self.query.$count) {
+        return callback(null, result);
+    }
     if (self.$expand) {
         //get distinct values
 

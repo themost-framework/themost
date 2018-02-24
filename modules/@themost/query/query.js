@@ -509,6 +509,16 @@ QueryExpression.prototype.select = function(props)
     return this;
 };
 /**
+ * Prepares an aggregated query which is going to count records by specifying the alias of the count attribute
+ * e.g. SELECT COUNT(*) AS `total` FROM (SELECT * FROM `Orders` WHERE `orderStatus` = 1) `c0`
+ * @param {string} alias - A string which represents the alias of the count attribute
+ * @returns QueryExpression
+ */
+QueryExpression.prototype.count = function(alias) {
+    this.$count = alias;
+    return this;
+};
+/**
  * Sets the entity of a select query expression
  * @param entity {string|QueryEntity|*} A string that represents the entity name
  * @returns {QueryExpression}

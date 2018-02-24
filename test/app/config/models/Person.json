@@ -155,7 +155,7 @@
         "many":true
     }
 ], "eventListeners": [
-    { "name":"previous state", "type":"../../../modules/@themost/data/previous-state-listener" },
+    { "name":"previous state", "type":"@themost/data/previous-state-listener" },
     { "name":"add person user", "type":"./listeners/add-person-user" }
 
 ],"privileges":[
