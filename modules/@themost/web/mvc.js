@@ -591,8 +591,8 @@ HttpViewResult.prototype.execute = function(context, callback)
                  */
                 var engineInstance = engine.createInstance(context);
                 //render
-                var e = { context:context, target:self };
-                return context.emit('preExecuteResult', e, function(err) {
+                var event = { context:context, target:self };
+                return context.emit('preExecuteResult', event, function(err) {
                     if (err) {
                         return reject(err);
                     }
@@ -604,7 +604,7 @@ HttpViewResult.prototype.execute = function(context, callback)
                             else {
                                 //HttpViewResult.result or data (?)
                                 self.result = result;
-                                return context.emit('postExecuteResult', e, function(err) {
+                                return context.emit('postExecuteResult', event, function(err) {
                                     if (err) {
                                         return reject(err);
                                     }

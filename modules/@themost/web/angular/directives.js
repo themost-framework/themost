@@ -44,7 +44,7 @@ var directives = {
      */
     apply: function(app) {
 // eslint-disable-next-line no-unused-vars
-        app.directive('serverInclude', function($context, $angular, $qs, $sce) {
+        app.directive('serverInclude', function($context, $angular, $q, $sce) {
             return {
                 replace:true,
                 restrict:'EA',
@@ -56,7 +56,7 @@ var directives = {
                      */
                     var src = attrs.ejsInclude || attrs.src;
                     if (src) {
-                        var deferred = $qs.defer();
+                        var deferred = $q.defer();
                         $context.getApplication().executeRequest( { url: src, cookie: $context.request.headers.cookie }, function(err, result) {
                             if (err) {
                                 element.replaceWith(null);
@@ -122,7 +122,7 @@ var directives = {
                     });
                 }
             };
-        }).directive('serverIfPermission', ['$context','$compile', '$qs', function($context, $compile, $qs) {
+        }).directive('serverIfPermission', ['$context','$compile', '$q', function($context, $compile, $q) {
             return {
                 restrict:'E',
                 replace: true,
@@ -131,7 +131,7 @@ var directives = {
                     return {
                         pre: function preLink(scope, element) {
                             var DataPermissionEventListener = require('../../data/data-permission').DataPermissionEventListener;
-                            var deferred = $qs.defer();
+                            var deferred = $q.defer();
                             try {
                                 var targetModel = $context.model(scope.model);
                                 if (_.isNil(scope.state)) {

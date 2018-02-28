@@ -18,6 +18,8 @@ var HttpForbiddenError = require('@themost/common/errors').HttpForbiddenError;
 var HttpServerError = require('@themost/common/errors').HttpServerError;
 var Args = require('@themost/common/utils').Args;
 var LangUtils = require('@themost/common/utils').LangUtils;
+var ModuleLoaderStrategy = require('@themost/common/config').ModuleLoaderStrategy;
+
 /**
  * Creates an instance of HttpContext class.
  * @class
@@ -716,7 +718,14 @@ HttpContext.prototype.engine = function(extension) {
         return x.extension===extension;
     });
     if (item) {
-        var engineModule = require(item.type);
+        var moduleLoader = this.getApplication().getConfiguration().getStrategy(ModuleLoaderStrategy);
+        var engineModule;
+        if (/^@themost\/web\//.test(item.type)) {
+            engineModule = require(item.type.replace(/^@themost\/web\//,"./"));
+        }
+        else {
+            engineModule = _.isObject(moduleLoader) ? moduleLoader.require(item.type) : require(item.type);
+        }
         if (typeof engineModule.createInstance !== 'function') {
             throw new Error('Invalid view engine module.')
         }

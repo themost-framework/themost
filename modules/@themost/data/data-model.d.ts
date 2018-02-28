@@ -1,3 +1,3 @@
 export declare class DataModel {
-    constructor(obj:any);
+    constructor(obj:any)
 }

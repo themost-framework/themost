@@ -113,8 +113,6 @@ AngularServerModule.prototype.useBootstrapModule = function(modulePath) {
             throw new Error('Module export invalid. Expected function.');
         }
         var app = bootstrapFunc.call(self, angular);
-        if (process.env.NODE_ENV==='development')
-            removeModule(modulePath);
         return app;
     };
     return this;

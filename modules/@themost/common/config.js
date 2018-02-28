@@ -115,7 +115,7 @@ ConfigurationBase.prototype.getSource = function() {
  * @returns {Object|Array}
  */
 ConfigurationBase.prototype.getSourceAt = function(p) {
-    return _.at(this[configProperty],p.replace(/\//,'.'))[0];
+    return _.at(this[configProperty],p.replace(/\//g,'.'))[0];
 };
 //noinspection JSUnusedGlobalSymbols
 /**
@@ -124,7 +124,7 @@ ConfigurationBase.prototype.getSourceAt = function(p) {
  * @returns {boolean}
  */
 ConfigurationBase.prototype.hasSourceAt = function(p) {
-    return _.isObject(_.at(this[configProperty],p.replace(/\//,'.'))[0]);
+    return _.isObject(_.at(this[configProperty],p.replace(/\//g,'.'))[0]);
 };
 //noinspection JSUnusedGlobalSymbols
 /**
@@ -134,7 +134,7 @@ ConfigurationBase.prototype.hasSourceAt = function(p) {
  * @returns {Object}
  */
 ConfigurationBase.prototype.setSourceAt = function(p, value) {
-    return _.set(this[configProperty], p.replace(/\//,'.'), value);
+    return _.set(this[configProperty], p.replace(/\//g,'.'), value);
 };
 //noinspection JSUnusedGlobalSymbols
 /**

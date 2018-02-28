@@ -112,7 +112,16 @@ LangUtils.inherits(DefaulCacheStrategy, CacheStrategy);
  * @returns {Promise|*}
  */
 DefaulCacheStrategy.prototype.add = function(key, value, absoluteExpiration) {
-    return Q.nfbind(this[rawCacheProperty].set, this[rawCacheProperty])(key, value, absoluteExpiration);
+    var self = this;
+    return Q.promise(function(resolve, reject) {
+        self[rawCacheProperty].set(key, value, absoluteExpiration, function(err) {
+            if (err) {
+                return reject(err);
+            }
+            return resolve();
+        });
+    });
+
 };
 
 /**
@@ -122,7 +131,15 @@ DefaulCacheStrategy.prototype.add = function(key, value, absoluteExpiration) {
  * @returns {Promise|*}
  */
 DefaulCacheStrategy.prototype.remove = function(key) {
-    return Q.nfbind(this[rawCacheProperty].set.bind(this[rawCacheProperty]))(key);
+    var self = this;
+    return Q.promise(function(resolve, reject) {
+        self[rawCacheProperty].set(key, function(err) {
+            if (err) {
+                return reject(err);
+            }
+            return resolve();
+        });
+    });
 };
 
 /**
@@ -160,7 +177,7 @@ DefaulCacheStrategy.prototype.getOrDefault = function(key, fn, absoluteExpiratio
     return self.get(key).then(function(res) {
         if (_.isNil(res)) {
             var source = fn();
-            Args.check(typeof source.then !== 'function', 'Invalid argument. Expected a valid observable.');
+            Args.check(typeof source.then === 'function', 'Invalid argument. Expected a valid observable.');
             return source.then(function (res) {
                 if (_.isNil(res)) {
                     return Q();

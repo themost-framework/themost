@@ -13,8 +13,32 @@ var parseBoolean = require('@themost/common/utils').LangUtils.parseBoolean;
 var ejs = require('ejs');
 var path = require('path');
 var fs = require('fs');
-
+var DirectiveEngine = require('./../handlers/directive').DirectiveEngine;
+var PostExecuteResultArgs = require('./../handlers/directive').PostExecuteResultArgs;
+var HttpViewContext = require('./../mvc').HttpViewContext;
 var partialProperty = "partial";
+
+/**
+ * @this EjsEngine
+ * @param {string} result
+ * @param {Function} callback
+ */
+function postRender(result, callback) {
+    var directiveHandler = new DirectiveEngine();
+    var viewContext = new HttpViewContext(this.context);
+    viewContext.body = result;
+    var args = _.assign(new PostExecuteResultArgs(), {
+        "context": this.context,
+        "target": viewContext
+    });
+    directiveHandler.postExecuteResult(args, function(err) {
+        if (err) {
+            return callback(err);
+        }
+        return callback(null, viewContext.body);
+    });
+}
+
 
 /**
  * @class
@@ -135,7 +159,12 @@ EjsEngine.prototype.render = function(filename, data, callback) {
                                     html:new HttpViewHelper(self.context),
                                     body: body
                                 });
-                                return callback(null, result);
+                                return postRender.bind(self)(result, function(err, finalResult) {
+                                    if (err) {
+                                        return callback(err);
+                                    }
+                                    return callback(null, finalResult);
+                                });
                             }
                             catch (err) {
                                 callback(err);
@@ -147,7 +176,12 @@ EjsEngine.prototype.render = function(filename, data, callback) {
                             model: model,
                             html: new HttpViewHelper(self.context)
                         });
-                        callback(null, result);
+                        return postRender.bind(self)(result, function(err, finalResult) {
+                            if (err) {
+                                return callback(err);
+                            }
+                            return callback(null, finalResult);
+                        });
                     }
                 }
             }
