@@ -863,7 +863,7 @@ function writeError(level, err) {
  */
 function TraceLogger(options) {
     this.options = {
-        colors:true,
+        colors:false,
         level:"info"
     };
     if (typeof options === "undefined" && options !== null && isNode) {
