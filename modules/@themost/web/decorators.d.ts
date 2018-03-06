@@ -84,3 +84,10 @@ export declare function httpController();
  * @param {Function} decorator - The decorator to be included
  */
 export declare function defineDecorator(proto: any, key: string, decorator: void);
+/**
+ * Defines an HTTP action filter consumer
+ * @param {string} name
+ * @param {Function} consumer
+ * @returns {Function}
+ */
+export declare function httpActionConsumer(name, consumer);

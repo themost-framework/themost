@@ -331,6 +331,32 @@ function defineDecorator(proto, key, decorator) {
     }
     decorator(proto, key, Object.getOwnPropertyDescriptor(proto, key));
 }
+
+/**
+ * @param {string} name
+ * @param {Function|HttpConsumer} consumer
+ * @returns {Function}
+ */
+function httpActionConsumer(name, consumer) {
+    return function (target, key, descriptor) {
+        if (typeof descriptor.value !== 'function') {
+            throw new Error('Decorator is not valid on this declaration type.');
+        }
+        if (consumer instanceof HttpConsumer) {
+            //set consumer
+            descriptor.value[name] = consumer;
+            //and exit
+            return descriptor;
+        }
+        //validate consumer function
+        if (typeof consumer !== 'function') {
+            throw new Error('Consumer may be a function.');
+        }
+        descriptor.value[name] = new HttpConsumer(consumer);
+        return descriptor;
+    };
+}
+
 //extend object
 if (typeof Object.defineDecorator === 'undefined') {
     /**
@@ -359,3 +385,4 @@ module.exports.httpParamAlias = httpParamAlias;
 module.exports.httpParam = httpParam;
 module.exports.httpAuthorize = httpAuthorize;
 module.exports.defineDecorator = defineDecorator;
+module.exports.httpActionConsumer = httpActionConsumer;
