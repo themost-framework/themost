@@ -7,6 +7,7 @@
  * found in the LICENSE file at https://themost.io/license
  */
 var _ = require("lodash");
+var qry = require('@themost/query');
 var async = require("async");
 var DataError = require('@themost/common/errors').DataError;
 
@@ -226,14 +227,20 @@ function beforeRemove_(attr, event, callback) {
             var nestedKey =  result[name];
             //Update target object (remove the association between target object and nested object).
             //This operation must be done before trying to remove nested object otherwise the operation will fail with foreign key reference error
-            result[name] = null;
-            return event.model.save(result).then(function() {
-                nestedModel.remove({id:nestedKey}, function() {
+            var updated = {};
+            updated[name] = null;
+            var q = qry.update(event.model.sourceAdapter).set(updated).where(event.model.primaryKey).equal(result[event.model.primaryKey]);
+            return context.db.execute(q, null, function(err) {
+                if (err) {
+                    return callback(err);
+                }
+                nestedModel.silent().remove({id:nestedKey}).then(function() {
                     return callback();
+                }).catch(function(err) {
+                    return callback(err);
                 });
-            }).catch(function(err) {
-                return callback(err);
             });
+
         });
     }
     catch (err) {
