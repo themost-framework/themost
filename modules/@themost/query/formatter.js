@@ -680,6 +680,17 @@ SqlFormatter.prototype.formatCount = function(query) {
 };
 
 /**
+ * Formats a fixed query expression where select fields are constants e.g. SELECT 1 AS `id`,'John' AS `givenName` etc
+ * @param obj {QueryExpression|*}
+ * @returns {string}
+ */
+SqlFormatter.prototype.formatFixedSelect = function(obj) {
+    var self = this;
+    var fields = obj.fields();
+    return 'SELECT ' + _.map(fields, function(x) { return self.format(x,'%f'); }).join(', ');
+};
+
+/**
  *
  * @param obj {QueryExpression|*}
  * @returns {string}
@@ -722,9 +733,7 @@ SqlFormatter.prototype.formatSelect = function(obj)
     }
     //add basic SELECT statement
     if (obj["$fixed"]) {
-        sql = sql.concat('SELECT * FROM (SELECT ', _.map(fields, function(x) {
-            return $this.format(x,'%f');
-        }).join(', '), ') ', escapedEntity);
+        sql = sql.concat('SELECT * FROM (', $this.formatFixedSelect(obj), ') ', escapedEntity);
     }
     else {
         sql = sql.concat(obj.$distinct ? 'SELECT DISTINCT ' : 'SELECT ', _.map(fields, function(x) {
