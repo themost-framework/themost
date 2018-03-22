@@ -21,12 +21,14 @@ var partialProperty = "partial";
 /**
  * @this EjsEngine
  * @param {string} result
+ * @param {*} data
  * @param {Function} callback
  */
-function postRender(result, callback) {
+function postRender(result, data, callback) {
     var directiveHandler = new DirectiveEngine();
     var viewContext = new HttpViewContext(this.context);
     viewContext.body = result;
+    viewContext.data = data;
     var args = _.assign(new PostExecuteResultArgs(), {
         "context": this.context,
         "target": viewContext
@@ -159,7 +161,7 @@ EjsEngine.prototype.render = function(filename, data, callback) {
                                     html:new HttpViewHelper(self.context),
                                     body: body
                                 });
-                                return postRender.bind(self)(result, function(err, finalResult) {
+                                return postRender.bind(self)(result, model, function(err, finalResult) {
                                     if (err) {
                                         return callback(err);
                                     }
@@ -176,7 +178,7 @@ EjsEngine.prototype.render = function(filename, data, callback) {
                             model: model,
                             html: new HttpViewHelper(self.context)
                         });
-                        return postRender.bind(self)(result, function(err, finalResult) {
+                        return postRender.bind(self)(result, model, function(err, finalResult) {
                             if (err) {
                                 return callback(err);
                             }

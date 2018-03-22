@@ -79,7 +79,7 @@ var directives = {
                     scope.$eval(attrs['ejsInit']);
                 }
             };
-        }).directive('serverIf', function($animate, $document) {
+        }).directive('serverIf', function($animate, $document, $parse) {
             return {
                 transclude: 'element',
                 priority: 600,
@@ -88,38 +88,38 @@ var directives = {
                 $$tlb: true,
                 link: function ($scope, $element, $attr, ctrl, $transclude) {
                     var block, childScope, previousElements;
-                    var ejsIf = $attr['ejsIf'], parentDocument = $document.get(0);
-                    $scope.$watch(ejsIf, function ngIfWatchAction(value) {
-                        if (toBoolean(value)) {
-                            if (!childScope) {
-                                childScope = $scope.$new();
-                                $transclude(childScope, function (clone) {
-                                    clone.push(parentDocument.createComment(''));
-                                    //clone[clone.length++] = parentDocument.createComment('');
-                                    block = {
-                                        clone: clone
-                                    };
-                                    $animate.enter(clone, $element.parent(), $element);
-                                });
-                            }
-                        } else {
-                            if (previousElements) {
-                                previousElements.remove();
-                                previousElements = null;
-                            }
-                            if (childScope) {
-                                childScope.$destroy();
-                                childScope = null;
-                            }
-                            if (block) {
-                                previousElements = getBlockElements(angular, block.clone);
-                                $animate.leave(previousElements, function () {
-                                    previousElements = null;
-                                });
-                                block = null;
-                            }
+                    var serverIf = $attr['serverIf'], parentDocument = $document.get(0);
+                    var value = $scope.$eval(serverIf);
+                    if (toBoolean(value)) {
+                        if (!childScope) {
+                            childScope = $scope.$new();
+                            $transclude(childScope, function (clone) {
+                                //remove attr
+                                clone.removeAttr('server-if');
+                                clone.push(parentDocument.createComment(''));
+                                block = {
+                                    clone: clone
+                                };
+                                $animate.enter(clone, $element.parent(), $element);
+                            });
                         }
-                    });
+                    } else {
+                        if (previousElements) {
+                            previousElements.remove();
+                            previousElements = null;
+                        }
+                        if (childScope) {
+                            childScope.$destroy();
+                            childScope = null;
+                        }
+                        if (block) {
+                            previousElements = getBlockElements(angular, block.clone);
+                            $animate.leave(previousElements, function () {
+                                previousElements = null;
+                            });
+                            block = null;
+                        }
+                    }
                 }
             };
         }).directive('serverIfPermission', ['$context','$compile', '$q', function($context, $compile, $q) {

@@ -98,6 +98,19 @@ DataFilterResolver.prototype.today = function(callback) {
 /**
  * @param {Function} callback
  */
+DataFilterResolver.prototype.lang = function(callback) {
+    let culture = this.context.culture();
+    if (culture) {
+        return callback(null, culture.substr(0,2));
+    }
+    else {
+        return callback(null, "en");
+    }
+
+};
+/**
+ * @param {Function} callback
+ */
 DataFilterResolver.prototype.user = DataFilterResolver.prototype.me;
 
 if (typeof exports !== 'undefined')

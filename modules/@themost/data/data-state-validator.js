@@ -185,13 +185,14 @@ DataStateValidatorListener.prototype.beforeSave = function(e, callback) {
         }
         //if object has primary key
         else if (keyState) {
-            e.state = 2
+            e.state = 2;
         }
         //if state is Update (2)
         if (e.state === 2) {
             //if key exists exit
-            if (keyState)
+            if (keyState) {
                 return callback();
+            }
             else {
                 return mapKey_.call(model, target, function(err) {
                     if (err) { return callback(err); }
@@ -206,7 +207,7 @@ DataStateValidatorListener.prototype.beforeSave = function(e, callback) {
                     if (err) { return callback(err); }
                     if (result) {
                         //set state to Update
-                        e.state = 2
+                        e.state = 2;
                     }
                     return callback();
                 });

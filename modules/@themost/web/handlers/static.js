@@ -12,6 +12,7 @@ var HttpServerError = require('@themost/common/errors').HttpServerError;
 var HttpForbiddenError = require('@themost/common/errors').HttpForbiddenError;
 var TraceUtils = require('@themost/common/utils').TraceUtils;
 var fs = require('fs');
+var url = require('url');
 var path = require("path");
 var crypto = require('crypto');
 var _  = require('lodash');
@@ -45,7 +46,8 @@ StaticHandler.prototype.mapRequest = function(context, callback)
             return callback();
         }
         //get file path
-        var filePath = path.join(this.rootDir ,context.request.url);
+        var uri = url.parse(context.request.url);
+        var filePath = path.join(this.rootDir ,uri.pathname);
         fs.exists(filePath, function(exists) {
            if (!exists) {
                callback(null);
