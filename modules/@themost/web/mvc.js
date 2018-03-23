@@ -45,10 +45,20 @@ function HttpResult() {
 /**
  *
  * @param {Number=} status
+ * @returns {HttpResult}
  */
 HttpResult.prototype.statusCode = function(status) {
     this.responseStatus = status;
     return this;
+};
+
+/**
+ *
+ * @param {Number=} status
+ * @returns {HttpResult}
+ */
+HttpResult.prototype.status = function(status) {
+    return this.statusCode(status)
 };
 
 /**
@@ -61,7 +71,7 @@ HttpResult.prototype.execute = function(context, callback) {
     try {
         var response = context.response;
         if (typeof this.data === 'undefined' || this.data === null) {
-            response.writeHead(204);
+            response.writeHead(this.responseStatus || 204);
             return callback();
         }
         response.writeHead(this.responseStatus || 200, {"Content-Type": this.contentType});
@@ -609,7 +619,7 @@ HttpViewResult.prototype.execute = function(context, callback)
                                         return reject(err);
                                     }
                                     else {
-                                        response.writeHead(200, {"Content-Type": self.contentType});
+                                        response.writeHead(self.responseStatus || 200, {"Content-Type": self.contentType});
                                         response.write(self.result, self.contentEncoding);
                                         return resolve();
                                     }

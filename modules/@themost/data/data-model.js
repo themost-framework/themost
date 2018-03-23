@@ -37,6 +37,7 @@ var DataConfigurationStrategy = require('./data-configuration').DataConfiguratio
 var ModelClassLoaderStrategy = require('./data-configuration').ModelClassLoaderStrategy;
 var ModuleLoader = require('@themost/common/config').ModuleLoaderStrategy;
 var mappingsProperty = Symbol('mappings');
+var DataPermissionEventListener = require('./data-permission').DataPermissionEventListener;
 
 /**
  * @this DataModel
@@ -537,8 +538,6 @@ function unregisterContextListeners() {
     var DataModelSeedListener = dataListeners.DataModelSeedListener;
     var DataStateValidatorListener = require('./data-state-validator').DataStateValidatorListener;
 
-    //0. Permission Event Listener
-    var perms = require('./data-permission');
     //1. State validator listener
     this.on('before.save', DataStateValidatorListener.prototype.beforeSave);
     this.on('before.remove', DataStateValidatorListener.prototype.beforeRemove);
@@ -610,11 +609,8 @@ function unregisterContextListeners() {
         }
     }
     //before execute
-    this.on('before.execute', perms.DataPermissionEventListener.prototype.beforeExecute);
-    //before save (validate permissions)
-    this.on('before.save', perms.DataPermissionEventListener.prototype.beforeSave);
-    //before remove (validate permissions)
-    this.on('before.remove', perms.DataPermissionEventListener.prototype.beforeRemove);
+    this.on('before.execute', DataPermissionEventListener.prototype.beforeExecute);
+
 }
 
 DataModel.prototype.join = function(model) {
@@ -1731,6 +1727,8 @@ function saveBaseObject_(obj, callback) {
     self.once('before.save', DataValidatorListener.prototype.beforeSave);
     //register not null listener at the end of listeners collection (before emit)
     self.once('before.save', NotNullConstraintListener.prototype.beforeSave);
+    //before save (validate permissions)
+    self.once('before.save', DataPermissionEventListener.prototype.beforeSave);
     //execute before update events
     self.emit('before.save', e, function(err) {
         //if an error occured
@@ -2062,6 +2060,8 @@ DataModel.prototype.remove = function(obj, callback)
     self.once('before.remove', DataNestedObjectListener.prototype.beforeRemove);
     //register data referenced object listener
     self.once('before.remove', DataReferencedObjectListener.prototype.beforeRemove);
+    //before remove (validate permissions)
+    self.once('before.remove', DataPermissionEventListener.prototype.beforeRemove);
     //execute before update events
     self.emit('before.remove', e, function(err) {
         //if an error occurred
