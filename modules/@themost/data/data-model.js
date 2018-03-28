@@ -779,6 +779,10 @@ function filterInternal(params, callback) {
                     q.skip(skip);
                     if (top)
                         q.query.take(top);
+                    //set caching
+                    if (params.$cache && self.caching === 'conditional') {
+                        q.cache(true);
+                    }
                     //set $orderby
                     if (orderBy) {
                         orderBy.split(',').map(function(x) {

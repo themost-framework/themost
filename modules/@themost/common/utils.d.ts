@@ -192,6 +192,14 @@ export declare class LangUtils {
      * @returns {*}
      */
     private static extend(origin, expr, value, options?);
+
+    /**
+     * Checks if the given value is a valid date
+     * @param {*} value
+     * @returns {boolean}
+     */
+    static isDate(value):boolean;
+
 }
 /**
  * @class

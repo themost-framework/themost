@@ -19,7 +19,7 @@ var HEX_CHARS = 'abcdef1234567890';
 var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
 
 
-var DateTimeRegex = /^(\d{4})(?:-?W(\d+)(?:-?(\d+)D?)?|(?:-(\d+))?-(\d+))(?:[T ](\d+):(\d+)(?::(\d+)(?:\.(\d+))?)?)?(?:Z(-?\d*))?$/g;
+var DateTimeRegex = /^\d{4}-([0]\d|1[0-2])-([0-2]\d|3[01])(?:[T ](\d+):(\d+)(?::(\d+)(?:\.(\d+))?)?)?(?:Z(-?\d*))?$/g;
 var BooleanTrueRegex = /^true$/ig;
 var BooleanFalseRegex = /^false$/ig;
 var NullRegex = /^null$/ig;
@@ -320,6 +320,18 @@ LangUtils.parseBoolean = function(any) {
     else {
         return (parseInt(any) || 0) !== 0;
     }
+};
+/**
+ * @static
+ * Checks if the given value is a valid date
+ * @param {*} value
+ * @returns {boolean}
+ */
+LangUtils.isDate = function(value) {
+    if (value instanceof Date) {
+        return true;
+    }
+    return DateTimeRegex.test(value);
 };
 
 /**

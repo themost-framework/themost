@@ -9,13 +9,13 @@
  * Date: 2014-12-02
  */
 var bodyParser = require('body-parser'), jsonParser;
+var UnknownValue = require('./post').UnknownValue;
 var _ = require('lodash');
 function JsonHandler() {
 
 }
-var DateTimeRegex = /^(\d{4})(?:-?W(\d+)(?:-?(\d+)D?)?|(?:-(\d+))?-(\d+))(?:[T ](\d+):(\d+)(?::(\d+)(?:\.(\d+))?)?)?(?:Z(-?\d*))?([+-](\d+):(\d+))?$/g;
 function reviveDates(key, value){
-    if (typeof value === "string" && DateTimeRegex.test(value) ) {
+    if (typeof value === "string" && UnknownValue.DateTimeRegex.test(value) ) {
         return new Date(value);
     }
     return value;
