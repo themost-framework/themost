@@ -182,7 +182,9 @@ DefaulCacheStrategy.prototype.getOrDefault = function(key, fn, absoluteExpiratio
                 if (_.isNil(res)) {
                     return Q();
                 }
-                return self.add(key, res, absoluteExpiration);
+                return self.add(key, res, absoluteExpiration).then(()=> {
+                    return Q(res);
+                });
             });
         }
     return Q(res);
