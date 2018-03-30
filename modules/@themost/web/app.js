@@ -1141,6 +1141,25 @@ HttpApplication.prototype.runtime = function() {
         });
     };
 };
+
+/**
+ * Registers an application controller
+ * @param {string} name
+ * @param {Function} controllerCtor
+ * @returns HttpApplication
+ */
+HttpApplication.prototype.useController = function(name, controllerCtor) {
+    Args.notString(name,"Controller Name");
+    Args.notFunction(controllerCtor,"Controller constructor");
+    //get application controllers or default
+    let controllers = this.getConfiguration().getSourceAt('controllers') || { };
+    //set application controller
+    controllers[name] = controllerCtor;
+    //apply changes
+    this.getConfiguration().setSourceAt('controllers', controllers);
+    return this;
+};
+
 /**
  * Registers an application strategy e.g. an singleton service which to be used in application contextr
  * @param {Function} serviceCtor

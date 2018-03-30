@@ -344,9 +344,9 @@ SqlFormatter.prototype.formatWhere = function(where)
                     else {
                         //equal expression
                         if (typeof p1 !== 'undefined' && p1!==null)
-                            return sprintf('(%s=%s)', property, self.escape(p1));
+                            return sprintf('(%s=%s)', escapedProperty, self.escape(p1));
                         else
-                            return sprintf('(%s IS NULL)', property);
+                            return sprintf('(%s IS NULL)', escapedProperty);
                     }
 
             }
