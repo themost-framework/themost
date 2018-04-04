@@ -33,10 +33,10 @@ function HttpRoute(route) {
             return "^true|false$"
         },
         decimal:function() {
-            return "^[+-]?\\d+\\.?\\d+$";
+            return "^[+-]?[0-9]*\\.?[0-9]*$";
         },
         float:function() {
-            return "^[+-]?\\d+\\.?\\d+$";
+            return "^[+-]?[0-9]*\\.?[0-9]*$";
         },
         guid:function() {
             return "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$";
