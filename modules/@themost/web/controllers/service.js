@@ -581,45 +581,39 @@ HttpServiceController.prototype.getNavigationProperty = function(entitySet, navi
                      * @type {DataQueryable}
                      */
                     var junction = obj.property(navigationProperty);
-                    return junction.model.filter(self.context.params, function (err, q) {
-                        if (err) {
-                            return Q.reject(err);
+                    return Q.nbind(junction.model.filter, junction.model)(self.context.params).then(function (q) {
+                        //merge properties
+                        if (q.query.$select) {
+                            junction.query.$select = q.query.$select;
+                        }
+                        if (q.$expand) {
+                            junction.$expand = q.$expand;
+                        }
+                        if (q.query.$group) {
+                            junction.query.$group = q.query.$group;
+                        }
+                        if (q.query.$order) {
+                            junction.query.$order = q.query.$order;
+                        }
+                        if (q.query.$prepared) {
+                            junction.query.$where = q.query.$prepared;
+                        }
+                        if (q.query.$skip) {
+                            junction.query.$skip = q.query.$skip;
+                        }
+                        if (q.query.$take) {
+                            junction.query.$take = q.query.$take;
+                        }
+                        var otherEntitySet = self.getBuilder().getEntityTypeEntitySet(junction.model.name);
+                        if (count) {
+                            return junction.getList().then(function (result) {
+                                return Q.resolve(self.json(otherEntitySet.mapInstanceSet(context,result)));
+                            });
                         }
                         else {
-                            //merge properties
-                            if (q.query.$select) {
-                                junction.query.$select = q.query.$select;
-                            }
-                            if (q.$expand) {
-                                junction.$expand = q.$expand;
-                            }
-                            if (q.query.$group) {
-                                junction.query.$group = q.query.$group;
-                            }
-                            if (q.query.$order) {
-                                junction.query.$order = q.query.$order;
-                            }
-                            if (q.query.$prepared) {
-                                junction.query.$where = q.query.$prepared;
-                            }
-                            if (q.query.$skip) {
-                                junction.query.$skip = q.query.$skip;
-                            }
-                            if (q.query.$take) {
-                                junction.query.$take = q.query.$take;
-                            }
-                            var otherEntitySet = self.getBuilder().getEntityTypeEntitySet(junction.model.name);
-                            if (count) {
-                                return junction.getList().then(function (result) {
-                                    return Q.resolve(self.json(otherEntitySet.mapInstanceSet(context,result)));
-                                });
-                            }
-                            else {
-                                return junction.getItems().then(function (result) {
-                                    return Q.resolve(self.json(otherEntitySet.mapInstanceSet(context,result)));
-                                });
-                            }
-
+                            return junction.getItems().then(function (result) {
+                                return Q.resolve(self.json(otherEntitySet.mapInstanceSet(context,result)));
+                            });
                         }
                     });
                 }
