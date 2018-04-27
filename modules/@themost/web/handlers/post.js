@@ -22,13 +22,13 @@ UnknownValue.prototype.valueOf = function() { return null; };
 
 UnknownValue.prototype.toJSON = function() { return null; };
 
-UnknownValue.DateTimeRegex = /^\d{4}-([0]\d|1[0-2])-([0-2]\d|3[01])(?:[T ](\d+):(\d+)(?::(\d+)(?:\.(\d+))?)?)?(?:Z(-?\d*))?([+-](\d+):(\d+))?$/g;
-UnknownValue.BooleanTrueRegex = /^true$/ig;
-UnknownValue.BooleanFalseRegex = /^false$/ig;
-UnknownValue.NullRegex = /^null$/ig;
-UnknownValue.UndefinedRegex = /^undefined$/ig;
-UnknownValue.IntegerRegex =/^[-+]?\d+$/g;
-UnknownValue.FloatRegex =/^[+-]?\d+(\.\d+)?$/g;
+UnknownValue.DateTimeRegex = /^\d{4}-([0]\d|1[0-2])-([0-2]\d|3[01])(?:[T ](\d+):(\d+)(?::(\d+)(?:\.(\d+))?)?)?(?:Z(-?\d*))?([+-](\d+):(\d+))?$/;
+UnknownValue.BooleanTrueRegex = /^true$/i;
+UnknownValue.BooleanFalseRegex = /^false$/i;
+UnknownValue.NullRegex = /^null$/i;
+UnknownValue.UndefinedRegex = /^undefined$/i;
+UnknownValue.IntegerRegex =/^[-+]?\d+$/;
+UnknownValue.FloatRegex =/^[+-]?\d+(\.\d+)?$/;
 /**
  * @class UnknownPropertyDescriptor
  * @constructor
