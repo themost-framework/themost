@@ -390,8 +390,43 @@ function DataConfigurationStrategy(config) {
         var valid = false, adapterModule;
         if (x.type) {
             try {
-                if (require.main && /^@themost\//.test(x.type)) {
-                    adapterModule = require.main.require(x.type);
+                if (/^@themost\//.test(x.type)) {
+                    //get require paths
+                    if (require.resolve && require.resolve.paths) {
+                        /**
+                         * get require paths collection
+                         * @type string[]
+                         */
+                        var paths = require.resolve.paths(x.type);
+                        //get execution
+                        var path1 = self.getConfiguration().getExecutionPath();
+                        //loop directories to parent (like classic require)
+                        while (path1) {
+                            //if path does not exist in paths collection
+                            if (paths.indexOf(path.resolve(path1,'node_modules'))<0) {
+                                //add it
+                                paths.push(path.resolve(path1,'node_modules'));
+                                //and check the next path which is going to be resolved
+                                if (path1 === path.resolve(path1,'..')) {
+                                    //if it is the same with the current path break loop
+                                    break;
+                                }
+                                //otherwise get parent path
+                                path1 = path.resolve(path1,'..');
+                            }
+                            else {
+                                //path already exists in paths collection, so break loop
+                                break;
+                            }
+                        }
+                        var adapterModulePath = require.resolve(x.type, {
+                            paths:paths
+                        });
+                        adapterModule = require(adapterModulePath);
+                    }
+                    else {
+                        adapterModule = require(x.type);
+                    }
                 }
                 else {
                     adapterModule = require(x.type);

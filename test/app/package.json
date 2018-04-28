@@ -21,6 +21,7 @@
     "mvc"
   ],
   "dependencies": {
+    "@themost/sqlite":"^2.0.6"
   },
   "devDependencies": {}
 }
