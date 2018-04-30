@@ -253,11 +253,41 @@ LangUtils.inherits(ModuleLoaderStrategy, ConfigurationStrategy);
 ModuleLoaderStrategy.prototype.require = function(modulePath) {
     Args.notEmpty(modulePath,'Module Path');
     if (!/^.\//i.test(modulePath)) {
-        //load module which is not starting with ./
-        if (require.main && typeof require.main.require === 'function') {
-            return require.main.require(modulePath)
+        if (require.resolve && require.resolve.paths) {
+            /**
+             * get require paths collection
+             * @type string[]
+             */
+            let paths = require.resolve.paths(modulePath);
+            //get execution
+            let path1 = this.getConfiguration().getExecutionPath();
+            //loop directories to parent (like classic require)
+            while (path1) {
+                //if path does not exist in paths collection
+                if (paths.indexOf(PathUtils.join(path1,'node_modules'))<0) {
+                    //add it
+                    paths.push(PathUtils.join(path1,'node_modules'));
+                    //and check the next path which is going to be resolved
+                    if (path1 === PathUtils.join(path1,'..')) {
+                        //if it is the same with the current path break loop
+                        break;
+                    }
+                    //otherwise get parent path
+                    path1 = PathUtils.join(path1,'..');
+                }
+                else {
+                    //path already exists in paths collection, so break loop
+                    break;
+                }
+            }
+            let finalModulePath = require.resolve(modulePath, {
+                paths:paths
+            });
+            return require(finalModulePath);
         }
-        return require(modulePath);
+        else {
+            return require(modulePath);
+        }
     }
     return require(PathUtils.join(this.getConfiguration().getExecutionPath(),modulePath));
 };

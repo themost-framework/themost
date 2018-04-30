@@ -21,7 +21,11 @@
     "mvc"
   ],
   "dependencies": {
-    "@themost/sqlite":"^2.0.6"
+
   },
-  "devDependencies": {}
+  "devDependencies": {
+      "@themost/pool":"^2.0.5",
+      "@themost/sqlite":"^2.0.6",
+      "@themost/data":"^2.0.26"
+  }
 }

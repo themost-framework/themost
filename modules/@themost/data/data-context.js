@@ -44,10 +44,14 @@ var nameProperty = Symbol('name');
 function DefaultDataContext()
 {
     /**
-     * @type {DataAdapter}
-     * @private
+     * @type {DataAdapter|*}
      */
     var db_= null;
+    /**
+     * @name DataAdapter#hasConfiguration
+     * @type {Function}
+     * @param {Function} getConfigurationFunc
+     */
     /**
      * @private
      */
@@ -86,12 +90,30 @@ function DefaultDataContext()
             throw er;
         }
         //otherwise load adapter
+        /**
+         * @type {DataAdapter|*}
+         */
         db_ = adapterType.createInstance(adapter.options);
+        if (typeof db_.hasConfiguration === 'function') {
+            db_.hasConfiguration(function() {
+               return self.getConfiguration();
+            });
+        }
         return db_;
     };
 
     self.setDb = function(value) {
+        /**
+         * @type {DataAdapter|*}
+         */
         db_ = value;
+        if (db_) {
+            if (typeof db_.hasConfiguration === 'function') {
+                db_.hasConfiguration(function() {
+                    return self.getConfiguration();
+                });
+            }
+        }
     };
 
     delete self.db;
@@ -206,11 +228,27 @@ function NamedDataContext(name)
         }
         //otherwise load adapter
         db_ = adapterType.createInstance(adapter.options);
+        if (typeof db_.hasConfiguration === 'function') {
+            db_.hasConfiguration(function() {
+                return self.getConfiguration();
+            });
+        }
         return db_;
     };
 
+    /**
+     * @param {DataAdapter|*} value
+     */
     self.setDb = function(value) {
         db_ = value;
+        if (db_) {
+            if (typeof db_.hasConfiguration === 'function') {
+                db_.hasConfiguration(function() {
+                    return self.getConfiguration();
+                });
+            }
+        }
+
     };
 
     /**

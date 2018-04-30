@@ -1035,7 +1035,8 @@ function startInternal(options, callback) {
             });
         });
         /**
-         * @memberof {HttpApplication}
+         * @name HttpApplication#getServer
+         * @type {Function}
          * @returns {Server|*}
          */
         self.getServer = function() {

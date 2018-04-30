@@ -46,13 +46,20 @@
         }
     },
     "adapterTypes": [
-        { "name":"SQLite Data Adapter", "invariantName": "sqlite", "type":"@themost/sqlite" }
+        { "name":"SQLite Data Adapter", "invariantName": "sqlite", "type":"@themost/sqlite" },
+        { "name": "Data  Pool Adapter", "invariantName": "pool", "type":"@themost/pool" }
     ],
     "adapters": [
         {
-            "name": "local-db", "invariantName": "sqlite", "default": true,
+            "name": "local-db", "invariantName": "sqlite", "default": false,
             "options": {
                 "database": "./test/app/db/local.db"
+            }
+        },
+        {
+            "name": "local-db-pool", "invariantName": "pool", "default": true,
+            "options": {
+                "adapter": "local-db"
             }
         }
     ],
