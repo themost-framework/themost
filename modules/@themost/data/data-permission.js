@@ -351,7 +351,7 @@ DataPermissionEventListener.prototype.validate = function(event, callback) {
                                     fields.push(field);
                                 }
                                 else if ((mapping.associationType==='association') && (mapping.childModel===model.name)) {
-                                    if (typeof obj[name] === 'object') {
+                                    if (typeof obj[name] === 'object' && obj[name] !== null) {
                                         //set associated key value (event.g. primary key value)
                                         field = {};
                                         field[x.name] = { $value: obj[name][mapping.parentField] };

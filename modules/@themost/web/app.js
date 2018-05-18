@@ -309,6 +309,21 @@ HttpApplication.prototype.mapPath = function (s) {
 };
 
 /**
+ * Converts an application URL into one that is usable on the requesting client. A valid application relative URL always start with "~/".
+ * If the relativeUrl parameter contains an absolute URL, the URL is returned unchanged.
+ * Note: An HTTP application base path may be set in settings/app/base configuration section. The default value is "/".
+ * @param {string} appRelativeUrl - A string which represents an application relative URL like ~/login
+ */
+HttpApplication.prototype.resolveUrl = function (appRelativeUrl) {
+    if (/^~\//.test(appRelativeUrl)) {
+        var base = this.getConfiguration().getSourceAt("settings/app/base") || "/";
+        base += /\/$/.test(base) ? '' : '/';
+        return appRelativeUrl.replace(/^~\//, base);
+    }
+    return appRelativeUrl;
+};
+
+/**
  * Resolves ETag header for the given file. If the specified does not exist or is invalid returns null.
  * @param {string=} file - A string that represents the file we want to query
  * @param {function(Error,string=)} callback
