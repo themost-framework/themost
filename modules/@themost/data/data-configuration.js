@@ -831,7 +831,12 @@ DefaultModelClassLoaderStrategy.prototype.resolve = function(model) {
     //get model definition
     const modelDefinition = this.getConfiguration().getStrategy(SchemaLoaderStrategy).getModelDefinition(model.name);
     if (typeof model.classPath === 'string') {
-        modelDefinition[dataObjectClassProperty] = DataObjectClass = require(self.classPath);
+        if (/^\.\//.test(model.classPath)) {
+            modelDefinition[dataObjectClassProperty] = DataObjectClass = require(PathUtils.join(this.getConfiguration().getExecutionPath(),model.classPath));
+        }
+        else {
+            modelDefinition[dataObjectClassProperty] = DataObjectClass = require(model.classPath);
+        }
     }
     else {
         //try to find module by using capitalize naming convention
