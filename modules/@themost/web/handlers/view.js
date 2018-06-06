@@ -6,6 +6,7 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+
 var url = require('url');
 var sprintf = require('sprintf').sprintf;
 var async = require('async');
@@ -14,12 +15,12 @@ var route = require('../http-route');
 var LangUtils = require('@themost/common/utils').LangUtils;
 var TraceUtils = require('@themost/common/utils').TraceUtils;
 var HttpError = require('@themost/common/errors').HttpError;
-var xml = require('@themost/xml');
 var path = require('path');
 var _ = require('lodash');
 var HttpConsumer = require('../consumers').HttpConsumer;
 var HttpResult = require('../mvc').HttpResult;
-
+var Q = require('q');
+var accepts = require('accepts');
 /**
  *
  * @param s
@@ -183,6 +184,24 @@ ViewHandler.prototype.authorizeRequest = function (context, callback) {
         callback(e);
     }
 };
+/**
+ * @param {HttpContext} context
+ * @param {Function} callback
+ */
+ViewHandler.validateMediaType = function(context, callback) {
+    if (typeof context === 'undefined' || context === null) {
+        return callback();
+    }
+    //validate mime type and route format
+    let accept = accepts(context.request);
+    if (context.request.route && context.request.route.format) {
+        if (accept.type(context.request.route.format)) {
+            return callback();
+        }
+        return callback(new HttpError(415));
+    }
+    return callback();
+};
 
 /**
  * @param {HttpContext} context
@@ -236,7 +255,9 @@ ViewHandler.prototype.mapRequest = function (context, callback) {
                         context.params[prop] = currentRoute.routeData[prop];
                     }
                 }
-                return callback();
+                return ViewHandler.validateMediaType(context, function(err) {
+                   return callback(err);
+                });
             }
             catch(err) {
                 return callback(err);
@@ -431,25 +452,33 @@ ViewHandler.prototype.processRequest = function (context, callback) {
                         }
                         if (useHttpMethodNamingConvention) {
                             var source = fn.apply(controller, params);
-                            return source.then(function(result) {
+                            //if action result is an instance of HttpResult
+                            if (source instanceof HttpResult) {
+                                //execute http result
+                                return source.execute(context, callback);
+                            }
+                            var finalSource = _.isPromise(source) ? source : Q.resolve(source);
+                            //if action result is a promise
+                            return finalSource.then(function(result) {
                                 if (result instanceof HttpResult) {
                                     //execute http result
                                     return result.execute(context, callback);
                                 }
                                 else {
-                                    //convert result to HttpResult
+                                    //convert result (any result) to an instance HttpResult
                                     if (typeof controller.result === 'function') {
                                         var httpResult = controller.result(result);
+                                        //and finally execute result
                                         return httpResult.execute(context, callback);
                                     }
                                     else {
                                         return callback(new TypeError('Invalid controller prototype.'));
                                     }
                                 }
-
                             }).catch(function(err) {
                                 return callback.bind(context)(err);
                             });
+
                         }
                         else {
                             params.push(function (err, result) {

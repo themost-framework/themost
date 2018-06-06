@@ -105,6 +105,14 @@ HtmlViewHelper.prototype.getRequestLink = function() {
     return ClientDataQueryable.parse(this.context.request.url);
 };
 
+/**
+ * @param {string} appRelativeUrl
+ * @returns {string}
+ */
+HtmlViewHelper.prototype.resolveUrl = function(appRelativeUrl) {
+    return this.context.getApplication().resolveUrl(appRelativeUrl);
+};
+
 if (typeof exports !== 'undefined')
 {
     module.exports.HtmlViewHelper = HtmlViewHelper;

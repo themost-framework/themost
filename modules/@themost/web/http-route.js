@@ -8,7 +8,7 @@
  * Released under the BSD3-Clause license
  * Date: 2014-06-10
  */
-
+var pluralize = require('pluralize');
 
 /**
  * HttpRoute class provides routing functionality to HTTP requests
@@ -40,7 +40,16 @@ function HttpRoute(route) {
         },
         guid:function() {
             return "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$";
-        }
+        },
+        plural: function() {
+            return "^[a-zA-Z]+$";
+        },
+        string: function() {
+            return "^'(.*)'$"
+        },
+        date:function() {
+            return "^(datetime)?'\\d{4}-([0]\\d|1[0-2])-([0-2]\\d|3[01])(?:[T ](\\d+):(\\d+)(?::(\\d+)(?:\\.(\\d+))?)?)?(?:Z(-?\\d*))?([+-](\\d+):(\\d+))?'$";
+        },
     };
 
     this.parsers = {
@@ -55,6 +64,15 @@ function HttpRoute(route) {
         },
         float:function(v) {
             return parseFloat(v);
+        },
+        plural:function(v) {
+            return pluralize.singular(v);
+        },
+        string:function(v) {
+            return v.replace(/^'/,'').replace(/'$/,'');
+        },
+        date:function(v) {
+            return new Date(Date.parse(v.replace(/^(datetime)?'/,'').replace(/'$/,'')));
         }
     }
 
@@ -110,8 +128,9 @@ HttpRoute.prototype.isMatch = function (urlToMatch) {
         }
         match = re.exec(this.route.url);
     }
-    var str = this.route.url.replace(re,"([\\$_\\-.%0-9\\w-]+)"),
-        matcher = new RegExp("^" + str + "$", "ig");
+    var str, matcher;
+    str = this.route.url.replace(re, "([\\$_\\-.:',+=%0-9\\w-]+)");
+    matcher = new RegExp("^" + str + "$", "ig");
     match = matcher.exec(str1);
     if (typeof match === 'undefined' || match === null) {
         return false;

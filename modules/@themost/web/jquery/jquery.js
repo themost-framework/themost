@@ -8733,8 +8733,6 @@ if ( typeof module === "object" && typeof module.exports === "object" ) {
 	// the user will be storing it themselves locally, and globals are frowned
 	// upon in the Node module world.
 	module.exports = jQuery;
-    //+ jQuery constructor for node.js
-   global.jQuery = arguments.callee;
 } else {
 	// Register as a named AMD module, since jQuery can be concatenated with other
 	// files that may use define, but not via a proper concatenation script that

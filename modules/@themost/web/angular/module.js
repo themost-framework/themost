@@ -14,6 +14,12 @@ var applyDirectives = require('./directives').apply;
 var Symbom = require('symbol');
 var _  = require('lodash');
 var bootstrapMethod = Symbom('bootstrap');
+var vm = require('vm');
+var fs = require('fs');
+var path = require('path');
+var jQueryScript = fs.readFileSync(path.resolve(__dirname, '../jquery/jquery.js'), 'utf8');
+var jQueryExtensionsScript = fs.readFileSync(path.resolve(__dirname, '../jquery/extensions.js'), 'utf8');
+var angularScript = fs.readFileSync(path.resolve(__dirname, './angular.js'), 'utf8');
 /**
  * @class
  * @constructor
@@ -27,8 +33,8 @@ function AngularServerModule(app) {
     this.controllers = { };
     this.services = { };
     this.modules = { };
-    this.angular = ng.angular;
-    this.jQuery = ng.jQuery;
+    //this.angular = ng.angular;
+    //this.jQuery = ng.jQuery;
     applyDirectives(this);
     this[bootstrapMethod] = function (angular) {
         return angular.module('server',[]);
@@ -170,7 +176,7 @@ AngularServerModule.prototype.controller = function(name, ctor) {
 /**
  * Create an HTML document
  * @param {string=} s A string which represents the HTML markup of the document
- * @returns {HTMLDocument}
+ * @returns {HTMLDocument|*}
  */
 AngularServerModule.prototype.createDocument = function(s) {
     s = s || '<html/>';
@@ -178,20 +184,30 @@ AngularServerModule.prototype.createDocument = function(s) {
     window.setTimeout = setTimeout;
     window.clearTimeout = clearTimeout;
     //define parent window property
-    Object.defineProperty(window.document, 'parentWindow', { get: function(){
+    Object.defineProperty(window.document, 'parentWindow', {
+        get: function () {
             return window;
-        }, configurable:false, enumerable:false });
+        }, configurable: false, enumerable: false
+    });
     window.location.href = "/";
-    if (typeof global.jQuery !== 'function')
-        throw new Error('jQuery object cannot be instantiated due to missing constructor.');
-    global.jQuery(window);
-    //extend jQuery
-    var ext = require('../jquery/extensions');
-    ext.extend(window.jQuery);
-    if (typeof global.angular !== 'function')
-        throw new Error('Angular JS object cannot be instantiated due to missing constructor.');
-    //initialize angular
-    ng.angular(window, window.document);
+    //set window.jQuery
+    var sanbox = vm.createContext({
+        window: window,
+        document: window.document,
+        navigator : {
+            appCodeName:"Mozilla",
+            appVersion:"AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.124 Safari/537.36",
+            cookieEnabled: false,
+            hardwareConcurrency:4,
+            language:"en-US",
+            platform:"Win32",
+            product:"Gecko",
+            userAgent:"Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.124 Safari/537.36"
+        }
+    });
+    vm.runInContext(jQueryScript, sanbox);
+    vm.runInContext(jQueryExtensionsScript, sanbox);
+    vm.runInContext(angularScript, sanbox);
     /**
      * @param {string|*} s
      * @returns {HTMLElement|*}
@@ -201,31 +217,6 @@ AngularServerModule.prototype.createDocument = function(s) {
     };
     return window.document;
 };
-var ng = { };
-
-if (typeof ng.angular === 'undefined' || ng.angular=== null) {
-    global.window = domino.createWindow('<html />');
-    global.window.location.href = "/";
-    global.document = global.window.document;
-    global.navigator = { appCodeName:"Mozilla",
-        appVersion:"AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.124 Safari/537.36",
-        cookieEnabled: false,
-        hardwareConcurrency:4,
-        language:"en-US",
-        platform:"Win32",
-        product:"Gecko",
-        userAgent:"Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.124 Safari/537.36"
-    };
-    //call jQuery initialization
-    require('../jquery/jquery');
-    //call angular initialization
-    require('./angular');
-    delete global.window;
-    delete global.document;
-    //set methods
-    ng.angular = global.angular;
-    ng.jQuery = global.jQuery;
-}
 
 if (typeof exports !== 'undefined') {
     module.exports.AngularServerModule = AngularServerModule;
