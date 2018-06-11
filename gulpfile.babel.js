@@ -4,9 +4,7 @@ var gutil = require('gulp-util');
 var sourcemaps = require('gulp-sourcemaps');
 var babel = require('gulp-babel');
 var eslint = require('gulp-eslint');
-var typedoc = require('gulp-typedoc');
 const child_process = require('child_process');
-
 
 var testModule = [
   'test/**/*.es6'
