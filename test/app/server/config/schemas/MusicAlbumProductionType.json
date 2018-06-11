@@ -1,0 +1,78 @@
+{
+    "@id": "http://schema.org/MusicAlbumProductionType",
+    "name": "MusicAlbumProductionType",
+    "description": "Classification of the album by it's type of content: soundtrack, live album, studio album, etc.",
+    "title": "MusicAlbumProductionType",
+    "abstract": false,
+    "sealed": false,
+    "implements": "Enumeration",
+    "version": "1.0",
+    "fields": [],
+    "privileges": [
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ],
+    "seed": [
+        {
+            "name": "SoundtrackAlbum",
+            "alternateName": "SoundtrackAlbum",
+            "description": "SoundtrackAlbum.",
+            "url": "http://schema.org/SoundtrackAlbum"
+        },
+        {
+            "name": "RemixAlbum",
+            "alternateName": "RemixAlbum",
+            "description": "RemixAlbum.",
+            "url": "http://schema.org/RemixAlbum"
+        },
+        {
+            "name": "LiveAlbum",
+            "alternateName": "LiveAlbum",
+            "description": "LiveAlbum.",
+            "url": "http://schema.org/LiveAlbum"
+        },
+        {
+            "name": "DemoAlbum",
+            "alternateName": "DemoAlbum",
+            "description": "DemoAlbum.",
+            "url": "http://schema.org/DemoAlbum"
+        },
+        {
+            "name": "SpokenWordAlbum",
+            "alternateName": "SpokenWordAlbum",
+            "description": "SpokenWordAlbum.",
+            "url": "http://schema.org/SpokenWordAlbum"
+        },
+        {
+            "name": "CompilationAlbum",
+            "alternateName": "CompilationAlbum",
+            "description": "CompilationAlbum.",
+            "url": "http://schema.org/CompilationAlbum"
+        },
+        {
+            "name": "StudioAlbum",
+            "alternateName": "StudioAlbum",
+            "description": "StudioAlbum.",
+            "url": "http://schema.org/StudioAlbum"
+        },
+        {
+            "name": "DJMixAlbum",
+            "alternateName": "DJMixAlbum",
+            "description": "DJMixAlbum.",
+            "url": "http://schema.org/DJMixAlbum"
+        },
+        {
+            "name": "MixtapeAlbum",
+            "alternateName": "MixtapeAlbum",
+            "description": "MixtapeAlbum.",
+            "url": "http://schema.org/MixtapeAlbum"
+        }
+    ]
+}

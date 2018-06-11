@@ -1,0 +1,22 @@
+{
+    "@id": "http://schema.org/Intangible",
+    "name": "Intangible",
+    "description": "A utility class that serves as the umbrella for a number of 'intangible' things such as quantities, structured values, etc.",
+    "title": "Intangible",
+    "abstract": false,
+    "sealed": false,
+    "inherits": "Thing",
+    "version": "1.0",
+    "fields": [],
+    "privileges": [
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ]
+}

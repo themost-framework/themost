@@ -1,0 +1,10 @@
+{"name": "Intangible", "id": 333, "title": "Intangible", "hidden": false, "sealed": false,
+    "abstract": false, "version": "2.0", "inherits": "Thing", "fields": [
+    {
+        "name": "id",
+        "title": "Id",
+        "type": "Integer",
+        "nullable": false,
+        "primary": true
+    }
+]}

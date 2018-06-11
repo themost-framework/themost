@@ -1,0 +1,93 @@
+{
+    "@id": "http://schema.org/ContactPoint",
+    "name": "ContactPoint",
+    "description": "A contact point&#x2014;for example, a Customer Complaints department.",
+    "title": "ContactPoint",
+    "abstract": false,
+    "sealed": false,
+    "inherits": "StructuredValue",
+    "version": "1.0",
+    "fields": [
+        {
+            "@id": "http://schema.org/serviceArea",
+            "name": "serviceArea",
+            "title": "serviceArea",
+            "description": "The geographic area where the service is provided.",
+            "type": "Place"
+        },
+        {
+            "@id": "http://schema.org/areaServed",
+            "name": "areaServed",
+            "title": "areaServed",
+            "description": "The geographic area where a service or offered item is provided.",
+            "type": "GeoShape"
+        },
+        {
+            "@id": "http://schema.org/hoursAvailable",
+            "name": "hoursAvailable",
+            "title": "hoursAvailable",
+            "description": "The hours during which this service or contact is available.",
+            "type": "OpeningHoursSpecification"
+        },
+        {
+            "@id": "http://schema.org/contactOption",
+            "name": "contactOption",
+            "title": "contactOption",
+            "description": "An option available on this contact point (e.g. a toll-free number or support for hearing-impaired callers).",
+            "type": "ContactPointOption"
+        },
+        {
+            "@id": "http://schema.org/availableLanguage",
+            "name": "availableLanguage",
+            "title": "availableLanguage",
+            "description": "A language someone may use with or at the item, service or place. Please use one of the language codes from the <a href=\"http://tools.ietf.org/html/bcp47\">IETF BCP 47 standard</a>. See also <a class=\"localLink\" href=\"http://schema.org/inLanguage\">inLanguage</a>",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/telephone",
+            "name": "telephone",
+            "title": "telephone",
+            "description": "The telephone number.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/email",
+            "name": "email",
+            "title": "email",
+            "description": "Email address.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/contactType",
+            "name": "contactType",
+            "title": "contactType",
+            "description": "A person or organization can have different contact points, for different purposes. For example, a sales contact point, a PR contact point and so on. This property is used to specify the kind of contact point.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/productSupported",
+            "name": "productSupported",
+            "title": "productSupported",
+            "description": "The product or service this support contact point is related to (such as product support for a particular product line). This can be a specific product or product line (e.g. \"iPhone\") or a general category of products or services (e.g. \"smartphones\").",
+            "type": "Product"
+        },
+        {
+            "@id": "http://schema.org/faxNumber",
+            "name": "faxNumber",
+            "title": "faxNumber",
+            "description": "The fax number.",
+            "type": "Text"
+        }
+    ],
+    "privileges": [
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ]
+}

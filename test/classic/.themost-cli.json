@@ -1,0 +1,4 @@
+{
+    "base":"server",
+    "out": "dist/server"
+}

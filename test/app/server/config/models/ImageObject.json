@@ -1,0 +1,18 @@
+
+{ "name": "ImageObject", "id": 324, "title": "Images", "hidden": false, "sealed": false,
+    "abstract": false, "version": "2.0", "inherits": "MediaObject", "fields": [
+    {
+        "name": "id",
+        "title": "Id",
+        "type": "Integer",
+        "nullable": false,
+        "primary": true
+    },
+    {
+        "name": "additionalType",
+        "readonly":true,
+        "value":"javascript:return this.model.name;"
+    }
+],"privileges":[
+    { "mask":15, "type":"global" }
+]}

@@ -1,0 +1,44 @@
+{
+    "@id": "http://schema.org/Review",
+    "name": "Review",
+    "description": "A review of an item - for example, of a restaurant, movie, or store.",
+    "title": "Review",
+    "abstract": false,
+    "sealed": false,
+    "inherits": "CreativeWork",
+    "version": "1.0",
+    "fields": [
+        {
+            "@id": "http://schema.org/reviewRating",
+            "name": "reviewRating",
+            "title": "reviewRating",
+            "description": "The rating given in this review. Note that reviews can themselves be rated. The <code>reviewRating</code> applies to rating given by the review. The <a class=\"localLink\" href=\"http://schema.org/aggregateRating\">aggregateRating</a> property applies to the review itself, as a creative work.",
+            "type": "Rating"
+        },
+        {
+            "@id": "http://schema.org/itemReviewed",
+            "name": "itemReviewed",
+            "title": "itemReviewed",
+            "description": "The item that is being reviewed/rated.",
+            "type": "Thing"
+        },
+        {
+            "@id": "http://schema.org/reviewBody",
+            "name": "reviewBody",
+            "title": "reviewBody",
+            "description": "The actual body of the review.",
+            "type": "Text"
+        }
+    ],
+    "privileges": [
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ]
+}

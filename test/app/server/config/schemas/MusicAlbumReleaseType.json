@@ -1,0 +1,48 @@
+{
+    "@id": "http://schema.org/MusicAlbumReleaseType",
+    "name": "MusicAlbumReleaseType",
+    "description": "The kind of release which this album is: single, EP or album.",
+    "title": "MusicAlbumReleaseType",
+    "abstract": false,
+    "sealed": false,
+    "implements": "Enumeration",
+    "version": "1.0",
+    "fields": [],
+    "privileges": [
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ],
+    "seed": [
+        {
+            "name": "AlbumRelease",
+            "alternateName": "AlbumRelease",
+            "description": "AlbumRelease.",
+            "url": "http://schema.org/AlbumRelease"
+        },
+        {
+            "name": "EPRelease",
+            "alternateName": "EPRelease",
+            "description": "EPRelease.",
+            "url": "http://schema.org/EPRelease"
+        },
+        {
+            "name": "BroadcastRelease",
+            "alternateName": "BroadcastRelease",
+            "description": "BroadcastRelease.",
+            "url": "http://schema.org/BroadcastRelease"
+        },
+        {
+            "name": "SingleRelease",
+            "alternateName": "SingleRelease",
+            "description": "SingleRelease.",
+            "url": "http://schema.org/SingleRelease"
+        }
+    ]
+}

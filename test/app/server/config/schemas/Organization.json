@@ -1,0 +1,352 @@
+{
+    "@id": "http://schema.org/Organization",
+    "name": "Organization",
+    "description": "An organization such as a school, NGO, corporation, club, etc.",
+    "title": "Organization",
+    "abstract": false,
+    "sealed": false,
+    "inherits": "Thing",
+    "version": "1.0",
+    "fields": [
+        {
+            "@id": "http://schema.org/serviceArea",
+            "name": "serviceArea",
+            "title": "serviceArea",
+            "description": "The geographic area where the service is provided.",
+            "type": "Place"
+        },
+        {
+            "@id": "http://schema.org/funder",
+            "name": "funder",
+            "title": "funder",
+            "description": "A person or organization that supports (sponsors) something through some kind of financial contribution.",
+            "type": "Person"
+        },
+        {
+            "@id": "http://schema.org/areaServed",
+            "name": "areaServed",
+            "title": "areaServed",
+            "description": "The geographic area where a service or offered item is provided.",
+            "type": "GeoShape"
+        },
+        {
+            "@id": "http://schema.org/memberOf",
+            "name": "memberOf",
+            "title": "memberOf",
+            "description": "An Organization (or ProgramMembership) to which this Person or Organization belongs.",
+            "type": "Organization"
+        },
+        {
+            "@id": "http://schema.org/events",
+            "name": "events",
+            "title": "events",
+            "description": "Upcoming or past events associated with this place or organization.",
+            "type": "Event"
+        },
+        {
+            "@id": "http://schema.org/subOrganization",
+            "name": "subOrganization",
+            "title": "subOrganization",
+            "description": "A relationship between two organizations where the first includes the second, e.g., as a subsidiary. See also: the more specific 'department' property.",
+            "type": "Organization"
+        },
+        {
+            "@id": "http://schema.org/hasOfferCatalog",
+            "name": "hasOfferCatalog",
+            "title": "hasOfferCatalog",
+            "description": "Indicates an OfferCatalog listing for this Organization, Person, or Service.",
+            "type": "OfferCatalog"
+        },
+        {
+            "@id": "http://schema.org/globalLocationNumber",
+            "name": "globalLocationNumber",
+            "title": "globalLocationNumber",
+            "description": "The <a href=\"http://www.gs1.org/gln\">Global Location Number</a> (GLN, sometimes also referred to as International Location Number or ILN) of the respective organization, person, or place. The GLN is a 13-digit number used to identify parties and physical locations.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/reviews",
+            "name": "reviews",
+            "title": "reviews",
+            "description": "Review of the item.",
+            "type": "Review"
+        },
+        {
+            "@id": "http://schema.org/members",
+            "name": "members",
+            "title": "members",
+            "description": "A member of this organization.",
+            "type": "Person"
+        },
+        {
+            "@id": "http://schema.org/taxID",
+            "name": "taxID",
+            "title": "taxID",
+            "description": "The Tax / Fiscal ID of the organization or person, e.g. the TIN in the US or the CIF/NIF in Spain.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/award",
+            "name": "award",
+            "title": "award",
+            "description": "An award won by or for this item.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/makesOffer",
+            "name": "makesOffer",
+            "title": "makesOffer",
+            "description": "A pointer to products or services offered by the organization or person.",
+            "type": "Offer"
+        },
+        {
+            "@id": "http://schema.org/contactPoints",
+            "name": "contactPoints",
+            "title": "contactPoints",
+            "description": "A contact point for a person or organization.",
+            "type": "ContactPoint"
+        },
+        {
+            "@id": "http://schema.org/awards",
+            "name": "awards",
+            "title": "awards",
+            "description": "Awards won by or for this item.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/seeks",
+            "name": "seeks",
+            "title": "seeks",
+            "description": "A pointer to products or services sought by the organization or person (demand).",
+            "type": "Demand"
+        },
+        {
+            "@id": "http://schema.org/member",
+            "name": "member",
+            "title": "member",
+            "description": "A member of an Organization or a ProgramMembership. Organizations can be members of organizations; ProgramMembership is typically for individuals.",
+            "type": "Organization"
+        },
+        {
+            "@id": "http://schema.org/founders",
+            "name": "founders",
+            "title": "founders",
+            "description": "A person who founded this organization.",
+            "type": "Person"
+        },
+        {
+            "@id": "http://schema.org/alumni",
+            "name": "alumni",
+            "title": "alumni",
+            "description": "Alumni of an organization.",
+            "type": "Person"
+        },
+        {
+            "@id": "http://schema.org/dissolutionDate",
+            "name": "dissolutionDate",
+            "title": "dissolutionDate",
+            "description": "The date that this organization was dissolved.",
+            "type": "Date"
+        },
+        {
+            "@id": "http://schema.org/address",
+            "name": "address",
+            "title": "address",
+            "description": "Physical address of the item.",
+            "type": "PostalAddress"
+        },
+        {
+            "@id": "http://schema.org/logo",
+            "name": "logo",
+            "title": "logo",
+            "description": "An associated logo.",
+            "type": "URL"
+        },
+        {
+            "@id": "http://schema.org/employees",
+            "name": "employees",
+            "title": "employees",
+            "description": "People working for this organization.",
+            "type": "Person"
+        },
+        {
+            "@id": "http://schema.org/telephone",
+            "name": "telephone",
+            "title": "telephone",
+            "description": "The telephone number.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/email",
+            "name": "email",
+            "title": "email",
+            "description": "Email address.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/department",
+            "name": "department",
+            "title": "department",
+            "description": "A relationship between an organization and a department of that organization, also described as an organization (allowing different urls, logos, opening hours). For example: a store with a pharmacy, or a bakery with a cafe.",
+            "type": "Organization"
+        },
+        {
+            "@id": "http://schema.org/contactPoint",
+            "name": "contactPoint",
+            "title": "contactPoint",
+            "description": "A contact point for a person or organization.",
+            "type": "ContactPoint"
+        },
+        {
+            "@id": "http://schema.org/parentOrganization",
+            "name": "parentOrganization",
+            "title": "parentOrganization",
+            "description": "The larger organization that this organization is a <a class=\"localLink\" href=\"http://schema.org/subOrganization\">subOrganization</a> of, if any.",
+            "type": "Organization"
+        },
+        {
+            "@id": "http://schema.org/legalName",
+            "name": "legalName",
+            "title": "legalName",
+            "description": "The official name of the organization, e.g. the registered company name.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/foundingDate",
+            "name": "foundingDate",
+            "title": "foundingDate",
+            "description": "The date that this organization was founded.",
+            "type": "Date"
+        },
+        {
+            "@id": "http://schema.org/employee",
+            "name": "employee",
+            "title": "employee",
+            "description": "Someone working for this organization.",
+            "type": "Person"
+        },
+        {
+            "@id": "http://schema.org/numberOfEmployees",
+            "name": "numberOfEmployees",
+            "title": "numberOfEmployees",
+            "description": "The number of employees in an organization e.g. business.",
+            "type": "QuantitativeValue"
+        },
+        {
+            "@id": "http://schema.org/naics",
+            "name": "naics",
+            "title": "naics",
+            "description": "The North American Industry Classification System (NAICS) code for a particular organization or business person.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/hasPOS",
+            "name": "hasPOS",
+            "title": "hasPOS",
+            "description": "Points-of-Sales operated by the organization or person.",
+            "type": "Place"
+        },
+        {
+            "@id": "http://schema.org/review",
+            "name": "review",
+            "title": "review",
+            "description": "A review of the item.",
+            "type": "Review"
+        },
+        {
+            "@id": "http://schema.org/foundingLocation",
+            "name": "foundingLocation",
+            "title": "foundingLocation",
+            "description": "The place where the Organization was founded.",
+            "type": "Place"
+        },
+        {
+            "@id": "http://schema.org/owns",
+            "name": "owns",
+            "title": "owns",
+            "description": "Products owned by the organization or person.",
+            "type": "Product"
+        },
+        {
+            "@id": "http://schema.org/event",
+            "name": "event",
+            "title": "event",
+            "description": "Upcoming or past event associated with this place, organization, or action.",
+            "type": "Event"
+        },
+        {
+            "@id": "http://schema.org/founder",
+            "name": "founder",
+            "title": "founder",
+            "description": "A person who founded this organization.",
+            "type": "Person"
+        },
+        {
+            "@id": "http://schema.org/publishingPrinciples",
+            "name": "publishingPrinciples",
+            "title": "publishingPrinciples",
+            "description": "The publishingPrinciples property indicates (typically via <a class=\"localLink\" href=\"http://schema.org/URL\">URL</a>) a document describing the editorial principles of an <a class=\"localLink\" href=\"http://schema.org/Organization\">Organization</a> (or individual e.g. a <a class=\"localLink\" href=\"http://schema.org/Person\">Person</a> writing a blog) that relate to their activities as a publisher, e.g. ethics or diversity policies. When applied to a <a class=\"localLink\" href=\"http://schema.org/CreativeWork\">CreativeWork</a> (e.g. <a class=\"localLink\" href=\"http://schema.org/NewsArticle\">NewsArticle</a>) the principles are those of the party primarily responsible for the creation of the <a class=\"localLink\" href=\"http://schema.org/CreativeWork\">CreativeWork</a>.</p>\n\n<p>While such policies are most typically expressed in natural language, sometimes related information (e.g. indicating a <a class=\"localLink\" href=\"http://schema.org/funder\">funder</a>) can be expressed using schema.org terminology.",
+            "type": "CreativeWork"
+        },
+        {
+            "@id": "http://schema.org/sponsor",
+            "name": "sponsor",
+            "title": "sponsor",
+            "description": "A person or organization that supports a thing through a pledge, promise, or financial contribution. e.g. a sponsor of a Medical Study or a corporate sponsor of an event.",
+            "type": "Person"
+        },
+        {
+            "@id": "http://schema.org/isicV4",
+            "name": "isicV4",
+            "title": "isicV4",
+            "description": "The International Standard of Industrial Classification of All Economic Activities (ISIC), Revision 4 code for a particular organization, business person, or place.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/location",
+            "name": "location",
+            "title": "location",
+            "description": "The location of for example where the event is happening, an organization is located, or where an action takes place.",
+            "type": "Place"
+        },
+        {
+            "@id": "http://schema.org/brand",
+            "name": "brand",
+            "title": "brand",
+            "description": "The brand(s) associated with a product or service, or the brand(s) maintained by an organization or business person.",
+            "type": "Organization"
+        },
+        {
+            "@id": "http://schema.org/vatID",
+            "name": "vatID",
+            "title": "vatID",
+            "description": "The Value-added Tax ID of the organization or person.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/leiCode",
+            "name": "leiCode",
+            "title": "leiCode",
+            "description": "An organization identifier that uniquely identifies a legal entity as defined in ISO 17442.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/faxNumber",
+            "name": "faxNumber",
+            "title": "faxNumber",
+            "description": "The fax number.",
+            "type": "Text"
+        }
+    ],
+    "privileges": [
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ]
+}

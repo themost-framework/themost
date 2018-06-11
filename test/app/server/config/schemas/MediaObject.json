@@ -1,0 +1,128 @@
+{
+    "@id": "http://schema.org/MediaObject",
+    "name": "MediaObject",
+    "description": "A media object, such as an image, video, or audio object embedded in a web page or a downloadable dataset i.e. DataDownload. Note that a creative work may have many media objects associated with it on the same web page. For example, a page about a single song (MusicRecording) may have a music video (VideoObject), and a high and low bandwidth audio stream (2 AudioObject's).",
+    "title": "MediaObject",
+    "abstract": false,
+    "sealed": false,
+    "inherits": "CreativeWork",
+    "version": "1.0",
+    "fields": [
+        {
+            "@id": "http://schema.org/uploadDate",
+            "name": "uploadDate",
+            "title": "uploadDate",
+            "description": "Date when this media object was uploaded to this site.",
+            "type": "Date"
+        },
+        {
+            "@id": "http://schema.org/playerType",
+            "name": "playerType",
+            "title": "playerType",
+            "description": "Player type required&#x2014;for example, Flash or Silverlight.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/height",
+            "name": "height",
+            "title": "height",
+            "description": "The height of the item.",
+            "type": "Distance"
+        },
+        {
+            "@id": "http://schema.org/bitrate",
+            "name": "bitrate",
+            "title": "bitrate",
+            "description": "The bitrate of the media object.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/requiresSubscription",
+            "name": "requiresSubscription",
+            "title": "requiresSubscription",
+            "description": "Indicates if use of the media require a subscription  (either paid or free). Allowed values are <code>true</code> or <code>false</code> (note that an earlier version had 'yes', 'no').",
+            "type": "Boolean"
+        },
+        {
+            "@id": "http://schema.org/regionsAllowed",
+            "name": "regionsAllowed",
+            "title": "regionsAllowed",
+            "description": "The regions where the media is allowed. If not specified, then it's assumed to be allowed everywhere. Specify the countries in <a href=\"http://en.wikipedia.org/wiki/ISO_3166\">ISO 3166 format</a>.",
+            "type": "Place"
+        },
+        {
+            "@id": "http://schema.org/contentSize",
+            "name": "contentSize",
+            "title": "contentSize",
+            "description": "File size in (mega/kilo) bytes.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/embedUrl",
+            "name": "embedUrl",
+            "title": "embedUrl",
+            "description": "A URL pointing to a player for a specific video. In general, this is the information in the <code>src</code> element of an <code>embed</code> tag and should not be the same as the content of the <code>loc</code> tag.",
+            "type": "URL"
+        },
+        {
+            "@id": "http://schema.org/width",
+            "name": "width",
+            "title": "width",
+            "description": "The width of the item.",
+            "type": "Distance"
+        },
+        {
+            "@id": "http://schema.org/contentUrl",
+            "name": "contentUrl",
+            "title": "contentUrl",
+            "description": "Actual bytes of the media object, for example the image file or video file.",
+            "type": "URL"
+        },
+        {
+            "@id": "http://schema.org/associatedArticle",
+            "name": "associatedArticle",
+            "title": "associatedArticle",
+            "description": "A NewsArticle associated with the Media Object.",
+            "type": "NewsArticle"
+        },
+        {
+            "@id": "http://schema.org/productionCompany",
+            "name": "productionCompany",
+            "title": "productionCompany",
+            "description": "The production company or studio responsible for the item e.g. series, video game, episode etc.",
+            "type": "Organization"
+        },
+        {
+            "@id": "http://schema.org/duration",
+            "name": "duration",
+            "title": "duration",
+            "description": "The duration of the item (movie, audio recording, event, etc.) in <a href=\"http://en.wikipedia.org/wiki/ISO_8601\">ISO 8601 date format</a>.",
+            "type": "Duration"
+        },
+        {
+            "@id": "http://schema.org/encodesCreativeWork",
+            "name": "encodesCreativeWork",
+            "title": "encodesCreativeWork",
+            "description": "The CreativeWork encoded by this media object.",
+            "type": "CreativeWork"
+        },
+        {
+            "@id": "http://schema.org/encodingFormat",
+            "name": "encodingFormat",
+            "title": "encodingFormat",
+            "description": "mp3, mpeg4, etc.",
+            "type": "Text"
+        }
+    ],
+    "privileges": [
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ]
+}

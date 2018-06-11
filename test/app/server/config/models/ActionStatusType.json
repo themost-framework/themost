@@ -1,0 +1,53 @@
+{
+    "name": "ActionStatusType",
+    "id": 2925710,
+    "title": "Action Status",
+    "hidden": false,
+    "sealed": false,
+    "abstract": false,
+    "version": "2.0",
+    "fields": [{
+        "name": "id",
+        "title": "Id",
+        "type": "Integer",
+        "nullable": false,
+        "primary": true
+    }, {
+        "name": "name",
+        "title": "Name",
+        "type": "Text",
+        "nullable": false,
+        "size":80
+    }, {
+        "name": "description",
+        "title": "Description",
+        "type": "Text",
+        "nullable": false
+    }],
+    "privileges":[
+        { "mask":1, "type":"global", "account":"*" },
+        { "mask":15, "type":"global" }
+    ],
+    "seed":[ {
+            "id":1, "name":"Created", "description":"The action has been initialized but has not yet been scheduled."
+        },
+        {
+            "id":2, "name":"Scheduled", "description":"The action has been scheduled and is waiting to start."
+        },
+        {
+            "id":3, "name":"Started", "description":"The action has been succesfully started."
+        },
+        {
+            "id":4, "name":"Canceled", "description":"The action has been cancelled."
+        },
+        {
+            "id":5, "name":"Paused", "description":"The action has been paused."
+        },
+        {
+            "id":6, "name":"Completed", "description":"The action has been succesfully completed."
+        },
+        {
+            "id":7, "name":"Faulted", "description":"The action has been faulted."
+        }
+    ]
+}

@@ -1,0 +1,31 @@
+{
+    "name": "FollowAction",
+    "id": 289,
+    "title": "Follow Action",
+    "hidden": false,
+    "sealed": false,
+    "abstract": false,
+    "version": "2.0",
+    "inherits": "InteractAction",
+    "fields": [
+        {
+            "name": "id",
+            "title": "Id",
+            "type": "Integer",
+            "nullable": false,
+            "primary": true
+        },
+        {
+            "name": "followee",
+            "title": "Followee",
+            "description": "A sub property of object. The person or organization being followed.",
+            "type": "Party"
+        },{
+            "name": "additionalType",
+            "readonly":true,
+            "value":"javascript:return this.model.name;"
+        }
+    ], "privileges":[
+    { "mask":15, "type":"global" }
+]
+}

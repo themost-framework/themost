@@ -1,0 +1,65 @@
+{
+    "@id": "http://schema.org/MusicRelease",
+    "name": "MusicRelease",
+    "description": "A MusicRelease is a specific release of a music album.",
+    "title": "MusicRelease",
+    "abstract": false,
+    "sealed": false,
+    "inherits": "MusicPlaylist",
+    "version": "1.0",
+    "fields": [
+        {
+            "@id": "http://schema.org/recordLabel",
+            "name": "recordLabel",
+            "title": "recordLabel",
+            "description": "The label that issued the release.",
+            "type": "Organization"
+        },
+        {
+            "@id": "http://schema.org/catalogNumber",
+            "name": "catalogNumber",
+            "title": "catalogNumber",
+            "description": "The catalog number for the release.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/creditedTo",
+            "name": "creditedTo",
+            "title": "creditedTo",
+            "description": "The group the release is credited to if different than the byArtist. For example, Red and Blue is credited to \"Stefani Germanotta Band\", but by Lady Gaga.",
+            "type": "Organization"
+        },
+        {
+            "@id": "http://schema.org/releaseOf",
+            "name": "releaseOf",
+            "title": "releaseOf",
+            "description": "The album this is a release of.",
+            "type": "MusicAlbum"
+        },
+        {
+            "@id": "http://schema.org/duration",
+            "name": "duration",
+            "title": "duration",
+            "description": "The duration of the item (movie, audio recording, event, etc.) in <a href=\"http://en.wikipedia.org/wiki/ISO_8601\">ISO 8601 date format</a>.",
+            "type": "Duration"
+        },
+        {
+            "@id": "http://schema.org/musicReleaseFormat",
+            "name": "musicReleaseFormat",
+            "title": "musicReleaseFormat",
+            "description": "Format of this release (the type of recording media used, ie. compact disc, digital media, LP, etc.).",
+            "type": "MusicReleaseFormatType"
+        }
+    ],
+    "privileges": [
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ]
+}

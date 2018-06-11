@@ -1,0 +1,32 @@
+{"name": "NavigationElement", "id": 6813203, "title": "Navigation Elements", "hidden": false, "sealed": false, "abstract": false, "version": "2.0", "inherits": "Thing", "fields": [
+    {
+        "name": "id",
+        "title": "Id",
+        "type": "Integer",
+        "nullable": false,
+        "primary": true
+    },
+    {
+        "name": "name",
+        "nullable":false
+    },
+    {
+        "name": "additionalType",
+        "readonly":true,
+        "value":"javascript:return this.model.name;"
+    },
+    {
+        "name": "scope",
+        "title": "Scope",
+        "description": "A string which groups this item",
+        "type": "Text"
+    },
+    {
+        "name": "parent",
+        "title": "Parent",
+        "description": "A navigation element which is the parent element of this item.",
+        "type": "NavigationElement"
+    }
+],"privileges":[
+    { "mask":15, "type":"global" }
+]}

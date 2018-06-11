@@ -1,0 +1,44 @@
+{
+    "@id": "http://schema.org/LocationFeatureSpecification",
+    "name": "LocationFeatureSpecification",
+    "description": "Specifies a location feature by providing a structured value representing a feature of an accommodation as a property-value pair of varying degrees of formality.",
+    "title": "LocationFeatureSpecification",
+    "abstract": false,
+    "sealed": false,
+    "inherits": "PropertyValue",
+    "version": "1.0",
+    "fields": [
+        {
+            "@id": "http://schema.org/hoursAvailable",
+            "name": "hoursAvailable",
+            "title": "hoursAvailable",
+            "description": "The hours during which this service or contact is available.",
+            "type": "OpeningHoursSpecification"
+        },
+        {
+            "@id": "http://schema.org/validFrom",
+            "name": "validFrom",
+            "title": "validFrom",
+            "description": "The date when the item becomes valid.",
+            "type": "DateTime"
+        },
+        {
+            "@id": "http://schema.org/validThrough",
+            "name": "validThrough",
+            "title": "validThrough",
+            "description": "The date after when the item is not valid. For example the end of an offer, salary period, or a period of opening hours.",
+            "type": "DateTime"
+        }
+    ],
+    "privileges": [
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ]
+}

@@ -1,0 +1,47 @@
+{
+  "@id": "http://schema.org/Party",
+  "name": "Party",
+  "title": "Person or Organization",
+  "hidden": false,
+  "sealed": false,
+  "abstract": false,
+  "version": "1.3",
+  "inherits": "Thing",
+  "fields": [
+    {
+      "@id": "https://themost.io/schemas/id",
+      "name": "id",
+      "title": "Id",
+      "type": "Integer",
+      "nullable": false,
+      "primary": true
+    },
+    {
+      "name": "name",
+      "nullable":false
+    },
+    {
+      "name": "taxNumber",
+      "title": "Tax Number",
+      "description": "The Tax / Fiscal ID of the organization.",
+      "type": "Text"
+    },
+    {
+      "name": "taxOffice",
+      "title": "Tax Office",
+      "description": "The tax office of the organization.",
+      "type": "Text"
+    }
+  ],
+  "privileges": [
+    {
+      "mask": 15,
+      "type": "global"
+    },
+    {
+      "mask": 15,
+      "type": "global",
+      "account": "Administrators"
+    }
+  ]
+}

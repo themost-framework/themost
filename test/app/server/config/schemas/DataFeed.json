@@ -1,0 +1,30 @@
+{
+    "@id": "http://schema.org/DataFeed",
+    "name": "DataFeed",
+    "description": "A single feed providing structured information about one or more entities or topics.",
+    "title": "DataFeed",
+    "abstract": false,
+    "sealed": false,
+    "inherits": "Dataset",
+    "version": "1.0",
+    "fields": [
+        {
+            "@id": "http://schema.org/dataFeedElement",
+            "name": "dataFeedElement",
+            "title": "dataFeedElement",
+            "description": "An item within in a data feed. Data feeds may have many elements.",
+            "type": "Text"
+        }
+    ],
+    "privileges": [
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ]
+}

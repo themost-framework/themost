@@ -1,0 +1,65 @@
+{
+    "@id": "http://schema.org/PostalAddress",
+    "name": "PostalAddress",
+    "description": "The mailing address.",
+    "title": "PostalAddress",
+    "abstract": false,
+    "sealed": false,
+    "inherits": "ContactPoint",
+    "version": "1.0",
+    "fields": [
+        {
+            "@id": "http://schema.org/postOfficeBoxNumber",
+            "name": "postOfficeBoxNumber",
+            "title": "postOfficeBoxNumber",
+            "description": "The post office box number for PO box addresses.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/streetAddress",
+            "name": "streetAddress",
+            "title": "streetAddress",
+            "description": "The street address. For example, 1600 Amphitheatre Pkwy.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/addressCountry",
+            "name": "addressCountry",
+            "title": "addressCountry",
+            "description": "The country. For example, USA. You can also provide the two-letter <a href=\"http://en.wikipedia.org/wiki/ISO_3166-1\">ISO 3166-1 alpha-2 country code</a>.",
+            "type": "Country"
+        },
+        {
+            "@id": "http://schema.org/addressRegion",
+            "name": "addressRegion",
+            "title": "addressRegion",
+            "description": "The region. For example, CA.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/postalCode",
+            "name": "postalCode",
+            "title": "postalCode",
+            "description": "The postal code. For example, 94043.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/addressLocality",
+            "name": "addressLocality",
+            "title": "addressLocality",
+            "description": "The locality. For example, Mountain View.",
+            "type": "Text"
+        }
+    ],
+    "privileges": [
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ]
+}

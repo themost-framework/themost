@@ -1,0 +1,43 @@
+{
+    "name": "AccessLevelType",
+    "id": 6231509,
+    "title": "Access Levels",
+    "hidden": false,
+    "sealed": false,
+    "abstract": false,
+    "version": "2.0",
+    "fields": [{
+        "name": "id",
+        "title": "Id",
+        "type": "Integer",
+        "nullable": false,
+        "primary": true
+    }, {
+        "name": "name",
+        "title": "Name",
+        "type": "Text",
+        "nullable": false,
+        "size":80
+    }, {
+        "name": "description",
+        "title": "Description",
+        "type": "Text",
+        "nullable": false
+    }],
+    "privileges":[
+        { "mask":1, "type":"global", "account":"*" },
+        { "mask":15, "type":"global" }
+    ],
+    "seed":[ {
+            "id":100, "name":"Limited Access", "description":"This access level gives limited access in security users and groups. Assigned to Guests, by default."
+        }, {
+            "id":200, "name":"Read", "description":"Can read objects and data. Assigned to security group Users, by default."
+        }, {
+            "id":300, "name":"Contribute","description":"Can edit, add, delete objects and data. Assigned to Contributors, by defalut"
+        }, {
+            "id":400, "name":"Design","description":"Can modify application layout, create models, pages and views. Assigned to Designers, by default"
+        }, {
+            "id":500, "name":"Full Control", "description":"This access level contains all permissions. Assigned to Administrators, by default."
+        }
+    ]
+}

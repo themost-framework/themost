@@ -1,0 +1,72 @@
+{
+    "@id": "http://schema.org/BroadcastService",
+    "name": "BroadcastService",
+    "description": "A delivery service through which content is provided via broadcast over the air or online.",
+    "title": "BroadcastService",
+    "abstract": false,
+    "sealed": false,
+    "inherits": "Service",
+    "version": "1.0",
+    "fields": [
+        {
+            "@id": "http://schema.org/broadcastTimezone",
+            "name": "broadcastTimezone",
+            "title": "broadcastTimezone",
+            "description": "The timezone in <a href=\"http://en.wikipedia.org/wiki/ISO_8601\">ISO 8601 format</a> for which the service bases its broadcasts",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/videoFormat",
+            "name": "videoFormat",
+            "title": "videoFormat",
+            "description": "The type of screening or video broadcast used (e.g. IMAX, 3D, SD, HD, etc.).",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/broadcastAffiliateOf",
+            "name": "broadcastAffiliateOf",
+            "title": "broadcastAffiliateOf",
+            "description": "The media network(s) whose content is broadcast on this station.",
+            "type": "Organization"
+        },
+        {
+            "@id": "http://schema.org/parentService",
+            "name": "parentService",
+            "title": "parentService",
+            "description": "A broadcast service to which the broadcast service may belong to such as regional variations of a national channel.",
+            "type": "BroadcastService"
+        },
+        {
+            "@id": "http://schema.org/broadcastDisplayName",
+            "name": "broadcastDisplayName",
+            "title": "broadcastDisplayName",
+            "description": "The name displayed in the channel guide. For many US affiliates, it is the network name.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/area",
+            "name": "area",
+            "title": "area",
+            "description": "The area within which users can expect to reach the broadcast service.",
+            "type": "Place"
+        },
+        {
+            "@id": "http://schema.org/broadcaster",
+            "name": "broadcaster",
+            "title": "broadcaster",
+            "description": "The organization owning or operating the broadcast service.",
+            "type": "Organization"
+        }
+    ],
+    "privileges": [
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ]
+}

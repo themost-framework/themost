@@ -1,0 +1,78 @@
+{
+    "@id": "http://schema.org/ItemAvailability",
+    "name": "ItemAvailability",
+    "description": "A list of possible product availability options.",
+    "title": "ItemAvailability",
+    "abstract": false,
+    "sealed": false,
+    "implements": "Enumeration",
+    "version": "1.0",
+    "fields": [],
+    "privileges": [
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ],
+    "seed": [
+        {
+            "name": "OutOfStock",
+            "alternateName": "OutOfStock",
+            "description": "Indicates that the item is out of stock.",
+            "url": "http://schema.org/OutOfStock"
+        },
+        {
+            "name": "SoldOut",
+            "alternateName": "SoldOut",
+            "description": "Indicates that the item has sold out.",
+            "url": "http://schema.org/SoldOut"
+        },
+        {
+            "name": "PreOrder",
+            "alternateName": "PreOrder",
+            "description": "Indicates that the item is available for pre-order, but will be delivered when generally available.",
+            "url": "http://schema.org/PreOrder"
+        },
+        {
+            "name": "PreSale",
+            "alternateName": "PreSale",
+            "description": "Indicates that the item is available for ordering and delivery before general availability.",
+            "url": "http://schema.org/PreSale"
+        },
+        {
+            "name": "InStock",
+            "alternateName": "InStock",
+            "description": "Indicates that the item is in stock.",
+            "url": "http://schema.org/InStock"
+        },
+        {
+            "name": "LimitedAvailability",
+            "alternateName": "LimitedAvailability",
+            "description": "Indicates that the item has limited availability.",
+            "url": "http://schema.org/LimitedAvailability"
+        },
+        {
+            "name": "Discontinued",
+            "alternateName": "Discontinued",
+            "description": "Indicates that the item has been discontinued.",
+            "url": "http://schema.org/Discontinued"
+        },
+        {
+            "name": "OnlineOnly",
+            "alternateName": "OnlineOnly",
+            "description": "Indicates that the item is available only online.",
+            "url": "http://schema.org/OnlineOnly"
+        },
+        {
+            "name": "InStoreOnly",
+            "alternateName": "InStoreOnly",
+            "description": "Indicates that the item is available only at physical locations.",
+            "url": "http://schema.org/InStoreOnly"
+        }
+    ]
+}

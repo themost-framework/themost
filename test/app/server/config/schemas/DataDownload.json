@@ -1,0 +1,22 @@
+{
+    "@id": "http://schema.org/DataDownload",
+    "name": "DataDownload",
+    "description": "A dataset in downloadable form.",
+    "title": "DataDownload",
+    "abstract": false,
+    "sealed": false,
+    "inherits": "MediaObject",
+    "version": "1.0",
+    "fields": [],
+    "privileges": [
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ]
+}

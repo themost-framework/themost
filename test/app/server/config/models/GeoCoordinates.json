@@ -1,0 +1,35 @@
+{
+    "name": "GeoCoordinates", "id": 5932401, "title": "Geographic Coordinates", "hidden": false,
+    "sealed": false, "abstract": false, "version": "2.0", "fields": [
+    {
+        "name": "id",
+        "title": "Id",
+        "type": "Integer",
+        "nullable": false,
+        "primary": true
+    },
+    {
+        "name": "elevation",
+        "title": "Elevation",
+        "description": "The elevation of a location. For example 1200 metres.",
+        "type": "Number"
+    },
+    {
+        "name": "latitude",
+        "title": "Latitude",
+        "description": "The latitude of a location. For example 37.42242.",
+        "type": "Number",
+        "nullable":false
+    },
+    {
+        "name": "longitude",
+        "title": "Longitude",
+        "description": "The longitude of a location. For example -122.08585.",
+        "type": "Number",
+        "nullable":false
+    }
+],
+    "privileges":[
+        { "mask":1, "type":"global", "account":"*" },
+        { "mask":15, "type":"global" }
+    ]}

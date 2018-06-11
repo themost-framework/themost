@@ -1,0 +1,58 @@
+{
+    "@id": "http://schema.org/GenderType",
+    "name": "GenderType",
+    "title": "Gender Type",
+    "description": "An enumeration of genders.",
+    "hidden": false,
+    "sealed": false,
+    "implements": "Enumeration",
+    "version": "1.0",
+    "fields": [
+        {
+            "name": "id",
+            "title": "ID",
+            "description": "The identifier of the item.",
+            "type": "Integer",
+            "nullable": false,
+            "primary": true
+        }
+    ],
+    "constraints": [
+        {
+           "type": "unique",
+            "fields": [
+                "alternateName"
+            ]
+        }
+    ],
+    "seed": [
+        {
+            "name": "Male",
+            "alternateName": "Male",
+            "description": "The male gender.",
+            "url": "http://schema.org/Male"
+        },
+        {
+            "name": "Female",
+            "alternateName": "Female",
+            "description": "The female gender.",
+            "url": "http://schema.org/Female"
+        }
+    ],
+    "privileges": [
+      {
+        "mask": 1,
+        "type": "global",
+        "account": "Administrators"
+      },
+      {
+        "mask": 15,
+        "type": "global"
+      },
+      {
+        "mask": 15,
+        "type": "global",
+        "account": "Administrators"
+      }
+    ]
+}

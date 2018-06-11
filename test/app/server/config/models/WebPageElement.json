@@ -1,0 +1,19 @@
+{
+    "name": "WebPageElement",
+    "id": 643,
+    "title": "Web Page Element",
+    "hidden": false,
+    "sealed": false,
+    "abstract": false,
+    "version": "2.0",
+    "inherits": "CreativeWork",
+    "fields": [{
+        "name": "id",
+        "title": "Id",
+        "type": "Integer",
+        "nullable": false,
+        "primary": true
+    }], "privileges":[
+    { "mask":15, "type":"global" }
+]
+}

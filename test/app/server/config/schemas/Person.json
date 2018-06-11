@@ -1,0 +1,235 @@
+{
+    "@id": "http://schema.org/Person",
+    "name": "Person",
+    "description": "A person (alive, dead, undead, or fictional).",
+    "title": "Person",
+    "abstract": false,
+    "sealed": false,
+    "inherits": "Thing",
+    "version": "1.0",
+    "fields": [
+        {
+            "@id": "http://schema.org/funder",
+            "name": "funder",
+            "title": "funder",
+            "description": "A person or organization that supports (sponsors) something through some kind of financial contribution.",
+            "type": "Person"
+        },
+        {
+            "@id": "http://schema.org/colleagues",
+            "name": "colleagues",
+            "title": "colleagues",
+            "description": "A colleague of the person.",
+            "type": "Person",
+            "many": true
+        },
+        {
+            "@id": "http://schema.org/memberOf",
+            "name": "memberOf",
+            "title": "memberOf",
+            "description": "An Organization (or ProgramMembership) to which this Person or Organization belongs.",
+            "type": "Organization",
+            "many": true
+        },
+        {
+            "@id": "http://schema.org/workLocation",
+            "name": "workLocation",
+            "title": "workLocation",
+            "description": "A contact location for a person's place of work.",
+            "type": "Place"
+        },
+        {
+            "@id": "http://schema.org/children",
+            "name": "children",
+            "title": "children",
+            "description": "A child of the person.",
+            "type": "Person"
+        },
+        {
+            "@id": "http://schema.org/jobTitle",
+            "name": "jobTitle",
+            "title": "jobTitle",
+            "description": "The job title of the person (for example, Financial Manager).",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/birthPlace",
+            "name": "birthPlace",
+            "title": "birthPlace",
+            "description": "The place where the person was born.",
+            "type": "Place"
+        },
+        {
+            "@id": "http://schema.org/gender",
+            "name": "gender",
+            "title": "gender",
+            "description": "Gender of the person. While http://schema.org/Male and http://schema.org/Female may be used, text strings are also acceptable for people who do not identify as a binary gender.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/alumniOf",
+            "name": "alumniOf",
+            "title": "alumniOf",
+            "description": "An organization that the person is an alumni of.",
+            "type": "EducationalOrganization",
+            "many": true
+        },
+        {
+            "@id": "http://schema.org/homeLocation",
+            "name": "homeLocation",
+            "title": "homeLocation",
+            "description": "A contact location for a person's residence.",
+            "type": "ContactPoint"
+        },
+        {
+            "@id": "http://schema.org/taxID",
+            "name": "taxID",
+            "title": "taxID",
+            "description": "The Tax / Fiscal ID of the organization or person, e.g. the TIN in the US or the CIF/NIF in Spain.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/birthDate",
+            "name": "birthDate",
+            "title": "birthDate",
+            "description": "Date of birth.",
+            "type": "Date"
+        },
+        {
+            "@id": "http://schema.org/givenName",
+            "name": "givenName",
+            "title": "givenName",
+            "description": "Given name. In the U.S., the first name of a Person. This can be used along with familyName instead of the name property.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/awards",
+            "name": "awards",
+            "title": "awards",
+            "description": "Awards won by or for this item.",
+            "type": "Text",
+            "many": true
+        },
+        {
+            "@id": "http://schema.org/familyName",
+            "name": "familyName",
+            "title": "familyName",
+            "description": "Family name. In the U.S., the last name of an Person. This can be used along with givenName instead of the name property.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/address",
+            "name": "address",
+            "title": "address",
+            "description": "Physical address of the item.",
+            "type": "PostalAddress",
+            "nested": true
+        },
+        {
+            "@id": "http://schema.org/honorificPrefix",
+            "name": "honorificPrefix",
+            "title": "honorificPrefix",
+            "description": "An honorific prefix preceding a Person's name such as Dr/Mrs/Mr.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/additionalName",
+            "name": "additionalName",
+            "title": "additionalName",
+            "description": "An additional name for a Person, can be used for a middle name.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/telephone",
+            "name": "telephone",
+            "title": "telephone",
+            "description": "The telephone number.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/email",
+            "name": "email",
+            "title": "email",
+            "description": "Email address.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/affiliation",
+            "name": "affiliation",
+            "title": "affiliation",
+            "description": "An organization that this person is affiliated with. For example, a school/university, a club, or a team.",
+            "type": "Organization"
+        },
+        {
+            "@id": "http://schema.org/honorificSuffix",
+            "name": "honorificSuffix",
+            "title": "honorificSuffix",
+            "description": "An honorific suffix preceding a Person's name such as M.D. /PhD/MSCSW.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/vatID",
+            "name": "vatID",
+            "title": "vatID",
+            "description": "The Value-added Tax ID of the organization or person.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/nationality",
+            "name": "nationality",
+            "title": "nationality",
+            "description": "Nationality of the person.",
+            "type": "Country"
+        },
+        {
+            "@id": "http://schema.org/faxNumber",
+            "name": "faxNumber",
+            "title": "faxNumber",
+            "description": "The fax number.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/relatedTo",
+            "name": "relatedTo",
+            "title": "relatedTo",
+            "description": "The most generic familial relation.",
+            "type": "Person",
+            "many": true
+        },
+        {
+            "@id": "http://schema.org/follows",
+            "name": "follows",
+            "title": "follows",
+            "description": "The most generic uni-directional social relation.",
+            "type": "Person",
+            "many": true
+        },
+        {
+            "@id": "http://schema.org/knows",
+            "name": "knows",
+            "title": "knows",
+            "description": "The most generic bi-directional social/work relation.",
+            "type": "Person",
+            "many": true
+        },
+        {
+            "@id": "http://schema.org/worksFor",
+            "name": "worksFor",
+            "title": "worksFor",
+            "description": "Organizations that the person works for.",
+            "type": "Organization",
+            "many": true
+        }
+    ],
+    "privileges": [
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ]
+}
