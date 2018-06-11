@@ -284,7 +284,7 @@ e.g.
         </div>
     </div>
 
-and start using AngularJS directives in any serve-side view.
+and start using AngularJS directives in any server-side view.
 
 The result of an HTTP action may be also a Promise of any object (including an instance of HttpResult class).
 
@@ -361,7 +361,7 @@ An application route may have a set of parameters that are defined with a colon 
     }
 
 The example above defines an application route for each action of RootController. 
-The static parameter [controller] defines the controller which is going to serve te action. The [action] parameter defines the target action. 
+The static parameter [controller] defines the controller which is going to serve the action. The [action] parameter defines the target action. 
 The [format] parameter defines the content-type of the action result.
 
 Any application route may have typed route parameters.
