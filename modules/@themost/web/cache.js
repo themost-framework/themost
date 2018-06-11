@@ -6,6 +6,7 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+///
 var NodeCache = require('node-cache');
 var Q = require('q');
 var _  = require('lodash');
@@ -15,6 +16,7 @@ var AbstractClassError = require("../common/errors").AbstractClassError;
 var LangUtils = require('@themost/common/utils').LangUtils;
 var Args = require('@themost/common/utils').Args;
 var HttpApplicationService = require('./types').HttpApplicationService;
+
 /**
  * @class
  * @constructor
@@ -182,7 +184,7 @@ DefaulCacheStrategy.prototype.getOrDefault = function(key, fn, absoluteExpiratio
                 if (_.isNil(res)) {
                     return Q();
                 }
-                return self.add(key, res, absoluteExpiration).then(()=> {
+                return self.add(key, res, absoluteExpiration).then(function () {
                     return Q(res);
                 });
             });
@@ -190,6 +192,7 @@ DefaulCacheStrategy.prototype.getOrDefault = function(key, fn, absoluteExpiratio
     return Q(res);
 });
 };
+
 
 if (typeof exports !== 'undefined')
 {

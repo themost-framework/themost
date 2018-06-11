@@ -8,6 +8,7 @@
  * Released under the BSD3-Clause license
  * Date: 2014-06-10
  */
+///
 var pluralize = require('pluralize');
 
 /**

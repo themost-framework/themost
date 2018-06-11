@@ -6,6 +6,7 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+///
 var ConfigurationBase = require('@themost/common/config').ConfigurationBase;
 var TraceUtils = require('@themost/common/utils').TraceUtils;
 var PathUtils = require('@themost/common/utils').PathUtils;
@@ -157,9 +158,7 @@ function HttpConfiguration(configPath) {
             TraceUtils.error(err);
         }
     }
-
     /**
-     * @property
      * @name HttpConfiguration#engines
      * @type {Array.<HttpViewEngineConfiguration>}
      */
@@ -172,7 +171,6 @@ function HttpConfiguration(configPath) {
 
 
     /**
-     * @property
      * @name HttpConfiguration#mimes
      * @type {Array.<MimeTypeConfiguration>}
      */
@@ -184,7 +182,6 @@ function HttpConfiguration(configPath) {
     });
 
     /**
-     * @property
      * @name HttpConfiguration#routes
      * @type {Array.<HttpRouteConfiguration>}
      */
@@ -196,7 +193,6 @@ function HttpConfiguration(configPath) {
     });
 
     /**
-     * @property
      * @name HttpConfiguration#controllers
      * @type {Array}
      */
@@ -208,7 +204,6 @@ function HttpConfiguration(configPath) {
     });
 
     /**
-     * @property
      * @name HttpConfiguration#handlers
      * @type {Array.<HttpHandlerConfiguration>}
      */

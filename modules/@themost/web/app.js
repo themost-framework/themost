@@ -6,6 +6,7 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+///
 var HttpError = require('@themost/common/errors').HttpError;
 var HttpServerError = require('@themost/common/errors').HttpServerError;
 var HttpNotFoundError = require('@themost/common/errors').HttpNotFoundError;
@@ -773,6 +774,7 @@ HttpApplication.prototype.executeRequest = function (options, callback) {
 };
 
 /**
+ * @private
  * @this HttpApplication
  * @param {ClientRequest} request
  * @param {ServerResponse} response

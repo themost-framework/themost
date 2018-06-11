@@ -2,28 +2,23 @@ import {ConfigurationBase} from "./config";
 
 export declare interface IApplication {
     /**
-     * @constructor
-     * @param {string=} configPath
-     */
-    constructor(configPath?: string);
-    /**
      * Registers an application strategy e.g. an singleton service which to be used in application contextr
      * @param {Function} serviceCtor
      * @param {Function} strategyCtor
      * @returns IApplication
      */
-    useStrategy(serviceCtor: any, strategyCtor: any): IApplication;
+    useStrategy(serviceCtor: void, strategyCtor: void): IApplication;
     /**
      * @param {Function} serviceCtor
      * @returns {boolean}
      */
-    hasStrategy(serviceCtor: any): boolean;
+    hasStrategy(serviceCtor: void): boolean;
     /**
      * Gets an application strategy based on the given base service type
      * @param {Function} serviceCtor
      * @return {*}
      */
-    getStrategy(serviceCtor: any): IApplicationService;
+    getStrategy(serviceCtor: void): IApplicationService;
 
     /**
      * Gets the configuration of this application
@@ -33,11 +28,6 @@ export declare interface IApplication {
 }
 
 export declare interface IApplicationService {
-    /**
-     * @constructor
-     * @param {IApplication=} app
-     */
-    constructor(app: IApplication);
     /**
      * Gets the application of this service
      * @returns {IApplication}
@@ -56,4 +46,28 @@ export declare class ApplicationService implements IApplicationService {
      * @returns {IApplication}
      */
     getApplication():IApplication;
+    /**
+     * Registers an application strategy e.g. an singleton service which to be used in application contextr
+     * @param {Function} serviceCtor
+     * @param {Function} strategyCtor
+     * @returns IApplication
+     */
+    useStrategy(serviceCtor: void, strategyCtor: void): IApplication;
+    /**
+     * @param {Function} serviceCtor
+     * @returns {boolean}
+     */
+    hasStrategy(serviceCtor: void): boolean;
+    /**
+     * Gets an application strategy based on the given base service type
+     * @param {Function} serviceCtor
+     * @return {*}
+     */
+    getStrategy(serviceCtor: void): IApplicationService;
+
+    /**
+     * Gets the configuration of this application
+     * @returns {ConfigurationBase}
+     */
+    getConfiguration():ConfigurationBase;
 }

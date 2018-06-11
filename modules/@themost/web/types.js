@@ -6,6 +6,7 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+///
 var Args = require('@themost/common/utils').Args;
 var LangUtils = require('@themost/common/utils').LangUtils;
 var SequentialEventEmitter = require('@themost/common/emitter').SequentialEventEmitter;
@@ -49,7 +50,6 @@ function HttpViewEngine(context) {
         throw new AbstractClassError();
     }
     /**
-     * @property
      * @name HttpViewEngine#context
      * @type HttpContext
      * @description Gets or sets an instance of HttpContext that represents the current HTTP context.
@@ -79,7 +79,7 @@ HttpViewEngine.prototype.getContext = function() {
 
 /**
  * @abstract
- * Renders the specified view with the options provided
+ * @description Renders the specified view with the options provided
  * @param {string} file
  * @param {*} data
  * @param {Function} callback

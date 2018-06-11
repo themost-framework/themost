@@ -6,6 +6,7 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+///
 var _ = require("lodash");
 var TraceUtils = require('@themost/common/utils').TraceUtils;
 var LangUtils = require('@themost/common/utils').LangUtils;
@@ -14,10 +15,12 @@ var DataConfigurationStrategy = require('./data-configuration').DataConfiguratio
 var cfg = require('./data-configuration');
 var Symbol = require('symbol');
 var nameProperty = Symbol('name');
+
 /**
  * @classdesc Represents the default data context of MOST Data Applications.
  * The default data context uses the adapter which is registered as the default adapter in application configuration.
- <pre class="prettyprint"><code>
+ * @description
+ ```
  adapters: [
  ...
  { "name":"development", "invariantName":"...", "default":false,
@@ -35,10 +38,10 @@ var nameProperty = Symbol('name');
 }
  ...
  ]
- </code></pre>
+ ```
  * @class
  * @constructor
- * @augments DataContext
+ * @augments {DataContext}
  * @property {DataAdapter} db - Gets a data adapter based on the current configuration settings.
  */
 function DefaultDataContext()
@@ -252,7 +255,6 @@ function NamedDataContext(name)
     };
 
     /**
-     * @property
      * @name NamedDataContext#db
      * @type {DataAdapter}
      */
@@ -268,7 +270,6 @@ function NamedDataContext(name)
         enumerable:false });
 
     /**
-     * @property
      * @name NamedDataContext#name
      * @type {string}
      */

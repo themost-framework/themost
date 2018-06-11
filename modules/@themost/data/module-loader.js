@@ -6,10 +6,12 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+///
 var LangUtils = require('@themost/common/utils').LangUtils;
 var Symbol = require('symbol');
 var path = require('path');
 var executionPathProperty = Symbol('executionPath');
+
 /**
  * @class
  * @constructor

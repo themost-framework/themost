@@ -6,6 +6,7 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+///
 var _ = require("lodash");
 var Symbol = require('symbol');
 var TraceUtils = require('@themost/common/utils').TraceUtils;
@@ -17,7 +18,6 @@ var ConfigurationStrategy = require('@themost/common/config').ConfigurationStrat
 var PathUtils = require('@themost/common/utils').PathUtils;
 var RandomUtils = require('@themost/common/utils').RandomUtils;
 var AbstractMethodError = require('@themost/common/errors').AbstractMethodError;
-
 var modelsProperty = Symbol('models');
 var modelPathProperty = Symbol('modelPath');
 var filesProperty = Symbol('files');
@@ -25,6 +25,7 @@ var dataTypesProperty = Symbol('dataTypes');
 var adapterTypesProperty =  Symbol('adapterTypes');
 var currentConfiguration = Symbol('current');
 var namedConfigurations = Symbol('namedConfigurations');
+
 
 /**
  *
@@ -56,7 +57,6 @@ if (typeof _.dasherize !== 'function') {
 function DataTypePropertiesConfiguration() {
     /**
      * Gets a pattern (commonly a regular expression) that validates a value of this data type
-     * @property
      * @name DataTypePropertiesConfiguration#pattern
      * @type {string}
      * @example "^[-][0-9]*$" is the pattern of NegativeInteger data type
@@ -64,7 +64,6 @@ function DataTypePropertiesConfiguration() {
 
     /**
      * Gets a message that describes the pattern of this data type
-     * @property
      * @name DataTypePropertiesConfiguration#patternMessage
      * @type {string}
      * @example "The value should be an integer lower than zero."
@@ -72,7 +71,6 @@ function DataTypePropertiesConfiguration() {
 
     /**
      * Gets the minimum value allowed for a data type
-     * @property
      * @name DataTypePropertiesConfiguration#minValue
      * @type {*}
      * @example 0 is the minimum value of NonNegativeInteger data type
@@ -80,7 +78,6 @@ function DataTypePropertiesConfiguration() {
 
     /**
      * Gets the maximum value allowed for a data type
-     * @property
      * @name DataTypePropertiesConfiguration#maxValue
      * @type {*}
      * @example 2147483647 is the maximum value of NonNegativeInteger data type
@@ -95,7 +92,6 @@ function DataTypePropertiesConfiguration() {
 function DataTypeConfiguration() {
     /**
      * Gets a short description for this data type
-     * @property
      * @name DataTypeConfiguration#comment
      * @type {string}
      * @example "Float data type is a single-precision 32-bit floating point."
@@ -103,7 +99,6 @@ function DataTypeConfiguration() {
 
     /**
      * Gets a collection of additional properties of this data type
-     * @property
      * @name DataTypeConfiguration#properties
      * @type {DataTypePropertiesConfiguration}
      * @example
@@ -117,7 +112,6 @@ function DataTypeConfiguration() {
 
     /**
      * Gets a title for this data type
-     * @property
      * @name DataTypeConfiguration#label
      * @type {string}
      * @example "Float"
@@ -125,7 +119,6 @@ function DataTypeConfiguration() {
 
     /**
      * Gets a string which represents a URL that contains information for this data type
-     * @property
      * @name DataTypeConfiguration#url
      * @type {string}
      * @example "https://www.w3.org/TR/xmlschema-2/#float"
@@ -133,7 +126,6 @@ function DataTypeConfiguration() {
 
     /**
      * Gets a type which is associated with this data type
-     * @property
      * @name DataTypeConfiguration#type
      * @type {string}
      * @example "number"
@@ -141,7 +133,6 @@ function DataTypeConfiguration() {
 
     /**
      * Gets the equivalent SQL data type
-     * @property
      * @name DataTypeConfiguration#sqltype
      * @type {string}
      * @example "FLOAT"
@@ -149,7 +140,6 @@ function DataTypeConfiguration() {
 
     /**
      * Gets an array of values associated with data type
-     * @property
      * @name DataTypeConfiguration#instances
      * @type {Array.<*>}
      * @example [ true, false ] are the instances of Boolean data type
@@ -157,7 +147,6 @@ function DataTypeConfiguration() {
 
     /**
      * Gets an array of super
-     * @property
      * @name DataTypeConfiguration#supertypes
      * @type {Array.<string>}
      * @example [ "Integer" ] are the supertypes of NegativeInteger data type
@@ -165,7 +154,6 @@ function DataTypeConfiguration() {
 
     /**
      * Gets a string which represents the version of this data type configuration
-     * @property
      * @name DataTypeConfiguration#version
      * @type {string}
      * @example "1.0"
@@ -187,7 +175,6 @@ function DataAdapterConfiguration() {
 
     /**
      * Gets a string which represents the name of this data adapter
-     * @property
      * @name DataAdapterConfiguration#name
      * @type {string}
      * @example "SQLite Data Adapter"
@@ -195,7 +182,6 @@ function DataAdapterConfiguration() {
 
     /**
      * Gets a string which represents the invariant name of this data adapter
-     * @property
      * @name DataAdapterConfiguration#invariantName
      * @type {string}
      * @example "sqlite"
@@ -203,14 +189,12 @@ function DataAdapterConfiguration() {
 
     /**
      * Gets a boolean which indicates whether this adapter is the default adapter or not
-     * @property
      * @name DataAdapterConfiguration#default
      * @type {boolean}
      */
 
     /**
      * Gets a dictionary object which represents the connection options of this data adapter
-     * @property
      * @name DataAdapterConfiguration#options
      * @type {*}
      */
@@ -232,7 +216,6 @@ function DataAdapterTypeConfiguration() {
 
     /**
      * Gets a string which represents the name of this data adapter
-     * @property
      * @name DataAdapterTypeConfiguration#name
      * @type {string}
      * @example "SQLite Data Adapter"
@@ -240,7 +223,6 @@ function DataAdapterTypeConfiguration() {
 
     /**
      * Gets a string which represents the invariant name of this data adapter
-     * @property
      * @name DataAdapterTypeConfiguration#invariantName
      * @type {string}
      * @example "sqlite"
@@ -248,7 +230,6 @@ function DataAdapterTypeConfiguration() {
 
     /**
      * Gets a string which represents the module that loads this data adapter
-     * @property
      * @name DataAdapterTypeConfiguration#type
      * @type {string}
      * @example "@themost/sqlite"
@@ -461,7 +442,6 @@ function DataConfigurationStrategy(config) {
     });
 
     /**
-     * @property
      * @name DataConfigurationStrategy#dataTypes
      * @type {Object.<string,DataTypeConfiguration>}
      */
@@ -519,7 +499,6 @@ function DataConfigurationStrategy(config) {
     });
 
     /**
-     * @property
      * @name DataConfigurationStrategy#adapters
      * @type {Array.<DataAdapterConfiguration>}
      */
@@ -531,7 +510,6 @@ function DataConfigurationStrategy(config) {
     });
 
     /**
-     * @property
      * @name DataConfigurationStrategy#adapterTypes
      * @type {*}
      */

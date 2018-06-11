@@ -11,6 +11,33 @@ var jade = require('jade');
 var LangUtils = require('@themost/common/utils').LangUtils;
 var ArgumentError = require('@themost/common/utils').ArgumentError;
 var HttpViewEngine = require('../types').HttpViewEngine;
+var _ = require('lodash');
+var PostExecuteResultArgs = require('./../handlers/directive').PostExecuteResultArgs;
+var DirectiveEngine = require('./../handlers/directive').DirectiveEngine;
+var HttpViewContext = require('./../mvc').HttpViewContext;
+
+/**
+ * @this JadeEngine
+ * @param {string} result
+ * @param {*} data
+ * @param {Function} callback
+ */
+function postRender(result, data, callback) {
+    var directiveHandler = new DirectiveEngine();
+    var viewContext = new HttpViewContext(this.context);
+    viewContext.body = result;
+    viewContext.data = data;
+    var args = _.assign(new PostExecuteResultArgs(), {
+        "context": this.context,
+        "target": viewContext
+    });
+    directiveHandler.postExecuteResult(args, function(err) {
+        if (err) {
+            return callback(err);
+        }
+        return callback(null, viewContext.body);
+    });
+}
 /**
  * @class
  * @param {HttpContext=} context
@@ -28,18 +55,21 @@ LangUtils.inherits(JadeEngine,HttpViewEngine);
  */
 JadeEngine.prototype.render = function(file, data, callback) {
     callback = callback || function () {};
-    var physicalPath;
     try {
+        var self = this;
         if (typeof file !== 'string') {
             return callback(new ArgumentError("Jade template URI must be a string."));
         }
-        fs.readFile(physicalPath, 'utf8', function(err, source) {
+        fs.readFile(file, 'utf8', function(err, source) {
             if (err) {
                 return callback(err);
             }
             //render data
             try {
-                const fn = jade.compile(source);
+                const fn = jade.compile(source, {
+                    filename: file,
+                    pretty: true
+                });
                 var html = { };
                 Object.defineProperty(html, 'context', {
                     get: function() {
@@ -51,7 +81,12 @@ JadeEngine.prototype.render = function(file, data, callback) {
                     html:html,
                     model:data
                 });
-                return callback(null, result);
+                return postRender.bind(self)(result, data, function(err, finalResult) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    return callback(null, finalResult);
+                });
             }
             catch (err) {
                     return callback(err);

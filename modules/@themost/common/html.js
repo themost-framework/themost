@@ -6,6 +6,7 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+///
 var _ = require('lodash');
 // eslint-disable-next-line no-unused-vars
 var HTML_START_CHAR = '<';
@@ -15,6 +16,8 @@ var HTML_SPACE_CHAR = ' ';
 var HTML_ATTR_STRING = '%0="%1"';
 var HTML_START_TAG_STRING = '<%0';
 var HTML_END_TAG_STRING = '</%0>';
+
+
 /**
  * @classdesc HtmlWriter class represents a helper class for rendering HTML content.
  * @class

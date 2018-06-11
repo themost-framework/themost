@@ -6,6 +6,7 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+///
 var HttpError = require('@themost/common/errors').HttpError;
 var HttpMethodNotAllowedError = require('@themost/common/errors').HttpMethodNotAllowedError;
 var HttpNotFoundError = require('@themost/common/errors').HttpNotFoundError;
@@ -23,8 +24,11 @@ var Q = require('q');
 var async = require('async');
 var PassThrough = require('stream').PassThrough;
 var ModuleLoaderStrategy = require('@themost/common/config').ModuleLoaderStrategy;
+var Symbol = require('symbol');
+const dataProperty = Symbol('data');
 
 /**
+ * @private
  * @param {Buffer} buffer
  */
 function bufferToStream(buffer) {
@@ -43,9 +47,28 @@ function HttpResult() {
     this.contentEncoding = 'utf8';
 }
 /**
- *
- * @param {Number=} status
+ * @deprecated This method is deprecated and it will be removed. Use HttpResult.status(number) method instead.
+ * @description Sets the status of the HTTP response when this result will be executed
+ * @param {Number=} status - A number which represents an HTTP status
  * @returns {HttpResult}
+ *
+ * @example
+ *
+ \@httpController()
+ export default class HelloController extends HttpBaseController {
+
+    constructor(context) {
+        super(context);
+    }
+
+    \@httpGet()
+    \@httpAction('index')
+    getIndex() {
+        return this.content('<h2>This action is not allowed.<h2>').status(403);
+    }
+
+}
+ *
  */
 HttpResult.prototype.statusCode = function(status) {
     this.responseStatus = status;
@@ -53,9 +76,27 @@ HttpResult.prototype.statusCode = function(status) {
 };
 
 /**
- *
- * @param {Number=} status
+ * @description Sets the status of the HTTP response when this result will be executed
+ * @param {Number=} status - A number which represents an HTTP status
  * @returns {HttpResult}
+ *
+ * @example
+ *
+ \@httpController()
+ export default class HelloController extends HttpBaseController {
+
+    constructor(context) {
+        super(context);
+    }
+
+    \@httpGet()
+    \@httpAction('index')
+    getIndex() {
+        return this.content('<h2>This action is not allowed.<h2>').status(403);
+    }
+
+}
+ *
  */
 HttpResult.prototype.status = function(status) {
     return this.statusCode(status)
@@ -97,16 +138,81 @@ HttpResult.prototype.execute = function(context, callback) {
     }
 };
 /**
- * Represents a user-defined content type that is a result of an action.
+ * @classdesc Represents a user-defined content that is a result of an action.
  * @class
- * @param {*} content
+ * @param {string|Buffer} content - A string or an instance of Buffer class which represents the action result.
  * @augments HttpResult
+ *
+ * @example
+
+import HttpBaseController from '@themost/web/controllers/base';
+import {httpController,httpGet, httpAction} from '@themost/web/decorators';
+import {HttpContentResult} from "@themost/web/mvc";
+
+ \@httpController()
+ export default class HelloController extends HttpBaseController {
+
+    constructor(context) {
+        super(context);
+    }
+
+    \@httpGet()
+    \@httpAction('index')
+    getIndex() {
+        return new HttpContentResult(`
+        <h2>
+            Hello World!
+        </h2>
+        `));
+    }
+
+}
+
+ * @example
+
+import HttpBaseController from '@themost/web/controllers/base';
+import {httpController,httpGet, httpAction} from '@themost/web/decorators';
+import {HttpContentResult} from "@themost/web/mvc";
+
+ \@httpController()
+ export default class HelloController extends HttpBaseController {
+
+        constructor(context) {
+            super(context);
+        }
+
+        \@httpGet()
+        \@httpAction('index')
+        getIndex() {
+            return this.content(`
+            <h2>
+                Hello World!
+            </h2>
+            `));
+        }
+
+    }
  * */
 function HttpContentResult(content) {
 
-    this.data = content;
+    var self = this;
+    Object.defineProperty(this, 'data', {
+       get: function() {
+           return self[dataProperty];
+       },
+        set: function(value) {
+            self[dataProperty] = value;
+           if (value instanceof Buffer) {
+               self.contentEncoding = 'binary';
+           }
+        },
+        configurable: true,
+        enumerable: false
+    });
+    //set default content type and encoding
     this.contentType = 'text/html';
     this.contentEncoding = 'utf8';
+    this.data = content;
 }
 /**
  * Inherits HttpAction
@@ -147,11 +253,65 @@ function _json_ignore_null_replacer(key, value) {
 }
 
 /**
- * Represents an action that is used to send JSON-formatted content.
+ * @classdesc Represents the result an action that is used to send JSON-formatted content.
  * @class
- * @param {*} data
- * @constructor
+ * @param {*} data - The data which is going to send when this result will be executed
  * @augments HttpResult
+ * @constructor
+ *
+ * @example
+ *
+
+import HttpBaseController from '@themost/web/controllers/base';
+import {httpController,httpGet, httpAction} from '@themost/web/decorators';
+import {HttpJsonResult} from "@themost/web/mvc";
+
+ \@httpController()
+ export default class HelloController extends HttpBaseController {
+
+    constructor(context) {
+        super(context);
+    }
+
+    // GET /hello/index.json
+
+    \@httpGet()
+    \@httpAction('index')
+    getIndex() {
+        return this.json({
+            "message": "Hello World"
+        });
+    }
+
+}
+ *
+ @example
+
+ //Send a JSON formatted error to client
+
+import HttpBaseController from '@themost/web/controllers/base';
+import {httpController,httpGet, httpAction} from '@themost/web/decorators';
+import {HttpJsonResult} from "@themost/web/mvc";
+
+ \@httpController()
+ export default class HelloController extends HttpBaseController {
+
+    constructor(context) {
+        super(context);
+    }
+
+    \@httpGet()
+    \@httpAction('index')
+    getIndex() {
+        return this.json({
+            "code": "E401",
+            "message": "You are not authorized to view data."
+        }).status(401);
+    }
+
+}
+
+ *
  */
 function HttpJsonResult(data)
 {
@@ -658,7 +818,6 @@ HttpViewResult.prototype.execute = function(context, callback)
  * */
 function HttpController(context) {
     /**
-     * @property
      * @name HttpController#context
      * @type {HttpContext}
      */
@@ -872,7 +1031,6 @@ function HttpViewContext(context) {
     this.context = context;
 
     /**
-     * @property
      * @name HttpViewContext#writer
      * @type HtmlWriter
      * @description Gets an instance of HtmlWriter helper class

@@ -6,6 +6,7 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+///
 var _ = require('lodash');
 var Q = require('q');
 var TraceUtils = require('@themost/common/utils').TraceUtils;
@@ -22,6 +23,10 @@ var RequiredValidator = require('@themost/data/data-validator').RequiredValidato
 var PatternValidator = require('@themost/data/data-validator').PatternValidator;
 
 /**
+ * @module @themost/web/decorators
+ */
+
+/**
  * @class
  * @constructor
  * @extends Error
@@ -32,6 +37,9 @@ function DecoratorError() {
 }
 LangUtils.inherits(DecoratorError, Error);
 
+/**
+ * @returns {Function}
+ */
 function httpController() {
     return function (target, key, descriptor) {
         if (typeof target === 'function') {
@@ -49,7 +57,9 @@ function httpGet() {
         return descriptor;
     }
 }
-
+/**
+ * @returns {Function}
+ */
 function httpAny() {
     return function (target, key, descriptor) {
         if (typeof descriptor.value === 'function') {
@@ -63,7 +73,9 @@ function httpAny() {
         return descriptor;
     }
 }
-
+/**
+ * @returns {Function}
+ */
 function httpPost() {
     return function (target, key, descriptor) {
         if (typeof descriptor.value === 'function') {
@@ -72,7 +84,9 @@ function httpPost() {
         return descriptor;
     }
 }
-
+/**
+ * @returns {Function}
+ */
 function httpPatch() {
     return function (target, key, descriptor) {
         if (typeof descriptor.value === 'function') {
@@ -81,7 +95,9 @@ function httpPatch() {
         return descriptor;
     }
 }
-
+/**
+ * @returns {Function}
+ */
 function httpPut() {
     return function (target, key, descriptor) {
         if (typeof descriptor.value === 'function') {
@@ -90,7 +106,9 @@ function httpPut() {
         return descriptor;
     }
 }
-
+/**
+ * @returns {Function}
+ */
 function httpDelete() {
     return function (target, key, descriptor) {
         if (typeof descriptor.value === 'function') {
@@ -99,7 +117,9 @@ function httpDelete() {
         return descriptor;
     }
 }
-
+/**
+ * @returns {Function}
+ */
 function httpOptions() {
     return function (target, key, descriptor) {
         if (typeof descriptor.value === 'function') {
@@ -108,7 +128,9 @@ function httpOptions() {
         return descriptor;
     }
 }
-
+/**
+ * @returns {Function}
+ */
 function httpHead() {
     return function (target, key, descriptor) {
         if (typeof descriptor.value === 'function') {
@@ -117,7 +139,9 @@ function httpHead() {
         return descriptor;
     }
 }
-
+/**
+ * @returns {Function}
+ */
 function httpAction(name) {
     if (typeof name !== 'string') {
         throw new TypeError('Action name must be a string');

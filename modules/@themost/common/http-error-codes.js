@@ -56,8 +56,8 @@ var Errors = exports.Errors = [{
     message: "The URI provided was too long for the server to process."
 }, {
     statusCode: 415,
-    title: "Request Entity Too Large",
-    message: "The request is larger than the server is willing or able to process."
+    title: "Unsupported Media Type",
+    message: "The server is refusing to service the request because the payload is in a format not supported by this method on the target resource."
 }, {
     statusCode: 416,
     title: "Requested Range Not Satisfiable",

@@ -6,6 +6,7 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+///
 var async = require('async');
 var sprintf = require('sprintf').sprintf;
 var Symbol = require('symbol');
@@ -18,6 +19,7 @@ var qry = require('@themost/query');
 var QueryExpression = require('@themost/query/query').QueryExpression;
 var QueryField = require('@themost/query/query').QueryField;
 var Q = require('q');
+
 
 var aliasProperty = Symbol('alias');
 
@@ -726,7 +728,7 @@ DataQueryable.prototype.join = function(model)
         throw new Error(sprintf("The %s model cannot be found", model));
     var arr = self.model.attributes.filter(function(x) { return x.type===joinModel.name; });
     if (arr.length===0)
-        throw new Error(sprintf("An internal error occured. The association between %s and %s cannot be found", this.model.name ,model));
+        throw new Error(sprintf("An internal error occurred. The association between %s and %s cannot be found", this.model.name ,model));
     var mapping = self.model.inferMapping(arr[0].name);
     var expr = qry.query();
     expr.where(self.fieldOf(mapping.childField)).equal(joinModel.fieldOf(mapping.parentField));
@@ -1609,7 +1611,7 @@ DataQueryable.prototype.thenByDescending = function(attr) {
 
 /**
  * Executes the specified query against the underlying model and returns the first item.
- * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain the result.
+ * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise. The second argument will contain the result.
  * @returns {Promise|*}
  * @example
  //retrieve an order by id
@@ -1736,7 +1738,7 @@ function takeInternal(n, callback) {
 /**
  * Prepares a data paging operation by taking the specified number of records
  * @param {Number} n - The number of records to take
- * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain the result.
+ * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise. The second argument will contain the result.
  * @returns {DataQueryable|*} - If callback function is missing returns a promise.
  */
 DataQueryable.prototype.take = function(n, callback) {
@@ -1960,7 +1962,7 @@ function countInternal(callback) {
 
 /**
  * Executes the query against the current model and returns the count of items found.
- * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain the result, if any.
+ * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise. The second argument will contain the result, if any.
  * @returns {Promise|*} - If callback parameter is missing then returns a Deferred object.
  * @example
  //retrieve the number of a product's orders
@@ -2008,7 +2010,7 @@ function maxInternal(attr, callback) {
 /**
  * Executes the query against the current model and returns the maximum value of the given attribute.
  * @param {string} attr - A string that represents a field of the current model
- * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain the result, if any.
+ * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise. The second argument will contain the result, if any.
  * @returns {Promise|*} - If callback parameter is missing then returns a Deferred object.
  * @example
  //retrieve the maximum price of products sold during last month
@@ -2053,7 +2055,7 @@ function minInternal(attr, callback) {
 /**
  * Executes the query against the current model and returns the average value of the given attribute.
  * @param {string} attr - A string that represents a field of the current model
- * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain the result, if any.
+ * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise. The second argument will contain the result, if any.
  * @returns {Promise|*} - If callback parameter is missing then returns a Deferred object.
  * @example
  //retrieve the minimum price of products sold during last month
@@ -2098,7 +2100,7 @@ function averageInternal_(attr, callback) {
 /**
  * Executes the query against the current model and returns the average value of the given attribute.
  * @param {string} attr - A string that represents a field of the current model
- * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain the result, if any.
+ * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise. The second argument will contain the result, if any.
  * @returns {Deferred|*} - If callback parameter is missing then returns a Deferred object.
  * @example
  //retrieve the average price of products sold during last month
@@ -2125,7 +2127,7 @@ DataQueryable.prototype.average = function(attr, callback) {
 };
 /**
  * Migrates the underlying data model
- * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+ * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occurred.
  */
 DataQueryable.prototype.migrate = function(callback) {
     var self = this;
@@ -3132,7 +3134,7 @@ function valueInternal(callback) {
 
 /**
  * Executes the underlying query and a single value.
- * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain the result.
+ * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise. The second argument will contain the result.
  * @returns {Promise|*}
  * @example
  //retrieve the full name (description) of a person

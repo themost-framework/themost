@@ -6,9 +6,15 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+///
 var _ = require("lodash");
 var DataError = require("@themost/common/errors").DataError;
 var async = require("async");
+
+/**
+ * @module @themost/data/data-state-validator
+ * @ignore
+ */
 
 /**
  * @class
@@ -163,7 +169,7 @@ function mapKey_(obj, callback) {
 /**
  * Occurs before creating or updating a data object and validates object state.
  * @param {DataEventArgs|*} e - An object that represents the event arguments passed to this operation.
- * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+ * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occurred.
  */
 DataStateValidatorListener.prototype.beforeSave = function(e, callback) {
     try {
@@ -227,7 +233,7 @@ DataStateValidatorListener.prototype.beforeSave = function(e, callback) {
 /**
  * Occurs before removing a data object and validates object state.
  * @param {DataEventArgs|*} e - An object that represents the event arguments passed to this operation.
- * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+ * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occurred.
  */
 DataStateValidatorListener.prototype.beforeRemove = function(e, callback) {
     //validate event arguments

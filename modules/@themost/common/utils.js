@@ -6,9 +6,7 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-/**
- *
- */
+///
 var _ = require('lodash');
 var isNode = Object.prototype.toString.call(typeof process !== 'undefined' ? process : 0) === '[object process]';
 var sprintf = require("sprintf").sprintf;
@@ -27,8 +25,6 @@ var UndefinedRegex = /^undefined$/ig;
 var IntegerRegex =/^[-+]?\d+$/g;
 var FloatRegex =/^[+-]?\d+(\.\d+)?$/g;
 var GuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
-
-
 
 /**
  * @class
@@ -51,7 +47,7 @@ function LangUtils() {
 /**
  * Inherit the prototype methods from one constructor into another.
  * @param {Function} ctor
- * @param {Function} superCtor
+ * @param {Function|*} superCtor
  * @example
 function Animal() {
     //
@@ -836,11 +832,16 @@ var LogLevelColors = {
     debug: Bold + FgGreen
 };
 
+/**
+ * @private
+ * @returns {string}
+ */
 function timestamp() {
     return (new Date()).toUTCString();
 }
 
 /**
+ * @private
  * @this TraceLogger
  * @param level
  * @param err

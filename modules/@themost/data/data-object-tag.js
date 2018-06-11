@@ -6,6 +6,7 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+///
 var LangUtils = require('@themost/common/utils').LangUtils;
 var DataConfigurationStrategy = require('./data-configuration').DataConfigurationStrategy;
 var QueryField = require('@themost/query/query').QueryField;

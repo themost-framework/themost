@@ -6,6 +6,7 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+///
 var LangUtils = require('@themost/common/utils').LangUtils;
 var _ = require('lodash');
 var async = require('async');
@@ -339,7 +340,7 @@ function insert_(obj, callback) {
 /**
  * Inserts an association between parent object and the given object or array of objects.
  * @param {*|Array} obj - An object or an array of objects to be related with parent object
- * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise.
+ * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise.
  * @returns {Promise<T>|*} - If callback parameter is missing then returns a Promise object.
  * @example
  //add the selected user to Administrators
@@ -454,7 +455,7 @@ function remove_(obj, callback) {
 /**
  * Removes the association between parent object and the given object or array of objects.
  * @param {*|Array} obj - An object or an array of objects to be disconnected from parent object
- * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise.
+ * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise.
  * @returns {Promise<T>|*} - If callback parameter is missing then returns a Promise object.
  * @example
  //remove the selected user from Administrators group

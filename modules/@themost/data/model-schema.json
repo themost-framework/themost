@@ -95,6 +95,19 @@
             "type": "boolean",
             "description": "A boolean which indicates whether this attribute is a key column or not."
           },
+          "value": {
+            "type": "string",
+            "description": "An expression which represents the default value for this attribute."
+          },
+          "calculation": {
+            "type": "string",
+            "description": "An expression which represents the calculated value for this attribute."
+          },
+            "readonly": {
+                "default":false,
+                "type": "boolean",
+                "description": "A boolean which indicates whether this attribute is readonly or not. A readonly value must have a default value or a calculated value."
+            },
           "indexed": {
             "default":false,
             "type": "boolean",

@@ -6,15 +6,16 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-
+///
 var _ = require('lodash');
 var LangUtils = require("@themost/common/utils").LangUtils;
 var SequentialEventEmitter = require("@themost/common/emitter").SequentialEventEmitter;
 var Symbol = require("symbol");
-
 var currentProperty = Symbol("current");
+
 /**
  * @class
+ * @alias DataCache
  * @classdesc Implements data cache mechanisms in MOST Data Applications.
  * DataCache class is used as the internal data caching engine, if any other caching mechanism is not defined.
  * @property {Number} ttl - An amount of time in seconds which is the default cached item lifetime.
@@ -22,12 +23,13 @@ var currentProperty = Symbol("current");
  * @augments SequentialEventEmitter
  */
 function DataCache() {
+    // noinspection JSUnusedGlobalSymbols
     this.initialized = false;
 }
 LangUtils.inherits(DataCache, SequentialEventEmitter);
 /**
  * Initializes data caching.
- * @param {function(Error=)} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise.
+ * @param {function(Error=)} callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise.
  *
  * @example
  var d = require("most-data");
@@ -55,7 +57,7 @@ DataCache.prototype.init = function(callback) {
 /**
  * Removes a cached value.
  * @param {string} key - A string that represents the key of the cached value
- * @param {function(Error=)=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise.
+ * @param {function(Error=)=} callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise.
  *
  * @example
  var d = require("most-data");
@@ -79,7 +81,7 @@ DataCache.prototype.remove = function(key, callback) {
 
 /**
  * Flush all cached data.
- * @param {function(Error=)=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise.
+ * @param {function(Error=)=} callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise.
  *
  * @example
  var d = require("most-data");
@@ -107,7 +109,7 @@ DataCache.prototype.removeAll = function(callback) {
  * @param {string} key - A string that represents the key of the cached value
  * @param {*} value - The value to be cached
  * @param {number=} ttl - A TTL in seconds. This parameter is optional.
- * @param {function(Error=,boolean=)=} callback - A callback function where the first argument will contain the Error object if an error occured and the second argument will return true on success.
+ * @param {function(Error=,boolean=)=} callback - A callback function where the first argument will contain the Error object if an error occurred and the second argument will return true on success.
  *
  * @example
  var d = require("most-data");
@@ -129,9 +131,9 @@ DataCache.prototype.add = function(key, value, ttl, callback) {
 };
 /**
  * Gets data from cache or executes the defined function and adds the result to the cache with the specified key
- * @param {string|*} key - A string thath represents the of the cached data
+ * @param {string|*} key - A string that represents the of the cached data
  * @param {function(function(Error=,*=))} fn - A function to execute if data will not be found in cache
- * @param {function(Error=,*=)} callback - A callback function where the first argument will contain the Error object if an error occured and the second argument will contain the result.
+ * @param {function(Error=,*=)} callback - A callback function where the first argument will contain the Error object if an error occurred and the second argument will contain the result.
  * @example
  var d = require("most-data");
  //try to find user with id 100 in cache
@@ -174,7 +176,7 @@ DataCache.prototype.ensure = function(key, fn, callback) {
 /**
  * Gets a cached value defined by the given key.
  * @param {string|*} key - A string that represents the key of the cached value
- * @param {function(Error=,*=)} callback - A callback function where the first argument will contain the Error object if an error occured and the second argument will contain the result.
+ * @param {function(Error=,*=)} callback - A callback function where the first argument will contain the Error object if an error occurred and the second argument will contain the result.
  *
  * @example
  var d = require("most-data");
@@ -235,6 +237,7 @@ if (typeof exports !== 'undefined') {
 
     module.exports.DataCache = DataCache;
     /**
+     * @ignore
      * @returns {DataCache}
      */
     module.exports.getCurrent = function() {

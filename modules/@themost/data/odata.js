@@ -1,4 +1,5 @@
 /**
+ * @licence
  * MOST Web Framework
  * A JavaScript Web Framework
  * http://themost.io
@@ -8,7 +9,7 @@
  * Released under the BSD-3-Clause license
  * Date: 2017-11-10
  */
-
+///
 var Symbol = require('symbol');
 var LangUtils = require('@themost/common/utils').LangUtils;
 var sprintf = require('sprintf').sprintf;
@@ -33,6 +34,7 @@ var initializeProperty = Symbol('initialize');
 var DataConfigurationStrategy = require('./data-configuration').DataConfigurationStrategy;
 var SchemaLoaderStrategy = require('./data-configuration').SchemaLoaderStrategy;
 var DefaultSchemaLoaderStrategy = require('./data-configuration').DefaultSchemaLoaderStrategy;
+
 
 function Args() {
     //

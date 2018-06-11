@@ -1,4 +1,7 @@
 {
+    "plugins": [
+        "./node_modules/jsdoc-escape-at"
+    ],
     "tags": {
         "allowUnknownTags": true
     },
@@ -7,7 +10,13 @@
         "includePattern": ".+\\.js(doc)?$",
         "exclude":[ "angular.js","jquery.js" ]
     },
+    "templates": {
+        "default": {
+            "outputSourceFiles": false
+        }
+    },
     "opts": {
+        "destination": "./docs/\\@themost/web",
         "readme":"README.md"
     }
 }

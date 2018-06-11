@@ -6,6 +6,7 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+///
 var _ = require('lodash');
 var sprintf = require('sprintf');
 var LangUtils = require('@themost/common/utils').LangUtils;
@@ -656,7 +657,6 @@ var conf = require('./data-configuration');
     function DataTypeValidator(type) {
         DataTypeValidator.super_.call(this);
         /**
-         * @property
          * @name DataTypeValidator#type
          * @type {*}
          */

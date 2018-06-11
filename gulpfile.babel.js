@@ -4,7 +4,9 @@ var gutil = require('gulp-util');
 var sourcemaps = require('gulp-sourcemaps');
 var babel = require('gulp-babel');
 var eslint = require('gulp-eslint');
+var typedoc = require('gulp-typedoc');
 const child_process = require('child_process');
+
 
 var testModule = [
   'test/**/*.es6'
@@ -117,6 +119,22 @@ gulp.task('serve:test', ['build:test'], function() {
         //kill child process and wait to build server again
         server.kill("SIGINT");
     });
+});
+
+gulp.task("typedoc", function() {
+    return gulp
+        .src(["modules/@themost/common/*.ts"])
+        .pipe(typedoc({
+            module: "commonjs",
+            theme: "node_modules/typedoc-clarity-theme/bin",
+            target: "es5",
+            out: "docs/",
+            name: "MOST Web Framework",
+            includeDeclarations: true,
+            excludeExternals: true,
+            hideGenerator: true
+        }))
+        ;
 });
 
 gulp.task('default', function() {

@@ -13,7 +13,7 @@ var _ = require('lodash');
 var natives = require('./natives');
 var Symbol = require('symbol');
 /**
- * @class QueryParameter
+ * @class
  * @constructor
  */
 function QueryParameter() {
@@ -21,7 +21,7 @@ function QueryParameter() {
 }
 
 /**
- * @class QueryFieldAggregator
+ * @class
  * @constructor
  */
 function QueryFieldAggregator() {
@@ -58,7 +58,7 @@ QueryFieldAggregator.prototype.wrapWith = function(comparison) {
 
 
 /**
- * @class QueryExpression
+ * @class
  * @constructor
  */
 function QueryExpression()
@@ -1373,7 +1373,7 @@ QueryExpression.escape = function(val)
 
 
 /**
- * @class QueryEntity
+ * @class
  * @param {string|*} obj
  * @constructor
  */
@@ -1418,7 +1418,7 @@ QueryEntity.prototype.right = function() {
 };
 
 /**
- * @class QueryField
+ * @class
  * @param obj {string=}
  * @constructor
  */
@@ -1719,7 +1719,7 @@ QueryFieldComparer.prototype.wrapWithAggregate = function(aggr, comparison) {
     //
 };
 /**
- * @class OpenDataQuery
+ * @class
  * @constructor
  */
 function OpenDataQuery() {

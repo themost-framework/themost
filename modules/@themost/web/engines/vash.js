@@ -10,8 +10,37 @@ var LangUtils = require('@themost/common/utils').LangUtils;
 var HttpViewEngine = require('../types').HttpViewEngine;
 var Symbol = require('symbol');
 var vash = require('vash');
+var path = require('path');
 var fs = require('fs');
 var contextProperty = Symbol('context');
+var _ = require('lodash');
+var PostExecuteResultArgs = require('./../handlers/directive').PostExecuteResultArgs;
+var DirectiveEngine = require('./../handlers/directive').DirectiveEngine;
+var HttpViewContext = require('./../mvc').HttpViewContext;
+
+/**
+ * @this VashEngine
+ * @param {string} result
+ * @param {*} data
+ * @param {Function} callback
+ */
+function postRender(result, data, callback) {
+    var directiveHandler = new DirectiveEngine();
+    var viewContext = new HttpViewContext(this.context);
+    viewContext.body = result;
+    viewContext.data = data;
+    var args = _.assign(new PostExecuteResultArgs(), {
+        "context": this.context,
+        "target": viewContext
+    });
+    directiveHandler.postExecuteResult(args, function(err) {
+        if (err) {
+            return callback(err);
+        }
+        return callback(null, viewContext.body);
+    });
+}
+
 /**
  *
  * @param model
@@ -58,11 +87,31 @@ VashEngine.prototype.render = function(filename, data, callback) {
             }
             //render data
             try {
-                var fn = vash.compile(source);
+                vash.config.settings = vash.config.settings || {};
+                _.assign(vash.config.settings, {
+                    views: path.resolve(self.getContext().getApplication().getExecutionPath(), "views")
+                });
+                var tpl = vash.compile(source);
                 data = data || { };
                 data[contextProperty] = self.context;
-                const result = fn(data);
-                return callback(null, result);
+                tpl(data, function(err, ctx) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    try {
+                        var result = ctx.finishLayout();
+                        return postRender.bind(self)(result, data, function(err, finalResult) {
+                            if (err) {
+                                return callback(err);
+                            }
+                            return callback(null, finalResult);
+                        });
+                    }
+                    catch(err) {
+                        return callback(err);
+                    }
+
+                });
             }
             catch (err) {
                     return callback(err);
@@ -78,7 +127,7 @@ VashEngine.prototype.render = function(filename, data, callback) {
  * @returns {VashEngine}
  */
 VashEngine.createInstance = function(context) {
-    return VashEngine.createInstance(context);
+    return new VashEngine(context);
 };
 
 

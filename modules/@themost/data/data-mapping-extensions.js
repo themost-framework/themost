@@ -6,9 +6,16 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+///
 var _ = require('lodash');
 var qry = require('@themost/query');
 var Q = require('q');
+
+
+/**
+ * @module @themost/data/data-mapping-extensions
+ * @ignore
+ */
 
 var mappingExtensions = {
 

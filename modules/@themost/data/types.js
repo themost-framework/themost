@@ -6,6 +6,7 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+///
 var sprintf = require('sprintf').sprintf;
 var _ = require('lodash');
 var SequentialEventEmitter = require("@themost/common/emitter").SequentialEventEmitter;
@@ -17,6 +18,7 @@ var types = { };
 
 /**
  * @classdesc Represents an abstract data connector to a database
+ * @description
  * <p>
  There are several data adapters for connections to common database engines:
  </p>

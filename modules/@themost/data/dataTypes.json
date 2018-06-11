@@ -60,7 +60,7 @@
         "comment": "An integer which is generated automatically.",
         "label": "Counter",
         "supertypes": [
-            "Number"
+            "Integer"
         ],
       "properties": {},
         "url": "https://www.w3.org/TR/xmlschema-2/#integer",

@@ -6,11 +6,21 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+///
 var _ = require("lodash");
 var qry = require('@themost/query');
 var async = require("async");
 var DataError = require('@themost/common/errors').DataError;
 
+
+/**
+ * 
+ * @param attr
+ * @param event
+ * @param callback
+ * @returns {*}
+ * @private
+ */
 function beforeSave_(attr, event, callback) {
     var context = event.model.context,
         name = attr.property || attr.name,
@@ -68,6 +78,14 @@ function beforeSave_(attr, event, callback) {
     }
 }
 
+/**
+ * 
+ * @param attr
+ * @param event
+ * @param callback
+ * @returns {*}
+ * @private
+ */
 function beforeSaveMany_(attr, event, callback) {
     var context = event.model.context;
     var name = attr.property || attr.name;
@@ -169,6 +187,12 @@ function beforeSaveMany_(attr, event, callback) {
         return callback();
     }
 }
+
+
+/**
+ * @module @themost/data/data-nested-object-listener
+ * @ignore
+ */
 
 /**
  * @class

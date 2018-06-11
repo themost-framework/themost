@@ -6,6 +6,7 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+///
 var _ = require('lodash');
 var Symbol = require('symbol');
 var LangUtils = require("./utils").LangUtils;
@@ -19,7 +20,6 @@ var currentConfiguration = Symbol('current');
 var configPathProperty = Symbol('configurationPath');
 var executionPathProperty = Symbol('executionPath');
 var strategiesProperty = Symbol('strategies');
-
 
 /**
  * @class Represents an application configuration
@@ -87,7 +87,6 @@ function ConfigurationBase(configPath) {
     this[configProperty]['settings'] = this[configProperty]['settings'] || { };
 
     /**
-     * @property
      * @name ConfigurationBase#settings
      * @type {*}
      */
@@ -302,6 +301,7 @@ function DefaultModuleLoaderStrategy(config) {
     DefaultModuleLoaderStrategy.super_.bind(this)(config);
 }
 LangUtils.inherits(DefaultModuleLoaderStrategy, ModuleLoaderStrategy);
+
 
 
 if (typeof exports !== 'undefined') {

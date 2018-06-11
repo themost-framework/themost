@@ -147,12 +147,14 @@ var directives = {
                                         else
                                             scope.state = scope.mask;
                                 }
-                                var p = new DataPermissionEventListener(), e = { model: targetModel, state: scope.state, throwError:false };
-
-
-
-                                p.validate(e, function(err) {
-                                    if (e.result) {
+                                var p = new DataPermissionEventListener();
+                                var eventArgs = {
+                                    model: targetModel,
+                                    state: scope.state,
+                                    throwError: false
+                                };
+                                p.validate(eventArgs, function() {
+                                    if (eventArgs.result) {
                                         var result = $compile(element.contents())(scope);
                                         element.replaceWith(result);
                                         deferred.resolve();

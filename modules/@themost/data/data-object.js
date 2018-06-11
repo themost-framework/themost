@@ -6,6 +6,7 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+///
 var sprintf = require('sprintf').sprintf;
 var _ = require("lodash");
 var Q = require('q');
@@ -30,7 +31,7 @@ var STR_MISSING_CALLBACK_ARGUMENT = 'Missing argument. Callback function expecte
 /**
  * @this DataObject
  * @param {DataContext} context - The underlying data context
- * @param {Function} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise.
+ * @param {Function} callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise.
  * @private
  */
 function save_(context, callback) {
@@ -89,7 +90,7 @@ function remove_(context, callback) {
 /**
  * @this DataObject
  * @param {string} name - The name of the attribute
- * @param {Function} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain the result.
+ * @param {Function} callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise. The second argument will contain the result.
  * @private
  */
 function attrOf_(name, callback) {
@@ -154,7 +155,6 @@ function DataObject(type, obj)
 {
     var self = this;
     /**
-     * @property
      * @name DataObject#context
      * @type DataContext
      * @description An instance of DataContext class associated with this object.
@@ -225,7 +225,6 @@ function DataObject(type, obj)
 
     this[selectorsProperty] = {};
     /**
-     * @property
      * @name DataObject#selectors
      * @type Array.<Function>
      * @description A collection of selectors based on this data object.
@@ -325,12 +324,8 @@ DataObject.prototype.silent = function(value) {
     });
  */
 DataObject.prototype.selector = function(name, selector) {
-    /**
-     * @private
-     * @type {{}|*}
-     */
     if (typeof name !== 'string') {
-        return new Error('Invalid argument. String expected.', 'EARG');
+        throw new Error('Invalid argument. Expected string.');
     }
     if (typeof selector === 'undefined') {
         return this.selectors[name];
@@ -371,12 +366,15 @@ DataObject.prototype.is = function(selector) {
     if (typeof fn !== 'function') {
         throw new Error('The specified selector is no associated with this object.');
     }
-    var Q = require('q'), deferred = Q.defer();
-    fn.call(this, function(err, result) {
-        if (err) { return deferred.reject(err); }
-        deferred.resolve(result);
+    var self = this;
+    return Q.promise(function(resolve, reject) {
+        fn.call(self, function(err, result) {
+            if (err) {
+                return reject(err);
+            }
+            return resolve(result);
+        });
     });
-    return deferred.promise;
 };
 
 /**
@@ -397,7 +395,7 @@ DataObject.prototype.getModel = function() {
 
 /**
  * @param {String} name The relation name
- * @returns {DataQueryable|HasManyAssociation|HasOneAssociation|DataObjectJunction|DataObjectTag|HasParentJunction|{value:Function}}
+ * @returns {DataQueryable|*}
  */
 DataObject.prototype.property = function(name) {
     if (typeof name !== 'string')
@@ -472,6 +470,7 @@ DataObject.prototype.property = function(name) {
     }
 };
 
+// noinspection JSUnusedGlobalSymbols
 /**
  * Gets the value of the specified attribute.
  * If the object has already a property with the specified name and the property does not have
@@ -480,26 +479,26 @@ DataObject.prototype.property = function(name) {
  * returns the foreign key value
  *
  * @param {string} name - The name of the attribute to retrieve
- * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain the result.
- * @returns {Promise<T>|*} If callback is missing then returns a promise.
+ * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise. The second argument will contain the result.
+ * @returns {Promise<*>} If callback is missing then returns a promise.
  */
 DataObject.prototype.attrOf = function(name, callback) {
     var self = this;
     if (typeof callback !== 'function') {
-        var Q = require('q'), deferred = Q.defer();
-        attrOf_.call(self,  name, function(err, result) {
-            if (err) { return deferred.reject(err); }
-            deferred.resolve(result);
+        return Q.promise(function (resolve, reject) {
+            return attrOf_.call(self,  name, function(err, result) {
+                if (err) { return reject(err); }
+                resolve(result);
+            });
         });
-        return deferred.promise;
     }
     else {
         return attrOf_.call(self, name, callback);
     }
 };
 /**
- * @param {String} name
- * @param {function(Error=,*=)} callback
+ * @param {string} name
+ * @param {Function} callback
  */
 DataObject.prototype.attr = function(name, callback)
 {
@@ -608,7 +607,7 @@ DataObject.prototype.query = function(attr)
 /**
  * Saves the current data object.
  * @param {DataContext=}  context - The current data context.
- * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise.
+ * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise.
  * @returns {Promise<T>|*} - If callback parameter is missing then returns a Promise object.
  * @example
  //retrieve an order and change paymentDue date
@@ -644,7 +643,7 @@ DataObject.prototype.save = function(context, callback) {
 /**
  * Deletes the current data object.
  * @param {DataContext=} context - The current data context.
- * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise.
+ * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise.
  * @returns {Promise<T>|*} - If callback parameter is missing then returns a Promise object.
  * @example
  //retrieve a order, and remove it
@@ -682,44 +681,43 @@ DataObject.prototype.remove = function(context, callback) {
  */
 DataObject.prototype.getAdditionalModel = function() {
     var self = this;
-    var Q = require('q'), deferred = Q.defer();
-    process.nextTick(function() {
+    return Q.promise(function (resolve, reject) {
         try {
             var model = self.getModel();
             var attr = self.getModel().attributes.find(function(x) { return x.name === "additionalType"; });
             if (typeof attr === 'undefined') {
-                return deferred.resolve();
+                return resolve();
             }
             var attrName = attr.property || attr.name;
             self.attr(attrName, function(err, additionalType) {
                 try {
                     if (err) {
-                        return deferred.reject(err);
+                        return reject(err);
                     }
                     //if additional type is undefined
                     if (_.isNil(additionalType)) {
                         //return nothing
-                        return deferred.resolve();
+                        return resolve();
                     }
                     //if additional type is equal to current model
                     if (additionalType === model.name) {
                         //return nothing
-                        return deferred.resolve(model);
+                        return resolve(model);
                     }
-                    return deferred.resolve(self.context.model(additionalType));
+                    return resolve(self.context.model(additionalType));
                 }
-                catch(e) {
-                    return deferred.reject(e);
+                catch(err) {
+                    return reject(err);
                 }
             });
         }
-        catch(e) {
-            return deferred.reject(e);
+        catch(err) {
+            return reject(err);
         }
     });
-    return deferred.promise;
 };
 
+// noinspection JSUnusedGlobalSymbols
 /**
  * Gets an instance of data object which represents the additional typed object as this is defined in additionalType attribute.
  * @returns {Promise<DataObject>}
@@ -740,42 +738,39 @@ DataObject.prototype.getAdditionalModel = function() {
  */
 DataObject.prototype.getAdditionalObject = function() {
     var self = this;
-    var Q = require('q'), deferred = Q.defer();
-    process.nextTick(function() {
+    return Q.promise(function (resolve, reject) {
         try {
             self.getAdditionalModel().then(function(additionalModel) {
                 try {
                     if (_.isNil(additionalModel)) {
-                        return deferred.resolve();
+                        return resolve();
                     }
                     //if additional type is equal to current model
                     if (additionalModel.name === self.getModel().name) {
                         //return nothing
-                        return deferred.resolve();
+                        return resolve();
                     }
                     if (self.getModel().$silent) { additionalModel.silent(); }
                     additionalModel.where(self.getModel().getPrimaryKey()).equal(self.getId()).first().then(function(result) {
                         if (result) {
-                            return deferred.resolve(additionalModel.convert(result));
+                            return resolve(additionalModel.convert(result));
                         }
-                        return deferred.resolve();
+                        return resolve();
                     }).catch(function(err) {
-                        return deferred.reject(err);
+                        return reject(err);
                     });
                 }
-                catch(e) {
-                    return deferred.reject(e);
+                catch(err) {
+                    return reject(err);
                 }
             }).catch(function(err) {
-                return deferred.reject(err);
+                return reject(err);
             });
         }
-        catch (e) {
-            return deferred.reject(e);
+        catch (err) {
+            return reject(err);
         }
-
     });
-    return deferred.promise;
 };
 /**
  * Sets a boolean which indicates whether the next data operation will be executed in silent mode.

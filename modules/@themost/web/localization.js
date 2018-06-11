@@ -6,6 +6,7 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+///
 var AbstractMethodError = require("../common/errors").AbstractMethodError;
 var AbstractClassError = require("../common/errors").AbstractClassError;
 var LangUtils = require('@themost/common/utils').LangUtils;
@@ -66,18 +67,29 @@ LocalizationStrategy.prototype.hasCulture = function(culture) {
  * Returns the localized string of the given string
  * @param {string} locale - The target locale
  * @param {string} str - The string or key which is going to be localized
- * @param {string=} library - The library which contains the given text
  * @abstract
  * @returns {*}
  */
 // eslint-disable-next-line no-unused-vars
-LocalizationStrategy.prototype.getLocaleString = function(locale, str, library) {
+LocalizationStrategy.prototype.getLocaleString = function(locale, str) {
+    throw new AbstractMethodError();
+};
+/**
+ * Sets localization data for the specified locale
+ * @param {string} locale - A string which represents the target locale
+ * @param {Object} data - An object which represents a collection of value-key pairs that are going to be used as localization data
+ * @param {boolean=} shouldMerge - A boolean value which indicates whether the specified localization data will be appended to existing localization data or not.
+ * @abstract
+ */
+// eslint-disable-next-line no-unused-vars
+LocalizationStrategy.prototype.setLocaleString = function(locale, data, shouldMerge) {
     throw new AbstractMethodError();
 };
 
 var culturesProperty = Symbol('cultures');
 var defaultCultureProperty = Symbol('defaultCulture');
 var librariesProperty = Symbol('libraries');
+var defaultLibProperty = "global";
 
 /**
  * @class
@@ -125,20 +137,24 @@ DefaultLocalizationStrategy.prototype.getCultures = function() {
 DefaultLocalizationStrategy.prototype.getDefaultCulture = function() {
     return this[defaultCultureProperty];
 };
+/**
+ * Resolves localization file path based on the given locale
+ * @param {string} locale
+ */
+DefaultLocalizationStrategy.prototype.resolveLocalePath = function(locale) {
+    return path.resolve(this.getApplication().getExecutionPath(),_.template('locales/global.${locale}.json')({ locale:locale }));
+};
 
 /**
  * Returns the localized string of the given string
  * @param {string} locale - The target locale
  * @param {string} text - The string or key which is going to be localized
- * @param {string=} library - The library which contains the given text
  * @abstract
  * @returns {*}
  */
 // eslint-disable-next-line no-unused-vars
-DefaultLocalizationStrategy.prototype.getLocaleString = function(locale, text, library) {
+DefaultLocalizationStrategy.prototype.getLocaleString = function(locale, text) {
     var lib = 'global';
-    if (library)
-        lib = library;
     var libraries = this[librariesProperty];
     var locLibrary;
     if (libraries.hasOwnProperty(lib)) {
@@ -149,7 +165,7 @@ DefaultLocalizationStrategy.prototype.getLocaleString = function(locale, text, l
     }
     var libraryFile;
     try {
-        libraryFile = path.resolve(this.getApplication().getExecutionPath(),'locales/'.concat(lib,'.',locale,'.json'));
+        libraryFile = this.resolveLocalePath(locale);
     }
     catch(err) {
         if (err.code === 'ENOENT' || err.code === 'MODULE_NOT_FOUND') {
@@ -176,9 +192,50 @@ DefaultLocalizationStrategy.prototype.getLocaleString = function(locale, text, l
     }
 };
 
+/**
+ * Sets localization data for the specified locale
+ * @param {string} locale - A string which represents the target locale
+ * @param {Object} data - An object which represents a collection of value-key pairs that are going to be used as localization data
+ * @param {boolean=} shouldMerge - A boolean value which indicates whether the specified localization data will be appended to existing localization data or not.
+ */
+DefaultLocalizationStrategy.prototype.setLocaleString = function(locale, data, shouldMerge) {
+    var libraries = this[librariesProperty];
+    //check if the given locale exists in application locales
+    if (this.getCultures().indexOf(locale)<0) {
+        throw new Error('Invalid locale. The specified locale does not exist in application locales.');
+    }
+    //validate locale data libraries["global"]["en-us"]
+    libraries[defaultLibProperty] = libraries[defaultLibProperty] || {};
+    libraries[defaultLibProperty][locale] = libraries[defaultLibProperty][locale] || {};
+    if (shouldMerge) {
+        _.assign(libraries[defaultLibProperty][locale], data);
+    }
+    else {
+        libraries[defaultLibProperty][locale] = data;
+    }
+};
+
+/**
+ * @class
+ * @constructor
+ * @param {HttpApplication} app
+ * @augments LocalizationStrategy
+ */
+function I18nLocalizationStrategy(app) {
+    I18nLocalizationStrategy.super_.bind(this)(app);
+}
+LangUtils.inherits(I18nLocalizationStrategy, DefaultLocalizationStrategy);
+
+I18nLocalizationStrategy.prototype.resolveLocalePath = function(locale) {
+    if (typeof locale !== 'string') {
+        throw new Error('Invalid locale parameter. Expected string.');
+    }
+    return path.resolve(this.getApplication().getExecutionPath(),_.template('i18n/${locale}.json')({ locale:locale.substr(0,2) }));
+};
 
 if (typeof exports !== 'undefined')
 {
     module.exports.LocalizationStrategy = LocalizationStrategy;
     module.exports.DefaulLocalizationStrategy = DefaultLocalizationStrategy;
+    module.exports.I18nLocalizationStrategy = I18nLocalizationStrategy;
 }

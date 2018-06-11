@@ -1,49 +1,24 @@
 /**
- * MOST Web Framework
- * A JavaScript Web Framework
- * http://themost.io
- * Created by Kyriakos Barbounakis<k.barbounakis@gmail.com> on 2014-03-30.
+ * @license
+ * MOST Web Framework 2.0 Codename Blueshift
+ * Copyright (c) 2017, THEMOST LP All rights reserved
  *
- * Copyright (c) 2014, Kyriakos Barbounakis k.barbounakis@gmail.com
- Anthi Oikonomou anthioikonomou@gmail.com
- All rights reserved.
- Redistribution and use in source and binary forms, with or without
- modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
- list of conditions and the following disclaimer.
- * Redistributions in binary form must reproduce the above copyright notice,
- this list of conditions and the following disclaimer in the documentation
- and/or other materials provided with the distribution.
- * Neither the name of MOST Web Framework nor the names of its
- contributors may be used to endorse or promote products derived from
- this software without specific prior written permission.
- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
- FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * Use of this source code is governed by an BSD-3-Clause license that can be
+ * found in the LICENSE file at https://themost.io/license
  */
-/**
- * @ignore
- */
-var types = require('./types'),
-    sprintf = require('sprintf'),
-    TraceUtils = require('@themost/common/utils').TraceUtils,
-    moment = require('moment'),
-    _ = require('lodash'),
-    Q = require("q");
+///
+var types = require('./types');
+var sprintf = require('sprintf');
+var TraceUtils = require('@themost/common/utils').TraceUtils;
+var moment = require('moment');
+var _ = require('lodash');
+var Q = require("q");
 
-/**
- * @exports most-data/functions
- */
+
 var functions = { };
 /**
  * @class
+ * @classdesc A utility class which offers a set of methods for calculating the default values of a data model
  * @param {DataContext=} context
  * @param {DataModel=} model
  * @param {*=} target
@@ -82,7 +57,7 @@ FunctionContext.prototype.eval = function(expr, callback) {
     if (match) {
         var expr2eval;
         //check parameters (match[3])
-        if (match[3].length==0) {
+        if (match[3].length===0) {
             expr2eval = expr1.replace(/(fn:)\s?(.*?)\s?\((.*?)\)/, "(function() { return this.$2(); });");
         }
         else {
@@ -114,24 +89,58 @@ FunctionContext.prototype.eval = function(expr, callback) {
 
 };
 /**
- * @returns {Promise|*}
+ * Returns the current date and time
+ * @returns {Promise<Date>}
+ * @description
+ * Use this method for calculating the current date and time in a data field definition.
+ *
+ * The following data model definition contains a field named [dateModified] which accepts a calculated value through DataField.value attribute.
+ * FunctionContext.now() method is used for calculating the current date and time.
+ ```
+    ...
+    "fields": [
+        {
+            "@id": "https://themost.io/schemas/dateModified",
+            "name": "dateModified",
+            "title": "dateModified",
+            "description": "The date on which this item was most recently modified.",
+            "type": "DateTime"
+            "value": "return this.now();"
+        }
+    ]
+    ...
+ ```
  */
 FunctionContext.prototype.now = function() {
-    var deferred = Q.defer();
-    process.nextTick(function() {
-        deferred.resolve(new Date());
+    return Q.promise(function(resolve) {
+        return resolve(new Date());
     });
-    return deferred.promise;
 };
 /**
- * @returns {Promise|*}
+ * Returns the current date
+ * @returns {Promise<Date>}
+ * Use this method for calculating the current date in a data field definition.
+ *
+ * The following data model definition contains a field named [orderDate] which accepts a calculated value through DataField.value attribute.
+ * FunctionContext.today() method is used for calculating the current date.
+ ```
+     ...
+     "fields": [
+         {
+             "@id": "https://themost.io/schemas/orderDate",
+             "name": "orderDate",
+             "title": "orderDate",
+             "type": "DateTime"
+             "value": "return this.today();"
+         }
+     ]
+     ...
+ ```
  */
 FunctionContext.prototype.today = function() {
-    var deferred = Q.defer();
-    process.nextTick(function() {
-        deferred.resolve((new Date()).getDate());
+    return Q.promise(function(resolve) {
+        return resolve(new Date().getDate());
     });
-    return deferred.promise;
 };
 /**
  * @returns {Promise|*}

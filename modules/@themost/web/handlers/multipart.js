@@ -49,7 +49,7 @@ MultipartHandler.prototype.beginRequest = function(context, callback) {
                 }
                 //add files
                 if (files) {
-                    _.forEach(_.keys(files),(key)=> {
+                    _.forEach(_.keys(files),function(key) {
                         if (context.params.hasOwnProperty(key)) {
                             _.assign(context.params[key], files[key]);
                         }

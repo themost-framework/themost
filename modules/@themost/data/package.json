@@ -1,6 +1,6 @@
 {
   "name": "@themost/data",
-  "version": "2.0.29",
+  "version": "2.0.32",
   "description": "MOST Web Framework 2.0 - ORM module",
   "module": "common.js",
   "peerDependencies": {},
@@ -45,6 +45,7 @@
       "no-invalid-this": "warn",
       "no-undef": "error",
       "no-unused-vars": "warn",
+      "no-var": "off",
       "strict": [
         2,
         "never"

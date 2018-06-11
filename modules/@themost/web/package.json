@@ -1,7 +1,7 @@
 {
   "name": "@themost/web",
-  "version": "2.0.31",
-  "description": "MOST Web Framework 2.0 - web server module",
+  "version": "2.0.32",
+  "description": "MOST Web Framework 2.0 - Web Server Module",
   "module": "index.js",
   "peerDependencies": {},
   "repository": {
@@ -12,6 +12,10 @@
   "license": "BSD-3-Clause",
   "bugs": {
     "url": "https://github.com/themost-framework/themost/issues"
+  },
+  "scripts": {
+    "typedoc": "typedoc",
+    "docs": "jsdoc --configure ./conf.json"
   },
   "homepage": "https://github.com/themost-framework/themost#readme",
   "dependencies": {
@@ -60,7 +64,8 @@
     },
     "globals": {
       "describe": false,
-      "it": false
+      "it": false,
+        "angular": true
     },
     "extends": "eslint:recommended"
   }

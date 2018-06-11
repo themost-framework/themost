@@ -6,6 +6,7 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+///
 var moment = require('moment');
 var numeral = require('numeral');
 var ClientDataQueryable = require('@themost/client').ClientDataQueryable;
@@ -16,7 +17,6 @@ var ClientDataQueryable = require('@themost/client').ClientDataQueryable;
  */
 function HtmlViewHelper(context) {
     /**
-     * @property
      * @name HtmlViewHelper#context
      * @type HttpContext
      */

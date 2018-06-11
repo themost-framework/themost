@@ -6,7 +6,7 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-
+///
 var _ = require("lodash");
 var sprintf = require('sprintf').sprintf;
 var Symbol = require('symbol');
@@ -38,6 +38,8 @@ var ModelClassLoaderStrategy = require('./data-configuration').ModelClassLoaderS
 var ModuleLoader = require('@themost/common/config').ModuleLoaderStrategy;
 var mappingsProperty = Symbol('mappings');
 var DataPermissionEventListener = require('./data-permission').DataPermissionEventListener;
+var DataField = require('./types').DataField;
+
 
 /**
  * @this DataModel
@@ -76,6 +78,10 @@ function inferTagMapping_(field) {
     });
 }
 
+/**
+ * @this DataModel
+ * @returns {*}
+ */
 function getImplementedModel() {
     if (_.isNil(this['implements'])) {
         return null;
@@ -273,7 +279,6 @@ function DataModel(obj) {
     var self = this;
 
     /**
-     * @property
      * @name DataModel#context
      * @type {DataContext|*}
      */
@@ -291,7 +296,6 @@ function DataModel(obj) {
     }, enumerable: false, configurable: false});
 
     /**
-     * @property
      * @description Gets the database object associated with this data model
      * @name DataModel#sourceAdapter
      * @type {string}
@@ -302,7 +306,6 @@ function DataModel(obj) {
     }, enumerable: false, configurable: false});
 
     /**
-     * @property
      * @description Gets the database object associated with this data model view
      * @name DataModel#viewAdapter
      * @type {string}
@@ -339,7 +342,6 @@ function DataModel(obj) {
     var attributes;
 
     /**
-     * @property
      * @description Gets an array of DataField objects which represents the collection of model fields (including fields which are inherited from the base model).
      * @name DataModel#attributes
      * @type {Array.<DataField>}
@@ -397,6 +399,23 @@ function DataModel(obj) {
                     if (typeof field === 'undefined')
                         attributes.push(x);
                 }
+                else {
+                    //try to find primary key in fields collection
+                    var primaryKeyField = _.find(self.fields, function(y) {
+                        return y.name === x.name;
+                    });
+                    if (typeof primaryKeyField === 'undefined') {
+                        //add primary key field
+                        primaryKeyField = _.assign({}, x, {
+                            "type": x.type === 'Counter' ? 'Integer' : x.type,
+                            "model": self.name,
+                            "indexed": true
+                        });
+                        delete primaryKeyField.value;
+                        delete primaryKeyField.calculation;
+                        attributes.push(primaryKeyField);
+                    }
+                }
             });
         }
         if (implementedModel) {
@@ -411,6 +430,7 @@ function DataModel(obj) {
                 }
             });
         }
+
         return attributes;
     }, enumerable: false, configurable: false});
     /**
@@ -426,7 +446,7 @@ function DataModel(obj) {
 
     this.getPrimaryKey = function() {
         if (typeof primaryKey_ !== 'undefined') { return primaryKey_; }
-        var p = self.fields.find(function(x) { return x.primary===true; });
+        var p = self.attributes.find(function(x) { return x.primary===true; });
         if (p) {
             primaryKey_ = p.name;
             return primaryKey_;
@@ -457,7 +477,7 @@ function DataModel(obj) {
             //get base model constraints
             var baseArr = baseModel.constraintCollection;
             if (_.isArray(baseArr)) {
-                //apend to collection
+                //append to collection
                 baseArr.forEach(function(x) {
                     arr.push(x);
                 });
@@ -824,10 +844,9 @@ function filterInternal(params, callback) {
 }
 
 /**
- * @async
  * Applies open data filter, ordering, grouping and paging params and returns a data queryable object
  * @param {String|{$filter:string=, $skip:number=, $levels:number=, $top:number=, $take:number=, $order:string=, $inlinecount:string=, $expand:string=,$select:string=, $orderby:string=, $group:string=, $groupby:string=}} params - A string that represents an open data filter or an object with open data parameters
- * @param {Function=} callback -  A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain an instance of DataQueryable class.
+ * @param {Function=} callback -  A callback function where the first argument will contain the Error object if an error occurred, or null otherwise. The second argument will contain an instance of DataQueryable class.
  * @returns Promise<DataQueryable>|*
  * @example
  context.model('Order').filter(context.params, function(err,q) {
@@ -956,7 +975,7 @@ DataModel.prototype.orderBy = function(attr) {
 /**
  * Takes an array of maximum [n] items.
  * @param {Number} n - The maximum number of items that is going to be retrieved
- * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain the result.
+ * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise. The second argument will contain the result.
  * @returns DataQueryable|undefined If callback parameter is missing then returns a DataQueryable object.
  */
 DataModel.prototype.take = function(n, callback) {
@@ -969,7 +988,7 @@ DataModel.prototype.take = function(n, callback) {
 
 /**
  * Returns an instance of DataResultSet of the current model.
- * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain the result.
+ * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise. The second argument will contain the result.
  * @returns {Promise<T>|*} If callback parameter is missing then returns a Promise object.
  * @deprecated Use DataModel.asQueryable().list().
  * @example
@@ -993,7 +1012,7 @@ DataModel.prototype.getList = function() {
 
 /**
  * Returns the first item of the current model.
- * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain the result.
+ * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise. The second argument will contain the result.
  * @returns {Promise<T>|*} If callback parameter is missing then returns a Promise object.
  * @deprecated Use DataModel.asQueryable().first().
  * @example
@@ -1010,7 +1029,7 @@ DataModel.prototype.first = function(callback) {
 /**
  * A helper function for getting an object based on the given primary key value
  * @param {String|*} key - The primary key value to search for.
- * @param {Function} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain the result, if any.
+ * @param {Function} callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise. The second argument will contain the result, if any.
  * @returns {Deferred|*} If callback parameter is missing then returns a Deferred object.
  * @example
  context.model('User').get(1).then(function(result) {
@@ -1026,7 +1045,7 @@ DataModel.prototype.get = function(key, callback) {
 
 /**
  * Returns the last item of the current model based.
- * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain the result.
+ * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise. The second argument will contain the result.
  * @returns {Promise<T>|*} If callback parameter is missing then returns a Promise object.
  * @example
  context.model('User').last(function(err, result) {
@@ -1041,7 +1060,7 @@ DataModel.prototype.last = function(callback) {
 
 /**
  * Returns all data items.
- * @param {Function} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain the result, if any.
+ * @param {Function} callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise. The second argument will contain the result, if any.
 */
 DataModel.prototype.all = function(callback) {
     var result = new DataQueryable(this);
@@ -1077,7 +1096,7 @@ DataModel.prototype.orderByDescending = function(attr) {
 /**
  * Returns the maximum value for a field.
  * @param {string} attr - A string that represents the name of the field.
- * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain the result.
+ * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise. The second argument will contain the result.
  * @returns {Promise<T>|*} If callback parameter is missing then returns a Promise object.
  */
 DataModel.prototype.max = function(attr, callback) {
@@ -1088,7 +1107,7 @@ DataModel.prototype.max = function(attr, callback) {
 /**
  * Returns the minimum value for a field.
  * @param {string} attr - A string that represents the name of the field.
- * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain the result.
+ * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise. The second argument will contain the result.
  * @returns {Promise<T>|*} If callback parameter is missing then returns a Promise object.
  */
 DataModel.prototype.min = function(attr, callback) {
@@ -1483,7 +1502,7 @@ function castForValidation_(obj, state) {
  * Casts the given source object and returns a data object based on the current model.
  * @param {*} dest - The destination object
  * @param {*} src - The source object
- * @param {function(Error=)} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise.
+ * @param {function(Error=)} callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise.
  */
 DataModel.prototype.recast = function(dest, src, callback)
 {
@@ -1616,7 +1635,7 @@ function save_(obj, callback) {
 /**
  * Saves the given object or array of objects
  * @param obj {*|Array}
- * @param callback {Function=} - A callback function where the first argument will contain the Error object if an error occured, or null otherwise.
+ * @param callback {Function=} - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise.
  * @returns {Promise<T>|*} - If callback parameter is missing then returns a Promise object.
  * @example
  //save a new group (Sales)
@@ -1645,7 +1664,7 @@ DataModel.prototype.save = function(obj, callback)
 /**
  * Infers the state of the given object.
  * @param {DataObject|*} obj - The source object
- * @param {Function} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain the result.
+ * @param {Function} callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise. The second argument will contain the result.
  * @see DataObjectState
  */
 DataModel.prototype.inferState = function(obj, callback) {
@@ -1735,7 +1754,7 @@ function saveBaseObject_(obj, callback) {
     self.once('before.save', DataPermissionEventListener.prototype.beforeSave);
     //execute before update events
     self.emit('before.save', e, function(err) {
-        //if an error occured
+        //if an error occurred
         if (err) {
             //invoke callback with error
             callback.call(self, err);
@@ -1900,7 +1919,7 @@ function update_(obj, callback) {
 /**
  * Updates an item or an array of items
  * @param obj {*|Array} - The item or the array of items to update
- * @param callback {Function=} - A callback function where the first argument will contain the Error object if an error occured, or null otherwise.
+ * @param callback {Function=} - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise.
  * @returns {Promise<T>|*} - If callback parameter is missing then returns a Promise object.
  */
 DataModel.prototype.update = function(obj, callback)
@@ -1944,7 +1963,7 @@ function insert_(obj, callback) {
 /**
  * Inserts an item or an array of items
  * @param obj {*|Array} - The item or the array of items to update
- * @param callback {Function=} - A callback function where the first argument will contain the Error object if an error occured, or null otherwise.
+ * @param callback {Function=} - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise.
  * @returns {Promise<T>|*} - If callback parameter is missing then returns a Promise object.
  */
 DataModel.prototype.insert = function(obj, callback)
@@ -2012,7 +2031,7 @@ function remove_(obj, callback) {
 /**
  * Deletes the given object or array of objects
  * @param obj {*|Array} The item or the array of items to delete
- * @param callback {Function=} - A callback function where the first argument will contain the Error object if an error occured, or null otherwise.
+ * @param callback {Function=} - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise.
  * @returns {Promise<T>|*} - If callback parameter is missing then returns a Promise object.
  * @example
  //remove group (Sales)
@@ -2140,7 +2159,7 @@ DataModel.PluralExpression = /([a-zA-Z]+?)([e']s|[^aiou]s)$/;
 
 /**
  * Performing an automatic migration of current data model based on the current model's definition.
- * @param {Function} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise. The second argument will contain the result.
+ * @param {Function} callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise. The second argument will contain the result.
  */
 DataModel.prototype.migrate = function(callback)
 {
@@ -2729,7 +2748,7 @@ function validate_(obj, state, callback) {
  * Validates the given object against validation rules which are defined either by the data type or the definition of each attribute
  <p>Read more about data validation <a href="DataValidatorListener.html">here</a>.</p>
  * @param {*} obj - The data object which is going to be validated
- * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise.
+ * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise.
  * @returns {Promise|*} - If callback parameter is missing then returns a Promise object.
  */
 DataModel.prototype.validateForUpdate = function(obj, callback) {
@@ -2750,7 +2769,7 @@ DataModel.prototype.validateForUpdate = function(obj, callback) {
  * Validates the given object against validation rules which are defined either by the data type or the definition of each attribute
  <p>Read more about data validation <a href="DataValidatorListener.html">here</a>.</p>
  * @param {*} obj - The data object which is going to be validated
- * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occured, or null otherwise.
+ * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise.
  * @returns {Promise|*} - If callback parameter is missing then returns a Promise object.
  <p>Read more about data validation <a href="DataValidationListener.html">here</a></p>
  */

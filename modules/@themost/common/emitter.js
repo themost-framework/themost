@@ -6,6 +6,7 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+///
 var EventEmitter = require('events').EventEmitter;
 var LangUtils = require('./utils').LangUtils;
 var applyEachSeries = require('async').applyEachSeries;

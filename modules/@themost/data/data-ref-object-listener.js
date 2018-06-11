@@ -6,11 +6,17 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+///
 var async = require('async');
 var HasParentJunction = require('./has-parent-junction').HasParentJunction;
 var DataObjectJunction = require('./data-object-junction').DataObjectJunction;
 var DataError = require('@themost/common/errors').DataError;
 var _ = require('lodash');
+
+/**
+ * @module @themost/data/data-ref-object-listener
+ * @ignore
+ */
 
 /**
  * @class
@@ -21,7 +27,7 @@ function DataReferencedObjectListener() {
 }
 
 /**
- *
+ * @private
  * @param {DataEventArgs} event
  * @param {DataAssociationMapping} mapping
  * @param {Function} callback
@@ -96,7 +102,7 @@ function beforeRemoveAssociatedObjects(event, mapping, callback) {
     });
 }
 /**
- *
+ * @private
  * @param {DataEventArgs} event
  * @param {DataAssociationMapping} mapping
  * @param {Function} callback
@@ -147,7 +153,7 @@ function beforeRemoveParentConnectedObjects(event, mapping, callback) {
 }
 
 /**
- *
+ * @private
  * @param {DataEventArgs} event
  * @param {DataAssociationMapping} mapping
  * @param {Function} callback

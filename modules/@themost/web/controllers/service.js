@@ -462,6 +462,74 @@ HttpServiceController.prototype.getNavigationProperty = function(entitySet, navi
                 if (_.isNil(obj)) {
                     return Q.reject(new HttpNotFoundError());
                 }
+                //check if entity set has a function with the same name
+                var action = thisEntitySet.entityType.hasFunction(navigationProperty);
+                if (action) {
+                    var returnsCollection = _.isString(action.returnCollectionType);
+                    var returnModel = context.model(action.returnType || action.returnCollectionType);
+                    //find method
+                    var memberFunc = EdmMapping.hasOwnFunction(obj,  action.name);
+                    if (memberFunc) {
+                        var funcParameters = [];
+                        _.forEach(action.parameters, function(x) {
+                            if (x.name !== 'bindingParameter') {
+                                funcParameters.push( LangUtils.parseValue(context.params[x.name]));
+                            }
+                        });
+                        return Q.resolve(memberFunc.apply(obj, funcParameters)).then(function(result) {
+                            if (result instanceof DataQueryable) {
+                                if (_.isNil(returnModel)) {
+                                    return Q.reject(new HttpNotFoundError("Result Entity not found"));
+                                }
+                                var returnEntitySet = self.getBuilder().getEntityTypeEntitySet(returnModel.name);
+                                if (_.isNil(returnEntitySet)) {
+                                    returnEntitySet = self.getBuilder().getEntity(returnModel.name);
+                                }
+                                var filter = Q.nbind(returnModel.filter, returnModel);
+                                //if the return value is a single instance
+                                if (!returnsCollection) {
+                                    //pass context parameters
+                                    var params = {};
+                                    if (_.isNil(navigationProperty)) {
+                                        params = {
+                                            "$select":context.params.$select,
+                                            "$expand":context.params.$expand
+                                        }
+                                    }
+                                    //filter with parameters
+                                    return filter(params).then(function(q) {
+                                        //get item
+                                        return q.getItem().then(function(result) {
+                                            if (_.isNil(result)) {
+                                                return Q.reject(new HttpNotFoundError());
+                                            }
+                                            //return result
+                                            return Q.resolve(self.json(returnEntitySet.mapInstance(context,result)));
+                                        });
+                                    });
+                                }
+                                //else if the return value is a collection
+                                return filter( _.extend({
+                                    "$top":DefaultTopQueryOption
+                                },context.params)).then(function(q) {
+                                    var count = context.params.hasOwnProperty('$inlinecount') ? parseBoolean(context.params.$inlinecount) : (context.params.hasOwnProperty('$count') ? parseBoolean(context.params.$count) : false);
+                                    var q1 = extendQueryable(result, q);
+                                    if (count) {
+                                        return q1.getList().then(function(result) {
+                                            return Q.resolve(self.json(returnEntitySet.mapInstanceSet(context,result)));
+                                        });
+                                    }
+                                    return q1.getItems().then(function(result) {
+                                        return Q.resolve(self.json(returnEntitySet.mapInstanceSet(context,result)));
+                                    });
+                                });
+                            }
+                            return Q.resolve(self.json(result));
+                        });
+                    }
+                }
+
+
                 //get primary key
                 var key = obj[model.primaryKey];
                 //get mapping
@@ -508,71 +576,6 @@ HttpServiceController.prototype.getNavigationProperty = function(entitySet, navi
                         }
                     }
                     if (_.isNil(mapping)) {
-                        var action = thisEntitySet.entityType.hasFunction(navigationProperty);
-                        if (action) {
-                            var returnsCollection = _.isString(action.returnCollectionType);
-                            var returnModel = context.model(action.returnType || action.returnCollectionType);
-                            //find method
-                            var memberFunc = EdmMapping.hasOwnFunction(obj,  action.name);
-                            if (memberFunc) {
-                                var funcParameters = [];
-                                _.forEach(action.parameters, (x)=> {
-                                    if (x.name !== 'bindingParameter') {
-                                        funcParameters.push( LangUtils.parseValue(context.params[x.name]));
-                                    }
-                                });
-                                return Q.resolve(memberFunc.apply(obj, funcParameters)).then(function(result) {
-                                    if (result instanceof DataQueryable) {
-                                        if (_.isNil(returnModel)) {
-                                            return Q.reject(new HttpNotFoundError("Result Entity not found"));
-                                        }
-                                        var returnEntitySet = self.getBuilder().getEntityTypeEntitySet(returnModel.name);
-                                        if (_.isNil(returnEntitySet)) {
-                                            returnEntitySet = self.getBuilder().getEntity(returnModel.name);
-                                        }
-                                        var filter = Q.nbind(returnModel.filter, returnModel);
-                                        //if the return value is a single instance
-                                        if (!returnsCollection) {
-                                            //pass context parameters
-                                            var params = {};
-                                            if (_.isNil(navigationProperty)) {
-                                                params = {
-                                                    "$select":context.params.$select,
-                                                    "$expand":context.params.$expand
-                                                }
-                                            }
-                                            //filter with parameters
-                                            return filter(params).then(function(q) {
-                                                //get item
-                                                return q.getItem().then(function(result) {
-                                                    if (_.isNil(result)) {
-                                                        return Q.reject(new HttpNotFoundError());
-                                                    }
-                                                    //return result
-                                                    return Q.resolve(self.json(returnEntitySet.mapInstance(context,result)));
-                                                });
-                                            });
-                                        }
-                                        //else if the return value is a collection
-                                        return filter( _.extend({
-                                            "$top":DefaultTopQueryOption
-                                        },context.params)).then(function(q) {
-                                            var count = context.params.hasOwnProperty('$inlinecount') ? parseBoolean(context.params.$inlinecount) : (context.params.hasOwnProperty('$count') ? parseBoolean(context.params.$count) : false);
-                                            var q1 = extendQueryable(result, q);
-                                            if (count) {
-                                                return q1.getList().then(function(result) {
-                                                    return Q.resolve(self.json(returnEntitySet.mapInstanceSet(context,result)));
-                                                });
-                                            }
-                                            return q1.getItems().then(function(result) {
-                                                return Q.resolve(self.json(returnEntitySet.mapInstanceSet(context,result)));
-                                            });
-                                        });
-                                    }
-                                    return Q.resolve(self.json(result));
-                                });
-                            }
-                        }
                         return Q.reject(new HttpNotFoundError("Association not found"));
                     }
                 }

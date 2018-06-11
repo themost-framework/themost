@@ -1,4 +1,5 @@
 /**
+ * @licence
  * MOST Web Framework
  * A JavaScript Web Framework
  * http://themost.io
@@ -7,7 +8,9 @@
  *
  * Released under the BSD3-Clause license
  * Date: 2014-11-10
+ *
  */
+///
 var LangUtils = require('@themost/common/utils').LangUtils;
 var Q = require('q');
 var _ = require('lodash');
@@ -20,7 +23,6 @@ var DataConfiguration = require('@themost/data/data-configuration').DataConfigur
  * @class
  * @constructor
  * @param {*=} data
- * @augments {HttpResult}
  * @extends {HttpResult}
  * @property {EntitySetConfiguration} entitySet
  */
@@ -40,6 +42,10 @@ ODataJsonResult.prototype.execute = function(context, callback) {
     }
 };
 
+/**
+ * @class
+ * @constructor
+ */
 function ODataModelBuilderConfiguration() {
     //
 }
@@ -65,7 +71,6 @@ ODataModelBuilderConfiguration.config = function(app) {
         return Q.resolve(builder);
     });
 };
-
 
 if (typeof module !== 'undefined') {
     module.exports.ODataModelBuilderConfiguration = ODataModelBuilderConfiguration;

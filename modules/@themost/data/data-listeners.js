@@ -6,6 +6,7 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+///
 var async = require('async');
 var sprintf = require('sprintf');
 var cache = require('./data-cache');
@@ -15,6 +16,11 @@ var NotNullError = require("@themost/common/errors").NotNullError;
 var UniqueConstraintError = require("@themost/common/errors").UniqueConstraintError;
 var TraceUtils = require("@themost/common/utils").TraceUtils;
 var TextUtils = require("@themost/common/utils").TextUtils;
+
+/**
+ * @module @themost/data/data-listeners
+ * @ignore
+ */
 
 /**
  * @classdesc Represents an event listener for validating not nullable fields. This listener is automatically  registered in all data models.
@@ -27,7 +33,7 @@ function NotNullConstraintListener() {
 /**
  * Occurs before creating or updating a data object and validates not nullable fields.
  * @param {DataEventArgs|*} event - An object that represents the event arguments passed to this operation.
- * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+ * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occurred.
  */
 NotNullConstraintListener.prototype.beforeSave = function(event, callback) {
 
@@ -68,7 +74,7 @@ function UniqueContraintListener() {
 /**
  * Occurs before creating or updating a data object and validates the unique constraints of data model.
  * @param {DataEventArgs|*} event - An object that represents the event arguments passed to this operation.
- * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+ * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occurred.
  */
 UniqueContraintListener.prototype.beforeSave = function(event, callback) {
 
@@ -221,7 +227,7 @@ function CalculatedValueListener() {
 /**
  * Occurs before creating or updating a data object and calculates field values with the defined calculation expression.
  * @param {DataEventArgs} event - An object that represents the event arguments passed to this operation.
- * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+ * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occurred.
  */
 CalculatedValueListener.prototype.beforeSave = function(event, callback) {
     //get function context
@@ -360,7 +366,7 @@ function DataCachingListener() {
 /**
  * Occurs before executing an query expression, validates data caching configuration and gets cached data.
  * @param {DataEventArgs|*} event - An object that represents the event arguments passed to this operation.
- * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+ * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occurred.
  */
 DataCachingListener.prototype.beforeExecute = function(event, callback) {
     try {
@@ -396,7 +402,7 @@ DataCachingListener.prototype.beforeExecute = function(event, callback) {
             //query cache
             cache.getCurrent().get(key, function(err, result) {
                 if (err) {
-                    TraceUtils.log('DataCacheListener: An error occured while trying to get cached data.');
+                    TraceUtils.log('DataCacheListener: An error occurred while trying to get cached data.');
                     TraceUtils.log(err);
                 }
                 if (typeof result !== 'undefined') {
@@ -437,7 +443,7 @@ DataCachingListener.prototype.beforeExecute = function(event, callback) {
 /**
  * Occurs before executing an query expression, validates data caching configuration and stores data to cache.
  * @param {DataEventArgs|*} event - An object that represents the event arguments passed to this operation.
- * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+ * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occurred.
  */
 DataCachingListener.prototype.afterExecute = function(event, callback) {
     try {
@@ -508,7 +514,7 @@ function DefaultValueListener() {
 /**
  * Occurs before creating or updating a data object and calculates default values with the defined value expression.
  * @param {DataEventArgs|*} event - An object that represents the event arguments passed to this operation.
- * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+ * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occurred.
  */
 DefaultValueListener.prototype.beforeSave = function(event, callback) {
 
@@ -617,7 +623,7 @@ function DataModelCreateViewListener() {
 /**
  * Occurs after upgrading a data model.
  * @param {DataEventArgs} event - An object that represents the event arguments passed to this operation.
- * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+ * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occurred.
  */
 DataModelCreateViewListener.prototype.afterUpgrade = function(event, callback) {
 
@@ -677,7 +683,7 @@ function DataModelSeedListener() {
 /**
  * Occurs after upgrading a data model.
  * @param {DataEventArgs} event - An object that represents the event arguments passed to this operation.
- * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+ * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occurred.
  */
 DataModelSeedListener.prototype.afterUpgrade = function(event, callback) {
     var self = event.model;
@@ -731,7 +737,7 @@ function DataModelSubTypesListener() {
 /**
  * Occurs after upgrading a data model.
  * @param {DataEventArgs} event - An object that represents the event arguments passed to this operation.
- * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+ * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occurred.
  */
 DataModelSubTypesListener.prototype.afterUpgrade = function(event, callback) {
     var self = event.model, context = event.model.context;

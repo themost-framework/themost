@@ -6,6 +6,7 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+///
 var path = require('path');
 var fs = require('fs');
 var _ = require("lodash");
@@ -95,12 +96,13 @@ function HttpContext(httpRequest, httpResponse) {
     Object.defineProperty(this, 'format', {
         get: function () {
             var uri = url.parse(self.request.url);
+
+            if (self.request.route && self.request.route.format) {
+                return self.request.route.format;
+            }
             var result = path.extname(uri.pathname);
             if (result) {
                 return result.substr(1).toLowerCase();
-            }
-            else if (self.request.route && self.request.route.format) {
-                return self.request.route.format;
             }
             else {
                 //get mime type
@@ -732,6 +734,7 @@ HttpContext.prototype.engine = function(extension) {
         return engineModule.createInstance(this);
     }
 };
+
 
 if (typeof exports !== 'undefined') {
     module.exports.HttpContext = HttpContext;

@@ -6,7 +6,7 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-
+///
 var qry = require('@themost/query');
 var async = require('async');
 var AccessDeniedError = require("@themost/common/errors").AccessDeniedError;
@@ -14,6 +14,11 @@ var RandomUtils = require("@themost/common/utils").RandomUtils;
 var DataConfigurationStrategy = require("./data-configuration").DataConfigurationStrategy;
 var _ = require("lodash");
 var cache = require('./data-cache');
+
+/**
+ * @module @themost/data/data-permission
+ * @ignore
+ */
 
 /**
  * @class
@@ -102,7 +107,7 @@ function DataPermissionEventListener() {
 /**
  * Occurs before creating or updating a data object.
  * @param {DataEventArgs} event - An object that represents the event arguments passed to this operation.
- * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+ * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occurred.
  */
 DataPermissionEventListener.prototype.beforeSave = function(event, callback)
 {
@@ -111,7 +116,7 @@ DataPermissionEventListener.prototype.beforeSave = function(event, callback)
 /**
  * Occurs before removing a data object.
  * @param {DataEventArgs} event - An object that represents the event arguments passed to this operation.
- * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+ * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occurred.
  * @returns {DataEventListener}
  */
 DataPermissionEventListener.prototype.beforeRemove = function(event, callback)
@@ -121,7 +126,7 @@ DataPermissionEventListener.prototype.beforeRemove = function(event, callback)
 /**
  * Validates permissions against the event arguments provided.
  * @param {DataEventArgs} event - An object that represents the event arguments passed to this operation.
- * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+ * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occurred.
  */
 DataPermissionEventListener.prototype.validate = function(event, callback) {
     var model = event.model;
@@ -558,7 +563,7 @@ function effectiveAccounts(context, callback) {
 /**
  * Occurs before executing a data operation.
  * @param {DataEventArgs} event - An object that represents the event arguments passed to this operation.
- * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occured.
+ * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occurred.
  */
 DataPermissionEventListener.prototype.beforeExecute = function(event, callback)
 {

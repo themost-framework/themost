@@ -200,6 +200,12 @@ export declare class LangUtils {
      */
     static isDate(value):boolean;
 
+    /**
+     * @param constructor
+     * @param superConstructor
+     */
+    static inherits(constructor: any, superConstructor: any): void;
+
 }
 /**
  * @class
