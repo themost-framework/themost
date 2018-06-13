@@ -1946,6 +1946,9 @@ function countInternal(callback) {
     if (cloned.query.hasFields() === false) {
         cloned.select();
     }
+    if (cloned.query.hasOwnProperty('$order')) {
+        delete cloned.query.$order;
+    }
     return  execute_.bind(cloned)(function(err, result) {
         if (err) {
             return callback(err);
