@@ -60,9 +60,12 @@ if (typeof _.isPromise !== 'function') {
 
 
 /**
- * @class ViewHandler
+ * @class
  * @constructor
- * @augments HttpHandler
+ * @implements AuthorizeRequestHandler
+ * @implements MapRequestHandler
+ * @implements PostMapRequestHandler
+ * @implements ProcessRequestHandler
  */
 function ViewHandler() {
     //
@@ -631,12 +634,10 @@ function queryController(requestUri) {
     }
 }
 
-/**
- * @returns ViewHandler
- * */
-ViewHandler.prototype.createInstance = function () {
-    return new ViewHandler();
-};
-
-if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') module.exports = ViewHandler.prototype.createInstance();
+if (typeof exports !== 'undefined') {
+    module.exports.ViewHandler = ViewHandler;
+    module.exports.createInstance = function() {
+        return new ViewHandler();
+    };
+}
 

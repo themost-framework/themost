@@ -26,6 +26,8 @@ var optionsProperty = Symbol('options');
 /**
  * @class
  * @constructor
+ * @implements AuthenticateRequestHandler
+ * @implements PreExecuteResultHandler
  */
 function AuthHandler() {
     //

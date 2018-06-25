@@ -11,14 +11,20 @@
 var bodyParser = require('body-parser'), jsonParser;
 var UnknownValue = require('./post').UnknownValue;
 var _ = require('lodash');
-function JsonHandler() {
 
-}
 function reviveDates(key, value){
     if (typeof value === "string" && UnknownValue.DateTimeRegex.test(value) ) {
         return new Date(value);
     }
     return value;
+}
+/**
+ * @class
+ * @constructor
+ * @implements BeginRequestHandler
+ */
+function JsonHandler() {
+
 }
 
 JsonHandler.prototype.beginRequest = function(context, callback) {
@@ -68,5 +74,6 @@ JsonHandler.prototype.beginRequest = function(context, callback) {
     }
 };
 if (typeof exports !== 'undefined') {
+    module.exports.JsonHandler = JsonHandler;
     module.exports.createInstance = function() { return  new JsonHandler();  };
 }

@@ -10,7 +10,7 @@ var TraceUtils = require('@themost/common/utils').TraceUtils;
 /**
  * @class
  * @constructor
- * @augments HttpHandler
+ * @implements AuthenticateRequestHandler
  */
 function BasicAuthHandler() {
     //
@@ -98,6 +98,7 @@ BasicAuthHandler.createInstance = function() {
 };
 
 if (typeof exports !== 'undefined') {
+    module.exports.BasicAuthHandler = BasicAuthHandler;
     module.exports.createInstance = BasicAuthHandler.createInstance;
 }
 

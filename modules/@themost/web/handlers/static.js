@@ -19,7 +19,10 @@ var _  = require('lodash');
 /**
  * Static File Handler
  * @class
- * @augments HttpHandler
+ * @implements ValidateRequestHandler
+ * @implements MapRequestHandler
+ * @implements PostMapRequestHandler
+ * @implements ProcessRequestHandler
  * @param {string=} rootDir
  * @constructor
  */

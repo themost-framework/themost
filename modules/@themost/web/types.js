@@ -89,6 +89,204 @@ HttpViewEngine.prototype.render = function(file, data, callback) {
     throw new AbstractMethodError();
 };
 
+/**
+ * @class
+ * @abstract
+ */
+// eslint-disable-next-line no-unused-vars
+function BeginRequestHandler() {
+    if (this.constructor === BeginRequestHandler.prototype.constructor) {
+        throw new AbstractClassError();
+    }
+}
+/**
+ * Occurs as the first event in the HTTP execution
+ * @param {HttpContext} context
+ * @param {Function} callback
+ */
+BeginRequestHandler.prototype.beginRequest = function (context, callback) {
+    callback = callback || function () { };
+    return callback();
+};
+
+/**
+ * @class
+ * @abstract
+ */
+// eslint-disable-next-line no-unused-vars
+function ValidateRequestHandler() {
+    if (this.constructor === ValidateRequestHandler.prototype.constructor) {
+        throw new AbstractClassError();
+    }
+}
+/**
+ * Occurs when a handler is going to validate current HTTP request.
+ * @param {HttpContext} context
+ * @param {Function} callback
+ */
+ValidateRequestHandler.prototype.validateRequest = function (context, callback) {
+    callback = callback || function () { };
+    return callback();
+};
+
+/**
+ * @class
+ * @abstract
+ */
+// eslint-disable-next-line no-unused-vars
+function AuthenticateRequestHandler() {
+    if (this.constructor === AuthenticateRequestHandler.prototype.constructor) {
+        throw new AbstractClassError();
+    }
+}
+/**
+ * Occurs when a handler is going to set current user identity.
+ * @param {HttpContext} context
+ * @param {Function} callback
+ */
+AuthenticateRequestHandler.prototype.authenticateRequest = function (context, callback) {
+    callback = callback || function () { };
+    return callback();
+};
+
+/**
+ * @class
+ * @abstract
+ */
+// eslint-disable-next-line no-unused-vars
+function AuthorizeRequestHandler() {
+    if (this.constructor === AuthorizeRequestHandler.prototype.constructor) {
+        throw new AbstractClassError();
+    }
+}
+/**
+ * Occurs when a handler has verified user authorization.
+ * @param {HttpContext} context
+ * @param {Function} callback
+ */
+AuthorizeRequestHandler.prototype.authorizeRequest = function (context, callback) {
+    callback = callback || function () { };
+    return callback();
+};
+/**
+ * @class
+ * @abstract
+ */
+// eslint-disable-next-line no-unused-vars
+function MapRequestHandler() {
+    if (this.constructor === MapRequestHandler.prototype.constructor) {
+        throw new AbstractClassError();
+    }
+}
+/**
+ * Occurs when the handler is selected to respond to the request.
+ * @param {HttpContext} context
+ * @param {Function} callback
+ */
+MapRequestHandler.prototype.mapRequest = function (context, callback) {
+    callback = callback || function () { };
+    return callback();
+};
+/**
+ * @class
+ * @abstract
+ */
+// eslint-disable-next-line no-unused-vars
+function PostMapRequestHandler() {
+    if (this.constructor === PostMapRequestHandler.prototype.constructor) {
+        throw new AbstractClassError();
+    }
+}
+
+/**
+ * Occurs when application has mapped the current request to the appropriate handler.
+ * @param {HttpContext} context
+ * @param {Function} callback
+ */
+PostMapRequestHandler.prototype.postMapRequest = function(context, callback) {
+    callback = callback || function () { };
+    return callback();
+};
+
+/**
+ * @class
+ * @abstract
+ */
+// eslint-disable-next-line no-unused-vars
+function ProcessRequestHandler() {
+    if (this.constructor === ProcessRequestHandler.prototype.constructor) {
+        throw new AbstractClassError();
+    }
+}
+/**
+ * Occurs when application starts processing current HTTP request.
+ * @param {HttpContext} context
+ * @param {Function} callback
+ */
+ProcessRequestHandler.prototype.processRequest = function (context, callback) {
+    callback = callback || function () { };
+    return callback();
+};
+
+/**
+ * @class
+ * @abstract
+ */
+// eslint-disable-next-line no-unused-vars
+function PreExecuteResultHandler() {
+    if (this.constructor === PreExecuteResultHandler.prototype.constructor) {
+        throw new AbstractClassError();
+    }
+}
+/**
+ * Occurs when application starts executing an HTTP Result.
+ * @param {HttpContext} context
+ * @param {Function} callback
+ */
+PreExecuteResultHandler.prototype.preExecuteResult = function (context, callback) {
+    callback = callback || function () { };
+    return callback();
+};
+/**
+ * @class
+ * @abstract
+ */
+// eslint-disable-next-line no-unused-vars
+function PostExecuteResultHandler() {
+    if (this.constructor === PreExecuteResultHandler.prototype.constructor) {
+        throw new AbstractClassError();
+    }
+}
+/**
+ * Occurs when application was successfully executes an HTTP Result.
+ * @param {HttpContext} context
+ * @param {Function} callback
+ */
+PostExecuteResultHandler.prototype.postExecuteResult = function (context, callback) {
+    callback = callback || function () { };
+    return callback();
+};
+
+
+/**
+ * @class
+ * @abstract
+ */
+// eslint-disable-next-line no-unused-vars
+function EndRequestHandler() {
+    if (this.constructor === EndRequestHandler.prototype.constructor) {
+        throw new AbstractClassError();
+    }
+}
+/**
+ * Occurs as the first event in the HTTP execution
+ * @param {HttpContext} context
+ * @param {Function} callback
+ */
+EndRequestHandler.prototype.beginRequest = function (context, callback) {
+    callback = callback || function () { };
+    return callback();
+};
 
 /**
  * @classdesc An abstract class that represents an HTTP Handler
@@ -254,6 +452,15 @@ if (typeof exports !== 'undefined')
 {
     module.exports.HttpApplicationService = HttpApplicationService;
     module.exports.HttpViewEngine = HttpViewEngine;
+    module.exports.BeginRequestHandler = BeginRequestHandler;
+    module.exports.AuthenticateRequestHandler = AuthenticateRequestHandler;
+    module.exports.AuthorizeRequestHandler = AuthorizeRequestHandler;
+    module.exports.MapRequestHandler = MapRequestHandler;
+    module.exports.PostMapRequestHandler = PostMapRequestHandler;
+    module.exports.ProcessRequestHandler = ProcessRequestHandler;
+    module.exports.PreExecuteResultHandler = PreExecuteResultHandler;
+    module.exports.PostExecuteResultHandler = PostExecuteResultHandler;
+    module.exports.EndRequestHandler = EndRequestHandler;
     module.exports.HttpHandler = HttpHandler;
 }
 

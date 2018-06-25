@@ -14,6 +14,7 @@
 /**
  * @class
  * @constructor
+ * @implements PostMapRequestHandler
  */
 function CorsHandler() {
 

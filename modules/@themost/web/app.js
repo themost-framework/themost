@@ -612,7 +612,7 @@ HttpApplication.prototype.executeExternalRequest = function(options,data, callba
 
 /**
  * Executes an internal process
- * @param {function(HttpContext)} fn
+ * @param {Function(HttpContext)} fn
  */
 HttpApplication.prototype.execute = function (fn) {
     var request = createRequestInternal.call(this);

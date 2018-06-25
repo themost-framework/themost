@@ -16,6 +16,7 @@ var RandomUtils = require('@themost/common/utils').RandomUtils;
 var TraceUtils = require('@themost/common/utils').TraceUtils;
 var LangUtils = require('@themost/common/utils').LangUtils;
 /**
+ * @abstract
  * @classdesc An abstract class that describes a file storage.
  * @class
  * @constructor

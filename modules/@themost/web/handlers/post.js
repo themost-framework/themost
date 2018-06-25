@@ -80,7 +80,7 @@ UnknownValue.convert = function(value) {
 /**
  * @class PostHandler
  * @constructor
- * @augments HttpHandler
+ * @implements BeginRequestHandler
  */
 function PostHandler() {
 
@@ -242,6 +242,7 @@ PostHandler.prototype.beginRequest = function(context, callback) {
 
 if (typeof exports !== 'undefined') {
     exports.UnknownValue = UnknownValue;
+    exports.PostHandler = PostHandler;
     exports.createInstance = function() {
         return new PostHandler();
     };

@@ -12,6 +12,11 @@ var fs = require("fs");
 var url = require("url");
 var path = require("path");
 
+/**
+ * @class
+ * @constructor
+ * @inherits StaticHandler
+ */
 function NodeModulesHandler() {
     NodeModulesHandler.super_.bind(this)();
 }

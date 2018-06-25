@@ -81,10 +81,10 @@ EjsEngine.prototype.getContext = function() {
 /**
  * Adds a EJS filter to filters collection.
  * @param {string} name
- * @param {Function} fn
+ * @param {Function} filterFunc
  */
-EjsEngine.prototype.filter = function(name, fn) {
-    ejs.filters[name] = fn;
+EjsEngine.prototype.filter = function(name, filterFunc) {
+    ejs.filters[name] = filterFunc;
 };
 
 /**

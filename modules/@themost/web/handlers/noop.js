@@ -9,7 +9,6 @@
 /**
  * @class
  * @constructor
- * @augments HttpHandler
  */
 function NoopHandler() {
     //
@@ -23,6 +22,7 @@ NoopHandler.createInstance = function () {
 };
 
 if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
+    module.exports.NoopHandler = NoopHandler;
     /**
      * @returns {NoopHandler}
      */

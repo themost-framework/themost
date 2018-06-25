@@ -8,6 +8,8 @@
  * Released under the BSD3-Clause license
  * Date: 2014-06-10
  */
+import {HttpRoute} from "./http-route";
+
 ///
 var pluralize = require('pluralize');
 

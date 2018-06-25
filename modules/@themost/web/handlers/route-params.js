@@ -9,8 +9,9 @@
 var _ = require('lodash');
 /**
  * Extends context parameters by adding the default context params that are defined on the current route, if any
- * @class RouteParamsHandler
+ * @class
  * @constructor
+ * @implements MapRequestHandler
  */
 function RouteParamsHandler() {
     //

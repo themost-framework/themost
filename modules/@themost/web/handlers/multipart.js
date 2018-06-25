@@ -26,6 +26,11 @@ if (process.version>="v6.0.0") {
     };
 }
 
+/**
+ * @class
+ * @constructor
+ * @implements BeginRequestHandler
+ */
 function MultipartHandler() {
 
 }
@@ -36,7 +41,7 @@ MultipartHandler.prototype.beginRequest = function(context, callback) {
     var contentType = request.headers['content-type'];
     if (/^multipart\/form-data/i.test(contentType)) {
         //use formidable to parse request data
-        var f = new formidable.IncomingForm(), web = require('../index');
+        var f = new formidable.IncomingForm();
         f.parse(request, function (err, form, files) {
             if (err) {
                 callback(err);
@@ -72,5 +77,6 @@ MultipartHandler.prototype.beginRequest = function(context, callback) {
 };
 
 if (typeof exports !== 'undefined') {
+    module.exports.MultipartHandler = MultipartHandler;
     module.exports.createInstance = function() { return  new MultipartHandler();  };
 }

@@ -58,6 +58,7 @@
     "winston": "^2.3.1"
   },
   "devDependencies": {
+    "@types/chai": "^4.1.4",
     "@types/lodash": "^4.14.88",
     "@types/node": "^8.0.54",
     "@types/q": "^1.0.6",

@@ -39,6 +39,11 @@ function caseInsensitiveHasAttribute(name) {
     return false;
 }
 
+/**
+ * @class
+ * @constructor
+ * @implements BeginRequestHandler
+ */
 function QuerystringHandler() {
     //
 }
@@ -67,5 +72,6 @@ QuerystringHandler.prototype.beginRequest = function(context, callback) {
 };
 
 if (typeof exports !== 'undefined') {
+    module.exports.QuerystringHandler = QuerystringHandler;
     module.exports.createInstance = function() { return  new QuerystringHandler();  };
 }

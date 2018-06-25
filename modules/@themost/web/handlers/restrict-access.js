@@ -41,7 +41,7 @@ function LocationSetting() {
 /**
  * @class
  * @constructor
- * @augments HttpHandler
+ * @augments AuthorizeRequestHandler
  */
 function RestrictHandler() {
     //
@@ -146,8 +146,5 @@ RestrictHandler.createInstance = function() {
 
 if (typeof exports !== 'undefined') {
     module.exports.createInstance = RestrictHandler.createInstance;
-    /**
-     * @constructs {RestrictHandler}
-     */
     module.exports.RestrictHandler = RestrictHandler;
 }

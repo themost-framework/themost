@@ -104,7 +104,7 @@ function HttpInternalProvider($context, $async, $q) {
 /**
  * @class
  * @constructor
- * @augments HttpHandler
+ * @implements PostExecuteResultHandler
  */
 function DirectiveEngine() {
     //

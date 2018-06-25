@@ -179,7 +179,7 @@ DefaulCacheStrategy.prototype.getOrDefault = function(key, fn, absoluteExpiratio
     return self.get(key).then(function(res) {
         if (_.isNil(res)) {
             var source = fn();
-            Args.check(typeof source.then === 'function', 'Invalid argument. Expected a valid observable.');
+            Args.check(typeof source !== 'undefined' && typeof source.then === 'function', 'Invalid argument. Expected a valid promise.');
             return source.then(function (res) {
                 if (_.isNil(res)) {
                     return Q();

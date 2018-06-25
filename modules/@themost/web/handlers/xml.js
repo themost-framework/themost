@@ -11,14 +11,6 @@ var raw = require('raw-body');
 var DOMParser = require('xmldom').DOMParser;
 var contentTypeParser = require('content-type');
 var _  = require('lodash');
-/**
- * @class
- * @augments HttpHandler
- * @constructor
- */
-function XmlHandler() {
-
-}
 
 function hasXmlContent(request) {
     if (typeof request.headers['content-type'] !== 'string') {
@@ -32,12 +24,21 @@ function hasXmlContent(request) {
 }
 
 /**
+ * @class
+ * @constructor
+ * @implements BeginRequestHandler
+ * @implements ValidateRequestHandler
+ */
+function XmlHandler() {
+
+}
+
+/**
  * @param {HttpContext} context
  * @param {Function} callback
  */
 XmlHandler.prototype.beginRequest = function(context, callback) {
     var request = context.request;
-    var response = context.response;
     if (hasXmlContent(request)) {
         var configurationOptions = context.getApplication().getConfiguration().getSourceAt('settings/xml');
         var options = _.assign({
@@ -66,6 +67,7 @@ XmlHandler.prototype.validateRequest = function(context, callback) {
     if (hasXmlContent(request)) {
         //validate xml
         if (typeof request.body === 'string') {
+// eslint-disable-next-line no-unused-vars
             var doc;
             var parser;
             var errors = [];
@@ -94,5 +96,8 @@ XmlHandler.prototype.validateRequest = function(context, callback) {
     return callback();
 };
 if (typeof exports !== 'undefined') {
-    module.exports = XmlHandler;
+    module.exports.XmlHandler = XmlHandler;
+    module.exports.createInstance = function() {
+        return new XmlHandler();
+    };
 }
