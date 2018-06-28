@@ -15,11 +15,10 @@ var TextUtils = require("@themost/common/utils").TextUtils;
 var mappingExtensions = require('./data-mapping-extensions');
 var DataAssociationMapping = require('./types').DataAssociationMapping;
 var DataError = require("@themost/common/errors").DataError;
-var qry = require('@themost/query');
-var QueryExpression = require('@themost/query/query').QueryExpression;
 var QueryField = require('@themost/query/query').QueryField;
+var QueryEntity = require('@themost/query/query').QueryEntity;
+var QueryUtils = require('@themost/query/utils').QueryUtils;
 var Q = require('q');
-
 
 var aliasProperty = Symbol('alias');
 
@@ -103,9 +102,9 @@ DataAttributeResolver.prototype.resolveNestedAttribute = function(attr) {
             expr = DataAttributeResolver.prototype.resolveNestedAttributeJoin.call(self.model, attr);
             //select field
             if (member.length>2)
-                select = qry.fields.select(member[member.length-1]).from(member[member.length-2]);
+                select = QueryField.select(member[member.length-1]).from(member[member.length-2]);
             else
-                select  = qry.fields.select(member[1]).from(member[0]);
+                select  = QueryField.select(member[1]).from(member[0]);
         }
         if (expr) {
             if (_.isNil(self.query.$expand)) {
@@ -180,9 +179,9 @@ DataAttributeResolver.prototype.resolveNestedAttributeJoin = function(memberExpr
              * store temp query expression
              * @type QueryExpression
              */
-            res =qry.query(self.viewAdapter).select(['*']);
-            expr = qry.query().where(qry.fields.select(childField.name).from(self[aliasProperty] || self.viewAdapter)).equal(qry.fields.select(mapping.parentField).from(mapping.childField));
-            entity = qry.entity(parentModel.viewAdapter).as(mapping.childField).left();
+            res =QueryUtils.query(self.viewAdapter).select(['*']);
+            expr = QueryUtils.query().where(QueryField.select(childField.name).from(self[aliasProperty] || self.viewAdapter)).equal(QueryField.select(mapping.parentField).from(mapping.childField));
+            entity = new QueryEntity(parentModel.viewAdapter).as(mapping.childField).left();
             res.join(entity).with(expr);
             if (arrMember.length>2) {
                 parentModel[aliasProperty] = mapping.childField;
@@ -205,9 +204,9 @@ DataAttributeResolver.prototype.resolveNestedAttributeJoin = function(memberExpr
             if (_.isNil(parentField)) {
                 throw new Error(sprintf('Referenced field (%s) cannot be found.', mapping.parentField));
             }
-            res =qry.query('Unknown').select(['*']);
-            expr = qry.query().where(qry.fields.select(parentField.name).from(self[aliasProperty] || self.viewAdapter)).equal(qry.fields.select(childField.name).from(arrMember[0]));
-            entity = qry.entity(childModel.viewAdapter).as(arrMember[0]).left();
+            res =QueryUtils.query('Unknown').select(['*']);
+            expr = QueryUtils.query().where(QueryField.select(parentField.name).from(self[aliasProperty] || self.viewAdapter)).equal(QueryField.select(childField.name).from(arrMember[0]));
+            entity = new QueryEntity(childModel.viewAdapter).as(arrMember[0]).left();
             res.join(entity).with(expr);
             return res.$expand;
         }
@@ -435,20 +434,20 @@ DataAttributeResolver.prototype.resolveJunctionAttributeJoin = function(attr) {
             if (typeof mapping.childModel === 'undefined') {
                 parentField = "object"; valueField = "value"
             }
-            q =qry.query(self.viewAdapter).select(['*']);
+            q =QueryUtils.query(self.viewAdapter).select(['*']);
             //init an entity based on association adapter (e.g. GroupMembers as members)
-            entity = qry.entity(mapping.associationAdapter).as(field.name);
+            entity = new QueryEntity(mapping.associationAdapter).as(field.name);
             //init join expression between association adapter and current data model
             //e.g. Group.id = GroupMembers.parentId
-            expr = qry.query().where(qry.fields.select(mapping.parentField).from(self.viewAdapter))
-                    .equal(qry.fields.select(parentField).from(field.name));
+            expr = QueryUtils.query().where(QueryField.select(mapping.parentField).from(self.viewAdapter))
+                    .equal(QueryField.select(parentField).from(field.name));
             //append join
             q.join(entity).with(expr);
             //data object tagging
             if (typeof mapping.childModel === 'undefined') {
                 return {
                     $expand:[q.$expand],
-                    $select:qry.fields.select(valueField).from(field.name)
+                    $select:QueryField.select(valueField).from(field.name)
                 }
             }
 
@@ -456,7 +455,7 @@ DataAttributeResolver.prototype.resolveJunctionAttributeJoin = function(attr) {
             if (member[1] === mapping.childField) {
                 return {
                     $expand:[q.$expand],
-                    $select:qry.fields.select(valueField).from(field.name)
+                    $select:QueryField.select(valueField).from(field.name)
                 }
             }
             else {
@@ -467,33 +466,33 @@ DataAttributeResolver.prototype.resolveJunctionAttributeJoin = function(attr) {
                 }
                 //create new join
                 var alias = field.name + "_" + childModel.name;
-                entity = qry.entity(childModel.viewAdapter).as(alias);
-                expr = qry.query().where(qry.fields.select("valueId").from(field.name))
-                    .equal(qry.fields.select(mapping.childField).from(alias));
+                entity = new QueryEntity(childModel.viewAdapter).as(alias);
+                expr = QueryUtils.query().where(QueryField.select("valueId").from(field.name))
+                    .equal(QueryField.select(mapping.childField).from(alias));
                 //append join
                 q.join(entity).with(expr);
                 return {
                     $expand:q.$expand,
-                    $select:qry.fields.select(member[1]).from(alias)
+                    $select:QueryField.select(member[1]).from(alias)
                 }
             }
         }
         else {
-            q =qry.query(self.viewAdapter).select(['*']);
+            q =QueryUtils.query(self.viewAdapter).select(['*']);
             //the underlying model is the child model
             //init an entity based on association adapter (e.g. GroupMembers as groups)
-            entity = qry.entity(mapping.associationAdapter).as(field.name);
+            entity = new QueryEntity(mapping.associationAdapter).as(field.name);
             //init join expression between association adapter and current data model
             //e.g. Group.id = GroupMembers.parentId
-            expr = qry.query().where(qry.fields.select(mapping.childField).from(self.viewAdapter))
-                .equal(qry.fields.select("valueId").from(field.name));
+            expr = QueryUtils.query().where(QueryField.select(mapping.childField).from(self.viewAdapter))
+                .equal(QueryField.select("valueId").from(field.name));
             //append join
             q.join(entity).with(expr);
             //return the resolved attribute for futher proccesing e.g. members.id
             if (member[1] === mapping.parentField) {
                 return {
                     $expand:[q.$expand],
-                    $select:qry.fields.select("parentId").from(field.name)
+                    $select:QueryField.select("parentId").from(field.name)
                 }
             }
             else {
@@ -504,14 +503,14 @@ DataAttributeResolver.prototype.resolveJunctionAttributeJoin = function(attr) {
                 }
                 //create new join
                 var parentAlias = field.name + "_" + parentModel.name;
-                entity = qry.entity(parentModel.viewAdapter).as(parentAlias);
-                expr = qry.query().where(qry.fields.select("parentId").from(field.name))
-                    .equal(qry.fields.select(mapping.parentField).from(parentAlias));
+                entity = new QueryEntity(parentModel.viewAdapter).as(parentAlias);
+                expr = QueryUtils.query().where(QueryField.select("parentId").from(field.name))
+                    .equal(QueryField.select(mapping.parentField).from(parentAlias));
                 //append join
                 q.join(entity).with(expr);
                 return {
                     $expand:q.$expand,
-                    $select:qry.fields.select(member[1]).from(parentAlias)
+                    $select:QueryField.select(member[1]).from(parentAlias)
                 }
             }
         }
@@ -557,7 +556,7 @@ function DataQueryable(model) {
             if (!m) {
                 return null;
             }
-            q = qry.query(m.viewAdapter);
+            q = QueryUtils.query(m.viewAdapter);
         }
         return q;
     }, configurable:false, enumerable:false});
@@ -730,12 +729,12 @@ DataQueryable.prototype.join = function(model)
     if (arr.length===0)
         throw new Error(sprintf("An internal error occurred. The association between %s and %s cannot be found", this.model.name ,model));
     var mapping = self.model.inferMapping(arr[0].name);
-    var expr = qry.query();
+    var expr = QueryUtils.query();
     expr.where(self.fieldOf(mapping.childField)).equal(joinModel.fieldOf(mapping.parentField));
     /**
      * @type DataAssociationMapping
      */
-    var entity = qry.entity(joinModel.viewAdapter).left();
+    var entity = new QueryEntity(joinModel.viewAdapter).left();
     //set join entity (without alias and join type)
     self.select().query.join(entity).with(expr);
     return self;
@@ -1423,7 +1422,7 @@ DataQueryable.prototype.fieldOf = function(attr, alias) {
                 /**
                  * @type {Function}
                  */
-                var fn = qry.fields[aggr];
+                var fn = QueryField[aggr];
                 //return query field
                 return fn(nestedAttr.$name).as(alias);
             }
@@ -1440,15 +1439,15 @@ DataQueryable.prototype.fieldOf = function(attr, alias) {
             }
         }
         if (aggr==='count')
-            return qry.fields.count(field.name).from(this.model.viewAdapter).as(alias);
+            return QueryField.count(field.name).from(this.model.viewAdapter).as(alias);
         else if (aggr==='avg')
-            return qry.fields.average(field.name).from(this.model.viewAdapter).as(alias);
+            return QueryField.average(field.name).from(this.model.viewAdapter).as(alias);
         else if (aggr==='sum')
-            return qry.fields.sum(field.name).from(this.model.viewAdapter).as(alias);
+            return QueryField.sum(field.name).from(this.model.viewAdapter).as(alias);
         else if (aggr==='min')
-            return qry.fields.min(field.name).from(this.model.viewAdapter).as(alias);
+            return QueryField.min(field.name).from(this.model.viewAdapter).as(alias);
         else if (aggr==='max')
-            return qry.fields.max(field.name).from(this.model.viewAdapter).as(alias);
+            return QueryField.max(field.name).from(this.model.viewAdapter).as(alias);
     }
     else {
         matches = /(\w+)\((.*?)\)/i.exec(attr);
@@ -1465,7 +1464,7 @@ DataQueryable.prototype.fieldOf = function(attr, alias) {
                 }
             }
             prop = alias || field.property || field.name;
-            res[prop] = { }; res[prop]['$' + aggr] = [ qry.fields.select(field.name).from(this.model.viewAdapter) ];
+            res[prop] = { }; res[prop]['$' + aggr] = [ QueryField.select(field.name).from(this.model.viewAdapter) ];
             return res;
         }
         else {
@@ -1477,14 +1476,14 @@ DataQueryable.prototype.fieldOf = function(attr, alias) {
                     throw new Error(sprintf('The specified field %s cannot be found in target model.', attr));
                 alias = matches[2];
                 prop = alias || field.property || field.name;
-                return qry.fields.select(field.name).from(this.model.viewAdapter).as(prop);
+                return QueryField.select(field.name).from(this.model.viewAdapter).as(prop);
             }
             else {
                 //try to match field with expression [field] as [alias] or [nested]/[field] as [alias]
                 field = this.model.field(attr);
                 if (typeof  field === 'undefined' || field === null)
                     throw new Error(sprintf('The specified field %s cannot be found in target model.', attr));
-                var f = qry.fields.select(field.name).from(this.model.viewAdapter);
+                var f = QueryField.select(field.name).from(this.model.viewAdapter);
                 if (alias) {
                     return f.as(alias);
                 }
@@ -2180,7 +2179,7 @@ DataQueryable.prototype.postExecute = function(result, callback) {
                     for (var i = 0; i < selected.length; i++) {
                         var x = selected[i];
                         var hiddenField = hiddens.find(function(y) {
-                            var f = x instanceof qry.classes.QueryField ? x : new qry.classes.QueryField(x);
+                            var f = x instanceof QueryField ? x : new QueryField(x);
                             return f.name() === y.name;
                         });
                         if (hiddenField) {
@@ -2194,7 +2193,7 @@ DataQueryable.prototype.postExecute = function(result, callback) {
                     selected.forEach(function(x) {
                         //get field
                         var field = expandables.find(function(y) {
-                            var f = x instanceof qry.classes.QueryField ? x : new qry.classes.QueryField(x);
+                            var f = x instanceof QueryField ? x : new QueryField(x);
                             return f.name() === y.name;
                         });
                         //add expandable models

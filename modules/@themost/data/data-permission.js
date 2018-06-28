@@ -7,7 +7,8 @@
  * found in the LICENSE file at https://themost.io/license
  */
 ///
-var qry = require('@themost/query');
+var QueryEntity = require('@themost/query/query').QueryEntity;
+var QueryUtils = require('@themost/query/utils').QueryUtils;
 var async = require('async');
 var AccessDeniedError = require("@themost/common/errors").AccessDeniedError;
 var RandomUtils = require("@themost/common/utils").RandomUtils;
@@ -70,32 +71,40 @@ function DataPermissionEventArgs() {
  * An enumeration of the available permission masks
  * @enum {number}
  */
-var PermissionMask = {
-    /**
-     * Read Access Mask (1)
-     */
-    Read:1,
-    /**
-     * Create Access Mask (2)
-     */
-    Create:2,
-    /**
-     * Update Access Mask (4)
-     */
-    Update:4,
-    /**
-     * Delete Access Mask (8)
-     */
-    Delete:8,
-    /**
-     * Execute Access Mask (16)
-     */
-    Execute:16,
-    /**
-     * Full Access Mask (31)
-     */
-    Owner:31
-};
+function PermissionMask() {
+
+}
+
+/**
+ * Read Access Mask (1)
+ * @type {number}
+ */
+PermissionMask.Read = 1;
+/**
+ * Create Access Mask (2)
+ * @type {number}
+ */
+PermissionMask.Create = 2;
+/**
+ * Update Access Mask (4)
+ * @type {number}
+ */
+PermissionMask.Update = 4;
+/**
+ * Delete Access Mask (8)
+ * @type {number}
+ */
+PermissionMask.Delete = 8;
+/**
+ * Execute Access Mask (16)
+ * @type {number}
+ */
+PermissionMask.Execute = 16;
+/**
+ * Full Access Mask (31)
+ * @type {number}
+ */
+PermissionMask.Owner = 31;
 
 /**
  * @class
@@ -341,7 +350,7 @@ DataPermissionEventListener.prototype.validate = function(event, callback) {
                 }
                 else if (item.type==='self') {
                     if (requestMask===PermissionMask.Create) {
-                        var query = qry.query(model.viewAdapter);
+                        var query = QueryUtils.query(model.viewAdapter);
                         var fields=[], field;
                         //cast target
                         var name, obj = event.target;
@@ -676,8 +685,8 @@ DataPermissionEventListener.prototype.beforeExecute = function(event, callback)
                 return !x.disabled && ((x.mask & requestMask) === requestMask);
             });
 
-            var cancel = false, assigned = false, entity = qry.entity(model.viewAdapter), expand = null,
-                perms1 = qry.entity(permissions.viewAdapter).as('p0'), expr = null;
+            var cancel = false, assigned = false, entity = new QueryEntity(model.viewAdapter), expand = null,
+                perms1 = new QueryEntity(permissions.viewAdapter).as('p0'), expr = null;
             async.eachSeries(privileges, function(item, cb) {
                 if (cancel) {
                     return cb();
@@ -722,7 +731,7 @@ DataPermissionEventListener.prototype.beforeExecute = function(event, callback)
                             return cb();
                         }
                         if (_.isNil(expr))
-                            expr = qry.query();
+                            expr = QueryUtils.query();
                         expr.where(entity.select(mapping.childField)).equal(perms1.select('target')).
                             and(perms1.select('privilege')).equal(mapping.childModel).
                             and(perms1.select('parentPrivilege')).equal(mapping.parentModel).
@@ -734,7 +743,7 @@ DataPermissionEventListener.prototype.beforeExecute = function(event, callback)
                     }
                     else if (item.type==='item') {
                         if (_.isNil(expr))
-                            expr = qry.query();
+                            expr = QueryUtils.query();
                         expr.where(entity.select(model.primaryKey)).equal(perms1.select('target')).
                             and(perms1.select('privilege')).equal(model.name).
                             and(perms1.select('parentPrivilege')).equal(null).
@@ -753,7 +762,7 @@ DataPermissionEventListener.prototype.beforeExecute = function(event, callback)
                                 else {
                                     if (q.query.$prepared) {
                                         if (_.isNil(expr))
-                                            expr = qry.query();
+                                            expr = QueryUtils.query();
                                         expr.$where = q.query.$prepared;
                                         if (q.query.$expand) { expand = q.query.$expand; }
                                         expr.prepare(true);
@@ -793,7 +802,7 @@ DataPermissionEventListener.prototype.beforeExecute = function(event, callback)
                 else if (expr) {
                     return context.model("Permission").migrate(function(err) {
                         if (err) { return callback(err); }
-                        var q = qry.query(model.viewAdapter).select([model.primaryKey]).distinct();
+                        var q = QueryUtils.query(model.viewAdapter).select([model.primaryKey]).distinct();
                         if (expand) {
                             var arrExpand=[].concat(expand);
                             _.forEach(arrExpand, function(x){
@@ -802,7 +811,7 @@ DataPermissionEventListener.prototype.beforeExecute = function(event, callback)
                         }
                         q.join(perms1).with(expr);
                         var pqAlias = 'pq' + RandomUtils.randomInt(100000,999999).toString();
-                        event.query.join(q.as(pqAlias)).with(qry.where(entity.select(model.primaryKey)).equal(qry.entity(pqAlias).select(model.primaryKey)));
+                        event.query.join(q.as(pqAlias)).with(QueryUtils.where(entity.select(model.primaryKey)).equal(new QueryEntity(pqAlias).select(model.primaryKey)));
                         return callback();
                     });
                 }

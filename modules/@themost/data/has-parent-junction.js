@@ -10,7 +10,7 @@
 var LangUtils = require('@themost/common/utils').LangUtils;
 var _ = require('lodash');
 var async = require('async');
-var qry = require('@themost/query');
+var QueryField = require('@themost/query/query').QueryField;
 var DataAssociationMapping = require('./types').DataAssociationMapping;
 var DataConfigurationStrategy = require('./data-configuration').DataConfigurationStrategy;
 var DataQueryable = require('./data-queryable').DataQueryable;
@@ -153,11 +153,11 @@ function HasParentJunction(obj, association) {
     this.query.select(relatedModel.attributes.filter(function(x) {
         return !x.many;
     }).map(function(x) {
-        return qry.fields.select(x.name).from(adapter);
+        return QueryField.select(x.name).from(adapter);
     }));
     var associationAdapter = self.mapping.associationAdapter,
-        parentField = qry.fields.select('parentId').from(associationAdapter).$name,
-        childField = qry.fields.select('valueId').from(associationAdapter).$name;
+        parentField = QueryField.select('parentId').from(associationAdapter).name(),
+        childField = QueryField.select('valueId').from(associationAdapter).name();
     left[adapter] = [ this.mapping.parentField ];
     right[associationAdapter] = [parentField];
     this.query.join(this.mapping.associationAdapter, []).with([left, right]).where(childField).equal(obj[this.mapping.childField]).prepare();

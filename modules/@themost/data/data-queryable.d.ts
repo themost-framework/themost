@@ -1,8 +1,7 @@
 import {DataModel} from "./data-model";
 import {DataContextEmitter} from "./types";
 
-export declare class DataQueryable extends DataContextEmitter {
-    constructor(model: DataModel);
+export declare class DataQueryable implements DataContextEmitter {
     readonly model: DataModel;
     clone(): DataQueryable;
     where(attr: string): DataQueryable;
@@ -79,4 +78,6 @@ export declare class DataQueryable extends DataContextEmitter {
     levels(n:number): DataQueryable;
     getLevels(): number;
     toExpand(): string;
+
+    ensureContext: void;
 }

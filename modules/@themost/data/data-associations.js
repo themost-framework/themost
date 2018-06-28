@@ -259,9 +259,6 @@ DataObjectAssociationListener.prototype.afterSave = function(event, callback) {
 if (typeof exports !== 'undefined')
 {
     module.exports = {
-        /**
-         * @constructs DataObjectAssociationListener
-         */
         DataObjectAssociationListener:DataObjectAssociationListener
     };
 }

@@ -6,7 +6,7 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-
+///
 var _ = require('lodash');
 /**
  * @class
@@ -257,31 +257,29 @@ MethodCallExpression.prototype.exprOf = function() {
 
 };
 
-var Operators = {
-    Not:'$not',
-    // Multiplicative
-    Mul:'$mul',
-    Div:'$div',
-    Mod:'$mod',
-    // Additive
-    Add:'$add',
-    Sub:'$sub',
-    // Relational and type testing
-    Lt:'$lt',
-    Gt:'$gt',
-    Le:'$lte',
-    Ge:'$gte',
-    // Equality
-    Eq:'$eq',
-    Ne:'$ne',
-    // In Values
-    In:'$in',
-    NotIn:'$nin',
-    // Conditional AND
-    And:'$and',
-    // Conditional OR
-    Or:'$or'
-};
+/**
+ * @enum
+ */
+function Operators() {
+
+}
+
+Operators.Not = '$not';
+Operators.Mul = '$mul';
+Operators.Div = '$div';
+Operators.Mod = '$mod';
+Operators.Add = '$add';
+Operators.Sub = '$sub';
+Operators.Lt = '$lt';
+Operators.Gt = '$gt';
+Operators.Le = '$lte';
+Operators.Ge = '$gte';
+Operators.Eq = '$eq';
+Operators.Ne = '$ne';
+Operators.In = '$in';
+Operators.NotIn = '$nin';
+Operators.And = '$and';
+Operators.Or = '$or';
 
 if (typeof exports !== 'undefined')
 {

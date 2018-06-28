@@ -8,7 +8,9 @@
  */
 ///
 var _ = require('lodash');
-var qry = require('@themost/query');
+var QueryUtils = require('@themost/query/utils').QueryUtils;
+var QueryEntity = require('@themost/query/query').QueryEntity;
+var QueryField = require('@themost/query/query').QueryField;
 var Q = require('q');
 
 
@@ -159,21 +161,21 @@ var mappingExtensions = {
                         parentModel.filter(mapping.options, function(err, q) {
                             if (err) { return deferred.reject(err); }
                             //get junction sub-query
-                            var junctionQuery = qry.query(junction.getBaseModel().name).select(["parentId", "valueId"])
+                            var junctionQuery = QueryUtils.query(junction.getBaseModel().name).select(["parentId", "valueId"])
                                 .join(thisQueryable.query.as("j0"))
-                                .with(qry.where(qry.entity(junction.getBaseModel().name).select("valueId"))
-                                    .equal(qry.entity("j0").select(mapping.childField)));
+                                .with(QueryUtils.where(new QueryEntity(junction.getBaseModel().name).select("valueId"))
+                                    .equal(new QueryEntity("j0").select(mapping.childField)));
                             //append join statement with sub-query
                             q.query.join(junctionQuery.as("g0"))
-                                .with(qry.where(qry.entity(parentModel.viewAdapter).select(mapping.parentField))
-                                    .equal(qry.entity("g0").select("parentId")));
+                                .with(QueryUtils.where(new QueryEntity(parentModel.viewAdapter).select(mapping.parentField))
+                                    .equal(new QueryEntity("g0").select("parentId")));
                             if (!q.query.hasFields()) {
                                 q.select();
                             }
                             //inherit silent mode
                             if (thisQueryable.$silent)  { q.silent(); }
                             //append child key field
-                            q.alsoSelect(qry.fields.select("valueId").from("g0").as("ref__"));
+                            q.alsoSelect(QueryField.select("valueId").from("g0").as("ref__"));
                             return q.getItems().then(function (parents) {
                                 _.forEach(arr, function(x) {
                                     x[mapping.refersTo] = _.filter(parents, function(y) {
@@ -322,19 +324,19 @@ var mappingExtensions = {
                                 q.select();
                             }
                             //get junction sub-query
-                            var junctionQuery = qry.query(junction.getBaseModel().name).select(["parentId", "valueId"])
+                            var junctionQuery = QueryUtils.query(junction.getBaseModel().name).select(["parentId", "valueId"])
                                 .join(thisQueryable.query.as("j0"))
-                                .with(qry.where(qry.entity(junction.getBaseModel().name).select("parentId"))
-                                    .equal(qry.entity("j0").select(mapping.parentField)));
+                                .with(QueryUtils.where(new QueryEntity(junction.getBaseModel().name).select("parentId"))
+                                    .equal(new QueryEntity("j0").select(mapping.parentField)));
                             //append join statement with sub-query
                             q.query.join(junctionQuery.as("g0"))
-                                .with(qry.where(qry.entity(childModel.viewAdapter).select(mapping.childField))
-                                    .equal(qry.entity("g0").select("valueId")));
+                                .with(QueryUtils.where(new QueryEntity(childModel.viewAdapter).select(mapping.childField))
+                                    .equal(new QueryEntity("g0").select("valueId")));
 
                             //inherit silent mode
                             if (thisQueryable.$silent)  { q.silent(); }
                             //append item reference
-                            q.alsoSelect(qry.fields.select("parentId").from("g0").as("ref__"));
+                            q.alsoSelect(QueryField.select("parentId").from("g0").as("ref__"));
                             return q.getItems().then(function (childs) {
                                 _.forEach(arr, function(x) {
                                     x[mapping.refersTo] = _.filter(childs, function(y) {
@@ -390,8 +392,8 @@ var mappingExtensions = {
                             q.query
                                .distinct()
                                .join(thisQueryable.query.as('j0'))
-                               .with(qry.where(qry.entity(thisArg.getParentModel().viewAdapter).select(mapping.parentField))
-                                   .equal(qry.entity("j0").select(mapping.childField)));
+                               .with(QueryUtils.where(new QueryEntity(thisArg.getParentModel().viewAdapter).select(mapping.parentField))
+                                   .equal(new QueryEntity("j0").select(mapping.childField)));
                             //inherit silent mode
                             if (thisQueryable.$silent)  { q.silent(); }
                             q.silent().getAllItems().then(function(parents) {
@@ -621,8 +623,8 @@ var mappingExtensions = {
                             if (thisQueryable.$silent)  { q.silent(); }
                             //join parents
                             q.query.join(thisQueryable.query.as("j0"))
-                                .with(qry.where(qry.entity(thisArg.getChildModel().viewAdapter).select(mapping.childField))
-                                    .equal(qry.entity("j0").select(mapping.parentField)));
+                                .with(QueryUtils.where(new QueryEntity(thisArg.getChildModel().viewAdapter).select(mapping.childField))
+                                    .equal(new QueryEntity("j0").select(mapping.parentField)));
                             q.prepare();
                             //final execute query
                             return q.getItems().then(function(childs) {

@@ -10,7 +10,7 @@
 var LangUtils = require('@themost/common/utils').LangUtils;
 var _ = require('lodash');
 var async = require('async');
-var qry = require('@themost/query');
+var QueryField = require('@themost/query/query').QueryField;
 var DataAssociationMapping = require('./types').DataAssociationMapping;
 var DataQueryable = require('./data-queryable').DataQueryable;
 var DataConfigurationStrategy = require('./data-configuration').DataConfigurationStrategy;
@@ -151,7 +151,7 @@ function DataObjectJunction(obj, association) {
     this.query.select(relatedModel.attributes.filter(function(x) {
         return !x.many;
     }).map(function(x) {
-        return qry.fields.select(x.name).from(adapter);
+        return QueryField.select(x.name).from(adapter);
     }));
     var baseModel;
     Object.defineProperty(this, 'baseModel', {
@@ -225,8 +225,8 @@ function DataObjectJunction(obj, association) {
 
     left[adapter] = [ relatedModel.primaryKey ];
     var baseAdapter = this.getBaseModel().viewAdapter;
-    right[baseAdapter] = [qry.fields.select(DataObjectJunction.STR_VALUE_FIELD).from(baseAdapter).$name];
-    var field1 = qry.fields.select(DataObjectJunction.STR_OBJECT_FIELD).from(baseAdapter).$name;
+    right[baseAdapter] = [QueryField.select(DataObjectJunction.STR_VALUE_FIELD).from(baseAdapter).name()];
+    var field1 = QueryField.select(DataObjectJunction.STR_OBJECT_FIELD).from(baseAdapter).name();
     this.query.join(baseAdapter, []).with([left, right]).where(field1).equal(obj[this.mapping.parentField]).prepare();
 
 

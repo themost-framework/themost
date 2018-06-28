@@ -13,10 +13,9 @@ var Symbol = require('symbol');
 var path = require("path");
 var pluralize = require("pluralize");
 var async = require('async');
-var qry = require('@themost/query');
+var QueryUtils = require('@themost/query/utils').QueryUtils;
 var OpenDataParser = require('@themost/query/odata').OpenDataParser;
 var types = require('./types');
-var parseBoolean = require('./types').parsers.parseBoolean;
 var DataAssociationMapping = require('./types').DataAssociationMapping;
 var dataListeners = require('./data-listeners');
 var validators = require('./data-validator');
@@ -335,7 +334,6 @@ function DataModel(obj) {
         return silent_;
     }, enumerable: false, configurable: false});
 
-    var pluralExpression = /([a-zA-Z]+?)([e']s|[^aiou]s)$/;
     /**
      * @type {Array}
      */
@@ -362,7 +360,7 @@ function DataModel(obj) {
             if (typeof x.many === 'undefined') {
                 if (typeof strategy.dataTypes[x.type] === 'undefined')
                     //set one-to-many attribute (based on a naming convention)
-                    x.many = pluralExpression.test(x.name) || (x.mapping && x.mapping.associationType === 'junction');
+                    x.many = pluralize.isPlural(x.name) || (x.mapping && x.mapping.associationType === 'junction');
                 else
                     //otherwise set one-to-many attribute to false
                     x.many = false;
@@ -401,19 +399,21 @@ function DataModel(obj) {
                 }
                 else {
                     //try to find primary key in fields collection
-                    var primaryKeyField = _.find(self.fields, function(y) {
+                    var primaryKey = _.find(self.fields, function(y) {
                         return y.name === x.name;
                     });
-                    if (typeof primaryKeyField === 'undefined') {
+                    if (typeof primaryKey === 'undefined') {
                         //add primary key field
-                        primaryKeyField = _.assign({}, x, {
+                        primaryKey = _.assign({}, x, {
                             "type": x.type === 'Counter' ? 'Integer' : x.type,
                             "model": self.name,
-                            "indexed": true
+                            "indexed": true,
+                            "value": null,
+                            "calculation": null
                         });
-                        delete primaryKeyField.value;
-                        delete primaryKeyField.calculation;
-                        attributes.push(primaryKeyField);
+                        delete primaryKey.value;
+                        delete primaryKey.calculation;
+                        attributes.push(primaryKey);
                     }
                 }
             });
@@ -1716,7 +1716,7 @@ function saveBaseObject_(obj, callback) {
     var self = this,
         NotNullConstraintListener = dataListeners.NotNullConstraintListener,
         DataValidatorListener = validators.DataValidatorListener,
-        UniqueContraintListener = dataListeners.UniqueContraintListener;
+        UniqueConstraintListener = dataListeners.UniqueConstraintListener;
     callback = callback || function() {};
     if (obj==null) {
         callback.call(self);
@@ -1745,7 +1745,7 @@ function saveBaseObject_(obj, callback) {
     //register data association listener
     self.once('after.save', DataObjectAssociationListener.prototype.afterSave);
     //register unique constraint listener at the end of listeners collection (before emit)
-    self.once('before.save', UniqueContraintListener.prototype.beforeSave);
+    self.once('before.save', UniqueConstraintListener.prototype.beforeSave);
     //register data validators at the end of listeners collection (before emit)
     self.once('before.save', DataValidatorListener.prototype.beforeSave);
     //register not null listener at the end of listeners collection (before emit)
@@ -1778,14 +1778,14 @@ function saveBaseObject_(obj, callback) {
                 var q = null, key = target[self.primaryKey];
                 if (e.state===1)
                     //create insert statement
-                    q = qry.insert(target).into(self.sourceAdapter);
+                    q = QueryUtils.insert(target).into(self.sourceAdapter);
                 else
                 {
                     //create update statement
                     if (key)
                         delete target[self.primaryKey];
                     if (Object.keys(target).length>0)
-                        q = qry.update(self.sourceAdapter).set(target).where(self.primaryKey).equal(e.target[self.primaryKey]);
+                        q = QueryUtils.update(self.sourceAdapter).set(target).where(self.primaryKey).equal(e.target[self.primaryKey]);
                     else
                         //object does not have any properties other than primary key. do nothing
                         q = new EmptyQueryExpression();
@@ -2095,7 +2095,7 @@ DataModel.prototype.remove = function(obj, callback)
         //get db context
         var db = self.context.db;
         //create delete query
-        var q = qry.deleteFrom(self.sourceAdapter).where(self.primaryKey).equal(obj[self.primaryKey]);
+        var q = QueryUtils.delete(self.sourceAdapter).where(self.primaryKey).equal(obj[self.primaryKey]);
         //execute delete query
         db.execute(q, null, function(err) {
             if (err) {
@@ -2463,9 +2463,7 @@ function inferDefaultMapping(conf, name) {
         }
     }
     else {
-
-        var re = new RegExp(DataModel.PluralExpression.source);
-        var many = _.isBoolean(field.many) ? field.many : re.test(field.name);
+        var many = _.isBoolean(field.many) ? field.many : pluralize.isPlural(field.name);
         if (many) {
             //return a data junction
             return new DataAssociationMapping({

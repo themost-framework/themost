@@ -395,7 +395,6 @@ functions.user = function(e, callback) {
     var userModel = e.model.context.model('User');
     userModel.where('name').equal(user.name).silent().select('id','name').first(function(err, result) {
         if (err) {
-            console.log(err);
             callback();
         }
         else {

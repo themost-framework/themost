@@ -10,8 +10,7 @@ var sprintf = require('sprintf').sprintf;
 var _ = require('lodash');
 // eslint-disable-next-line no-unused-vars
 //noinspection JSUnusedLocalSymbols
-var natives = require('./natives');
-var Symbol = require('symbol');
+require('./natives');
 /**
  * @class
  * @constructor
@@ -1506,11 +1505,12 @@ QueryField.prototype.count = function(name) {
     return this;
 };
 /**
- * @param {...string} [strings]
- * @return {string}
+ * @param {...string} str
+ * @return {QueryField}
  */
-QueryField.prototype.concat = function(strings) {
-    return this.$name.concat(strings)
+QueryField.prototype.concat = function(str) {
+    this.$name.concat.apply(this.$name, Array.prototype.slice.call(arguments));
+    return this;
 };
 
 QueryField.prototype.sum = function(name) {
@@ -1672,10 +1672,185 @@ QueryField.average = function(name) {
  * @param name {string}
  * @returns {QueryField}
  */
+QueryField.avg = function(name) {
+    var f = new QueryField();
+    return f.average(name);
+};
+/**
+ * @param name {string}
+ * @returns {QueryField}
+ */
 QueryField.sum = function(name) {
     var f = new QueryField();
     return f.sum(name);
 };
+/**
+ * @param {string} name
+ * @returns QueryField
+ */
+QueryField.floor = function(name) {
+    var f = { };
+    f[name] = { $floor:[ QueryField.select(name) ] };
+    return _.assign(new QueryField(), f);
+};
+
+/**
+ * @param name {string}
+ * @returns {QueryField}
+ */
+QueryField.ceil = function(name) {
+    var f = { };
+    f[name] = { $ceiling:[ QueryField.select(name) ] };
+    return _.assign(new QueryField(), f);
+};
+
+/**
+ * @param {string} name
+ * @param {number|*} divider
+ * @returns {QueryField}
+ */
+QueryField.modulo = function(name, divider) {
+    var f = { };
+    f[name] = { $mod:[ QueryField.select(name), divider ] };
+    return _.assign(new QueryField(), f);
+};
+
+/**
+ * @param {string} name
+ * @param {number|*} x
+ * @returns {QueryField}
+ */
+QueryField.add = function(name, x) {
+    var f = { };
+    f[name] = { $add:[ QueryField.select(name), x ] };
+    return _.assign(new QueryField(), f);
+};
+/**
+ * @param {string} name
+ * @param {number|*} x
+ * @returns {QueryField}
+ */
+QueryField.subtract = function(name, x) {
+    var f = { };
+    f[name] = { $subtract:[ QueryField.select(name), x ] };
+    return _.assign(new QueryField(), f);
+};
+
+/**
+ * @param {string} name
+ * @param {number|*} divider
+ * @returns {QueryField}
+ */
+QueryField.divide = function(name, divider) {
+    var f = { };
+    f[name] = { $divide:[ QueryField.select(name), divider ] };
+    return _.assign(new QueryField(), f);
+};
+/**
+ * @param {string} name
+ * @param {number|*} multiplier
+ * @returns {QueryField}
+ */
+QueryField.multiply = function(name, multiplier) {
+    var f = { };
+    f[name] = { $multiply:[ QueryField.select(name), multiplier ] };
+    return _.assign(new QueryField(), f);
+};
+
+/**
+ * @param {string} name
+ * @param {number=} n
+ * @returns {QueryField}
+ */
+QueryField.round = function(name, n) {
+    var f = { };
+    f[name] = { $round:[ QueryField.select(name), typeof n !== 'number' ? n : 2 ] };
+    return _.assign(new QueryField(), f);
+};
+
+/**
+ * @param name {string}
+ * @returns {QueryField}
+ */
+QueryField.strLength = function(name) {
+    var f = { };
+    f[name] = { $length:[ QueryField.select(name) ] };
+    return _.assign(new QueryField(), f);
+};
+/**
+ * @param name {string}
+ * @returns {QueryField}
+ */
+QueryField.trim = function(name) {
+    var f = { };
+    f[name] = { $trim:[ QueryField.select(name) ] };
+    return _.assign(new QueryField(), f);
+};
+/**
+ * @param name {string}
+ * @returns {QueryField}
+ */
+QueryField.year = function(name) {
+    var f = { };
+    f[name] = { $year:[ QueryField.select(name) ] };
+    return _.assign(new QueryField(), f);
+};
+/**
+ * @param name {string}
+ * @returns {QueryField}
+ */
+QueryField.day = function(name) {
+    var f = { };
+    f[name] = { $day:[ QueryField.select(name) ] };
+    return _.assign(new QueryField(), f);
+};
+/**
+ * @param name {string}
+ * @returns {QueryField}
+ */
+QueryField.date = function(name) {
+    var f = { };
+    f[name] = { $date:[ QueryField.select(name) ] };
+    return _.assign(new QueryField(), f);
+};
+/**
+ * @param name {string}
+ * @returns {QueryField}
+ */
+QueryField.hour = function(name) {
+    var f = { };
+    f[name] = { $hour:[ QueryField.select(name) ] };
+    return _.assign(new QueryField(), f);
+};
+/**
+ * @param name {string}
+ * @returns {QueryField}
+ */
+QueryField.minute = function(name) {
+    var f = { };
+    f[name] = { $minute:[ QueryField.select(name) ] };
+    return _.assign(new QueryField(), f);
+};
+/**
+ * @param name {string}
+ * @returns {QueryField}
+ */
+QueryField.second = function(name) {
+    var f = { };
+    f[name] = { $second:[ QueryField.select(name) ] };
+    return _.assign(new QueryField(), f);
+};
+
+/**
+ * @param name {string}
+ * @returns {QueryField}
+ */
+QueryField.month = function(name) {
+    var f = { };
+    f[name] = { $month:[ QueryField.select(name) ] };
+    return _.assign(new QueryField(), f);
+};
+
 /**
  * @class QueryFieldComparer
  * @constructor
@@ -1798,15 +1973,18 @@ OpenDataQuery.prototype.append = function() {
 };
 
 /**
- * @param {Array|String} attr
+ * @param {...string} attr
  * @returns OpenDataQuery
  */
 OpenDataQuery.prototype.select = function(attr) {
-    if (_.isArray(attr)) {
-        this.$select = attr.join(',');
-    }
-    else
-        this.$select = attr;
+    var args = (arguments.length>1) ? Array.prototype.slice.call(arguments): attr;
+    this.$select = _.map(args, function(arg) {
+        if (_.isArray(arg)) {
+            return arg.join(',');
+        }
+        return arg;
+    }).join(',');
+    return this;
 };
 
 /**
@@ -1916,24 +2094,6 @@ OpenDataQuery.prototype.equal = function(value) {
 OpenDataQuery.prototype.indexOf = function(name) {
     this.privates.left = 'indexof(' + name + ')';
     return this;
-};
-// noinspection JSUnusedGlobalSymbols
-/**
- * @param {String} name
- * @returns OpenDataQuery
- */
-OpenDataQuery.prototype.andIndexOf = function(name) {
-    this.privates.lop = 'and';
-    return this.indexOf(name);
-};
-// noinspection JSUnusedGlobalSymbols
-/**
- * @param {String} name
- * @returns OpenDataQuery
- */
-OpenDataQuery.prototype.orIndexOf = function(name) {
-    this.privates.lop = 'or';
-    return this.indexOf(name);
 };
 
 /**
@@ -2050,7 +2210,7 @@ OpenDataQuery.prototype.day = function(name) {
  * @param {String} name
  * @returns OpenDataQuery
  */
-OpenDataQuery.prototype.day = function(name) {
+OpenDataQuery.prototype.hour = function(name) {
     this.privates.left = sprintf('hour(%s)',name);
     return this;
 };

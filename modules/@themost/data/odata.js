@@ -461,10 +461,12 @@ EntityTypeConfiguration.prototype.getBuilder = function() {
 // noinspection JSUnusedGlobalSymbols
     /**
      * @param {string} name
+     * @returns EntityTypeConfiguration
      */
     EntityTypeConfiguration.prototype.derivesFrom = function(name) {
         Args.notString(name,"Enity type name");
         this.baseType = name;
+        return this;
     };
 // noinspection JSUnusedGlobalSymbols
     /**
@@ -626,7 +628,7 @@ EntityTypeConfiguration.prototype.getBuilder = function() {
             return this;
         }
         this.ignoredProperty.push(name);
-
+        return this;
     };
 // noinspection JSUnusedGlobalSymbols
     /**

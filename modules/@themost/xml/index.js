@@ -245,6 +245,26 @@ function domTraverseElements(node, opt_pre, opt_post) {
 }
 
 /**
+ * @enum
+ * @constructor
+ */
+function XNodeType() {
+
+}
+XNodeType.DOM_ELEMENT_NODE = 1;
+XNodeType.DOM_ATTRIBUTE_NODE = 2;
+XNodeType.DOM_TEXT_NODE = 3;
+XNodeType.DOM_CDATA_SECTION_NODE = 4;
+XNodeType.DOM_ENTITY_REFERENCE_NODE = 5;
+XNodeType.DOM_ENTITY_NODE = 6;
+XNodeType.DOM_PROCESSING_INSTRUCTION_NODE = 7;
+XNodeType.DOM_COMMENT_NODE = 8;
+XNodeType.DOM_DOCUMENT_NODE = 9;
+XNodeType.DOM_DOCUMENT_TYPE_NODE = 10;
+XNodeType.DOM_DOCUMENT_FRAGMENT_NODE = 11;
+XNodeType.DOM_NOTATION_NODE = 12;
+
+/**
  * @class
  * @param type
  * @param name
@@ -1497,7 +1517,9 @@ if (typeof exports !== 'undefined') {
 
     module.exports.XDocument = XDocument;
     module.exports.XNode = XNode;
+    module.exports.XNodeType = XNodeType;
     module.exports.XNamespace = XNamespace;
+    module.exports.XSerializer = XSerializer;
     module.exports.createDocument = function () {
         return new XDocument();
     };

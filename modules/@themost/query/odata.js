@@ -1186,6 +1186,10 @@ SyntaxToken.Negative = new SyntaxToken('-');
 
 if (typeof exports !== 'undefined')
 {
+    module.exports.Token = Token;
+    module.exports.LiteralToken = LiteralToken;
+    module.exports.IdentifierToken = IdentifierToken;
+    module.exports.SyntaxToken = SyntaxToken;
     /**
      * @param {string} str The open data filter expression
      * @param {Function} callback

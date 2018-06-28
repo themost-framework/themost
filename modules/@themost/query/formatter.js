@@ -8,6 +8,7 @@
  * Released under the BSD3-Clause license
  * Date: 2014-07-16
  */
+///
 var SqlUtils = require('./utils').SqlUtils;
 var sprintf = require('sprintf').sprintf;
 var _ = require('lodash');

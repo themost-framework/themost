@@ -12,6 +12,8 @@ var sprintf = require('sprintf');
 var cache = require('./data-cache');
 var _ = require('lodash');
 var QueryUtils = require('@themost/query/utils').QueryUtils;
+var QueryField = require('@themost/query/query').QueryField;
+
 var NotNullError = require("@themost/common/errors").NotNullError;
 var UniqueConstraintError = require("@themost/common/errors").UniqueConstraintError;
 var TraceUtils = require("@themost/common/utils").TraceUtils;
@@ -68,7 +70,7 @@ NotNullConstraintListener.prototype.beforeSave = function(event, callback) {
  * @constructor
  * @classdesc Represents an event listener for validating data model's unique constraints. This listener is automatically registered in all data models.
  */
-function UniqueContraintListener() {
+function UniqueConstraintListener() {
     //
 }
 /**
@@ -76,7 +78,7 @@ function UniqueContraintListener() {
  * @param {DataEventArgs|*} event - An object that represents the event arguments passed to this operation.
  * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occurred.
  */
-UniqueContraintListener.prototype.beforeSave = function(event, callback) {
+UniqueConstraintListener.prototype.beforeSave = function(event, callback) {
 
     //there are no constraints
     if (event.model.constraints===null)
@@ -628,7 +630,6 @@ function DataModelCreateViewListener() {
 DataModelCreateViewListener.prototype.afterUpgrade = function(event, callback) {
 
     var self = event.model,
-        qry = require("@themost/query"),
         db = self.context.db;
     var view = self.viewAdapter, adapter = self.sourceAdapter;
     //if data model is a sealed model do nothing anb exit
@@ -640,7 +641,7 @@ DataModelCreateViewListener.prototype.afterUpgrade = function(event, callback) {
     var fields = self.attributes.filter(function(x) {
         return (self.name=== x.model) && (!x.many);
     }).map(function(x) {
-        return qry.fields.select(x.name).from(adapter);
+        return QueryField.select(x.name).from(adapter);
     });
     /**
      * @type {QueryExpression}
@@ -654,13 +655,13 @@ DataModelCreateViewListener.prototype.afterUpgrade = function(event, callback) {
         baseModel.attributes.forEach(function(x) {
             //get all fields (except primary and one-to-many relations)
             if ((!x.primary) && (!x.many))
-                baseFields.push(qry.fields.select(x.name).from(baseAdapter))
+                baseFields.push(QueryField.select(x.name).from(baseAdapter))
         });
     }
     if (baseFields.length>0)
     {
-        var from = qry.createField(adapter, self.key().name),
-            to = qry.createField(baseAdapter, self.base().key().name);
+        var from = QueryField.select(self.key().name).from(adapter),
+            to = QueryField.select(self.base().key().name).from(baseAdapter);
         q.$expand = { $entity: { },$with:[] };
         q.$expand.$entity[baseAdapter]=baseFields;
         q.$expand.$with.push(from);
@@ -771,7 +772,7 @@ if (typeof exports !== 'undefined')
 {
     module.exports = {
         NotNullConstraintListener:NotNullConstraintListener,
-        UniqueContraintListener:UniqueContraintListener,
+        UniqueConstraintListener:UniqueConstraintListener,
         CalculatedValueListener:CalculatedValueListener,
         DataCachingListener:DataCachingListener,
         DefaultValueListener:DefaultValueListener,

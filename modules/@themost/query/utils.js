@@ -215,6 +215,16 @@ QueryUtils.delete = function(entity) {
 };
 
 /**
+ * Initializes a QueryExpression instance.
+ * @returns {QueryExpression}
+ * @param  {*} obj
+ */
+QueryUtils.where = function(obj) {
+    var q = new QueryExpression();
+    return q.where(obj);
+};
+
+/**
  * @class
  * @constructor
  */

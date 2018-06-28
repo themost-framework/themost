@@ -3,7 +3,6 @@ import {DataContext} from "./types";
 import {DataModel} from "./data-model";
 
 export declare class DataObject {
-    constructor(type?: string, obj?: any);
     context:DataContext;
     silent(value?:boolean):DataObject;
     selector(name:string, selector:Function):DataObject;

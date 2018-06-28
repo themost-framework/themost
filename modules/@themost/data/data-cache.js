@@ -29,7 +29,7 @@ function DataCache() {
 LangUtils.inherits(DataCache, SequentialEventEmitter);
 /**
  * Initializes data caching.
- * @param {function(Error=)} callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise.
+ * @param {Function} callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise.
  *
  * @example
  var d = require("most-data");
@@ -109,7 +109,7 @@ DataCache.prototype.removeAll = function(callback) {
  * @param {string} key - A string that represents the key of the cached value
  * @param {*} value - The value to be cached
  * @param {number=} ttl - A TTL in seconds. This parameter is optional.
- * @param {function(Error=,boolean=)=} callback - A callback function where the first argument will contain the Error object if an error occurred and the second argument will return true on success.
+ * @param {Function=} callback - A callback function where the first argument will contain the Error object if an error occurred and the second argument will return true on success.
  *
  * @example
  var d = require("most-data");

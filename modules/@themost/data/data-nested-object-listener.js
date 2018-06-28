@@ -8,7 +8,7 @@
  */
 ///
 var _ = require("lodash");
-var qry = require('@themost/query');
+var QueryUtils = require('@themost/query/utils').QueryUtils;
 var async = require("async");
 var DataError = require('@themost/common/errors').DataError;
 
@@ -253,7 +253,7 @@ function beforeRemove_(attr, event, callback) {
             //This operation must be done before trying to remove nested object otherwise the operation will fail with foreign key reference error
             var updated = {};
             updated[name] = null;
-            var q = qry.update(event.model.sourceAdapter).set(updated).where(event.model.primaryKey).equal(result[event.model.primaryKey]);
+            var q = QueryUtils.update(event.model.sourceAdapter).set(updated).where(event.model.primaryKey).equal(result[event.model.primaryKey]);
             return context.db.execute(q, null, function(err) {
                 if (err) {
                     return callback(err);
