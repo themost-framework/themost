@@ -9,8 +9,6 @@
 import HttpBaseController from "./base";
 import {HttpJsonResult} from "../mvc";
 
-export = HttpServiceController;
-
 declare class HttpServiceController extends HttpBaseController {
     getMetadata():Promise<string>;
     getIndex():Promise<HttpJsonResult>;
@@ -23,4 +21,7 @@ declare class HttpServiceController extends HttpBaseController {
     getNavigationProperty(entitySet: string, navigationProperty: string, id: any): Promise<HttpJsonResult>;
     getEntityAction(entitySet: string, entityAction: string, navigationProperty: string): Promise<HttpJsonResult>;
     getBuilder():any;
+
 }
+
+export default HttpServiceController;

@@ -12,10 +12,10 @@ export declare class AngularServerModule extends HttpApplicationService {
 
     useBootstrapModule(modulePath: string): AngularServerModule;
     bootstrap(bootstrapFunc: (angular:any)=> void);
-    service(name: string, ctor: void): AngularServerModule;
-    directive(name: string, ctor: void): AngularServerModule;
-    filter(name: string, ctor: void): AngularServerModule;
-    controller(name: string, ctor: void): AngularServerModule;
+    service(name: string, ctor: Function): AngularServerModule;
+    directive(name: string, ctor: Function): AngularServerModule;
+    filter(name: string, ctor: Function): AngularServerModule;
+    controller(name: string, ctor: Function): AngularServerModule;
     createDocument(s: string): HTMLDocument;
 
 }

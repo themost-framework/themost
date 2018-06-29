@@ -14,7 +14,10 @@ var _config = require('./config');
 var _types = require('./types');
 var HttpBaseController = require('./controllers/base');
 var HttpDataController = require('./controllers/data');
+var HttpDataModelController = require('./controllers/model');
 var HttpServiceController = require('./controllers/service');
+var HttpLookupController = require('./controllers/lookup');
+var HttpHiddenController = require('./controllers/hidden');
 
 if (typeof exports !== 'undefined')
 {
@@ -48,6 +51,12 @@ if (typeof exports !== 'undefined')
     module.exports.HttpDataController = HttpDataController;
     //export * from './controllers/service'
     module.exports.HttpServiceController = HttpServiceController;
+    //export * from './controllers/model'
+    module.exports.HttpDataModelController = HttpDataModelController;
+
+    module.exports.HttpLookupController = HttpLookupController;
+
+    module.exports.HttpHiddenController = HttpHiddenController;
 
     module.exports.runtime = function() {
         return _app.HttpApplication.getCurrent().runtime();

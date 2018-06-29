@@ -6,6 +6,7 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+///
 var sprintf = require('sprintf').sprintf;
 var _ = require('lodash');
 // eslint-disable-next-line no-unused-vars
@@ -2337,7 +2338,29 @@ OpenDataQuery.prototype.notIn = function(values) {
     this.privates.op = 'nin';this.privates.right = values; return this.append();
 };
 
+/**
+ * @class
+ * @param {string} entity
+ * @param {string} name
+ * @constructor
+ */
+function QueryFieldRef(entity, name) {
+    this[entity] = [name];
+}
+
+/**
+ * @class
+ * @param {*} value
+ * @constructor
+ */
+function QueryValuedRef(value) {
+    this.$value = value;
+}
+
+
 if (typeof exports !== 'undefined') {
+    module.exports.QueryFieldRef = QueryFieldRef;
+    module.exports.QueryValuedRef = QueryValuedRef;
     module.exports.QueryExpression = QueryExpression;
     module.exports.QueryField = QueryField;
     module.exports.QueryEntity = QueryEntity;

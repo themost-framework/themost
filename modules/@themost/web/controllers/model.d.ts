@@ -1,7 +1,5 @@
 import {HttpController} from "../mvc";
 
-export = HttpDataModelController;
-
 declare class HttpDataModelController extends HttpController{
     public getItem():Promise<any>;
     public showItem():Promise<any>;
@@ -14,3 +12,5 @@ declare class HttpDataModelController extends HttpController{
     public deleteItems():Promise<any>;
 
 }
+
+export default HttpDataModelController;

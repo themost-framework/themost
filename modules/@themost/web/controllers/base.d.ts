@@ -8,8 +8,8 @@
  */
 import {HttpController} from "../mvc";
 
-export = HttpBaseController;
-
 declare class HttpBaseController extends HttpController {
 
 }
+
+export default HttpBaseController;

@@ -6,7 +6,7 @@ import {LocalizationStrategy} from "./localization";
 import {SequentialEventEmitter} from "@themost/common/emitter";
 
 declare interface ApplicationOptions {
-    port?: number;
+    port?: number|string;
     bind?: string;
     cluster?: number|string;
 }
@@ -44,11 +44,11 @@ export declare class HttpApplication extends SequentialEventEmitter {
     executeRequest(options: any,  callback: (err?: Error, res?: any) => void);
     start(options?: ApplicationOptions);
     runtime(): void;
-    useController(name: string, controllerCtor: void);
-    useStrategy(serviceCtor: void, strategyCtor: void);
-    useService(serviceCtor: void);
-    hasStrategy(serviceCtor: void);
-    hasService(serviceCtor: void);
-    getStrategy(serviceCtor: void);
-    getService(serviceCtor: void);
+    useController(name: string, controllerCtor: Function);
+    useStrategy(serviceCtor: Function, strategyCtor: Function);
+    useService(serviceCtor: Function);
+    hasStrategy(serviceCtor: Function);
+    hasService(serviceCtor: Function);
+    getStrategy(serviceCtor: Function);
+    getService(serviceCtor: Function);
 }

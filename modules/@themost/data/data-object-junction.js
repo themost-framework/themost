@@ -225,8 +225,8 @@ function DataObjectJunction(obj, association) {
 
     left[adapter] = [ relatedModel.primaryKey ];
     var baseAdapter = this.getBaseModel().viewAdapter;
-    right[baseAdapter] = [QueryField.select(DataObjectJunction.STR_VALUE_FIELD).from(baseAdapter).name()];
-    var field1 = QueryField.select(DataObjectJunction.STR_OBJECT_FIELD).from(baseAdapter).name();
+    right[baseAdapter] = [QueryField.select(DataObjectJunction.STR_VALUE_FIELD).from(baseAdapter).$name];
+    var field1 = QueryField.select(DataObjectJunction.STR_OBJECT_FIELD).from(baseAdapter).$name;
     this.query.join(baseAdapter, []).with([left, right]).where(field1).equal(obj[this.mapping.parentField]).prepare();
 
 

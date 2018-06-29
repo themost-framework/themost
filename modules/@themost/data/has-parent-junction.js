@@ -156,8 +156,8 @@ function HasParentJunction(obj, association) {
         return QueryField.select(x.name).from(adapter);
     }));
     var associationAdapter = self.mapping.associationAdapter,
-        parentField = QueryField.select('parentId').from(associationAdapter).name(),
-        childField = QueryField.select('valueId').from(associationAdapter).name();
+        parentField = QueryField.select('parentId').from(associationAdapter).$name,
+        childField = QueryField.select('valueId').from(associationAdapter).$name;
     left[adapter] = [ this.mapping.parentField ];
     right[associationAdapter] = [parentField];
     this.query.join(this.mapping.associationAdapter, []).with([left, right]).where(childField).equal(obj[this.mapping.childField]).prepare();

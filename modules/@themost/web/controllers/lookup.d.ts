@@ -9,8 +9,8 @@
  */
 import HttpDataController from "./data";
 
-export = HttpLookupController;
-
 declare class HttpLookupController extends HttpDataController {
 
 }
+
+export default HttpLookupController;

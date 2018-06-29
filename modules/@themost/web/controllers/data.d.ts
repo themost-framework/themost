@@ -9,8 +9,6 @@ import {HttpController} from "../mvc";
  * found in the LICENSE file at https://themost.io/license
  */
 
-export = HttpDataController;
-
 declare class HttpDataController extends HttpController {
     model: any;
     new(callback: (err?: Error, res?: any) => void):void;
@@ -22,3 +20,5 @@ declare class HttpDataController extends HttpController {
     index(callback: (err?: Error, res?: any) => void):void;
     association(callback: (err?: Error, res?: any) => void):void;
 }
+
+export default HttpDataController;

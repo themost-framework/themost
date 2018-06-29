@@ -13,7 +13,7 @@ var cache = require('./data-cache');
 var _ = require('lodash');
 var QueryUtils = require('@themost/query/utils').QueryUtils;
 var QueryField = require('@themost/query/query').QueryField;
-
+var QueryFieldRef = require('@themost/query/query').QueryFieldRef;
 var NotNullError = require("@themost/common/errors").NotNullError;
 var UniqueConstraintError = require("@themost/common/errors").UniqueConstraintError;
 var TraceUtils = require("@themost/common/utils").TraceUtils;
@@ -660,8 +660,8 @@ DataModelCreateViewListener.prototype.afterUpgrade = function(event, callback) {
     }
     if (baseFields.length>0)
     {
-        var from = QueryField.select(self.key().name).from(adapter),
-            to = QueryField.select(self.base().key().name).from(baseAdapter);
+        var from = new QueryFieldRef(adapter, self.key().name),
+            to = new QueryFieldRef(baseAdapter, self.base().key().name);
         q.$expand = { $entity: { },$with:[] };
         q.$expand.$entity[baseAdapter]=baseFields;
         q.$expand.$with.push(from);

@@ -8,8 +8,8 @@
  */
 import {HttpController} from "../mvc";
 
-export = HttpHiddenController;
-
 declare class HttpHiddenController extends HttpController {
 
 }
+
+export default HttpHiddenController;

@@ -214,3 +214,11 @@ export declare class OpenDataQuery {
     notIn(values: Array<any>): OpenDataQuery;
 
 }
+
+export declare class QueryFieldRef {
+    constructor(entity: string, name: string);
+}
+
+export declare class QueryValueRef {
+    constructor(value: any);
+}
