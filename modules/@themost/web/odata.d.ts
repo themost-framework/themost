@@ -10,7 +10,7 @@ import {HttpApplication} from "./app";
 import {HttpJsonResult} from "./mvc";
 
 export declare class ODataModelBuilderConfiguration {
-    config(app: HttpApplication): void;
+    static config(app: HttpApplication): Promise<any>;
 }
 
 export declare class ODataJsonResult extends HttpJsonResult {
