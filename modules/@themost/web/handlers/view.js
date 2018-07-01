@@ -21,6 +21,16 @@ var HttpConsumer = require('../consumers').HttpConsumer;
 var HttpResult = require('../mvc').HttpResult;
 var Q = require('q');
 var accepts = require('accepts');
+
+var STR_CONTROLLER_FILE = './%s-controller.js';
+var STR_CONTROLLER_RELPATH = '/controllers/%s-controller.js';
+
+if (process.execArgv.indexOf('ts-node/register')>=0) {
+    //change controller resolution to typescript
+    STR_CONTROLLER_FILE = './%s-controller.ts';
+    STR_CONTROLLER_RELPATH = '/controllers/%s-controller.ts';
+}
+
 /**
  *
  * @param s
@@ -90,9 +100,7 @@ Object.inherits = function (ctor, superCtor) {
         }
     }
 };
-ViewHandler.STR_CONTROLLERS_FOLDER = 'controllers';
-ViewHandler.STR_CONTROLLER_FILE = './%s-controller.js';
-ViewHandler.STR_CONTROLLER_RELPATH = '/controllers/%s-controller.js';
+
 /**
  *
  * @param {string} controllerName
@@ -106,7 +114,7 @@ ViewHandler.queryControllerClass = function(controllerName, context, callback) {
     }
     else {
         //get controller class path and model (if any)
-        var controllerPath = context.getApplication().mapPath(sprintf(ViewHandler.STR_CONTROLLER_RELPATH, _.dasherize(controllerName))),
+        var controllerPath = context.getApplication().mapPath(sprintf(STR_CONTROLLER_RELPATH, _.dasherize(controllerName))),
             controllerModel = context.model(controllerName);
         //if controller does not exists
         fs.exists(controllerPath, function(exists){
@@ -120,11 +128,11 @@ ViewHandler.queryControllerClass = function(controllerName, context, callback) {
                             controllerType = 'hidden';
                         }
                         //try to find controller based on the model's type in controllers folder (e.g. /library-controller.js)
-                        controllerPath = context.getApplication().mapPath(sprintf(ViewHandler.STR_CONTROLLER_RELPATH, controllerType));
+                        controllerPath = context.getApplication().mapPath(sprintf(STR_CONTROLLER_RELPATH, controllerType));
                         fs.exists(controllerPath, function(exists) {
                            if (!exists) {
                                //get controller path according to related model's type (e.g ./data-controller)
-                               controllerPath = sprintf(ViewHandler.STR_CONTROLLER_FILE, controllerType);
+                               controllerPath = sprintf(STR_CONTROLLER_FILE, controllerType);
                                //if controller does not exist
                                controllerPath = path.join(__dirname, controllerPath);
                                fs.exists(controllerPath, function(exists) {

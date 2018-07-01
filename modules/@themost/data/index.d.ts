@@ -23,3 +23,5 @@ export * from './data-object-tag';
 export * from './has-one-association';
 export * from './has-many-association';
 export * from './has-parent-junction';
+export * from './data-listeners';
+export * from './data-associations';

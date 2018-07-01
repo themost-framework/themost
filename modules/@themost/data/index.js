@@ -24,6 +24,8 @@ var _data_object_tag = require('./data-object-tag');
 var _has_one_association = require('./has-one-association');
 var _has_many_association = require('./has-many-association');
 var _has_parent_association = require('./has-parent-junction');
+var _data_listeners = require('./data-listeners');
+var _data_associations = require('./data-associations');
 
 
 module.exports.DataAssociationMapping = _types.DataAssociationMapping;
@@ -92,3 +94,14 @@ module.exports.DataObjectTag = _data_object_tag.DataObjectTag;
 module.exports.HasOneAssociation = _has_one_association.HasOneAssociation;
 module.exports.HasManyAssociation = _has_many_association.HasManyAssociation;
 module.exports.HasParentJunction = _has_parent_association.HasParentJunction;
+
+module.exports.CalculatedValueListener = _data_listeners.CalculatedValueListener;
+module.exports.DataCachingListener = _data_listeners.DataCachingListener;
+module.exports.DataModelCreateViewListener = _data_listeners.DataModelCreateViewListener;
+module.exports.DataModelSeedListener = _data_listeners.DataModelSeedListener;
+module.exports.DataModelSubTypesListener = _data_listeners.DataModelSubTypesListener;
+module.exports.DefaultValueListener = _data_listeners.DefaultValueListener;
+module.exports.NotNullConstraintListener = _data_listeners.NotNullConstraintListener;
+module.exports.UniqueConstraintListener = _data_listeners.UniqueConstraintListener;
+
+module.exports.DataObjectAssociationListener = _data_associations.DataObjectAssociationListener;

@@ -1810,6 +1810,9 @@ function saveBaseObject_(obj, callback) {
                 }
                 else {
                     var pm = e.model.field(self.primaryKey), nextIdentity, adapter = e.model.sourceAdapter;
+                    if (_.isNil(pm)) {
+                        return callback(new DataError('EMODEL','The primary key of the specified cannot be found',null, e.model.name))
+                    }
                     //search if adapter has a nextIdentity function (also primary key must be a counter and state equal to insert)
                     if (pm.type === 'Counter' && typeof db.nextIdentity === 'function' && e.state===1) {
                         nextIdentity = db.nextIdentity;
