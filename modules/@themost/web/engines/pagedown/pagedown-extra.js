@@ -8,7 +8,7 @@
  */
 (function() {
     global.Markdown = { };
-    require('./Markdown.Extra.js');
+    require('./Markdown.extra.js');
     return global.Markdown.Extra;
 })();
 
