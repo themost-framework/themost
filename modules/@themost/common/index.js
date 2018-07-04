@@ -38,6 +38,7 @@ if (typeof exports !== 'undefined') {
     module.exports.HttpForbiddenError  = _errors.HttpForbiddenError;
     module.exports.HttpServerError  = _errors.HttpServerError;
     module.exports.DataError  = _errors.DataError;
+    module.exports.NotNullError  = _errors.NotNullError;
     module.exports.DataNotFoundError  = _errors.DataNotFoundError;
     module.exports.AccessDeniedError  = _errors.AccessDeniedError;
     module.exports.UniqueConstraintError  = _errors.UniqueConstraintError;
