@@ -299,6 +299,24 @@ function DataError(code, message, innerMessage, model, field, additionalData) {
 }
 LangUtils.inherits(DataError, CodedError);
 
+
+
+
+/**
+ * Thrown when an application attempts to access a data object that cannot be found.
+ * @param {string=} message - The error message
+ * @param {string=} innerMessage - The error inner message
+ * @param {string=} model - The target model
+ * @param {string=} field - The target field
+ * @constructor
+ * @extends DataError
+ */
+function NotNullError(message, innerMessage, model,field) {
+    NotNullError.super_.bind(this)('ENULL', message || 'A value is required.', innerMessage, model,field);
+    this.statusCode = 409;
+}
+LangUtils.inherits(NotNullError, DataError);
+
 /**
  * Thrown when an application attempts to access a data object that cannot be found.
  * @param {string=} message - The error message
@@ -359,6 +377,7 @@ if (typeof exports !== 'undefined') {
     module.exports.HttpServerError = HttpServerError;
     module.exports.DataError = DataError;
     module.exports.DataNotFoundError = DataNotFoundError;
+    module.exports.NotNullError = NotNullError;
     module.exports.AccessDeniedError = AccessDeniedError;
     module.exports.UniqueConstraintError = UniqueConstraintError;
 }
