@@ -338,11 +338,6 @@ function afterSaveMany_(attr, event, callback) {
         //throw exception
         return callback(new DataError("EASSOCIATION","Invalid argument type. Expected array.",null, event.model.name, name));
     }
-    //if nested array does not have any data
-    if (nestedObj.length===0) {
-        //do nothing
-        return callback();
-    }
     //get mapping
     var mapping = event.model.inferMapping(attr.name);
     if (_.isNil(mapping)) {
@@ -428,6 +423,9 @@ function afterSaveMany_(attr, event, callback) {
                 //and finally save objects
                 nestedModel.silent().save(nestedObj, function(err) {
                     //remove $state attribute
+                    _.remove(nestedObj, function(y) {
+                       return y.$state === 4;
+                    });
                     _.forEach(nestedObj, function(x) {
                         delete x.$state;
                     });
