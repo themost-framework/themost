@@ -6,9 +6,44 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+///
 var HttpError = require('@themost/common/errors').HttpError;
 var AngularServerModule = require('./../angular/module').AngularServerModule;
 var _ = require('lodash');
+var LangUtils = require('@themost/common/utils').LangUtils;
+var HttpApplicationService = require('../types').HttpApplicationService;
+
+var HashMap = require('hashmap');
+
+/**
+ * @class
+ * @constructor
+ * @param {HttpApplication} app
+ * @augments HttpApplicationService
+ */
+function TemplateCacheStrategy(app) {
+    TemplateCacheStrategy.super_.bind(this)(app);
+    var map = new HashMap();
+    /**
+     * @param {*} key
+     * @returns *
+     */
+    this.get = function(key) {
+        return map.get(key);
+    };
+    /**
+     * @param {*} key
+     * @param {*=} value
+     */
+    this.put = function(key, value) {
+        map.set(key, value);
+    };
+
+    this.clear = function() {
+        map.clear();
+    }
+}
+LangUtils.inherits(TemplateCacheStrategy, HttpApplicationService);
 
 /**
  * @interface
@@ -135,13 +170,22 @@ DirectiveEngine.prototype.postExecuteResult = function(args, callback) {
         if (!args.context.getApplication().hasService(AngularServerModule)) {
             args.context.getApplication().useService(AngularServerModule);
         }
+
+        /**
+         * @type TemplateCacheStrategy
+         */
+        let templateCache;
+        if (!context.getApplication().hasService(TemplateCacheStrategy)) {
+            context.getApplication().useService(TemplateCacheStrategy);
+        }
+        templateCache = context.getApplication().getService(TemplateCacheStrategy);
         /**
          * @type {AngularServerModule}
          */
-        const angularServer = args.context.getApplication().getService(AngularServerModule);
+        const angularServer = context.getApplication().getService(AngularServerModule);
 
         //process result
-        const document = angularServer.createDocument(view.body);
+        let document = angularServer.createDocument(view.body);
         //create server module
         const angular = document.parentWindow.angular;
 
@@ -163,7 +207,21 @@ DirectiveEngine.prototype.postExecuteResult = function(args, callback) {
         });
         app.service('$context', function() {
             return context;
-        }).service('$async', function($q) {
+        }).service('$templateCache', function() {
+            return {
+                get: function(templatePath) {
+                    return templateCache.get(templatePath)
+                },
+                put: function(templatePath, templateContent) {
+                    templateCache.put(templatePath, templateContent);
+                }
+            }
+        }).service('$serverState', function() {
+            return {
+                templatePath:view.templatePath
+            };
+        })
+            .service('$async', function($q) {
             /**
              * @param {Function} fn
              */
@@ -183,14 +241,14 @@ DirectiveEngine.prototype.postExecuteResult = function(args, callback) {
             };
         });
         app.service('$http', HttpInternalProvider);
+        //copy application services
+        _.forEach(_.keys(angularServer.services), function(name) {
+            app.service(name, angularServer.services[name]);
+        });
         //copy application directives
 
         _.forEach(_.keys(angularServer.directives), function(name) {
             app.directive(name, angularServer.directives[name]);
-        });
-        //copy application services
-        _.forEach(_.keys(angularServer.services), function(name) {
-            app.service(name, angularServer.services[name]);
         });
         //copy application filters
         _.forEach(_.keys(angularServer.filters), function(name) {
@@ -208,6 +266,7 @@ DirectiveEngine.prototype.postExecuteResult = function(args, callback) {
         if (appElement) {
             //get $q
             var $q = angular.injector(['ng']).get('$q');
+
             //set $rootScope
             app.run(function($rootScope) {
                 if (_.isObject(view.data)) {

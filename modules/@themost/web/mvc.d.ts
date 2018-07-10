@@ -8,6 +8,7 @@
  */
 import {HttpContext} from "./context";
 import {HtmlWriter} from "@themost/common/html";
+import {HttpViewEngineConfiguration} from "./config";
 
 
 export declare class HttpResult {
@@ -54,6 +55,7 @@ export declare class HttpJavascriptResult extends HttpResult {
 export declare class HttpViewResult extends HttpResult {
     constructor(name?: string, data?: any);
     setName(name: string): HttpViewResult;
+    static resolveViewPath(context: HttpContext, controller: string, view: string, engine: HttpViewEngineConfiguration, callback: (err?: Error, res?: string) => void);
 }
 
 
@@ -98,6 +100,7 @@ export declare class HttpController {
 }
 
 export declare class HttpViewContext {
+    constructor(context: HttpContext);
     body?: string;
     title?: string;
     layout?: string;

@@ -6,123 +6,169 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+///
 var _ = require('lodash');
+var fs = require('fs');
+/**
+ * @ngdoc directive
+ * @name ngServerBindHtml
+ * @restrict A
+ * @element ANY
+ */
 
-function toBoolean(value) {
-    if (typeof value === 'function') {
-        value = true;
-    } else if (value && value.length !== 0) {
-        var v = _.lowerCase("" + value);
-        value = !(v === 'f' || v === '0' || v === 'false' || v === 'no' || v === 'n' || v === '[]');
-    } else {
-        value = false;
-    }
-    return value;
-}
-function getBlockElements(angular, nodes) {
-    var startNode = nodes[0],
-        endNode = nodes[nodes.length - 1];
-    if (startNode === endNode) {
-        return angular.element(startNode);
-    }
 
-    var element = startNode;
-    var elements = [element];
+/**
+ * @ngdoc directive
+ * @name ngServerIf
+ * @restrict A
+ * @element ANY
+ */
 
-    do {
-        element = element.nextSibling;
-        if (!element) break;
-        elements.push(element);
-    } while (element !== endNode);
+/**
+ * @ngdoc directive
+ * @name ngServerInit
+ * @restrict AC
+ * @element ANY
+ */
 
-    return angular.element(elements);
-}
+/**
+ * @ngdoc directive
+ * @name ngServerRepeat
+ * @restrict AC
+ * @element ANY
+ */
 
+/**
+ * @ngdoc directive
+ * @name ngServerClass
+ * @restrict AC
+ * @element ANY
+ */
+
+/**
+ * @ngdoc directive
+ * @name ngServerClassOdd
+ * @restrict AC
+ * @element ANY
+ */
+
+/**
+ * @ngdoc directive
+ * @name ngServerClassEven
+ * @restrict AC
+ * @element ANY
+ */
+
+/**
+ * @ngdoc directive
+ * @name ngServerStyle
+ * @restrict AC
+ * @element ANY
+ */
+
+/**
+ * @ngdoc directive
+ * @name ngServerValue
+ * @restrict A
+ * @element ANY
+ */
+
+/**
+ * @ngdoc directive
+ * @name ngServerSwitch
+ * @restrict EA
+ * @element ANY
+ */
+
+/**
+ * @ngdoc directive
+ * @name ngServerSwitchWhen
+ * @restrict EA
+ * @element ANY
+ */
+
+/**
+ * @ngdoc directive
+ * @name ngServerSwitchDefault
+ * @restrict EA
+ * @element ANY
+ */
+
+/**
+ * @ngdoc directive
+ * @name ngServerInclude
+ * @restrict EA
+ * @element ANY
+ */
+
+/**
+ * @ngdoc directive
+ * @name ngServerLoc
+ * @restrict A
+ * @element ANY
+ */
+
+/**
+ * @ngdoc directive
+ * @name ngServerLocHtml
+ * @restrict A
+ * @element ANY
+ */
+
+/**
+ * @ngdoc directive
+ * @name ngServerUserInRole
+ * @restrict A
+ * @element ANY
+ */
+
+/**
+ * @ngdoc directive
+ * @name serverUiView
+ * @restrict A
+ * @element ANY
+ */
+
+///
 var directives = {
     /**
      * @param {AngularServerModule} app
      */
     apply: function(app) {
 // eslint-disable-next-line no-unused-vars
-        app.directive('serverInclude', function($context, $angular, $q, $sce) {
+        app.directive('ngServerInclude',['$context', '$window', '$async',  function($context, $window, $async) {
             return {
                 replace:true,
                 restrict:'EA',
                 link: function (scope, element, attrs) {
                     /**
                      * @ngdoc attrs
-                     * @property {string} ejsInclude
+                     * @property {string} serverInclude
                      * @property {string} src
                      */
-                    var src = attrs.ejsInclude || attrs.src;
+                    var src = attrs.serverInclude || attrs.src;
                     if (src) {
-                        var deferred = $q.defer();
-                        $context.getApplication().executeRequest( { url: src, cookie: $context.request.headers.cookie }, function(err, result) {
-                            if (err) {
-                                element.replaceWith(null);
-                                deferred.reject(err.message);
-                            }
-                            else {
-                                element.removeAttr('data-src');
-                                element.replaceWith($angular.element(result.body.replace(/\n/,'')));
-                                deferred.resolve();
-                            }
+                        return $async(function(resolve, reject) {
+                            $context.getApplication().executeRequest({
+                                url: src,
+                                cookie: $context.request.headers.cookie
+                            }, function(err, result) {
+                                if (err) {
+                                    element.replaceWith(null);
+                                    reject(err.message);
+                                }
+                                else {
+                                    element.removeAttr('data-src');
+                                    var el =$window.angular.element(result.body.replace(/\n/,''));
+                                    element.replaceWith(el);
+                                    resolve();
+                                }
+                            });
                         });
                     }
                 }
             };
-        }).directive('serverInit', function() {
-            return {
-                priority:400,
-                restrict:'A',
-                link: function (scope, element, attrs) {
-                    scope.$eval(attrs['ejsInit']);
-                }
-            };
-        }).directive('serverIf', function($animate, $document, $parse) {
-            return {
-                transclude: 'element',
-                priority: 600,
-                terminal: true,
-                restrict: 'A',
-                $$tlb: true,
-                link: function ($scope, $element, $attr, ctrl, $transclude) {
-                    var block, childScope, previousElements;
-                    var serverIf = $attr['serverIf'], parentDocument = $document.get(0);
-                    var value = $scope.$eval(serverIf);
-                    if (toBoolean(value)) {
-                        if (!childScope) {
-                            childScope = $scope.$new();
-                            $transclude(childScope, function (clone) {
-                                //remove attr
-                                clone.removeAttr('server-if');
-                                clone.push(parentDocument.createComment(''));
-                                block = {
-                                    clone: clone
-                                };
-                                $animate.enter(clone, $element.parent(), $element);
-                            });
-                        }
-                    } else {
-                        if (previousElements) {
-                            previousElements.remove();
-                            previousElements = null;
-                        }
-                        if (childScope) {
-                            childScope.$destroy();
-                            childScope = null;
-                        }
-                        if (block) {
-                            previousElements = getBlockElements(angular, block.clone);
-                            $animate.leave(previousElements, function () {
-                                previousElements = null;
-                            });
-                            block = null;
-                        }
-                    }
-                }
-            };
-        }).directive('serverIfPermission', ['$context','$compile', '$q', function($context, $compile, $q) {
+        }]).directive('ngServerIfPermission', ['$context','$compile', '$q', function($context, $compile, $q) {
             return {
                 restrict:'E',
                 replace: true,
@@ -130,6 +176,7 @@ var directives = {
                 compile:function() {
                     return {
                         pre: function preLink(scope, element) {
+                            element.removeAttr(_.dasherize('ngServerIfPermission'));
                             var DataPermissionEventListener = require('../../data/data-permission').DataPermissionEventListener;
                             var deferred = $q.defer();
                             try {
@@ -171,53 +218,92 @@ var directives = {
 
 
                         },
-                        post: angular.noop
+                        post: function() { }
                     }
                 }
             };
-        }]).directive('serverLoc', ['$context', function($context) {
+        }]).directive('ngServerLoc', ['$context', function($context) {
             return {
                 restrict: 'A',
                 link: function(scope, element, attrs) {
                     /**
                      * @ngdoc
                      * @name attrs
-                     * @property {string} ejsLoc
+                     * @property {string} ngServerLoc
                      * @private
                      */
                     if (attrs.title)
-                        element.attr('title', $context.translate(attrs.title, attrs.ejsLoc));
+                        element.attr('title', $context.translate(attrs.title, attrs.ngServerLoc));
                     if (attrs.placeholder)
-                        element.attr('placeholder', $context.translate(attrs.placeholder, attrs.ejsLoc));
+                        element.attr('placeholder', $context.translate(attrs.placeholder, attrs.ngServerLoc));
                 }
             };
-        }]).directive('serverUiView', ['$context', '$async', function($context, $async) {
+        }]).directive('serverUiView', ['$context', '$async', '$serverState', '$templateCache', '$compile', function($context, $async, $serverState, $templateCache, $compile) {
             return {
-                restrict: 'A',
-// eslint-disable-next-line no-unused-vars
-                link: function(scope, element) {
-                    return $async(function(resolve) {
-                       return resolve();
-                    });
+                restrict: 'EA',
+                terminal: true,
+                transclude: 'element',
+                controller: function() {},
+                compile: function() {
+                    return function(scope, $element) {
+                        return $async(function(resolve, reject) {
+                            if ($serverState && $serverState.templatePath) {
+
+// eslint-disable-next-line no-inner-declarations
+                                function includeContentTemplate(content, callback) {
+                                    try {
+                                        var clone = $compile(content)(scope);
+                                        $element.replaceWith(clone);
+                                    }
+                                    catch(err) {
+                                        return callback(err);
+                                    }
+                                    return callback();
+                                }
+                                var template = $templateCache.get($serverState.templatePath);
+                                if (template) {
+                                    return includeContentTemplate(template, function(err) {
+                                        if (err) {
+                                            return reject(err);
+                                        }
+                                        return resolve();
+                                    });
+                                }
+                                return fs.readFile($serverState.templatePath, 'utf-8', function(err, template) {
+                                    if (err) {
+                                        return reject(err);
+                                    }
+                                    $templateCache.put($serverState.templatePath, template);
+                                    return includeContentTemplate(template, function(err) {
+                                        if (err) {
+                                            return reject(err);
+                                        }
+                                        return resolve();
+                                    });
+                                });
+                            }
+                            return resolve();
+                        });
+                    }
                 }
             };
-        }]).directive('serverLocHtml', ['$context', function($context) {
+        }]).directive('ngServerLocHtml', ['$context', function($context) {
             return {
                 restrict: 'A',
                 link: function(scope, element, attrs) {
                     /**
                      * @ngdoc
                      * @name attrs
-                     * @property {string} ejsLocHtml
+                     * @property {string} ngServerLocHtml
                      * @private
                      */
-                    var text = $context.translate(element.html(), attrs.ejsLocHtml);
+                    var text = $context.translate(element.html(), attrs.ngServerLocHtml);
                     if (text)
                         element.html(text);
                 }
             };
 // eslint-disable-next-line no-unused-vars
-        }]).directive('serverUserInRole', ['$context', '$compile', function($context, $compile) {
+        }]).directive('ngServerUserInRole', ['$context', '$compile', function($context, $compile) {
             return {
                 restrict:'A',
                 replace: true,
@@ -230,16 +316,16 @@ var directives = {
                                 user.groups = user.groups || [];
                                 /**
                                  * @ngdoc attrs
-                                 * @property {string} ejsUserInRole
+                                 * @property {string} ngServerUserInRole
                                  *
                                  * @type {Array}
                                  * @private
                                  */
-                                var roles = (attrs.ejsUserInRole || '').split(',');
+                                var roles = (attrs.ngServerUserInRole || '').split(',');
                                 var inRole = (user.groups.filter(function(x) {
                                     return (roles.indexOf(x.name)>=0);
                                 }).length>0);
-                                //validate not statement e.g. ejs-user-in-role='!Administrators'
+                                //validate not statement e.g. server-user-in-role='!Administrators'
                                 if (!inRole) {
                                     roles.forEach(function(x) {
                                         if (!inRole) {
@@ -255,12 +341,12 @@ var directives = {
                                     element.replaceWith(null);
                                 }
                                 else {
-                                    //do nothing (remove server attributes)
-                                    element.removeAttr('ejs-user-in-role').removeAttr('ejs:user-in-role');
+                                    //--SEC02 remove server attribute(ngServerUserInRole)
+                                    element.removeAttr( _.dasherize('ngServerUserInRole'));
                                 }
                             }
                         },
-                        post: angular.noop
+                        post: function() {}
                     }
                 }
             };

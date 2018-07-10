@@ -13,6 +13,7 @@ var fs = require('fs');
 var DirectiveEngine = require('./../handlers/directive').DirectiveEngine;
 var PostExecuteResultArgs = require('./../handlers/directive').PostExecuteResultArgs;
 var HttpViewContext = require('./../mvc').HttpViewContext;
+var HttpViewResult = require('./../mvc').HttpViewResult;
 var HttpNotFoundError = require('@themost/common/errors').HttpNotFoundError;
 
 /**
@@ -34,33 +35,57 @@ LangUtils.inherits(NgEngine, HttpViewEngine);
  */
 NgEngine.prototype.render = function(filename, data, callback) {
     var self = this;
-    fs.readFile(filename,'utf-8', function(err, str) {
-        try {
-            if (err) {
-                if (err.code === 'ENOENT') {
-                    //throw not found exception
-                    return callback(new HttpNotFoundError('View layout cannot be found.'));
-                }
-                return callback(err);
-            }
-            var viewContext = new HttpViewContext(self.getContext());
-            viewContext.body = str;
-            viewContext.data = data;
-            var directiveHandler = new DirectiveEngine();
-            var args = _.assign(new PostExecuteResultArgs(), {
-                "context": self.getContext(),
-                "target":viewContext
-            });
-            directiveHandler.postExecuteResult(args, function(err) {
-                if (err) { return callback(err); }
-                return callback(null, viewContext.body);
-            });
 
-        }
-        catch (err) {
-            callback(err);
-        }
-    });
+    var template = (self.context.request && self.context.request.route && self.context.request.route.template) ||
+        (self.context.request && self.context.request.routeData && self.context.request.routeData.template);
+    var controller = self.context.request && self.context.request.route && self.context.request.route.controller;
+
+    function renderFile(file, view, data, done) {
+        fs.readFile(file,'utf-8', function(err, str) {
+            try {
+                if (err) {
+                    if (err.code === 'ENOENT') {
+                        //throw not found exception
+                        return done(new HttpNotFoundError('View cannot be found.'));
+                    }
+                    return done(err);
+                }
+                var viewContext = new HttpViewContext(self.getContext());
+                viewContext.body = str;
+                viewContext.data = data;
+                viewContext.templatePath =  view;
+                var directiveHandler = new DirectiveEngine();
+                var args = _.assign(new PostExecuteResultArgs(), {
+                    "context": self.getContext(),
+                    "target":viewContext
+                });
+                directiveHandler.postExecuteResult(args, function(err) {
+                    if (err) {
+                        return done(err);
+                    }
+                    return done(null, viewContext.body);
+                });
+            }
+            catch (err) {
+                return done(err);
+            }
+        });
+    }
+
+    if (typeof template === 'string' && typeof controller === 'string') {
+        return HttpViewResult.resolveViewPath(self.context, controller, template, {
+            extension: "ng"
+        }, function(err, layout) {
+            if (layout) {
+                return renderFile(layout, filename, data, callback);
+            }
+            else {
+                return renderFile(filename, null, data, callback);
+            }
+        });
+    }
+    return renderFile(filename, null, data, callback);
+
 };
 /**
  * @param  {HttpContext=} context

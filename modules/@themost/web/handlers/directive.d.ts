@@ -14,7 +14,7 @@ export declare class DirectiveEngine implements PostExecuteResultHandler {
 
 }
 
-export declare interface PostExecuteResultArgs {
+export declare class PostExecuteResultArgs {
     context: HttpContext;
     target: any;
 }

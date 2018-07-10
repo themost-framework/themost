@@ -17,9 +17,11 @@ var bootstrapMethod = Symbom('bootstrap');
 var vm = require('vm');
 var fs = require('fs');
 var path = require('path');
-var jQueryScript = fs.readFileSync(path.resolve(__dirname, '../jquery/jquery.js'), 'utf8');
+var jQueryModulePath = path.resolve(__dirname, '../jquery/jquery.js');
+var jQueryScript = fs.readFileSync(jQueryModulePath, 'utf8');
 var jQueryExtensionsScript = fs.readFileSync(path.resolve(__dirname, '../jquery/extensions.js'), 'utf8');
-var angularScript = fs.readFileSync(path.resolve(__dirname, './angular.js'), 'utf8');
+var angularModulePath = path.resolve(__dirname, './1.6.10/angular.js');
+var angularScript = fs.readFileSync(angularModulePath, 'utf8');
 /**
  * @class
  * @constructor
@@ -191,7 +193,7 @@ AngularServerModule.prototype.createDocument = function(s) {
     });
     window.location.href = "/";
     //set window.jQuery
-    var sanbox = vm.createContext({
+    var sandbox = vm.createContext({
         window: window,
         document: window.document,
         navigator : {
@@ -205,9 +207,14 @@ AngularServerModule.prototype.createDocument = function(s) {
             userAgent:"Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.124 Safari/537.36"
         }
     });
-    vm.runInContext(jQueryScript, sanbox);
-    vm.runInContext(jQueryExtensionsScript, sanbox);
-    vm.runInContext(angularScript, sanbox);
+    vm.runInContext(jQueryScript, sandbox, {
+        filename: jQueryModulePath
+    });
+    vm.runInContext(jQueryExtensionsScript, sandbox);
+    vm.runInContext(angularScript, sandbox, {
+        filename: angularModulePath
+    });
+    sandbox = null;
     /**
      * @param {string|*} s
      * @returns {HTMLElement|*}

@@ -658,6 +658,32 @@ function HttpViewResult(name, data)
 LangUtils.inherits(HttpViewResult,HttpResult);
 
 /**
+ * Resolves view physical path based on the given view engine
+ * @param {HttpContext} context - An instance of HttpContext class which represents the underlying context
+ * @param {string} controller - A string which represents the name of the controller we want to search for
+ * @param {string} view - A string which represents the name of the view we want to search for
+ * @param {HttpViewEngineConfiguration} engine - The configuration of the target view engine
+ * @param {Function} callback
+ */
+HttpViewResult.resolveViewPath = function(context, controller, view, engine, callback) {
+    return queryDefaultViewPath.call(context, controller, view, engine.extension, function(err, result) {
+        if (err) { return callback(err); }
+        if (result) {
+            return callback(null, result);
+        }
+        else {
+            return querySharedViewPath.call(context, view, engine.extension, function(err, result) {
+                if (err) { return callback(err); }
+                if (result) {
+                    return callback(null, result);
+                }
+                callback();
+            });
+        }
+    });
+};
+
+/**
  * Sets or changes the name of this HttpViewResult instance.
  * @param {string} s
  * @returns {HttpViewResult}

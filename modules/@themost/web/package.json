@@ -1,6 +1,6 @@
 {
   "name": "@themost/web",
-  "version": "2.1.5",
+  "version": "2.1.6",
   "description": "MOST Web Framework 2.0 - Web Server Module",
   "module": "index.js",
   "peerDependencies": {},
@@ -32,6 +32,7 @@
     "domino": "1.0.18",
     "ejs": "^2.5.7",
     "formidable": "1.0.14",
+    "hashmap": "^2.3.0",
     "jade": "^1.11.0",
     "lodash": "^4.17.4",
     "moment": "^2.19.3",
@@ -53,6 +54,7 @@
     "xmldom": "^0.1.27"
   },
   "devDependencies": {
+    "@types/hashmap": "^2.0.29",
     "eslint": "^4.10.0"
   },
   "eslintConfig": {
@@ -65,7 +67,7 @@
     "globals": {
       "describe": false,
       "it": false,
-        "angular": true
+      "angular": true
     },
     "extends": "eslint:recommended"
   }

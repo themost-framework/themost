@@ -1,17 +1,17 @@
 import {ConfigurationBase} from "@themost/common/config";
 
-export declare interface MimeTypeConfiguration {
+export declare class MimeTypeConfiguration {
     extension: string;
     type: string;
 }
 
-export declare interface HttpViewEngineConfiguration {
+export declare class HttpViewEngineConfiguration {
     name: string;
     type: string;
     extension: string;
 }
 
-export declare interface HttpRouteConfiguration {
+export declare class HttpRouteConfiguration {
     url: string;
     action?: string;
     controller?: string;
@@ -20,7 +20,7 @@ export declare interface HttpRouteConfiguration {
     params?: any;
 }
 
-export declare interface HttpHandlerConfiguration {
+export declare class HttpHandlerConfiguration {
     name: string;
     type: string;
 }
