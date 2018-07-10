@@ -143,10 +143,10 @@ var directives = {
                 link: function (scope, element, attrs) {
                     /**
                      * @ngdoc attrs
-                     * @property {string} serverInclude
+                     * @property {string} ngServerInclude
                      * @property {string} src
                      */
-                    var src = attrs.serverInclude || attrs.src;
+                    var src = attrs.ngServerInclude || attrs.src;
                     if (src) {
                         return $async(function(resolve, reject) {
                             $context.getApplication().executeRequest({

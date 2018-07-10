@@ -8,7 +8,7 @@
  */
 var fs = require('fs');
 var pagedown = require('pagedown');
-var Extra = require('./pagedown/pagedown-extra');
+var Extra = require('./pagedown/pagedown-extra').Extra;
 var LangUtils = require('@themost/common/utils').LangUtils;
 var ArgumentError = require('@themost/common/utils').ArgumentError;
 var HttpViewEngine = require('../types').HttpViewEngine;
@@ -29,12 +29,11 @@ LangUtils.inherits(MarkdownEngine,HttpViewEngine);
  */
 MarkdownEngine.prototype.render = function(file, data, callback) {
     callback = callback || function () {};
-    var physicalPath = void 0;
     try {
         if (typeof file !== 'string') {
             return callback(new ArgumentError("Markdown template URI must be a string."));
         }
-        fs.readFile(physicalPath, 'utf8', function (err, data) {
+        fs.readFile(file, 'utf8', function (err, data) {
             if (err) {
                 return callback(err);
             }
