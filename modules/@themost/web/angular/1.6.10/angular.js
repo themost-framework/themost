@@ -17581,6 +17581,7 @@ function qFactory(nextTick, exceptionHandler, errorOnUnhandledRejections) {
   }
 
   function $Q(resolver) {
+
     if (!isFunction(resolver)) {
       throw $qMinErr('norslvr', 'Expected resolverFn, got \'{0}\'', resolver);
     }

@@ -67,13 +67,13 @@ function PostExecuteResultArgs() {
 /**
  * @class
  * @param {HttpContext|*} $context
- * @param {*} $async
+ * @param {*} $await
  * @param {*} $q
  * @returns {$http}
  * @constructor
  * @private
  */
-function HttpInternalProvider($context, $async, $q) {
+function HttpInternalProvider($context, $await, $q) {
 
     function $http(requestConfig) {
         var config = {
@@ -83,8 +83,7 @@ function HttpInternalProvider($context, $async, $q) {
         _.assign(config, requestConfig);
         var deferred = $q.defer(), promise = deferred.promise;
 
-        $async(function(resolve, reject) {
-
+        $await(function(resolve, reject) {
             promise.success = function(fn) {
                 promise.then(function(response) {
                     fn(response.data, response.status, response.headers, config);
@@ -221,23 +220,45 @@ DirectiveEngine.prototype.postExecuteResult = function(args, callback) {
                 templatePath:view.templatePath
             };
         })
-            .service('$async', function($q) {
+            .service('$await', function($q, $window, $timeout, $rootScope) {
+
+                var asyncQueueLength = 0;
+
             /**
              * @param {Function} fn
              */
-            return function $async(fn) {
-                const deferred = $q.defer();
-                promises.push(deferred.promise);
-                try {
-                    fn.call(document.parentWindow,function() {
-                        deferred.resolve();
-                }, function(err) {
-                        deferred.reject(err);
-                    });
-                }
-                catch(err) {
-                    deferred.reject(err);
-                }
+            return function $await(fn) {
+                $q(function(resolve, reject) {
+                    try {
+                        asyncQueueLength += 1;
+                        fn.call(document.parentWindow,function() {
+                            asyncQueueLength -= 1;
+                            $timeout(function() {
+                                if (asyncQueueLength === 0) {
+                                    $rootScope.$emit('$asyncContentLoaded');
+                                }
+                            });
+                            return resolve();
+                        }, function(err) {
+                            asyncQueueLength -= 1;
+                            $timeout(function() {
+                                if (asyncQueueLength === 0) {
+                                    $rootScope.$emit('$asyncContentLoaded', err);
+                                }
+                            });
+                            return reject(err);
+                        });
+                    }
+                    catch(err) {
+                        asyncQueueLength -= 1;
+                        $timeout(function() {
+                            if (asyncQueueLength === 0) {
+                                $rootScope.$emit('$asyncContentLoaded', err);
+                            }
+                        });
+                        return reject(err);
+                    }
+                });
             };
         });
         app.service('$http', HttpInternalProvider);
@@ -266,22 +287,35 @@ DirectiveEngine.prototype.postExecuteResult = function(args, callback) {
         if (appElement) {
             //get $q
             var $q = angular.injector(['ng']).get('$q');
+            //get $rootScope
+            var $rootScope = angular.injector(['ng']).get('$rootScope');
 
             //set $rootScope
-            app.run(function($rootScope) {
+            app.run(function($rootScope, $await) {
                 if (_.isObject(view.data)) {
                     _.assign($rootScope, view.data);
                 }
+                //wait for content
+                $rootScope.$on('$asyncContentLoaded', function(event, args)
+                {
+                    if (args) {
+                        //throw error
+                        return callback(args);
+                    }
+                    //set view boyd
+                    view.body = document.innerHTML;
+                    //return
+                    return callback();
+                });
+                //dummy async method (this is very important for views with asynchronous calls)
+                $await(function(resolve) {
+                   return resolve();
+                });
             });
+
             //initialize app element
             angular.bootstrap(appElement, ['server']);
-            //wait for promises
-            $q.all(promises).then(function() {
-                view.body = document.innerHTML;
-                return callback();
-            }, function(reason) {
-                callback(new Error(reason));
-            });
+
         }
         else {
             return callback();

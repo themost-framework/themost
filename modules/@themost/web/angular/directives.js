@@ -125,7 +125,7 @@ var fs = require('fs');
 /**
  * @ngdoc directive
  * @name serverUiView
- * @restrict A
+ * @restrict EA
  * @element ANY
  */
 
@@ -136,7 +136,7 @@ var directives = {
      */
     apply: function(app) {
 // eslint-disable-next-line no-unused-vars
-        app.directive('ngServerInclude',['$context', '$window', '$async',  function($context, $window, $async) {
+        app.directive('ngServerInclude',['$context', '$window', '$await',  function($context, $window, $await) {
             return {
                 replace:true,
                 restrict:'EA',
@@ -146,9 +146,14 @@ var directives = {
                      * @property {string} ngServerInclude
                      * @property {string} src
                      */
-                    var src = attrs.ngServerInclude || attrs.src;
+                    /**
+                     * @ngdoc attrs
+                     * @property {string} ngServerSrc
+                     * @property {string} src
+                     */
+                    var src = attrs.ngServerInclude || attrs.ngServerSrc;
                     if (src) {
-                        return $async(function(resolve, reject) {
+                        return $await(function(resolve, reject) {
                             $context.getApplication().executeRequest({
                                 url: src,
                                 cookie: $context.request.headers.cookie
@@ -158,7 +163,7 @@ var directives = {
                                     reject(err.message);
                                 }
                                 else {
-                                    element.removeAttr('data-src');
+                                    element.removeAttr(_.dasherize('ngServerInclude'));
                                     var el =$window.angular.element(result.body.replace(/\n/,''));
                                     element.replaceWith(el);
                                     resolve();
@@ -238,7 +243,7 @@ var directives = {
                         element.attr('placeholder', $context.translate(attrs.placeholder, attrs.ngServerLoc));
                 }
             };
-        }]).directive('serverUiView', ['$context', '$async', '$serverState', '$templateCache', '$compile', function($context, $async, $serverState, $templateCache, $compile) {
+        }]).directive('serverUiView', ['$context', '$await', '$serverState', '$templateCache', '$compile', '$rootScope', function($context, $await, $serverState, $templateCache, $compile, $rootScope) {
             return {
                 restrict: 'EA',
                 terminal: true,
@@ -246,7 +251,7 @@ var directives = {
                 controller: function() {},
                 compile: function() {
                     return function(scope, $element) {
-                        return $async(function(resolve, reject) {
+                        return $await(function(resolve, reject) {
                             if ($serverState && $serverState.templatePath) {
 
 // eslint-disable-next-line no-inner-declarations
@@ -273,7 +278,8 @@ var directives = {
                                     if (err) {
                                         return reject(err);
                                     }
-                                    $templateCache.put($serverState.templatePath, template);
+                                    //todo::cache server-ui-view template based on a given parameter
+                                    //$templateCache.put($serverState.templatePath, template);
                                     return includeContentTemplate(template, function(err) {
                                         if (err) {
                                             return reject(err);
