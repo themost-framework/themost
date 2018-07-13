@@ -27,7 +27,7 @@ export declare class DataModel extends SequentialEventEmitter{
     context: DataContext;
     readonly sourceAdapter?: string;
     readonly viewAdapter?: string;
-    silent(value: boolean): DataModel;
+    silent(value?: boolean): DataModel;
     readonly attributes?: Array<DataField>;
     readonly primaryKey: any;
     readonly attributeNames: Array<string>;

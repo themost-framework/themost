@@ -6,12 +6,11 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-import {PostExecuteResultHandler} from "../types";
+import {PostExecuteResultHandler, PreExecuteResultArgs} from "../types";
 import {HttpContext} from "../context";
 
 export declare class DirectiveEngine implements PostExecuteResultHandler {
-    postExecuteResult(context: HttpContext, callback: (err?: Error) => void);
-
+    postExecuteResult(args: PreExecuteResultArgs, callback: (err?: Error) => void);
 }
 
 export declare class PostExecuteResultArgs {

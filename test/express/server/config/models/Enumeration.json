@@ -1,0 +1,22 @@
+{
+    "@id": "http://schema.org/Enumeration",
+    "name": "Enumeration",
+    "description": "Lists or enumerations—for example, a list of cuisines or music genres, etc.",
+    "title": "Enumeration",
+    "abstract": false,
+    "sealed": false,
+    "inherits": "Intangible",
+    "version": "1.0",
+    "fields": [],
+    "privileges": [
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ]
+}

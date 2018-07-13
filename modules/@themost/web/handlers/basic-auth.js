@@ -6,7 +6,9 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+///
 var TraceUtils = require('@themost/common/utils').TraceUtils;
+var _ = require('lodash');
 /**
  * @class
  * @constructor
@@ -17,7 +19,7 @@ function BasicAuthHandler() {
 }
 
 /**
- * @param {string} s
+ * @param {string|*} s
  * @returns {{userName:string, userPassword:string}|undefined}
  */
 BasicAuthHandler.parseBasicAuthorization = function(s)
@@ -50,42 +52,25 @@ BasicAuthHandler.USERNAME_REGEXP = /^[a-zA-Z0-9.@_-]{1,255}$/;
 BasicAuthHandler.prototype.authenticateRequest = function (context, callback) {
     callback = callback || function() {};
     try {
-        /**
-         * @type {{userName: string, userPassword: string}|*}
-         */
-        var authorizationArgs = BasicAuthHandler.parseBasicAuthorization(context.request.headers['authorization']);
-        if (typeof authorizationArgs !== 'undefined') {
-            //ensure settings
-            var settings = context.getApplication().getConfiguration().settings;
-            settings.auth = settings.auth || { };
-            var providerPath = settings.auth.provider || './auth-service';
-            //get auth provider
-            var svc;
-            if (/^\//.test(providerPath)) {
-                svc = require(context.getApplication().mapPath(providerPath));
+        if (context.request && context.request.headers && context.request.headers.hasOwnProperty('authorization')) {
+            /**
+             * @type {{userName: string, userPassword: string}|*}
+             */
+            var authorizationArgs = BasicAuthHandler.parseBasicAuthorization(context.request.headers['authorization']);
+            if (_.isNil(authorizationArgs)) {
+                return callback();
             }
-            else {
-                svc = require(providerPath);
-            }
-            if (typeof svc.createInstance === 'function') {
-                //create provider instance
-                var provider = svc.createInstance(context);
-                //validate credentials
-                if (!authorizationArgs.userName.match(BasicAuthHandler.USERNAME_REGEXP)) {
-                    callback(new Error('Wrong username format. Please contact to system administrator.'));
-                    return;
-                }
-                provider.login(authorizationArgs.userName, authorizationArgs.userPassword, callback);
-            }
-            else
-                callback(null);
+            let authStrategy = context.getApplication().getAuthStrategy();
+            return authStrategy.login(context, authorizationArgs.userName, authorizationArgs.userPassword).then(function() {
+                return callback();
+            }).catch(function(err) {
+                return callback(err);
+            });
         }
-        else {
-            callback(null);
-        }
+        return callback();
     }
-    catch(e) {
-        callback(e);
+    catch(err) {
+        return callback(err);
     }
 };
 

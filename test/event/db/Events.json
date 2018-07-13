@@ -1,0 +1,962 @@
+[
+    {
+        "startDate": "2018-09-04T06:00:00.000Z",
+        "endDate": "2018-09-04T06:03:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-04T06:03:00.000Z",
+        "endDate": "2018-09-04T06:06:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-04T06:06:00.000Z",
+        "endDate": "2018-09-04T06:09:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-04T06:09:00.000Z",
+        "endDate": "2018-09-04T06:12:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-04T06:12:00.000Z",
+        "endDate": "2018-09-04T06:15:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-04T06:15:00.000Z",
+        "endDate": "2018-09-04T06:18:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-04T06:18:00.000Z",
+        "endDate": "2018-09-04T06:21:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-04T06:21:00.000Z",
+        "endDate": "2018-09-04T06:24:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-04T06:24:00.000Z",
+        "endDate": "2018-09-04T06:27:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-04T06:27:00.000Z",
+        "endDate": "2018-09-04T06:30:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-04T06:30:00.000Z",
+        "endDate": "2018-09-04T06:33:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-04T06:33:00.000Z",
+        "endDate": "2018-09-04T06:36:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-04T06:36:00.000Z",
+        "endDate": "2018-09-04T06:39:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-04T06:39:00.000Z",
+        "endDate": "2018-09-04T06:42:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-04T06:42:00.000Z",
+        "endDate": "2018-09-04T06:45:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-04T07:00:00.000Z",
+        "endDate": "2018-09-04T07:03:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-04T07:03:00.000Z",
+        "endDate": "2018-09-04T07:06:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-04T07:06:00.000Z",
+        "endDate": "2018-09-04T07:09:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-04T07:09:00.000Z",
+        "endDate": "2018-09-04T07:12:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-04T07:12:00.000Z",
+        "endDate": "2018-09-04T07:15:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-04T07:15:00.000Z",
+        "endDate": "2018-09-04T07:18:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-04T07:18:00.000Z",
+        "endDate": "2018-09-04T07:21:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-04T07:21:00.000Z",
+        "endDate": "2018-09-04T07:24:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-04T07:24:00.000Z",
+        "endDate": "2018-09-04T07:27:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-04T07:27:00.000Z",
+        "endDate": "2018-09-04T07:30:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-04T07:30:00.000Z",
+        "endDate": "2018-09-04T07:33:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-04T07:33:00.000Z",
+        "endDate": "2018-09-04T07:36:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-04T07:36:00.000Z",
+        "endDate": "2018-09-04T07:39:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-04T07:39:00.000Z",
+        "endDate": "2018-09-04T07:42:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-04T07:42:00.000Z",
+        "endDate": "2018-09-04T07:45:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-11T06:00:00.000Z",
+        "endDate": "2018-09-11T06:03:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-11T06:03:00.000Z",
+        "endDate": "2018-09-11T06:06:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-11T06:06:00.000Z",
+        "endDate": "2018-09-11T06:09:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-11T06:09:00.000Z",
+        "endDate": "2018-09-11T06:12:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-11T06:12:00.000Z",
+        "endDate": "2018-09-11T06:15:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-11T06:15:00.000Z",
+        "endDate": "2018-09-11T06:18:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-11T06:18:00.000Z",
+        "endDate": "2018-09-11T06:21:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-11T06:21:00.000Z",
+        "endDate": "2018-09-11T06:24:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-11T06:24:00.000Z",
+        "endDate": "2018-09-11T06:27:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-11T06:27:00.000Z",
+        "endDate": "2018-09-11T06:30:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-11T06:30:00.000Z",
+        "endDate": "2018-09-11T06:33:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-11T06:33:00.000Z",
+        "endDate": "2018-09-11T06:36:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-11T06:36:00.000Z",
+        "endDate": "2018-09-11T06:39:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-11T06:39:00.000Z",
+        "endDate": "2018-09-11T06:42:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-11T06:42:00.000Z",
+        "endDate": "2018-09-11T06:45:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-11T07:00:00.000Z",
+        "endDate": "2018-09-11T07:03:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-11T07:03:00.000Z",
+        "endDate": "2018-09-11T07:06:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-11T07:06:00.000Z",
+        "endDate": "2018-09-11T07:09:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-11T07:09:00.000Z",
+        "endDate": "2018-09-11T07:12:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-11T07:12:00.000Z",
+        "endDate": "2018-09-11T07:15:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-11T07:15:00.000Z",
+        "endDate": "2018-09-11T07:18:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-11T07:18:00.000Z",
+        "endDate": "2018-09-11T07:21:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-11T07:21:00.000Z",
+        "endDate": "2018-09-11T07:24:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-11T07:24:00.000Z",
+        "endDate": "2018-09-11T07:27:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-11T07:27:00.000Z",
+        "endDate": "2018-09-11T07:30:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-11T07:30:00.000Z",
+        "endDate": "2018-09-11T07:33:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-11T07:33:00.000Z",
+        "endDate": "2018-09-11T07:36:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-11T07:36:00.000Z",
+        "endDate": "2018-09-11T07:39:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-11T07:39:00.000Z",
+        "endDate": "2018-09-11T07:42:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-11T07:42:00.000Z",
+        "endDate": "2018-09-11T07:45:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-18T06:00:00.000Z",
+        "endDate": "2018-09-18T06:03:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-18T06:03:00.000Z",
+        "endDate": "2018-09-18T06:06:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-18T06:06:00.000Z",
+        "endDate": "2018-09-18T06:09:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-18T06:09:00.000Z",
+        "endDate": "2018-09-18T06:12:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-18T06:12:00.000Z",
+        "endDate": "2018-09-18T06:15:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-18T06:15:00.000Z",
+        "endDate": "2018-09-18T06:18:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-18T06:18:00.000Z",
+        "endDate": "2018-09-18T06:21:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-18T06:21:00.000Z",
+        "endDate": "2018-09-18T06:24:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-18T06:24:00.000Z",
+        "endDate": "2018-09-18T06:27:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-18T06:27:00.000Z",
+        "endDate": "2018-09-18T06:30:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-18T06:30:00.000Z",
+        "endDate": "2018-09-18T06:33:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-18T06:33:00.000Z",
+        "endDate": "2018-09-18T06:36:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-18T06:36:00.000Z",
+        "endDate": "2018-09-18T06:39:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-18T06:39:00.000Z",
+        "endDate": "2018-09-18T06:42:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-18T06:42:00.000Z",
+        "endDate": "2018-09-18T06:45:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-18T07:00:00.000Z",
+        "endDate": "2018-09-18T07:03:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-18T07:03:00.000Z",
+        "endDate": "2018-09-18T07:06:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-18T07:06:00.000Z",
+        "endDate": "2018-09-18T07:09:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-18T07:09:00.000Z",
+        "endDate": "2018-09-18T07:12:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-18T07:12:00.000Z",
+        "endDate": "2018-09-18T07:15:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-18T07:15:00.000Z",
+        "endDate": "2018-09-18T07:18:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-18T07:18:00.000Z",
+        "endDate": "2018-09-18T07:21:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-18T07:21:00.000Z",
+        "endDate": "2018-09-18T07:24:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-18T07:24:00.000Z",
+        "endDate": "2018-09-18T07:27:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-18T07:27:00.000Z",
+        "endDate": "2018-09-18T07:30:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-18T07:30:00.000Z",
+        "endDate": "2018-09-18T07:33:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-18T07:33:00.000Z",
+        "endDate": "2018-09-18T07:36:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-18T07:36:00.000Z",
+        "endDate": "2018-09-18T07:39:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-18T07:39:00.000Z",
+        "endDate": "2018-09-18T07:42:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-18T07:42:00.000Z",
+        "endDate": "2018-09-18T07:45:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-25T06:00:00.000Z",
+        "endDate": "2018-09-25T06:03:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-25T06:03:00.000Z",
+        "endDate": "2018-09-25T06:06:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-25T06:06:00.000Z",
+        "endDate": "2018-09-25T06:09:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-25T06:09:00.000Z",
+        "endDate": "2018-09-25T06:12:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-25T06:12:00.000Z",
+        "endDate": "2018-09-25T06:15:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-25T06:15:00.000Z",
+        "endDate": "2018-09-25T06:18:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-25T06:18:00.000Z",
+        "endDate": "2018-09-25T06:21:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-25T06:21:00.000Z",
+        "endDate": "2018-09-25T06:24:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-25T06:24:00.000Z",
+        "endDate": "2018-09-25T06:27:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-25T06:27:00.000Z",
+        "endDate": "2018-09-25T06:30:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-25T06:30:00.000Z",
+        "endDate": "2018-09-25T06:33:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-25T06:33:00.000Z",
+        "endDate": "2018-09-25T06:36:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-25T06:36:00.000Z",
+        "endDate": "2018-09-25T06:39:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-25T06:39:00.000Z",
+        "endDate": "2018-09-25T06:42:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-25T06:42:00.000Z",
+        "endDate": "2018-09-25T06:45:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-25T07:00:00.000Z",
+        "endDate": "2018-09-25T07:03:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-25T07:03:00.000Z",
+        "endDate": "2018-09-25T07:06:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-25T07:06:00.000Z",
+        "endDate": "2018-09-25T07:09:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-25T07:09:00.000Z",
+        "endDate": "2018-09-25T07:12:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-25T07:12:00.000Z",
+        "endDate": "2018-09-25T07:15:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-25T07:15:00.000Z",
+        "endDate": "2018-09-25T07:18:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-25T07:18:00.000Z",
+        "endDate": "2018-09-25T07:21:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-25T07:21:00.000Z",
+        "endDate": "2018-09-25T07:24:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-25T07:24:00.000Z",
+        "endDate": "2018-09-25T07:27:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-25T07:27:00.000Z",
+        "endDate": "2018-09-25T07:30:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-25T07:30:00.000Z",
+        "endDate": "2018-09-25T07:33:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-25T07:33:00.000Z",
+        "endDate": "2018-09-25T07:36:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-25T07:36:00.000Z",
+        "endDate": "2018-09-25T07:39:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-25T07:39:00.000Z",
+        "endDate": "2018-09-25T07:42:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    },
+    {
+        "startDate": "2018-09-25T07:42:00.000Z",
+        "endDate": "2018-09-25T07:45:00.000Z",
+        "duration": "PT3M",
+        "performer": 8,
+        "maximumAttendeeCapacity": 1,
+        "superEvent": 38
+    }
+]

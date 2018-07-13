@@ -76,28 +76,37 @@
             "name": "dateCreated",
             "title": "dateCreated",
             "description": "The date on which this item was created.",
-            "type": "DateTime"
+            "type": "DateTime",
+            "value":"javascript:return new Date();",
+            "readonly":true
         },
         {
             "@id": "https://themost.io/schemas/dateModified",
             "name": "dateModified",
             "title": "dateModified",
             "description": "The date on which this item was most recently modified.",
-            "type": "DateTime"
+            "type": "DateTime",
+            "readonly":true,
+            "value":"javascript:return new Date();",
+            "calculation":"javascript:return new Date();"
         },
         {
             "@id": "https://themost.io/schemas/createdBy",
             "name": "createdBy",
             "title": "createdBy",
             "description": "Created by user.",
-            "type": "Integer"
+            "type": "Integer",
+            "value":"javascript:return this.user();",
+            "readonly":true
         },
         {
             "@id": "https://themost.io/schemas/modifiedBy",
             "name": "modifiedBy",
             "title": "modifiedBy",
             "description": "Last modified by user.",
-            "type": "Integer"
+            "type": "Integer",
+            "calculation":"javascript:return this.user();",
+            "readonly":true
         },
         {
             "@id": "https://schema.org/workspace",

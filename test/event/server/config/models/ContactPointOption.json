@@ -1,0 +1,36 @@
+{
+    "@id": "http://schema.org/ContactPointOption",
+    "name": "ContactPointOption",
+    "description": "Enumerated options related to a ContactPoint.",
+    "title": "ContactPointOption",
+    "abstract": false,
+    "sealed": false,
+    "implements": "Enumeration",
+    "version": "1.0",
+    "fields": [],
+    "privileges": [
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ],
+    "seed": [
+        {
+            "name": "HearingImpairedSupported",
+            "alternateName": "HearingImpairedSupported",
+            "description": "Uses devices to support users with hearing impairments.",
+            "url": "http://schema.org/HearingImpairedSupported"
+        },
+        {
+            "name": "TollFree",
+            "alternateName": "TollFree",
+            "description": "The associated telephone number is toll free.",
+            "url": "http://schema.org/TollFree"
+        }
+    ]
+}

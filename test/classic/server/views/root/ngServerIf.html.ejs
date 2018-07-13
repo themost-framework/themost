@@ -1,0 +1,13 @@
+<%# { "layout":"../shared/master.html.ejs" } %>
+<div class="container">
+    <div class="row pt-4">
+        <div class="col-lg-12">
+            <ul class="example-animate-container">
+                <li class="animate-repeat" ng-server-repeat="friend in friends">
+                    {{=friend.name}} is {{=friend.age}} years old.
+                    <span style="color: red" ng-server-if="friend.age>=40">(&gt;=40)</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>

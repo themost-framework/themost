@@ -1,0 +1,30 @@
+{
+    "@id": "http://schema.org/Audience",
+    "name": "Audience",
+    "description": "Intended audience for an item, i.e. the group for whom the item was created.",
+    "title": "Audience",
+    "abstract": false,
+    "sealed": false,
+    "inherits": "Intangible",
+    "version": "1.0",
+    "fields": [
+        {
+            "@id": "http://schema.org/audienceType",
+            "name": "audienceType",
+            "title": "audienceType",
+            "description": "The target group associated with a given audience (e.g. veterans, car owners, musicians, etc.).",
+            "type": "Text"
+        }
+    ],
+    "privileges": [
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ]
+}

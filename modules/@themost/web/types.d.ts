@@ -14,6 +14,11 @@ export declare class HttpApplicationService implements IApplicationService {
     getApplication(): IApplication;
 }
 
+export declare interface PreExecuteResultArgs {
+    context?: HttpContext;
+    target?: any;
+}
+
 export declare interface BeginRequestHandler {
     beginRequest(context: HttpContext, callback: (err?: Error) => void)
 }
@@ -45,11 +50,11 @@ export declare interface ProcessRequestHandler {
 }
 
 export declare interface PreExecuteResultHandler {
-    preExecuteResult(context: HttpContext, callback: (err?: Error) => void)
+    preExecuteResult(args: PreExecuteResultArgs, callback: (err?: Error) => void)
 }
 
 export declare interface PostExecuteResultHandler {
-    postExecuteResult(context: HttpContext, callback: (err?: Error) => void)
+    postExecuteResult(args: PreExecuteResultArgs, callback: (err?: Error) => void)
 }
 
 export declare interface EndRequestHandler {

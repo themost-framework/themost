@@ -1,0 +1,48 @@
+{
+    "@id": "http://schema.org/OfferItemCondition",
+    "name": "OfferItemCondition",
+    "description": "A list of possible conditions for the item.",
+    "title": "OfferItemCondition",
+    "abstract": false,
+    "sealed": false,
+    "implements": "Enumeration",
+    "version": "1.0",
+    "fields": [],
+    "privileges": [
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ],
+    "seed": [
+        {
+            "name": "DamagedCondition",
+            "alternateName": "DamagedCondition",
+            "description": "Indicates that the item is damaged.",
+            "url": "http://schema.org/DamagedCondition"
+        },
+        {
+            "name": "RefurbishedCondition",
+            "alternateName": "RefurbishedCondition",
+            "description": "Indicates that the item is refurbished.",
+            "url": "http://schema.org/RefurbishedCondition"
+        },
+        {
+            "name": "UsedCondition",
+            "alternateName": "UsedCondition",
+            "description": "Indicates that the item is used.",
+            "url": "http://schema.org/UsedCondition"
+        },
+        {
+            "name": "NewCondition",
+            "alternateName": "NewCondition",
+            "description": "Indicates that the item is new.",
+            "url": "http://schema.org/NewCondition"
+        }
+    ]
+}

@@ -1,0 +1,86 @@
+{
+    "@id": "http://schema.org/PriceSpecification",
+    "name": "PriceSpecification",
+    "description": "A structured value representing a price or price range. Typically, only the subclasses of this type are used for markup. It is recommended to use <a class=\"localLink\" href=\"http://schema.org/MonetaryAmount\">MonetaryAmount</a> to describe independent amounts of money such as a salary, credit card limits, etc.",
+    "title": "PriceSpecification",
+    "abstract": false,
+    "sealed": false,
+    "inherits": "StructuredValue",
+    "version": "1.0",
+    "fields": [
+        {
+            "@id": "http://schema.org/minPrice",
+            "name": "minPrice",
+            "title": "minPrice",
+            "description": "The lowest price if the price is a range.",
+            "type": "Number"
+        },
+        {
+            "@id": "http://schema.org/eligibleTransactionVolume",
+            "name": "eligibleTransactionVolume",
+            "title": "eligibleTransactionVolume",
+            "description": "The transaction volume, in a monetary unit, for which the offer or price specification is valid, e.g. for indicating a minimal purchasing volume, to express free shipping above a certain order volume, or to limit the acceptance of credit cards to purchases to a certain minimal amount.",
+            "type": "PriceSpecification"
+        },
+        {
+            "@id": "http://schema.org/maxPrice",
+            "name": "maxPrice",
+            "title": "maxPrice",
+            "description": "The highest price if the price is a range.",
+            "type": "Number"
+        },
+        {
+            "@id": "http://schema.org/priceCurrency",
+            "name": "priceCurrency",
+            "title": "priceCurrency",
+            "description": "The currency (in 3-letter ISO 4217 format) of the price or a price component, when attached to <a class=\"localLink\" href=\"http://schema.org/PriceSpecification\">PriceSpecification</a> and its subtypes.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/eligibleQuantity",
+            "name": "eligibleQuantity",
+            "title": "eligibleQuantity",
+            "description": "The interval and unit of measurement of ordering quantities for which the offer or price specification is valid. This allows e.g. specifying that a certain freight charge is valid only for a certain quantity.",
+            "type": "QuantitativeValue"
+        },
+        {
+            "@id": "http://schema.org/validFrom",
+            "name": "validFrom",
+            "title": "validFrom",
+            "description": "The date when the item becomes valid.",
+            "type": "DateTime"
+        },
+        {
+            "@id": "http://schema.org/validThrough",
+            "name": "validThrough",
+            "title": "validThrough",
+            "description": "The date after when the item is not valid. For example the end of an offer, salary period, or a period of opening hours.",
+            "type": "DateTime"
+        },
+        {
+            "@id": "http://schema.org/price",
+            "name": "price",
+            "title": "price",
+            "description": "<p>The offer price of a product, or of a price component when attached to PriceSpecification and its subtypes.</p>\n\n<p>Usage guidelines:</p>\n\n<ul>\n<li>Use the <a class=\"localLink\" href=\"http://schema.org/priceCurrency\">priceCurrency</a> property (with <a href=\"http://en.wikipedia.org/wiki/ISO_4217#Active_codes\">ISO 4217 codes</a> e.g. \"USD\") instead of\n  including <a href=\"http://en.wikipedia.org/wiki/Dollar_sign#Currencies_that_use_the_dollar_or_peso_sign\">ambiguous symbols</a> such as '$' in the value.</li>\n<li>Use '.' (Unicode 'FULL STOP' (U+002E)) rather than ',' to indicate a decimal point. Avoid using these symbols as a readability separator.</li>\n<li>Note that both <a href=\"http://www.w3.org/TR/xhtml-rdfa-primer/#using-the-content-attribute\">RDFa</a> and Microdata syntax allow the use of a \"content=\" attribute for publishing simple machine-readable values alongside more human-friendly formatting.</li>\n<li>Use values from 0123456789 (Unicode 'DIGIT ZERO' (U+0030) to 'DIGIT NINE' (U+0039)) rather than superficially similiar Unicode symbols.</li>\n</ul>\n",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/valueAddedTaxIncluded",
+            "name": "valueAddedTaxIncluded",
+            "title": "valueAddedTaxIncluded",
+            "description": "Specifies whether the applicable value-added tax (VAT) is included in the price specification or not.",
+            "type": "Boolean"
+        }
+    ],
+    "privileges": [
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ]
+}

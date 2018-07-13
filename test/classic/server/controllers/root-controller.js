@@ -6,8 +6,8 @@ import path from 'path';
 @httpController()
 export default class RootController extends HttpBaseController {
     
-    constructor(context) {
-        super(context);
+    constructor() {
+        super();
     }
     
     @httpGet()
@@ -26,6 +26,61 @@ export default class RootController extends HttpBaseController {
         return Promise.resolve({
             message: "Hello World!"
         });
+    }
+
+    @httpGet()
+    @httpAction('ngServerRepeat')
+    ngRepeat() {
+        return {
+            friends:[
+                {name:'John', age:25},
+                {name:'Mary', age:40},
+                {name:'Peter', age:85}
+            ]
+        };
+    }
+
+    @httpGet()
+    @httpAction('ngServerIf')
+    ngIf() {
+        return {
+            friends:[
+                {name:'John', age:25},
+                {name:'Mary', age:40},
+                {name:'Peter', age:85}
+            ]
+        };
+    }
+
+    @httpGet()
+    @httpAction('ngServerClass')
+    ngClass() {
+        return {
+            friends:[
+                {name:'John', age:25},
+                {name:'Mary', age:40},
+                {name:'Peter', age:85}
+            ]
+        };
+    }
+
+    @httpGet()
+    @httpAction('ngServerSwitch')
+    ngSwitch() {
+        return {
+            friends:[
+                {name:'John', age:25},
+                {name:'Mary', age:40},
+                {name:'Peter', age:85}
+            ]
+        };
+    }
+
+    @httpGet()
+    @httpAction('ngServerInit')
+    ngInit() {
+        return {
+        };
     }
     
     

@@ -15,6 +15,11 @@ export function bootstrap(angular) {
                     element.html(scope.serverHello);
                 }
             };
-        });
+        }).component('heroDetail', {
+        template: `<span>Name: {{=$ctrl.hero.name}}</span>`,
+        bindings: {
+            hero: '='
+        }
+    });
     return angular.module('server',['server-extensions']);
 }

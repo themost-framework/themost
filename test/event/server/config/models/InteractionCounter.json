@@ -1,0 +1,44 @@
+{
+    "@id": "http://schema.org/InteractionCounter",
+    "name": "InteractionCounter",
+    "description": "A summary of how users have interacted with this CreativeWork. In most cases, authors will use a subtype to specify the specific type of interaction.",
+    "title": "InteractionCounter",
+    "abstract": false,
+    "sealed": false,
+    "inherits": "StructuredValue",
+    "version": "1.0",
+    "fields": [
+        {
+            "@id": "http://schema.org/interactionService",
+            "name": "interactionService",
+            "title": "interactionService",
+            "description": "The WebSite or SoftwareApplication where the interactions took place.",
+            "type": "WebSite"
+        },
+        {
+            "@id": "http://schema.org/userInteractionCount",
+            "name": "userInteractionCount",
+            "title": "userInteractionCount",
+            "description": "The number of interactions for the CreativeWork using the WebSite or SoftwareApplication.",
+            "type": "Integer"
+        },
+        {
+            "@id": "http://schema.org/interactionType",
+            "name": "interactionType",
+            "title": "interactionType",
+            "description": "The Action representing the type of interaction. For up votes, +1s, etc. use <a class=\"localLink\" href=\"http://schema.org/LikeAction\">LikeAction</a>. For down votes use <a class=\"localLink\" href=\"http://schema.org/DislikeAction\">DislikeAction</a>. Otherwise, use the most specific Action.",
+            "type": "Action"
+        }
+    ],
+    "privileges": [
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ]
+}

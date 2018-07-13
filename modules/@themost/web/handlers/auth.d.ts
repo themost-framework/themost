@@ -6,7 +6,12 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-import {HttpApplicationService, PreExecuteResultHandler, AuthenticateRequestHandler} from "../types";
+import {
+    HttpApplicationService,
+    PreExecuteResultHandler,
+    AuthenticateRequestHandler,
+    PreExecuteResultArgs
+} from "../types";
 import {HttpContext} from "../context";
 
 export declare abstract class AuthStrategy extends HttpApplicationService {
@@ -54,7 +59,7 @@ export declare class AuthHandler implements AuthenticateRequestHandler, PreExecu
 
     authenticateRequest(context: HttpContext, callback: (err?: Error) => void);
 
-    preExecuteResult(context: HttpContext, callback: (err?: Error) => void);
+    preExecuteResult(args: PreExecuteResultArgs, callback: (err?: Error) => void);
 
 }
 

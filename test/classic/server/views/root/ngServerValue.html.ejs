@@ -1,0 +1,17 @@
+<%# { "layout":"../shared/master.html.ejs" } %>
+<div class="container">
+    <div class="row pt-4">
+        <div class="col-lg-12">
+            <div ng-server-init="names=['John', 'Mary', 'Cate', 'Suz']">
+                <h2>Which is your favorite?</h2>
+                <label class="pl-2" ng-server-repeat="name in names" for="{{=name}}">
+                    {{=name}}
+                    <input type="radio"
+                           ng-server-value="name"
+                           id="{{=name}}"
+                           name="favorite">
+                </label>
+            </div>
+        </div>
+    </div>
+</div>

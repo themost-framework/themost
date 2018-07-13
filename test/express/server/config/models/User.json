@@ -1,0 +1,82 @@
+{
+    "@id": "https://themost.io/schemas/User",
+    "name": "User",
+    "description": "Users",
+    "title": "User",
+    "abstract": false,
+    "sealed": false,
+    "inherits": "Account",
+    "version": "1.0",
+    "fields": [
+        {
+            "@id": "https://themost.io/schemas/lockoutTime",
+            "name": "lockoutTime",
+            "title": "lockoutTime",
+            "description": "The date and time that this account was locked out.",
+            "type": "DateTime"
+        },
+        {
+            "@id": "https://themost.io/schemas/logonCount",
+            "name": "logonCount",
+            "title": "logonCount",
+            "description": "The number of times the account has successfully logged on.",
+            "type": "Integer"
+        },
+        {
+            "@id": "https://themost.io/schemas/enabled",
+            "name": "enabled",
+            "title": "enabled",
+            "description": "Indicates whether a user is enabled or not.",
+            "type": "Boolean"
+        },
+        {
+            "@id": "https://themost.io/schemas/lastLogon",
+            "name": "lastLogon",
+            "title": "lastLogon",
+            "description": "The last time and date the user logged on.",
+            "type": "DateTime"
+        },
+        {
+            "@id": "https://themost.io/schemas/groups",
+            "name": "groups",
+            "title": "Groups",
+            "description": "A collection of groups where user belongs.",
+            "type": "Group"
+        },
+        {
+            "@id": "https://themost.io/schemas/userFlags",
+            "name": "userFlags",
+            "title": "userFlags",
+            "description": "This field contains additional user flags.",
+            "type": "Integer"
+        }
+    ],
+    "privileges": [
+
+        {
+            "mask": 1,
+            "type": "self",
+            "filter": "id eq me()"
+        },
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ],
+    "seed": [
+        {
+            "name": "anonymous",
+            "description": "Anonymous User",
+            "groups": [
+                {
+                    "name": "Guests"
+                }
+            ]
+        }
+    ]
+}

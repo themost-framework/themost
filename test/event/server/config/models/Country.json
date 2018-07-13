@@ -1,0 +1,63 @@
+{
+    "@id": "http://schema.org/Country",
+    "name": "Country",
+    "description": "A country.",
+    "title": "Country",
+    "abstract": false,
+    "sealed": false,
+    "inherits": "AdministrativeArea",
+    "version": "1.0",
+    "fields": [
+        {
+            "@id": "https://themost.io/schemas/official",
+            "name": "official",
+            "title": "official",
+            "description": "The official name of a country.",
+            "type": "Text"
+        },
+        {
+            "@id": "https://themost.io/schemas/cca2",
+            "name": "cca2",
+            "title": "cca2",
+            "description": "The ISO 3166-1 alpha-2 code of a country.",
+            "type": "Text"
+        },
+        {
+            "@id": "https://themost.io/schemas/cca3",
+            "name": "cca3",
+            "title": "cca3",
+            "description": "The ISO 3166-1 alpha-3 code of a country.",
+            "type": "Text"
+        },
+        {
+            "@id": "https://themost.io/schemas/cioc",
+            "name": "cioc",
+            "title": "cioc",
+            "description": "The International Olympic Committee code of a country.",
+            "type": "Text"
+        },
+        {
+            "@id": "https://themost.io/schemas/currency",
+            "name": "currency",
+            "title": "currency",
+            "description": "The currency of a country.",
+            "type": "Text"
+        }
+    ],
+    "privileges": [
+        {
+            "mask": 1,
+            "type": "global",
+            "account":"*"
+        },
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ]
+}

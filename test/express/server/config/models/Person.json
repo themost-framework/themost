@@ -1,0 +1,167 @@
+{
+    "@id": "http://schema.org/Person",
+    "name": "Person",
+    "title": "Person",
+    "description": "A person",
+    "hidden": false,
+    "sealed": false,
+    "inherits": "Party",
+    "version": "1.0",
+    "fields": [
+        {
+            "@id": "http://schema.org/colleagues",
+            "name": "colleagues",
+            "title": "Colleagues",
+            "description": "A colleague of the person.",
+            "type": "Person"
+        },
+        {
+            "@id": "http://schema.org/workLocation",
+            "name": "workLocation",
+            "title": "Work Location",
+            "description": "A contact location for a person's place of work.",
+            "type": "Place"
+        },
+        {
+            "@id": "http://schema.org/children",
+            "name": "children",
+            "title": "Children",
+            "description": "A child of the person.",
+            "type": "Person"
+        },
+        {
+            "@id": "http://schema.org/jobTitle",
+            "name": "jobTitle",
+            "title": "Job Title",
+            "description": "The job title of the person (for example, Financial Manager).",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/birthPlace",
+            "name": "birthPlace",
+            "title": "Birth Place",
+            "description": "The place where the person was born.",
+            "type": "Place"
+        },
+        {
+            "@id": "http://schema.org/gender",
+            "name": "gender",
+            "title": "Gender",
+            "description": "Gender of the person. While http://schema.org/Male and http://schema.org/Female may be used, text strings are also acceptable for people who do not identify as a binary gender.",
+            "type": "GenderType"
+        },
+        {
+            "@id": "http://schema.org/memberOf",
+            "name": "memberOf",
+            "title": "Member Of",
+            "description": "An Organization (or ProgramMembership) to which this Person or Organization belongs.",
+            "type": "Organization"
+        },
+        {
+            "@id": "http://schema.org/alumniOf",
+            "name": "alumniOf",
+            "title": "Alumni Of",
+            "description": "An organization that the person is an alumni of.",
+            "type": "EducationalOrganization"
+        },
+        {
+            "@id": "http://schema.org/homeLocation",
+            "name": "homeLocation",
+            "title": "Home Location",
+            "description": "A contact location for a person's residence.",
+            "type": "ContactPoint",
+            "nested": true
+        },
+        {
+            "@id": "http://schema.org/birthDate",
+            "name": "birthDate",
+            "title": "Birth Date",
+            "description": "Date of birth.",
+            "type": "DateTime"
+        },
+        {
+            "@id": "http://schema.org/givenName",
+            "name": "givenName",
+            "title": "Given Name",
+            "description": "Given name. In the U.S., the first name of a Person. This can be used along with familyName instead of the name property.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/familyName",
+            "name": "familyName",
+            "title": "Family Name",
+            "description": "Family name. In the U.S., the last name of an Person. This can be used along with givenName instead of the name property.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/honorificPrefix",
+            "name": "honorificPrefix",
+            "title": "Honorific Prefix",
+            "description": "An honorific prefix preceding a Person's name such as Dr/Mrs/Mr.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/additionalName",
+            "name": "additionalName",
+            "title": "Additional Name",
+            "description": "An additional name for a Person, can be used for a middle name.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/siblings",
+            "name": "siblings",
+            "title": "Siblings",
+            "description": "A sibling of the person.",
+            "type": "Person"
+        },
+        {
+            "@id": "http://schema.org/affiliation",
+            "name": "affiliation",
+            "title": "Affiliation",
+            "description": "An organization that this person is affiliated with. For example, a school/university, a club, or a team.",
+            "type": "Organization"
+        },
+        {
+            "@id": "http://schema.org/honorificSuffix",
+            "name": "honorificSuffix",
+            "title": "Honorific Suffix",
+            "description": "An honorific suffix preceding a Person's name such as M.D. /PhD/MSCSW.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/nationality",
+            "name": "nationality",
+            "title": "Nationality",
+            "description": "Nationality of the person.",
+            "type": "Country"
+        },
+        {
+            "@id": "http://schema.org/follows",
+            "name": "follows",
+            "title": "Follows",
+            "description": "The most generic uni-directional social relation.",
+            "type": "Person"
+        },
+        {
+            "@id": "http://schema.org/knows",
+            "name": "knows",
+            "title": "Knows",
+            "description": "The most generic bi-directional social/work relation.",
+            "type": "Person"
+        },
+        {
+            "@id": "http://schema.org/worksFor",
+            "name": "worksFor",
+            "title": "Works For",
+            "description": "Organizations that the person works for.",
+            "type": "Organization",
+            "many": true
+        }
+    ],
+    "privileges": [
+        {
+            "mask": 15,
+            "type": "global"
+        }
+    ]
+}

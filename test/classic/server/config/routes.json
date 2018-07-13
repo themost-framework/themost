@@ -16,6 +16,19 @@
         "format": "html"
     },
     {
+        "url": "/dashboard/?",
+        "controller": "root",
+        "action": "index",
+        "template": "dashboard",
+        "format": "html"
+    },
+    {
+        "url": "/dashboard/:action.html",
+        "controller": "root",
+        "template": "dashboard",
+        "format": "html"
+    },
+    {
         "url": "/:action.json",
         "controller": "root",
         "format": "json"

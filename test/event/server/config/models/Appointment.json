@@ -1,0 +1,27 @@
+{
+    "@id": "http://schema.org/Appointments",
+    "name": "Appointment",
+    "description": "An appointment happening at a certain time and location. Repeated appointments may be structured as separate Appointment objects.",
+    "title": "Appointment",
+    "abstract": false,
+    "sealed": false,
+    "inherits": "Event",
+    "version": "1.0",
+    "fields": [],
+    "privileges": [
+        {
+            "mask": 1,
+            "type": "global",
+            "account": "*"
+        },
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ]
+}

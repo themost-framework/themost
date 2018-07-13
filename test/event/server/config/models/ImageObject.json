@@ -1,0 +1,51 @@
+{
+    "@id": "http://schema.org/ImageObject",
+    "name": "ImageObject",
+    "description": "An image file.",
+    "title": "ImageObject",
+    "abstract": false,
+    "sealed": false,
+    "inherits": "MediaObject",
+    "version": "1.0",
+    "fields": [
+        {
+            "@id": "http://schema.org/exifData",
+            "name": "exifData",
+            "title": "exifData",
+            "description": "exif data for this object.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/representativeOfPage",
+            "name": "representativeOfPage",
+            "title": "representativeOfPage",
+            "description": "Indicates whether this image is representative of the content of the page.",
+            "type": "Boolean"
+        },
+        {
+            "@id": "http://schema.org/thumbnail",
+            "name": "thumbnail",
+            "title": "thumbnail",
+            "description": "Thumbnail image for an image or video.",
+            "type": "ImageObject"
+        },
+        {
+            "@id": "http://schema.org/caption",
+            "name": "caption",
+            "title": "caption",
+            "description": "The caption for this object.",
+            "type": "Text"
+        }
+    ],
+    "privileges": [
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ]
+}

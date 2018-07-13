@@ -1,0 +1,89 @@
+{
+    "@id": "https://themost.io/schemas/Party",
+    "name": "Party",
+    "description": "Party",
+    "title": "Party",
+    "abstract": false,
+    "sealed": false,
+    "inherits": "Thing",
+    "version": "1.0",
+    "fields": [
+
+        {
+            "@id": "http://schema.org/sponsor",
+            "name": "sponsor",
+            "title": "sponsor",
+            "description": "A person or organization that supports a thing through a pledge, promise, or financial contribution. e.g. a sponsor of a Medical Study or a corporate sponsor of an event.",
+            "type": "Party"
+        },
+        {
+            "@id": "http://schema.org/taxID",
+            "name": "taxID",
+            "title": "taxID",
+            "description": "The Tax / Fiscal ID of the organization or person, e.g. the TIN in the US or the CIF/NIF in Spain.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/address",
+            "name": "address",
+            "title": "address",
+            "description": "Physical address of the item.",
+            "type": "PostalAddress",
+            "many": false,
+            "expandable": true,
+            "nested": true
+        },
+        {
+            "@id": "http://schema.org/email",
+            "name": "email",
+            "title": "email",
+            "description": "Email address.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/telephone",
+            "name": "telephone",
+            "title": "telephone",
+            "description": "The telephone number.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/vatID",
+            "name": "vatID",
+            "title": "vatID",
+            "description": "The Value-added Tax ID of the organization or person.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/awards",
+            "name": "awards",
+            "title": "Awards",
+            "description": "Awards won by or for this item.",
+            "type": "Text",
+            "many": true
+        },
+        {
+            "@id": "http://schema.org/faxNumber",
+            "name": "faxNumber",
+            "title": "Fax Number",
+            "description": "The fax number.",
+            "type": "Text"
+        }
+    ],
+    "privileges": [
+        {
+            "mask": 1,
+            "type": "global",
+            "account": "*"
+        },
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ]
+}

@@ -1,0 +1,22 @@
+{
+    "@id": "http://schema.org/OfferCatalog",
+    "name": "OfferCatalog",
+    "description": "An OfferCatalog is an ItemList that contains related Offers and/or further OfferCatalogs that are offeredBy the same provider.",
+    "title": "OfferCatalog",
+    "abstract": false,
+    "sealed": false,
+    "inherits": "ItemList",
+    "version": "1.0",
+    "fields": [],
+    "privileges": [
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ]
+}

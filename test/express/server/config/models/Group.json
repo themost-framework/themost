@@ -1,0 +1,56 @@
+{
+    "@id": "https://themost.io/schemas/Group",
+    "name": "Group",
+    "description": "Groups",
+    "title": "Group",
+    "abstract": false,
+    "sealed": false,
+    "inherits": "Account",
+    "version": "1.0",
+    "fields": [
+        {
+            "@id": "https://themost.io/schemas/members",
+            "name": "members",
+            "title": "members",
+            "description": "Contains the collection of group members (users or groups).",
+            "type": "Account"
+        }
+    ],
+    "privileges": [
+        {
+            "mask": 1,
+            "type": "global",
+            "account": "*"
+        },
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ], "seed": [
+    {
+        "name": "Administrators",
+        "alternateName": "administrators",
+        "description": "Site Administrators"
+    },
+    {
+        "name": "Users",
+        "alternateName": "users",
+        "description": "Site Users"
+    },
+    {
+        "name": "Guests",
+        "alternateName": "guests",
+        "description": "Site Guests"
+    },
+    {
+        "name": "Contributors",
+        "alternateName": "contributors",
+        "description": "Site Contributors"
+    }
+]
+}

@@ -1,0 +1,26 @@
+{
+    "@id": "http://schema.org/EventSpecifications",
+    "name": "EventSpecification",
+    "title": "EventSpecification",
+    "abstract": false,
+    "sealed": false,
+    "inherits": "Event",
+    "version": "1.0",
+    "fields": [],
+    "privileges": [
+        {
+            "mask": 1,
+            "type": "global",
+            "account": "*"
+        },
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ]
+}

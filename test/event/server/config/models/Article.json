@@ -1,0 +1,65 @@
+{
+    "@id": "http://schema.org/Article",
+    "name": "Article",
+    "description": "An article, such as a news article or piece of investigative report. Newspapers and magazines have articles of many different types and this is intended to cover them all.</p>\n\n<p>See also <a href=\"http://blog.schema.org/2014/09/schemaorg-support-for-bibliographic_2.html\">blog post</a>.",
+    "title": "Article",
+    "abstract": false,
+    "sealed": false,
+    "inherits": "CreativeWork",
+    "version": "1.0",
+    "fields": [
+        {
+            "@id": "http://schema.org/pagination",
+            "name": "pagination",
+            "title": "pagination",
+            "description": "Any description of pages that is not separated into pageStart and pageEnd; for example, \"1-6, 9, 55\" or \"10-12, 46-49\".",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/pageEnd",
+            "name": "pageEnd",
+            "title": "pageEnd",
+            "description": "The page on which the work ends; for example \"138\" or \"xvi\".",
+            "type": "Integer"
+        },
+        {
+            "@id": "http://schema.org/articleSection",
+            "name": "articleSection",
+            "title": "articleSection",
+            "description": "Articles may belong to one or more 'sections' in a magazine or newspaper, such as Sports, Lifestyle, etc.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/wordCount",
+            "name": "wordCount",
+            "title": "wordCount",
+            "description": "The number of words in the text of the Article.",
+            "type": "Integer"
+        },
+        {
+            "@id": "http://schema.org/articleBody",
+            "name": "articleBody",
+            "title": "articleBody",
+            "description": "The actual body of the article.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/pageStart",
+            "name": "pageStart",
+            "title": "pageStart",
+            "description": "The page on which the work starts; for example \"135\" or \"xiii\".",
+            "type": "Text"
+        }
+    ],
+    "privileges": [
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ]
+}

@@ -1,0 +1,27 @@
+{
+    "@id": "https://themost.io/schemas/Account",
+    "name": "Account",
+    "description": "Accounts",
+    "title": "Account",
+    "abstract": false,
+    "sealed": false,
+    "inherits": "Thing",
+    "version": "1.0",
+    "fields": [],
+    "privileges": [
+        {
+            "mask": 1,
+            "type": "self",
+            "filter": "id eq me()"
+        },
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ]
+}

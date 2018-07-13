@@ -1,0 +1,72 @@
+{
+    "@id": "http://schema.org/DayOfWeek",
+    "name": "DayOfWeek",
+    "description": "The day of the week, e.g. used to specify to which day the opening hours of an OpeningHoursSpecification refer.</p>\n\n<p>Originally, URLs from <a href=\"http://purl.org/goodrelations/v1\">GoodRelations</a> were used (for <a class=\"localLink\" href=\"http://schema.org/Monday\">Monday</a>, <a class=\"localLink\" href=\"http://schema.org/Tuesday\">Tuesday</a>, <a class=\"localLink\" href=\"http://schema.org/Wednesday\">Wednesday</a>, <a class=\"localLink\" href=\"http://schema.org/Thursday\">Thursday</a>, <a class=\"localLink\" href=\"http://schema.org/Friday\">Friday</a>, <a class=\"localLink\" href=\"http://schema.org/Saturday\">Saturday</a>, <a class=\"localLink\" href=\"http://schema.org/Sunday\">Sunday</a> plus a special entry for <a class=\"localLink\" href=\"http://schema.org/PublicHolidays\">PublicHolidays</a>); these have now been integrated directly into schema.org.",
+    "title": "DayOfWeek",
+    "abstract": false,
+    "sealed": false,
+    "implements": "Enumeration",
+    "version": "1.0",
+    "fields": [],
+    "privileges": [
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ],
+    "seed": [
+        {
+            "name": "Wednesday",
+            "alternateName": "Wednesday",
+            "description": "The day of the week between Tuesday and Thursday.",
+            "url": "http://schema.org/Wednesday"
+        },
+        {
+            "name": "Sunday",
+            "alternateName": "Sunday",
+            "description": "The day of the week between Saturday and Monday.",
+            "url": "http://schema.org/Sunday"
+        },
+        {
+            "name": "PublicHolidays",
+            "alternateName": "PublicHolidays",
+            "description": "This stands for any day that is a public holiday; it is a placeholder for all official public holidays in some particular location. While not technically a \"day of the week\", it can be used with <a class=\"localLink\" href=\"http://schema.org/OpeningHoursSpecification\">OpeningHoursSpecification</a>. In the context of an opening hours specification it can be used to indicate opening hours on public holidays, overriding general opening hours for the day of the week on which a public holiday occurs.",
+            "url": "http://schema.org/PublicHolidays"
+        },
+        {
+            "name": "Tuesday",
+            "alternateName": "Tuesday",
+            "description": "The day of the week between Monday and Wednesday.",
+            "url": "http://schema.org/Tuesday"
+        },
+        {
+            "name": "Monday",
+            "alternateName": "Monday",
+            "description": "The day of the week between Sunday and Tuesday.",
+            "url": "http://schema.org/Monday"
+        },
+        {
+            "name": "Friday",
+            "alternateName": "Friday",
+            "description": "The day of the week between Thursday and Saturday.",
+            "url": "http://schema.org/Friday"
+        },
+        {
+            "name": "Saturday",
+            "alternateName": "Saturday",
+            "description": "The day of the week between Friday and Sunday.",
+            "url": "http://schema.org/Saturday"
+        },
+        {
+            "name": "Thursday",
+            "alternateName": "Thursday",
+            "description": "The day of the week between Wednesday and Friday.",
+            "url": "http://schema.org/Thursday"
+        }
+    ]
+}

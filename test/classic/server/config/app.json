@@ -3,6 +3,7 @@
 
     ],
     "engines": [
+        { "name": "Angular Server View Engine", "extension": "ng", "type": "@themost/web/engines/ng" },
         { "name": "EJS View Engine", "extension": "ejs", "type": "@themost/web/engines/ejs" },
         { "name": "Markdown View Engine", "extension": "md", "type": "@themost/web/engines/md" },
         { "name": "Jade View Engine", "extension": "jade", "type": "@themost/web/engines/jade" },

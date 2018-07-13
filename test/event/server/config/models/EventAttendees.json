@@ -1,0 +1,49 @@
+{
+    "name": "EventAttendees",
+    "title": "EventAttendees",
+    "source": "EventAttendees",
+    "hidden": true,
+    "sealed": false,
+    "view": "EventAttendees",
+    "version": "1.0",
+    "fields": [
+        {
+            "name": "id",
+            "type": "Counter",
+            "primary": true
+        },
+        {
+            "name": "parentId",
+            "indexed": true,
+            "nullable": false,
+            "type": "Integer"
+        },
+        {
+            "name": "valueId",
+            "indexed": true,
+            "nullable": false,
+            "type": "Integer"
+        }
+    ],
+    "constraints": [
+        {
+            "description": "The relation between two objects must be unique.",
+            "type": "unique",
+            "fields": [
+                "parentId",
+                "valueId"
+            ]
+        }
+    ],
+    "privileges": [
+        {
+            "mask": 1,
+            "type": "global",
+            "account": "*"
+        },
+        {
+            "mask": 15,
+            "type": "global"
+        }
+    ]
+}

@@ -1,0 +1,155 @@
+{
+  "@id": "https://themost.io/schemas/Permission",
+  "name": "Permission",
+  "title": "Permissions",
+  "hidden": true,
+  "sealed": false,
+  "abstract": false,
+  "version": "1.2",
+  "fields": [
+    {
+      "@id": "https://themost.io/schemas/id",
+      "name": "id",
+      "title": "ID",
+      "description": "The identifier of this item.",
+      "type": "Counter",
+      "nullable": false,
+      "primary": true
+    },
+    {
+      "@id": "https://themost.io/schemas/privilege",
+      "name": "privilege",
+      "title": "Privilege",
+      "description": "The privilege where this permission refers",
+      "type": "Text",
+      "nullable": false
+    },
+    {
+      "@id": "https://themost.io/schemas/parentPrivilege",
+      "name": "parentPrivilege",
+      "title": "Parent Privilege",
+      "description": "The parent privilege of this permission, if any",
+      "type": "Text",
+      "nullable": true
+    },
+    {
+      "@id": "https://themost.io/schemas/workspace",
+      "name": "workspace",
+      "title": "Workspace",
+      "description": "The workspace where this permission belongs",
+      "type": "Integer",
+      "nullable": false,
+      "value": "javascript:return 1;"
+    },
+    {
+      "@id": "https://themost.io/schemas/account",
+      "name": "account",
+      "title": "Account",
+      "description": "The account which is related with this permission.",
+      "type": "Account",
+      "nullable": false
+    },
+    {
+      "@id": "https://themost.io/schemas/target",
+      "name": "target",
+      "title": "Target object",
+      "description": "The target object.",
+      "type": "Text",
+      "size": 128,
+      "nullable": true,
+      "value": "javascript:return '0';"
+    },
+    {
+      "@id": "https://themost.io/schemas/mask",
+      "name": "mask",
+      "title": "Mask",
+      "description": "The permission mask.",
+      "type": "Integer",
+      "nullable": false
+    },
+    {
+      "@id": "https://themost.io/schemas/sealed",
+      "name": "sealed",
+      "title": "Sealed",
+      "description": "Indicates whether this permission is sealed and cannot be edited.",
+      "type": "Boolean",
+      "nullable": true
+    },
+    {
+      "@id": "https://themost.io/schemas/dateCreated",
+      "name": "dateCreated",
+      "title": "Date Created",
+      "description": "The date and time when this item was created.",
+      "type": "DateTime",
+      "readonly": true,
+      "nullable": true,
+      "value": "javascript:return (new Date());"
+    },
+    {
+      "@id": "https://themost.io/schemas/dateModified",
+      "name": "dateModified",
+      "title": "Date Modified",
+      "description": "The date and time when this item was modified.",
+      "type": "DateTime",
+      "readonly": true,
+      "nullable": true,
+      "value": "javascript:return (new Date());",
+      "calculation": "javascript:return (new Date());"
+    },
+    {
+      "@id": "https://themost.io/schemas/createdBy",
+      "name": "createdBy",
+      "title": "Created By",
+      "description": "The user who created this item.",
+      "type": "User",
+      "readonly": true,
+      "nullable": true,
+      "value": "javascript:return this.user();"
+    },
+    {
+      "@id": "https://themost.io/schemas/modifiedBy",
+      "name": "modifiedBy",
+      "title": "Modified By",
+      "description": "The user who modified this item.",
+      "type": "User",
+      "readonly": true,
+      "nullable": true,
+      "value": "javascript:return this.user();",
+      "calculation": "javascript:return this.user();"
+    }
+  ],
+  "constraints": [
+    {
+      "type": "unique",
+      "fields": [
+        "privilege",
+        "parentPrivilege",
+        "workspace",
+        "account",
+        "target"
+      ]
+    }
+  ],
+  "privileges": [
+    {
+      "mask": 15,
+      "type": "global"
+    },
+    {
+      "mask": 15,
+      "type": "global",
+      "account": "Administrators"
+    }
+  ],
+  "seed": [
+    {
+      "privilege": "Permission",
+      "workspace": 1,
+      "account": {
+        "name": "Administrators"
+      },
+      "target": 0,
+      "mask": 15
+    }
+  ]
+}

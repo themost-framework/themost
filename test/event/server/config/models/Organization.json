@@ -1,0 +1,108 @@
+{
+    "@id": "http://schema.org/Organization",
+    "name": "Organization",
+    "description": "An organization such as a school, NGO, corporation, club, etc.",
+    "title": "Organization",
+    "abstract": false,
+    "sealed": false,
+    "inherits": "Party",
+    "version": "1.0",
+    "fields": [
+        {
+            "@id": "http://schema.org/subOrganization",
+            "name": "subOrganization",
+            "title": "subOrganization",
+            "description": "A relationship between two organizations where the first includes the second, e.g., as a subsidiary. See also: the more specific 'department' property.",
+            "type": "Organization"
+        },
+        {
+            "@id": "http://schema.org/globalLocationNumber",
+            "name": "globalLocationNumber",
+            "title": "globalLocationNumber",
+            "description": "The <a href=\"http://www.gs1.org/gln\">Global Location Number</a> (GLN, sometimes also referred to as International Location Number or ILN) of the respective organization, person, or place. The GLN is a 13-digit number used to identify parties and physical locations.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/memberOf",
+            "name": "memberOf",
+            "title": "Member Of",
+            "description": "An Organization (or ProgramMembership) to which this Person or Organization belongs.",
+            "type": "Organization"
+        },
+        {
+            "@id": "http://schema.org/members",
+            "name": "members",
+            "title": "members",
+            "description": "A member of this organization.",
+            "type": "Person"
+        },
+        {
+            "@id": "http://schema.org/founders",
+            "name": "founders",
+            "title": "founders",
+            "description": "A person who founded this organization.",
+            "type": "Person"
+        },
+        {
+            "@id": "http://schema.org/dissolutionDate",
+            "name": "dissolutionDate",
+            "title": "dissolutionDate",
+            "description": "The date that this organization was dissolved.",
+            "type": "Date"
+        },
+        {
+            "@id": "http://schema.org/logo",
+            "name": "logo",
+            "title": "logo",
+            "description": "An associated logo.",
+            "type": "URL"
+        },
+        {
+            "@id": "http://schema.org/employees",
+            "name": "employees",
+            "title": "employees",
+            "description": "People working for this organization.",
+            "type": "Person",
+            "many": true
+        },
+        {
+            "@id": "http://schema.org/department",
+            "name": "department",
+            "title": "department",
+            "description": "A relationship between an organization and a department of that organization, also described as an organization (allowing different urls, logos, opening hours). For example: a store with a pharmacy, or a bakery with a cafe.",
+            "type": "Organization"
+        },
+        {
+            "@id": "http://schema.org/legalName",
+            "name": "legalName",
+            "title": "legalName",
+            "description": "The official name of the organization, e.g. the registered company name.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/foundingDate",
+            "name": "foundingDate",
+            "title": "foundingDate",
+            "description": "The date that this organization was founded.",
+            "type": "Date"
+        },
+        {
+            "@id": "http://schema.org/location",
+            "name": "location",
+            "title": "location",
+            "description": "The location of for example where the event is happening, an organization is located, or where an action takes place.",
+            "type": "Place"
+        }
+    ],
+    "privileges": [
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ]
+}

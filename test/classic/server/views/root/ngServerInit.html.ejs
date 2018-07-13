@@ -1,0 +1,14 @@
+<%# { "layout":"../shared/master.html.ejs" } %>
+<div class="container">
+    <div class="row pt-4">
+        <div class="col-lg-12">
+            <ol ng-server-init="names=['John', 'Mary', 'Cate', 'Suz']">
+                <li ng-server-repeat="name in names">
+                   <span ng-server-class-odd="'text-danger'" ng-server-class-even="'text-primary'">
+                     {{=name}}
+                   </span>
+                </li>
+            </ol>
+        </div>
+    </div>
+</div>

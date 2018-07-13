@@ -1,0 +1,141 @@
+{
+  "@id": "https://themost.io/schemas/User",
+  "name": "User",
+  "title": "Users",
+  "inherits": "Account",
+  "hidden": false,
+  "sealed": false,
+  "abstract": false,
+  "version": "1.5",
+  "fields": [
+    {
+      "@id": "https://themost.io/schemas/id",
+      "name": "id",
+      "title": "ID",
+      "description": "The identifier of the item.",
+      "type": "Integer",
+      "nullable": false,
+      "primary": true
+    },
+    {
+      "@id": "https://themost.io/schemas/accountType",
+      "name": "accountType",
+      "title": "Account Type",
+      "description": "Contains a set of flags that define the type and scope of an account object.",
+      "type": "Integer",
+      "readonly": true,
+      "value": "javascript:return 0;"
+    },
+    {
+      "@id": "https://themost.io/schemas/lockoutTime",
+      "name": "lockoutTime",
+      "title": "Lockout Time",
+      "description": "The date and time that this account was locked out.",
+      "type": "DateTime",
+      "readonly": true
+    },
+    {
+      "@id": "https://themost.io/schemas/logonCount",
+      "name": "logonCount",
+      "title": "Logon Count",
+      "description": "The number of times the account has successfully logged on.",
+      "type": "Integer",
+      "value": "javascript:return 0;",
+      "readonly": true
+    },
+    {
+      "@id": "https://themost.io/schemas/enabled",
+      "name": "enabled",
+      "title": "Enabled",
+      "description": "Indicates whether a user is enabled or not.",
+      "type": "Boolean",
+      "nullable": false,
+      "value": "javascript:return true;"
+    },
+    {
+      "@id": "https://themost.io/schemas/external",
+      "name": "external",
+      "title": "External",
+      "description": "Indicates whether a user will be authenticated by an external authentication provider or not.",
+      "type": "Boolean",
+      "nullable": false,
+      "value": "javascript:return false;"
+    },
+    {
+      "@id": "https://themost.io/schemas/lastLogon",
+      "name": "lastLogon",
+      "title": "Last Logon",
+      "description": "The last time and date the user logged on.",
+      "type": "DateTime",
+      "readonly": true
+    },
+    {
+      "@id": "https://themost.io/schemas/groups",
+      "name": "groups",
+      "title": "User Groups",
+      "description": "A collection of groups where user belongs.",
+      "type": "Group",
+      "expandable": true,
+      "mapping": {
+        "associationAdapter": "GroupMembers",
+        "parentModel": "Group",
+        "parentField": "id",
+        "childModel": "User",
+        "childField": "id",
+        "associationType": "junction",
+        "cascade": "delete"
+      }
+    },
+    {
+      "name": "additionalType",
+      "value": "javascript:return this.model.name;",
+      "readonly": true
+    }
+  ],
+  "privileges": [
+    {
+      "mask": 1,
+      "type": "self",
+      "filter": "id eq me()"
+    },
+    {
+      "mask": 15,
+      "type": "global"
+    },
+    {
+      "mask": 15,
+      "type": "global",
+      "account": "Administrators"
+    }
+  ],
+  "constraints": [
+    {
+      "type": "unique",
+      "fields": [
+        "name"
+      ]
+    }
+  ],
+  "eventListeners": [
+  ],
+  "seed": [
+    {
+      "name": "anonymous",
+      "description": "Anonymous User",
+      "groups": [
+        {
+          "name": "Guests"
+        }
+      ]
+    },
+    {
+      "name": "admin",
+      "description": "Site Administrator",
+      "groups": [
+        {
+          "name": "Administrators"
+        }
+      ]
+    }
+  ]
+}

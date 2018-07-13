@@ -1,0 +1,66 @@
+{
+    "@id": "http://schema.org/GeoCoordinates",
+    "name": "GeoCoordinates",
+    "description": "The geographic coordinates of a place or event.",
+    "title": "GeoCoordinates",
+    "abstract": false,
+    "sealed": false,
+    "inherits": "StructuredValue",
+    "version": "1.0",
+    "fields": [
+        {
+            "@id": "http://schema.org/latitude",
+            "name": "latitude",
+            "title": "latitude",
+            "description": "The latitude of a location. For example <code>37.42242</code> (<a href=\"https://en.wikipedia.org/wiki/World_Geodetic_System\">WGS 84</a>).",
+            "type": "Number"
+        },
+        {
+            "@id": "http://schema.org/longitude",
+            "name": "longitude",
+            "title": "longitude",
+            "description": "The longitude of a location. For example <code>-122.08585</code> (<a href=\"https://en.wikipedia.org/wiki/World_Geodetic_System\">WGS 84</a>).",
+            "type": "Number"
+        },
+        {
+            "@id": "http://schema.org/address",
+            "name": "address",
+            "title": "address",
+            "description": "Physical address of the item.",
+            "type": "PostalAddress",
+            "nested": true
+        },
+        {
+            "@id": "http://schema.org/addressCountry",
+            "name": "addressCountry",
+            "title": "addressCountry",
+            "description": "The country. For example, USA. You can also provide the two-letter <a href=\"http://en.wikipedia.org/wiki/ISO_3166-1\">ISO 3166-1 alpha-2 country code</a>.",
+            "type": "Country"
+        },
+        {
+            "@id": "http://schema.org/postalCode",
+            "name": "postalCode",
+            "title": "postalCode",
+            "description": "The postal code. For example, 94043.",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/elevation",
+            "name": "elevation",
+            "title": "elevation",
+            "description": "The elevation of a location (<a href=\"https://en.wikipedia.org/wiki/World_Geodetic_System\">WGS 84</a>).",
+            "type": "Text"
+        }
+    ],
+    "privileges": [
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ]
+}

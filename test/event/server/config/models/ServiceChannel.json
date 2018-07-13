@@ -1,0 +1,79 @@
+{
+    "@id": "http://schema.org/ServiceChannel",
+    "name": "ServiceChannel",
+    "description": "A means for accessing a service, e.g. a government office location, web site, or phone number.",
+    "title": "ServiceChannel",
+    "abstract": false,
+    "sealed": false,
+    "inherits": "Intangible",
+    "version": "1.0",
+    "fields": [
+        {
+            "@id": "http://schema.org/providesService",
+            "name": "providesService",
+            "title": "providesService",
+            "description": "The service provided by this channel.",
+            "type": "Service"
+        },
+        {
+            "@id": "http://schema.org/serviceLocation",
+            "name": "serviceLocation",
+            "title": "serviceLocation",
+            "description": "The location (e.g. civic structure, local business, etc.) where a person can go to access the service.",
+            "type": "Place"
+        },
+        {
+            "@id": "http://schema.org/servicePostalAddress",
+            "name": "servicePostalAddress",
+            "title": "servicePostalAddress",
+            "description": "The address for accessing the service by mail.",
+            "type": "PostalAddress"
+        },
+        {
+            "@id": "http://schema.org/availableLanguage",
+            "name": "availableLanguage",
+            "title": "availableLanguage",
+            "description": "A language someone may use with or at the item, service or place. Please use one of the language codes from the <a href=\"http://tools.ietf.org/html/bcp47\">IETF BCP 47 standard</a>. See also <a class=\"localLink\" href=\"http://schema.org/inLanguage\">inLanguage</a>",
+            "type": "Text"
+        },
+        {
+            "@id": "http://schema.org/serviceSmsNumber",
+            "name": "serviceSmsNumber",
+            "title": "serviceSmsNumber",
+            "description": "The number to access the service by text message.",
+            "type": "ContactPoint"
+        },
+        {
+            "@id": "http://schema.org/serviceUrl",
+            "name": "serviceUrl",
+            "title": "serviceUrl",
+            "description": "The website to access the service.",
+            "type": "URL"
+        },
+        {
+            "@id": "http://schema.org/servicePhone",
+            "name": "servicePhone",
+            "title": "servicePhone",
+            "description": "The phone number to use to access the service.",
+            "type": "ContactPoint"
+        },
+        {
+            "@id": "http://schema.org/processingTime",
+            "name": "processingTime",
+            "title": "processingTime",
+            "description": "Estimated processing time for the service using this channel.",
+            "type": "Duration"
+        }
+    ],
+    "privileges": [
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ]
+}

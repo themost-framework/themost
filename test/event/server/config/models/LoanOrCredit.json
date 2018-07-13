@@ -1,0 +1,44 @@
+{
+    "@id": "http://schema.org/LoanOrCredit",
+    "name": "LoanOrCredit",
+    "description": "A financial product for the loaning of an amount of money under agreed terms and charges.",
+    "title": "LoanOrCredit",
+    "abstract": false,
+    "sealed": false,
+    "inherits": "FinancialProduct",
+    "version": "1.0",
+    "fields": [
+        {
+            "@id": "http://schema.org/loanTerm",
+            "name": "loanTerm",
+            "title": "loanTerm",
+            "description": "The duration of the loan or credit agreement.",
+            "type": "QuantitativeValue"
+        },
+        {
+            "@id": "http://schema.org/amount",
+            "name": "amount",
+            "title": "amount",
+            "description": "The amount of money.",
+            "type": "MonetaryAmount"
+        },
+        {
+            "@id": "http://schema.org/requiredCollateral",
+            "name": "requiredCollateral",
+            "title": "requiredCollateral",
+            "description": "Assets required to secure loan or credit repayments. It may take form of third party pledge, goods, financial instruments (cash, securities, etc.)",
+            "type": "Thing"
+        }
+    ],
+    "privileges": [
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ]
+}

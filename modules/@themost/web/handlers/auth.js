@@ -110,8 +110,9 @@ AuthHandler.prototype.authenticateRequest = function (context, callback) {
     }
 };
 /**
- * @param {{context: HttpContext, target: HttpResult}} args
- * @param callback
+ *
+ * @param {PreExecuteResultArgs} args
+ * @param {Function} callback
  */
 AuthHandler.prototype.preExecuteResult = function (args, callback) {
     try {
