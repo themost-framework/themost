@@ -18,6 +18,9 @@ var ConfigurationStrategy = require('@themost/common/config').ConfigurationStrat
 var PathUtils = require('@themost/common/utils').PathUtils;
 var RandomUtils = require('@themost/common/utils').RandomUtils;
 var AbstractMethodError = require('@themost/common/errors').AbstractMethodError;
+var DataCacheStrategy = require('./data-cache').DataCacheStrategy;
+var DefaultDataCacheStrategy = require('./data-cache').DefaultDataCacheStrategy;
+
 var modelsProperty = Symbol('models');
 var modelPathProperty = Symbol('modelPath');
 var filesProperty = Symbol('files');
@@ -25,6 +28,9 @@ var dataTypesProperty = Symbol('dataTypes');
 var adapterTypesProperty =  Symbol('adapterTypes');
 var currentConfiguration = Symbol('current');
 var namedConfigurations = Symbol('namedConfigurations');
+
+
+
 
 
 /**
@@ -346,6 +352,14 @@ function DataConfigurationStrategy(config) {
     }
     if (!config.hasStrategy(ModelClassLoaderStrategy)) {
        config.useStrategy(ModelClassLoaderStrategy, DefaultModelClassLoaderStrategy);
+    }
+
+    if (!config.hasStrategy(DataCacheStrategy)) {
+        //process is running under node js
+        if (typeof process !== "undefined" && process.nextTick) {
+            //add default cache strategy (using node-cache)
+            config.useStrategy(DataCacheStrategy, DefaultDataCacheStrategy);
+        }
     }
 
     if (!this.getConfiguration().hasSourceAt('adapters')) {

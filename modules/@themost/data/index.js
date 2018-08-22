@@ -52,6 +52,8 @@ module.exports.DataObject = _data_object.DataObject;
 module.exports.FunctionContext = _functions.FunctionContext;
 
 module.exports.DataCache = _data_cache.DataCache;
+module.exports.DataCacheStrategy = _data_cache.DataCacheStrategy;
+module.exports.DefaultDataCacheStrategy = _data_cache.DefaultDataCacheStrategy;
 
 module.exports.DataValidator = _data_validator.DataValidator;
 module.exports.DataTypeValidator = _data_validator.DataTypeValidator;

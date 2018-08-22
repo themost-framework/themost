@@ -236,6 +236,6 @@ I18nLocalizationStrategy.prototype.resolveLocalePath = function(locale) {
 if (typeof exports !== 'undefined')
 {
     module.exports.LocalizationStrategy = LocalizationStrategy;
-    module.exports.DefaulLocalizationStrategy = DefaultLocalizationStrategy;
+    module.exports.DefaultLocalizationStrategy = DefaultLocalizationStrategy;
     module.exports.I18nLocalizationStrategy = I18nLocalizationStrategy;
 }

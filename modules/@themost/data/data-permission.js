@@ -14,8 +14,8 @@ var AccessDeniedError = require("@themost/common/errors").AccessDeniedError;
 var RandomUtils = require("@themost/common/utils").RandomUtils;
 var DataConfigurationStrategy = require("./data-configuration").DataConfigurationStrategy;
 var _ = require("lodash");
-var cache = require('./data-cache');
-
+var DataCacheStrategy = require("./data-cache").DataCacheStrategy;
+var Q = require('q');
 /**
  * @module @themost/data/data-permission
  * @ignore
@@ -507,6 +507,11 @@ function effectiveAccounts(context, callback) {
         //push no account
         return callback(null, [ { id: null } ]);
     }
+
+    /**
+     * @type {DataCacheStrategy}
+     */
+    var cache = context.getConfiguration().getStrategy(DataCacheStrategy);
     /**
      * Gets or sets an object that represents the user of the current data context.
      * @property {*|{name: string, authenticationType: string}}
@@ -518,38 +523,32 @@ function effectiveAccounts(context, callback) {
     //if the current user is anonymous
     if (context.user.name === 'anonymous') {
         //get anonymous user data
-        cache.getCurrent().ensure(ANONYMOUS_USER_CACHE_PATH, function(cb) {
-            anonymousUser(context, function(err, result) {
-                cb(err, result);
-            });
-        }, function(err, result) {
-            if (err) {
-                callback(err);
+        cache.getOrDefault(ANONYMOUS_USER_CACHE_PATH, function() {
+            return Q.nfbind(anonymousUser)(context);
+        }).then(function(result) {
+            var arr = [];
+            if (result) {
+                arr.push({ "id": result.id, "name": result.name });
+                result.groups = result.groups || [];
+                result.groups.forEach(function(x) { arr.push({ "id": x.id, "name": x.name }); });
             }
-            else {
-                var arr = [];
-                if (result) {
-                    arr.push({ "id": result.id, "name": result.name });
-                    result.groups = result.groups || [];
-                    result.groups.forEach(function(x) { arr.push({ "id": x.id, "name": x.name }); });
-                }
-                if (arr.length===0)
-                    arr.push({ id: null });
-                callback(null, arr);
-            }
+            if (arr.length===0)
+                arr.push({ id: null });
+            return callback(null, arr);
+        }).catch(function (err) {
+            return callback(err);
         });
     }
     else {
         //try to get data from cache
         var USER_CACHE_PATH = '/User/' + context.user.name;
-        cache.getCurrent().ensure(USER_CACHE_PATH, function(cb) {
-            queryUser(context, context.user.name, cb);
-        }, function(err, user) {
-            if (err) { callback(err); return; }
-            cache.getCurrent().ensure(ANONYMOUS_USER_CACHE_PATH, function(cb) {
-                anonymousUser(context, cb);
-            }, function(err, anonymous) {
-                if (err) { callback(err); return; }
+
+        cache.getOrDefault(USER_CACHE_PATH, function() {
+            return Q.nfbind(queryUser)(context, context.user.name);
+        }).then(function(user) {
+            return cache.getOrDefault(ANONYMOUS_USER_CACHE_PATH, function() {
+                return Q.nfbind(anonymousUser)(context);
+            }).then(function(anonymous) {
                 var arr = [ ];
                 if (user) {
                     arr.push({ "id": user.id, "name": user.name });
@@ -563,8 +562,10 @@ function effectiveAccounts(context, callback) {
                 }
                 if (arr.length===0)
                     arr.push({ id: null });
-                callback(null, arr);
+                return callback(null, arr);
             });
+        }).catch(function (err) {
+            return callback(err);
         });
     }
 }

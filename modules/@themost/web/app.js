@@ -31,9 +31,9 @@ var DefaultAuthStrategy = require('./handlers/auth').DefaultAuthStrategy;
 var EncryptionStrategy = require('./handlers/auth').EncryptionStrategy;
 var DefaultEncryptionStrategy = require('./handlers/auth').DefaultEncryptionStrategy;
 var CacheStrategy = require('./cache').CacheStrategy;
-var DefaulCacheStrategy = require('./cache').DefaulCacheStrategy;
+var DefaultCacheStrategy = require('./cache').DefaultCacheStrategy;
 var LocalizationStrategy = require('./localization').LocalizationStrategy;
-var DefaulLocalizationStrategy = require('./localization').DefaulLocalizationStrategy;
+var DefaulLocalizationStrategy = require('./localization').DefaultLocalizationStrategy;
 var HttpConfiguration = require('./config').HttpConfiguration;
 var HttpApplicationService = require('./types').HttpApplicationService;
 var HttpContext = require('./context').HttpContext;
@@ -192,7 +192,7 @@ function HttpApplication(executionPath) {
     //set authentication strategy
     self.useStrategy(AuthStrategy, DefaultAuthStrategy);
     //set cache strategy
-    self.useStrategy(CacheStrategy, DefaulCacheStrategy);
+    self.useStrategy(CacheStrategy, DefaultCacheStrategy);
     //set encryption strategy
     self.useStrategy(EncryptionStrategy, DefaultEncryptionStrategy);
     //set localization strategy

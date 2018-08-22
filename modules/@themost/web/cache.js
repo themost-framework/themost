@@ -92,8 +92,8 @@ var CACHE_ABSOLUTE_EXPIRATION = 0;
  * @param {HttpApplication} app
  * @constructor
  */
-function DefaulCacheStrategy(app) {
-    DefaulCacheStrategy.super_.bind(this)(app);
+function DefaultCacheStrategy(app) {
+    DefaultCacheStrategy.super_.bind(this)(app);
     //set absoluteExpiration (from application configuration)
     var expiration = CACHE_ABSOLUTE_EXPIRATION;
     var absoluteExpiration = LangUtils.parseInt(app.getConfiguration().getSourceAt('settings/cache/absoluteExpiration'));
@@ -104,7 +104,7 @@ function DefaulCacheStrategy(app) {
         stdTTL:expiration
     });
 }
-LangUtils.inherits(DefaulCacheStrategy, CacheStrategy);
+LangUtils.inherits(DefaultCacheStrategy, CacheStrategy);
 /**
  * Sets a key value pair in cache.
  * @abstract
@@ -113,7 +113,7 @@ LangUtils.inherits(DefaulCacheStrategy, CacheStrategy);
  * @param {number=} absoluteExpiration - An absolute expiration time in seconds. This parameter is optional.
  * @returns {Promise|*}
  */
-DefaulCacheStrategy.prototype.add = function(key, value, absoluteExpiration) {
+DefaultCacheStrategy.prototype.add = function(key, value, absoluteExpiration) {
     var self = this;
     return Q.promise(function(resolve, reject) {
         self[rawCacheProperty].set(key, value, absoluteExpiration, function(err) {
@@ -132,7 +132,7 @@ DefaulCacheStrategy.prototype.add = function(key, value, absoluteExpiration) {
  * @param {string} key - A string that represents the key of the cached value to be removed
  * @returns {Promise|*}
  */
-DefaulCacheStrategy.prototype.remove = function(key) {
+DefaultCacheStrategy.prototype.remove = function(key) {
     var self = this;
     return Q.promise(function(resolve, reject) {
         self[rawCacheProperty].set(key, function(err) {
@@ -149,7 +149,7 @@ DefaulCacheStrategy.prototype.remove = function(key) {
  * @abstract
  * @returns {Promise|*}
  */
-DefaulCacheStrategy.prototype.clear = function() {
+DefaultCacheStrategy.prototype.clear = function() {
     this[rawCacheProperty].flushAll();
     return Q();
 };
@@ -159,7 +159,7 @@ DefaulCacheStrategy.prototype.clear = function() {
  * @param {string} key
  * @returns {Promise|*}
  */
-DefaulCacheStrategy.prototype.get = function(key) {
+DefaultCacheStrategy.prototype.get = function(key) {
     return Q.nfbind(this[rawCacheProperty].get.bind(this[rawCacheProperty]))(key)
         .then(function(res) {
         return Q(res[key]);
@@ -173,7 +173,7 @@ DefaulCacheStrategy.prototype.get = function(key) {
  * @param {number=} absoluteExpiration - An absolute expiration time in seconds. This parameter is optional.
  * @returns {Promise|*}
  */
-DefaulCacheStrategy.prototype.getOrDefault = function(key, fn, absoluteExpiration) {
+DefaultCacheStrategy.prototype.getOrDefault = function(key, fn, absoluteExpiration) {
     var self = this;
     Args.check(_.isFunction(fn),'Invalid argument. Expected function.');
     return self.get(key).then(function(res) {
@@ -197,5 +197,5 @@ DefaulCacheStrategy.prototype.getOrDefault = function(key, fn, absoluteExpiratio
 if (typeof exports !== 'undefined')
 {
     module.exports.CacheStrategy = CacheStrategy;
-    module.exports.DefaulCacheStrategy = DefaulCacheStrategy;
+    module.exports.DefaultCacheStrategy = DefaultCacheStrategy;
 }

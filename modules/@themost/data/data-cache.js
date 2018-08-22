@@ -9,18 +9,23 @@
 ///
 var _ = require('lodash');
 var LangUtils = require("@themost/common/utils").LangUtils;
+var Args = require("@themost/common/utils").Args;
 var SequentialEventEmitter = require("@themost/common/emitter").SequentialEventEmitter;
+var AbstractMethodError = require('@themost/common/errors').AbstractMethodError;
+var ConfigurationStrategy = require('@themost/common/config').ConfigurationStrategy;
 var Symbol = require("symbol");
+var Q = require('q');
 var currentProperty = Symbol("current");
+var CACHE_ABSOLUTE_EXPIRATION = 1200;
 
 /**
  * @class
- * @alias DataCache
  * @classdesc Implements data cache mechanisms in MOST Data Applications.
  * DataCache class is used as the internal data caching engine, if any other caching mechanism is not defined.
  * @property {Number} ttl - An amount of time in seconds which is the default cached item lifetime.
  * @constructor
  * @augments SequentialEventEmitter
+ * @deprecated
  */
 function DataCache() {
     // noinspection JSUnusedGlobalSymbols
@@ -233,14 +238,212 @@ DataCache.getCurrent = function() {
     return DataCache[currentProperty];
 };
 
+/**
+ *
+ * @param {ConfigurationBase} config
+ * @constructor
+ *
+ */
+function DataCacheStrategy(config) {
+    DataCacheStrategy.super_.bind(this)(config);
+}
+LangUtils.inherits(DataCacheStrategy, ConfigurationStrategy);
+
+/**
+ * Sets a key value pair in cache.
+ * @abstract
+ * @param {string} key - A string that represents the key of the cached value
+ * @param {*} value - The value to be cached
+ * @param {number=} absoluteExpiration - An absolute expiration time in seconds. This parameter is optional.
+ * @returns {Promise|*}
+ */
+// eslint-disable-next-line no-unused-vars
+DataCacheStrategy.prototype.add = function(key, value, absoluteExpiration) {
+    throw new AbstractMethodError();
+};
+
+/**
+ * Removes a cached value.
+ * @abstract
+ * @param {string} key - A string that represents the key of the cached value to be removed
+ * @returns {Promise|*}
+ */
+// eslint-disable-next-line no-unused-vars
+DataCacheStrategy.prototype.remove = function(key) {
+    throw new AbstractMethodError();
+};
+/**
+ * Flush all cached data.
+ * @abstract
+ * @returns {Promise|*}
+ */
+DataCacheStrategy.prototype.clear = function() {
+    throw new AbstractMethodError();
+};
+/**
+ * Gets a cached value defined by the given key.
+ * @param {string} key
+ * @returns {Promise|*}
+ */
+// eslint-disable-next-line no-unused-vars
+DataCacheStrategy.prototype.get = function(key) {
+    throw new AbstractMethodError();
+};
+/**
+ * Gets data from cache or executes the defined function and adds the result to the cache with the specified key
+ * @param {string|*} key - A string which represents the key of the cached data
+ * @param {Function} getFunc - A function to execute if data will not be found in cache
+ * @param {number=} absoluteExpiration - An absolute expiration time in seconds. This parameter is optional.
+ * @returns {Promise|*}
+ */
+// eslint-disable-next-line no-unused-vars
+DataCacheStrategy.prototype.getOrDefault = function(key, getFunc, absoluteExpiration) {
+    throw new AbstractMethodError();
+};
+
+/**
+ *
+ * @param {ConfigurationBase} config
+ * @constructor
+ *
+ */
+function DefaultDataCacheStrategy(config) {
+    DefaultDataCacheStrategy.super_.bind(this)(config);
+    var NodeCache = require( "node-cache" );
+    var expiration = CACHE_ABSOLUTE_EXPIRATION;
+    var absoluteExpiration = LangUtils.parseInt(config.getSourceAt('settings/cache/absoluteExpiration'));
+    if (absoluteExpiration>0) {
+        expiration = absoluteExpiration;
+    }
+    this.rawCache = new NodeCache({
+        stdTTL:expiration
+    });
+}
+LangUtils.inherits(DefaultDataCacheStrategy, DataCacheStrategy);
+
+/**
+ * Sets a key value pair in cache.
+ * @abstract
+ * @param {string} key - A string that represents the key of the cached value
+ * @param {*} value - The value to be cached
+ * @param {number=} absoluteExpiration - An absolute expiration time in seconds. This parameter is optional.
+ * @returns {Promise|*}
+ */
+// eslint-disable-next-line no-unused-vars
+DefaultDataCacheStrategy.prototype.add = function(key, value, absoluteExpiration) {
+    var self = this;
+    return Q.Promise(function(resolve, reject) {
+        self.rawCache.set(key, value, absoluteExpiration, function(err) {
+            if (err) {
+                return reject(err);
+            }
+            return resolve();
+        });
+    });
+};
+
+/**
+ * Gets a cached value defined by the given key.
+ * @param {string} key
+ * @returns {Promise|*}
+ */
+// eslint-disable-next-line no-unused-vars
+DefaultDataCacheStrategy.prototype.get = function(key) {
+    var self = this;
+    return Q.Promise(function(resolve, reject) {
+        self.rawCache.get(key, function(err, res) {
+            if (err) {
+                return reject(err);
+            }
+            return resolve(res[key]);
+        });
+    });
+};
+
+/**
+ * Removes a cached value.
+ * @abstract
+ * @param {string} key - A string that represents the key of the cached value to be removed
+ * @returns {Promise|*}
+ */
+// eslint-disable-next-line no-unused-vars
+DefaultDataCacheStrategy.prototype.remove = function(key) {
+    var self = this;
+    return Q.Promise(function(resolve, reject) {
+        self.rawCache.del(key, function(err, count) {
+            if (err) {
+                return reject(err);
+            }
+            return resolve(count);
+        });
+    });
+};
+
+/**
+ * Flush all cached data.
+ * @abstract
+ * @returns {Promise|*}
+ */
+DefaultDataCacheStrategy.prototype.clear = function() {
+    var self = this;
+    return Q.Promise(function(resolve, reject) {
+        self.rawCache.flushAll(function(err, count) {
+            if (err) {
+                return reject(err);
+            }
+            return resolve(count);
+        });
+    });
+};
+
+/**
+ * Gets data from cache or executes the defined function and adds the result to the cache with the specified key
+ * @param {string|*} key - A string which represents the key of the cached data
+ * @param {Function} getFunc - A function to execute if data will not be found in cache
+ * @param {number=} absoluteExpiration - An absolute expiration time in seconds. This parameter is optional.
+ * @returns {Promise|*}
+ */
+// eslint-disable-next-line no-unused-vars
+DefaultDataCacheStrategy.prototype.getOrDefault = function(key, getFunc, absoluteExpiration) {
+    var self = this;
+    return Q.Promise(function(resolve, reject) {
+        //try to get from cache
+        self.rawCache.get(key, function(err, result) {
+            if (err) {
+                return reject(err);
+            }
+            else if (typeof result !== 'undefined' && result.hasOwnProperty(key)) {
+                return resolve(result[key]);
+            }
+            else {
+                try {
+                    //execute function and validate promise
+                    var source = getFunc();
+                    Args.check(typeof source !== 'undefined' && typeof source.then === 'function', 'Invalid argument. Expected a valid promise.');
+                    return source.then(function (res) {
+                        if (_.isNil(res)) {
+                            return resolve();
+                        }
+                        return self.rawCache.set(key, res, absoluteExpiration, function (err) {
+                            if (err) {
+                                return reject(err);
+                            }
+                            return resolve(res);
+                        });
+                    });
+                }
+                catch(err) {
+                    return reject(err);
+                }
+            }
+        });
+    });
+};
+
+
 if (typeof exports !== 'undefined') {
 
     module.exports.DataCache = DataCache;
-    /**
-     * @ignore
-     * @returns {DataCache}
-     */
-    module.exports.getCurrent = function() {
-        return DataCache.getCurrent();
-    };
+    module.exports.DataCacheStrategy = DataCacheStrategy;
+    module.exports.DefaultDataCacheStrategy = DefaultDataCacheStrategy;
 }

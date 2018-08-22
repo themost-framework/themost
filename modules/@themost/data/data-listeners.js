@@ -9,7 +9,6 @@
 ///
 var async = require('async');
 var sprintf = require('sprintf');
-var cache = require('./data-cache');
 var _ = require('lodash');
 var QueryUtils = require('@themost/query/utils').QueryUtils;
 var QueryField = require('@themost/query/query').QueryField;
@@ -18,7 +17,7 @@ var NotNullError = require("@themost/common/errors").NotNullError;
 var UniqueConstraintError = require("@themost/common/errors").UniqueConstraintError;
 var TraceUtils = require("@themost/common/utils").TraceUtils;
 var TextUtils = require("@themost/common/utils").TextUtils;
-
+var DataCacheStrategy = require("./data-cache").DataCacheStrategy;
 /**
  * @module @themost/data/data-listeners
  * @ignore
@@ -386,6 +385,14 @@ DataCachingListener.prototype.beforeExecute = function(event, callback) {
                 }
             }
         }
+        /**
+         * @type {DataCacheStrategy}
+         */
+        var cache = event.model.context.getConfiguration().getStrategy(DataCacheStrategy);
+        if (typeof cache === 'undefined' || cache === null) {
+            return callback();
+        }
+
         if (event.query && event.query.$select) {
             //create hash
             var hash;
@@ -402,11 +409,7 @@ DataCachingListener.prototype.beforeExecute = function(event, callback) {
             //calculate execution time (debug)
             var logTime = new Date().getTime();
             //query cache
-            cache.getCurrent().get(key, function(err, result) {
-                if (err) {
-                    TraceUtils.log('DataCacheListener: An error occurred while trying to get cached data.');
-                    TraceUtils.log(err);
-                }
+            cache.get(key).then(function(result) {
                 if (typeof result !== 'undefined') {
                     //delete expandables
                     if (event.emitter) {
@@ -432,6 +435,10 @@ DataCachingListener.prototype.beforeExecute = function(event, callback) {
                     //do nothing and exit
                     return callback();
                 }
+            }).catch(function(err) {
+                TraceUtils.log('DataCacheListener: An error occurred while trying to get cached data.');
+                TraceUtils.log(err);
+                return callback();
             });
         }
         else {
@@ -443,7 +450,7 @@ DataCachingListener.prototype.beforeExecute = function(event, callback) {
     }
 };
 /**
- * Occurs before executing an query expression, validates data caching configuration and stores data to cache.
+ * Occurs before executing an query expression, validates data caching configuration and stores data to cache
  * @param {DataEventArgs|*} event - An object that represents the event arguments passed to this operation.
  * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occurred.
  */
@@ -460,6 +467,15 @@ DataCachingListener.prototype.afterExecute = function(event, callback) {
                 }
             }
         }
+
+        /**
+         * @type {DataCacheStrategy}
+         */
+        var cache = event.model.context.getConfiguration().getStrategy(DataCacheStrategy);
+        if (typeof cache === 'undefined' || cache === null) {
+            return callback();
+        }
+
         if (event.query && event.query.$select) {
             if (typeof event.result !== 'undefined' && !event.cached) {
                 //create hash
@@ -476,7 +492,7 @@ DataCachingListener.prototype.afterExecute = function(event, callback) {
                 if (process.env.NODE_ENV==='development') {
                     TraceUtils.debug('DataCacheListener: Setting data to cache [' + key + ']');
                 }
-                cache.getCurrent().add(key, event.result);
+                cache.add(key, event.result);
                 return callback();
             }
         }
