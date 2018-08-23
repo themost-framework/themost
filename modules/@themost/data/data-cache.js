@@ -323,7 +323,6 @@ LangUtils.inherits(DefaultDataCacheStrategy, DataCacheStrategy);
 
 /**
  * Sets a key value pair in cache.
- * @abstract
  * @param {string} key - A string that represents the key of the cached value
  * @param {*} value - The value to be cached
  * @param {number=} absoluteExpiration - An absolute expiration time in seconds. This parameter is optional.
@@ -362,7 +361,6 @@ DefaultDataCacheStrategy.prototype.get = function(key) {
 
 /**
  * Removes a cached value.
- * @abstract
  * @param {string} key - A string that represents the key of the cached value to be removed
  * @returns {Promise|*}
  */
@@ -381,7 +379,6 @@ DefaultDataCacheStrategy.prototype.remove = function(key) {
 
 /**
  * Flush all cached data.
- * @abstract
  * @returns {Promise|*}
  */
 DefaultDataCacheStrategy.prototype.clear = function() {
