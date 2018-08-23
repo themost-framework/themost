@@ -361,7 +361,6 @@ DataObject.prototype.is = function(selector) {
     if (!/^:\w+$/.test(selector)) {
         throw new Error('Invalid selector. A valid selector should always start with : e.g. :new or :live.');
     }
-    this.selectors = this.selectors || {};
     var fn = this.selectors[selector.substr(1)];
     if (typeof fn !== 'function') {
         throw new Error('The specified selector is no associated with this object.');
