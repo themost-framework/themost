@@ -297,12 +297,12 @@ LangUtils.parseBoolean = function(any) {
     else if (typeof any === 'number')
         return any !== 0;
     else if (typeof any === 'string') {
-        if (any.match(LangUtils.IntegerRegex) || any.match(LangUtils.FloatRegex)) {
+        if (any.match(IntegerRegex) || any.match(FloatRegex)) {
             return parseInt(any, 10) !== 0;
         }
-        else if (any.match(LangUtils.BooleanTrueRegex))
+        else if (any.match(BooleanTrueRegex))
             return true;
-        else if (any.match(LangUtils.BooleanFalseRegex))
+        else if (any.match(BooleanFalseRegex))
             return false;
         else if (/^yes$|^on$|^y$|^valid$/i.test(any))
             return true;
