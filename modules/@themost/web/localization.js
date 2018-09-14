@@ -160,7 +160,7 @@ DefaultLocalizationStrategy.prototype.getLocaleString = function(locale, text) {
     if (libraries.hasOwnProperty(lib)) {
         locLibrary = libraries[lib];
         if (locLibrary.hasOwnProperty(locale)) {
-            return locLibrary[locale][text];
+            return locLibrary[locale][text] || text;
         }
     }
     var libraryFile;
@@ -181,7 +181,7 @@ DefaultLocalizationStrategy.prototype.getLocaleString = function(locale, text) {
         else
             locLibrary = libraries[lib] = { };
         locLibrary[locale] = require(libraryFile);
-        return locLibrary[locale][text];
+        return locLibrary[locale][text] || text;
     }
     catch (err) {
         if (err.code === 'ENOENT' || err.code === 'MODULE_NOT_FOUND') {
