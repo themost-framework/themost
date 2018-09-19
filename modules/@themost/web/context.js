@@ -393,7 +393,7 @@ HttpContext.prototype.unattended = function(fn, callback) {
     var account = self.getApplication().getAuthStrategy().getUnattendedExecutionAccount();
     //get interactive user
     if (this.user) {
-        interactiveUser = { name:this.user.name,authenticationType: this.user.authenticationType };
+        interactiveUser = _.assign({}, this.user);
         //setting interactive user
         self.interactiveUser = interactiveUser;
     }
