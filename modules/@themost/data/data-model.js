@@ -1755,6 +1755,12 @@ function saveBaseObject_(obj, callback) {
     //execute before update events
     self.emit('before.save', e, function(err) {
         //if an error occurred
+        self.removeListener('before.save', DataPermissionEventListener.prototype.beforeSave);
+        self.removeListener('before.save', NotNullConstraintListener.prototype.beforeSave);
+        self.removeListener('before.save', DataValidatorListener.prototype.beforeSave);
+        self.removeListener('before.save', UniqueConstraintListener.prototype.beforeSave);
+        self.removeListener('before.save', DataObjectAssociationListener.prototype.beforeSave);
+        self.removeListener('before.save', DataNestedObjectListener.prototype.beforeSave);
         if (err) {
             //invoke callback with error
             callback.call(self, err);
@@ -1867,6 +1873,8 @@ function saveBaseObject_(obj, callback) {
                                         else {
                                             //raise after save listeners
                                             self.emit('after.save',e, function(err) {
+                                                self.removeListener('after.save', DataObjectAssociationListener.prototype.afterSave);
+                                                self.removeListener('after.save', DataNestedObjectListener.prototype.afterSave);
                                                 //invoke callback
                                                 callback.call(self, err, e.target);
                                             });
@@ -2091,6 +2099,9 @@ DataModel.prototype.remove = function(obj, callback)
     //execute before update events
     self.emit('before.remove', e, function(err) {
         //if an error occurred
+        self.removeListener('before.remove', DataPermissionEventListener.prototype.beforeRemove);
+        self.removeListener('before.remove', DataReferencedObjectListener.prototype.beforeRemove);
+        self.removeListener('before.remove', DataNestedObjectListener.prototype.beforeRemove);
         if (err) {
             //invoke callback with error
             return callback(err);

@@ -58,24 +58,6 @@ SequentialEventEmitter.prototype.emit = function(event, args)
     return applyEachSeries.apply(this, [listeners].concat(argsAndCallback));
 };
 
-SequentialEventEmitter.prototype.once = function(type, listener) {
-    var self = this;
-    if (typeof listener !== 'function')
-        throw TypeError('listener must be a function');
-    var fired = false;
-    function g() {
-        self.removeListener(type, g);
-        if (!fired) {
-            fired = true;
-            listener.apply(this, arguments);
-        }
-    }
-    g.listener = listener;
-    this.on(type, g);
-    return this;
-};
-
-
 if (typeof exports !== 'undefined') {
     module.exports.SequentialEventEmitter = SequentialEventEmitter;
 }
