@@ -8,7 +8,7 @@
  */
 ///
 var _ = require("lodash");
-var DataError = require("@themost/common/errors").DataError;
+var DataNotFoundError = require("@themost/common/errors").DataNotFoundError;
 var async = require("async");
 
 /**
@@ -72,13 +72,13 @@ function mapKey_(obj, callback) {
     if (_.isNil(obj)) {
         return callback(new Error('Object cannot be null at this context'));
     }
-    if (self.primaryKey && obj[self.primaryKey]) {
+    if (self.primaryKey && obj.hasOwnProperty(self.primaryKey)) {
         //already mapped
         return callback(null, true);
     }
     //get unique constraints
     var arr = self.constraintCollection.filter(function(x) { return x.type==='unique' }), objectFound=false;
-    if (arr.length==0) {
+    if (arr.length === 0) {
         //do nothing and exit
         return callback();
     }
@@ -141,7 +141,7 @@ function mapKey_(obj, callback) {
                         if (err) {
                             cb(err);
                         }
-                        else if (result) {
+                        else if (typeof result !== 'undefined' && result !== null) {
                             //set primary key value
                             obj[self.primaryKey] = result;
                             //object found
@@ -168,33 +168,33 @@ function mapKey_(obj, callback) {
 
 /**
  * Occurs before creating or updating a data object and validates object state.
- * @param {DataEventArgs|*} e - An object that represents the event arguments passed to this operation.
+ * @param {DataEventArgs|*} event - An object that represents the event arguments passed to this operation.
  * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occurred.
  */
-DataStateValidatorListener.prototype.beforeSave = function(e, callback) {
+DataStateValidatorListener.prototype.beforeSave = function(event, callback) {
     try {
-        if (_.isNil(e)) {
+        if (_.isNil(event)) {
             return callback();
         }
-        if (_.isNil(e.state)) {e.state = 1; }
+        if (_.isNil(event.state)) {event.state = 1; }
 
-        var model = e.model, target = e.target;
+        var model = event.model, target = event.target;
         //if model or target is not defined do nothing and exit
         if (_.isNil(model) || _.isNil(target)) {
             return callback();
         }
         //get key state
-        var keyState = (model.primaryKey && target[model.primaryKey]);
+        var keyState = (model.primaryKey && target.hasOwnProperty(model.primaryKey));
         //if target has $state property defined, set this state and exit
-        if (e.target.$state) {
-            e.state = e.target.$state;
+        if (event.target.$state) {
+            event.state = event.target.$state;
         }
         //if object has primary key
         else if (keyState) {
-            e.state = 2;
+            event.state = 2;
         }
         //if state is Update (2)
-        if (e.state === 2) {
+        if (event.state === 2) {
             //if key exists exit
             if (keyState) {
                 return callback();
@@ -207,13 +207,13 @@ DataStateValidatorListener.prototype.beforeSave = function(e, callback) {
                 });
             }
         }
-        else if (e.state === 1) {
+        else if (event.state === 1) {
             if (!keyState) {
                 return mapKey_.call(model, target, function(err, result) {
                     if (err) { return callback(err); }
                     if (result) {
                         //set state to Update
-                        e.state = 2;
+                        event.state = 2;
                     }
                     return callback();
                 });
@@ -232,35 +232,47 @@ DataStateValidatorListener.prototype.beforeSave = function(e, callback) {
 };
 /**
  * Occurs before removing a data object and validates object state.
- * @param {DataEventArgs|*} e - An object that represents the event arguments passed to this operation.
+ * @param {DataEventArgs|*} event - An object that represents the event arguments passed to this operation.
  * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occurred.
  */
-DataStateValidatorListener.prototype.beforeRemove = function(e, callback) {
+DataStateValidatorListener.prototype.beforeRemove = function(event, callback) {
     //validate event arguments
-    if (_.isNil(e)) { return callback(); }
+    if (_.isNil(event)) { return callback(); }
     //validate state (the default is Delete=4)
-    if (_.isNil(e.state)) {e.state = 4; }
-    var model = e.model, target = e.target;
+    if (_.isNil(event.state)) {event.state = 4; }
+    var model = event.model, target = event.target;
     //if model or target is not defined do nothing and exit
     if (_.isNil(model) || _.isNil(target)) {
         return callback();
     }
     //if object primary key is already defined
-    if (model.primaryKey && target[model.primaryKey]) {
-            e.state = 4;
-            //do nothing and exist
-            return callback();
+    if (model.primaryKey && target.hasOwnProperty(model.primaryKey)) {
+        // check if object exists
+            return model.where(model.primaryKey).equal(target[model.primaryKey]).value().then(function (result) {
+                if (typeof result !== 'undefined' && result !== null) {
+                    // set state to deleted
+                    event.state = 4;
+                    // return
+                    return callback();
+                }
+                // otherwise throw error not found
+                return callback(_.assign(new DataNotFoundError('The target object cannot be found or is inaccessible.',null, model.name), {
+                    "key": target[model.primaryKey]
+                }));
+            }).catch(function (err) {
+                return callback(err);
+            });
     }
     mapKey_.call(model, target, function(err, result) {
         if (err) {
             return callback(err);
         }
-        else if (result) {
+        else if (typeof result !== 'undefined' && result !== null) {
             //continue and exit
             return callback();
         }
         else {
-            callback(new DataError('EFOUND', 'The target object cannot be found.',null, model.name));
+            callback(new DataNotFoundError('The target object cannot be found or is inaccessible.',null, model.name));
         }
     });
 
