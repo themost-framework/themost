@@ -29,9 +29,10 @@ var adapterTypesProperty =  Symbol('adapterTypes');
 var currentConfiguration = Symbol('current');
 var namedConfigurations = Symbol('namedConfigurations');
 
-
-
-
+function interopRequireDefault(path) {
+    var obj = require(path);
+    return obj && obj.__esModule ? obj['default'] : obj;
+}
 
 /**
  *
@@ -824,10 +825,10 @@ DefaultModelClassLoaderStrategy.prototype.resolve = function(model) {
     const modelDefinition = this.getConfiguration().getStrategy(SchemaLoaderStrategy).getModelDefinition(model.name);
     if (typeof model.classPath === 'string') {
         if (/^\.\//.test(model.classPath)) {
-            modelDefinition[dataObjectClassProperty] = DataObjectClass = require(PathUtils.join(this.getConfiguration().getExecutionPath(),model.classPath));
+            modelDefinition[dataObjectClassProperty] = DataObjectClass = interopRequireDefault(PathUtils.join(this.getConfiguration().getExecutionPath(),model.classPath));
         }
         else {
-            modelDefinition[dataObjectClassProperty] = DataObjectClass = require(model.classPath);
+            modelDefinition[dataObjectClassProperty] = DataObjectClass = interopRequireDefault(model.classPath);
         }
     }
     else {
@@ -835,7 +836,7 @@ DefaultModelClassLoaderStrategy.prototype.resolve = function(model) {
         // e.g. OrderDetail -> OrderDetailModel.js
         var classPath = PathUtils.join(this.getConfiguration().getExecutionPath(),'models',model.name.concat('Model.js'));
         try {
-            modelDefinition[dataObjectClassProperty] = DataObjectClass = require(classPath);
+            modelDefinition[dataObjectClassProperty] = DataObjectClass = interopRequireDefault(classPath);
         }
         catch(err) {
             if (err.code === 'MODULE_NOT_FOUND') {
@@ -843,14 +844,14 @@ DefaultModelClassLoaderStrategy.prototype.resolve = function(model) {
                     //try to find module by using dasherize naming convention
                     // e.g. OrderDetail -> order-detail-model.js
                     classPath = PathUtils.join(this.getConfiguration().getExecutionPath(),'models',_.dasherize(model.name).concat('-model.js'));
-                    modelDefinition[dataObjectClassProperty] = DataObjectClass = require(classPath);
+                    modelDefinition[dataObjectClassProperty] = DataObjectClass = interopRequireDefault(classPath);
                 }
                 catch(err) {
                     if (err.code === 'MODULE_NOT_FOUND') {
                         if (_.isNil(model['inherits'])) {
                             if (_.isNil(model['implements'])) {
                                 //use default DataObject class
-                                modelDefinition[dataObjectClassProperty] = DataObjectClass = require('./data-object').DataObject;
+                                modelDefinition[dataObjectClassProperty] = DataObjectClass = interopRequireDefault('./data-object').DataObject;
                             }
                             else {
                                 //use implemented data model class

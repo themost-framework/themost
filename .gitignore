@@ -1,6 +1,3 @@
 .DS_Store
 .idea
 node_modules
-modules/@themost/*/node_modules
-modules/@themost/*/docs
-modules/@themost/*/out

@@ -25,6 +25,12 @@ var accepts = require('accepts');
 var STR_CONTROLLER_FILE = './%s-controller.js';
 var STR_CONTROLLER_RELPATH = '/controllers/%s-controller.js';
 
+
+function interopRequireDefault(path) {
+    var obj = require(path);
+    return obj && obj.__esModule ? obj['default'] : obj;
+}
+
 if (process.execArgv.indexOf('ts-node/register')>=0) {
     //change controller resolution to typescript
     STR_CONTROLLER_FILE = './%s-controller.ts';
@@ -137,24 +143,24 @@ ViewHandler.queryControllerClass = function(controllerName, context, callback) {
                                controllerPath = path.join(__dirname, controllerPath);
                                fs.exists(controllerPath, function(exists) {
                                    if (!exists)
-                                       callback(null, require('../controllers/base'));
+                                       callback(null, interopRequireDefault('../controllers/base'));
                                    else
-                                       callback(null, require(controllerPath));
+                                       callback(null, interopRequireDefault(controllerPath));
                                });
                            }
                            else {
-                               callback(null, require(controllerPath));
+                               callback(null, interopRequireDefault(controllerPath));
                            }
                         });
                     }
                     else {
-                        var ControllerCtor = context.getApplication().getConfiguration().controllers[controllerName] || require('../controllers/base');
+                        var ControllerCtor = context.getApplication().getConfiguration().controllers[controllerName] || interopRequireDefault('../controllers/base');
                         callback(null, ControllerCtor);
                     }
                 }
                 else {
                     //return controller class
-                    callback(null, require(controllerPath));
+                    callback(null, interopRequireDefault(controllerPath));
                 }
             }
             catch (err) {
