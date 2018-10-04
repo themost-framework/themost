@@ -161,7 +161,7 @@
     },
   "Guid": {
     "comment": "A string which represents a global unique identifier (e.g. 21EC2020-3AEA-4069-A2DD-08002B30309D).",
-    "label": "Model",
+    "label": "Guid",
     "properties": {
       "pattern": "^(\\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\\}{0,1})$"
     },
@@ -172,6 +172,19 @@
     "sqltype":"Text",
     "version":"1.0"
   },
+    "Object": {
+        "comment": "A value which represents an unknown object reference.",
+        "label": "Object",
+        "properties": {
+            "pattern":"^[+-]?[0-9]*$"
+        },
+        "supertypes": [
+            "Integer"
+        ],
+        "type": "number",
+        "sqltype":"Integer",
+        "version":"1.0"
+    },
     "ObjectURI": {
       "comment": "A string which represents a relative object URI e.g. /User/100 or /Order/12345 where the first segment represents a model associated an object and the second an object identifier like object ID.",
       "label": "Object URI",

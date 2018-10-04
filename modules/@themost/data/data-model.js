@@ -1403,7 +1403,10 @@ function cast_(obj, state) {
     {
         //ensure state (set default state to Insert=1)
         state = _.isNil(state) ? (_.isNil(obj.$state) ? 1 : obj.$state) : state;
-        var result = {}, name;
+        var result = {}, name, superModel;
+        if (typeof obj.getSuperModel === 'function') {
+            superModel = obj.getSuperModel();
+        }
         self.attributes.filter(function(x) {
             if (x.model!==self.name) { return false; }
             return (!x.readonly) ||
@@ -1422,10 +1425,18 @@ function cast_(obj, state) {
             if (obj.hasOwnProperty(name))
             {
                 var mapping = self.inferMapping(name);
-                if (_.isNil(mapping))
+                //if mapping is empty and a super model is defined
+                if (_.isNil(mapping)) {
+                    if (superModel && x.type === 'Object') {
+                        //try to find if superModel has a mapping for this attribute
+                        mapping = superModel.inferMapping(name);
+                    }
+                }
+                if (_.isNil(mapping)) {
                     result[x.name] = obj[name];
-                else if ((mapping.associationType==='association') && (mapping.childModel===self.name)) {
-                    if ((typeof obj[name] === 'object') && (obj[name] !== null))
+                }
+                else if (mapping.associationType==='association') {
+                    if (typeof obj[name] === 'object' && obj[name] !== null)
                     //set associated key value (e.g. primary key value)
                         result[x.name] = obj[name][mapping.parentField];
                     else
@@ -1725,6 +1736,12 @@ function saveBaseObject_(obj, callback) {
     if (_.isArray(obj)) {
         callback.call(self, new Error('Invalid argument. Source object cannot be an array.'));
         return 0;
+    }
+    //set super model (for further processing)
+    if (typeof obj.getSuperModel !== 'function') {
+        obj.getSuperModel = function() {
+            return self;
+        }
     }
     if (obj.$state === 4) {
         return removeSingleObject_.call(self, obj, callback);
