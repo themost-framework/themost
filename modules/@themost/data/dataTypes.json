@@ -176,7 +176,6 @@
         "comment": "A value which represents an unknown object reference.",
         "label": "Object",
         "properties": {
-            "pattern":"^[+-]?[0-9]*$"
         },
         "supertypes": [
             "Integer"
