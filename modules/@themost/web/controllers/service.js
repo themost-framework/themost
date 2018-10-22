@@ -28,7 +28,6 @@ var HttpBaseController = require('./base');
 var ODataModelBuilder = require('@themost/data/odata').ODataModelBuilder;
 var EdmMapping = require('@themost/data/odata').EdmMapping;
 var DefaultTopQueryOption = 50;
-
 /**
  * @classdesc HttpBaseController class describes a base controller.
  * @class

@@ -1036,6 +1036,188 @@ function SingletonConfiguration(builder, entityType, name) {
 }
 LangUtils.inherits(SingletonConfiguration, EntitySetConfiguration);
 
+/**
+ * Converts schema configuration to an edm document
+ * @private
+ * @this ODataModelBuilder
+ * @param {SchemaConfiguration} schema
+ * @returns {XDocument}
+ */
+function schemaToEdmDocument(schema) {
+    var doc = new XDocument();
+    var rootElement = doc.createElement("edmx:Edmx");
+    rootElement.setAttribute("xmlns:edmx", "http://docs.oasis-open.org/odata/ns/edmx");
+    rootElement.setAttribute("Version","4.0");
+    doc.appendChild(rootElement);
+    var dataServicesElement = doc.createElement("edmx:DataServices");
+    var schemaElement = doc.createElement("Schema");
+    schemaElement.setAttribute("xmlns", "http://docs.oasis-open.org/odata/ns/edm");
+    if (schema.namespace) {
+        schemaElement.setAttribute("Namespace", schema.namespace);
+    }
+    var actionElements = [], functionElements = [];
+    //append edmx:DataServices > Schema
+    dataServicesElement.appendChild(schemaElement);
+    _.forEach(schema.entityType,
+        /**
+         *
+         * @param {EntityTypeConfiguration} entityType
+         */
+        function(entityType) {
+
+            //search for bound actions
+            _.forEach(entityType.actions.concat(entityType.collection.actions), function(action) {
+                var actionElement = doc.createElement("Action");
+                actionElement.setAttribute("Name", action.name);
+                actionElement.setAttribute("IsBound", true);
+                if (action.isComposable) {
+                    actionElement.setAttribute("IsComposable", action.isComposable);
+                }
+                _.forEach(action.parameters, function(parameter) {
+                    var paramElement =  doc.createElement("Parameter");
+                    paramElement.setAttribute("Name", parameter.name);
+                    paramElement.setAttribute("Type", parameter.type);
+                    var nullable = _.isBoolean(parameter.nullable) ? parameter.nullable : false;
+                    if (!nullable) {
+                        paramElement.setAttribute("Nullable", nullable);
+                    }
+                    //append Action > Parameter
+                    actionElement.appendChild(paramElement)
+                });
+                if (action.returnType || action.returnCollectionType) {
+                    var returnTypeElement =  doc.createElement("ReturnType");
+                    var returnType = action.returnType;
+                    if (action.returnCollectionType) {
+                        returnType = action.returnCollectionType;
+                        returnTypeElement.setAttribute("Type", sprintf("Collection(%s)", returnType));
+                    }
+                    else {
+                        returnTypeElement.setAttribute("Type", returnType);
+                    }
+                    returnTypeElement.setAttribute("Nullable", true);
+                    actionElement.appendChild(returnTypeElement);
+                }
+                actionElements.push(actionElement);
+            });
+
+            //search for bound functions
+            _.forEach(entityType.functions.concat(entityType.collection.functions), function(func) {
+                var functionElement = doc.createElement("Function");
+                functionElement.setAttribute("Name", func.name);
+                functionElement.setAttribute("IsBound", true);
+                if (func.isComposable) {
+                    functionElement.setAttribute("IsComposable", func.isComposable);
+                }
+                _.forEach(func.parameters, function(parameter) {
+                    var paramElement =  doc.createElement("Parameter");
+                    paramElement.setAttribute("Name", parameter.name);
+                    paramElement.setAttribute("Type", parameter.type);
+                    var nullable = _.isBoolean(parameter.nullable) ? parameter.nullable : false;
+                    if (!nullable) {
+                        paramElement.setAttribute("Nullable", nullable);
+                    }
+                    //append Function > Parameter
+                    functionElement.appendChild(paramElement)
+                });
+                if (func.returnType || func.returnCollectionType) {
+                    var returnTypeElement =  doc.createElement("ReturnType");
+                    var returnType = func.returnType;
+                    if (func.returnCollectionType) {
+                        returnType = func.returnCollectionType;
+                        returnTypeElement.setAttribute("Type", sprintf("Collection(%s)", returnType));
+                    }
+                    else {
+                        returnTypeElement.setAttribute("Type", returnType);
+                    }
+                    returnTypeElement.setAttribute("Nullable", true);
+                    functionElement.appendChild(returnTypeElement);
+                }
+                functionElements.push(functionElement);
+            });
+
+            //create element Schema > EntityType
+            var entityTypeElement = doc.createElement("EntityType");
+            entityTypeElement.setAttribute("Name", entityType.name);
+            entityTypeElement.setAttribute("OpenType", true);
+            if (entityType.baseType) {
+                entityTypeElement.setAttribute("BaseType", entityType.baseType);
+            }
+
+            if (entityType.key && entityType.key.propertyRef) {
+                var keyElement = doc.createElement('Key');
+                _.forEach(entityType.key.propertyRef, function(key) {
+                    var keyRefElement = doc.createElement('PropertyRef');
+                    keyRefElement.setAttribute("Name",key.name);
+                    keyElement.appendChild(keyRefElement);
+                });
+                entityTypeElement.appendChild(keyElement);
+            }
+            //enumerate properties
+            _.forEach(entityType.property, function(x) {
+                var propertyElement = doc.createElement('Property');
+                propertyElement.setAttribute("Name",x.name);
+                propertyElement.setAttribute("Type",x.type);
+                if (_.isBoolean(x.nullable) && (x.nullable===false)) {
+                    propertyElement.setAttribute("Nullable",false);
+                }
+                entityTypeElement.appendChild(propertyElement);
+            });
+            //enumerate navigation properties
+            _.forEach(entityType.navigationProperty, function(x) {
+                var propertyElement = doc.createElement('NavigationProperty');
+                propertyElement.setAttribute("Name",x.name);
+                propertyElement.setAttribute("Type",x.type);
+                if (!x.nullable) {
+                    propertyElement.setAttribute("Nullable",false);
+                }
+                entityTypeElement.appendChild(propertyElement);
+            });
+            //append Schema > EntityType
+            schemaElement.appendChild(entityTypeElement);
+        });
+
+    //append action elements to schema
+    _.forEach(actionElements, function(actionElement) {
+        schemaElement.appendChild(actionElement);
+    });
+    //append function elements to schema
+    _.forEach(functionElements, function(functionElement) {
+        schemaElement.appendChild(functionElement);
+    });
+
+
+
+    //create Schema > EntityContainer
+    var entityContainerElement = doc.createElement("EntityContainer");
+    entityContainerElement.setAttribute("Name", schema.entityContainer.name || "DefaultContainer");
+
+    _.forEach(schema.entityContainer.entitySet,
+        /**
+         * @param {EntitySetConfiguration} child
+         */
+        function(child) {
+            var childElement = doc.createElement(child.kind);
+            childElement.setAttribute("Name", child.name);
+            if ((child.kind === EntitySetKind.EntitySet) || (child.kind === EntitySetKind.Singleton)) {
+                childElement.setAttribute("EntityType", child.entityType.name);
+            }
+            var childAnnotation = doc.createElement("Annotation");
+            childAnnotation.setAttribute("Term", "Org.OData.Core.V1.ResourcePath");
+            childAnnotation.setAttribute("String", child.getUrl());
+            childElement.appendChild(childAnnotation);
+            //append Schema > EntityContainer > (EntitySet, Singleton, FunctionImport)
+            entityContainerElement.appendChild(childElement);
+        });
+
+    //append Schema > EntityContainer
+    schemaElement.appendChild(entityContainerElement);
+
+    //append edmx:Edmx > edmx:DataServices
+    rootElement.appendChild(dataServicesElement);
+    return doc;
+
+}
+
 
 /**
  * @classdesc Represents the OData model builder of an HTTP application
@@ -1262,6 +1444,35 @@ ODataModelBuilder.prototype.removeEntitySet = function(name) {
             }
         });
     };
+
+/**
+ * Returns entity based on the configuration performed using this builder in
+ * @returns {SchemaConfiguration}
+ */
+ODataModelBuilder.prototype.getEdmSync = function() {
+    /**
+     * @type {SchemaConfiguration}
+     */
+    var schema = {
+        entityType:[],
+        entityContainer: {
+            "name":"DefaultContainer",
+            "entitySet":[]
+        }
+    };
+    //get entity types by excluding ignored entities
+    var keys = _.filter(_.keys(self[entityTypesProperty]), function(x) {
+        return self[ignoreEntityTypesProperty].indexOf(x)<0;
+    });
+    //enumerate entity types
+    _.forEach(keys, function(key) {
+        schema.entityType.push(self[entityTypesProperty][key]);
+    });
+    //apply entity sets
+    schema.entityContainer.entitySet.push.apply(schema.entityContainer.entitySet, self[entityContainerProperty]);
+    return schema;
+};
+
 // noinspection JSUnusedGlobalSymbols
     /**
      * @param {boolean=} all
@@ -1286,177 +1497,7 @@ ODataModelBuilder.prototype.removeEntitySet = function(name) {
         return Q.promise(function(resolve, reject) {
             try{
                 return self.getEdm().then(function(schema) {
-                    var doc = new XDocument();
-                    var rootElement = doc.createElement("edmx:Edmx");
-                    rootElement.setAttribute("xmlns:edmx", "http://docs.oasis-open.org/odata/ns/edmx");
-                    rootElement.setAttribute("Version","4.0");
-                    doc.appendChild(rootElement);
-
-                    var dataServicesElement = doc.createElement("edmx:DataServices");
-                    var schemaElement = doc.createElement("Schema");
-                    schemaElement.setAttribute("xmlns", "http://docs.oasis-open.org/odata/ns/edm");
-                    if (schema.namespace) {
-                        schemaElement.setAttribute("Namespace", schema.namespace);
-                    }
-                    var actionElements = [], functionElements = [];
-                    //append edmx:DataServices > Schema
-                    dataServicesElement.appendChild(schemaElement);
-                    _.forEach(schema.entityType,
-                        /**
-                         *
-                         * @param {EntityTypeConfiguration} entityType
-                         */
-                        function(entityType) {
-
-                            //search for bound actions
-                            _.forEach(entityType.actions.concat(entityType.collection.actions), function(action) {
-                                var actionElement = doc.createElement("Action");
-                                actionElement.setAttribute("Name", action.name);
-                                actionElement.setAttribute("IsBound", true);
-                                if (action.isComposable) {
-                                    actionElement.setAttribute("IsComposable", action.isComposable);
-                                }
-                                _.forEach(action.parameters, function(parameter) {
-                                    var paramElement =  doc.createElement("Parameter");
-                                    paramElement.setAttribute("Name", parameter.name);
-                                    paramElement.setAttribute("Type", parameter.type);
-                                    var nullable = _.isBoolean(parameter.nullable) ? parameter.nullable : false;
-                                    if (!nullable) {
-                                        paramElement.setAttribute("Nullable", nullable);
-                                    }
-                                    //append Action > Parameter
-                                    actionElement.appendChild(paramElement)
-                                });
-                                if (action.returnType || action.returnCollectionType) {
-                                    var returnTypeElement =  doc.createElement("ReturnType");
-                                    var returnType = action.returnType;
-                                    if (action.returnCollectionType) {
-                                        returnType = action.returnCollectionType;
-                                        returnTypeElement.setAttribute("Type", sprintf("Collection(%s)", returnType));
-                                    }
-                                    else {
-                                        returnTypeElement.setAttribute("Type", returnType);
-                                    }
-                                    returnTypeElement.setAttribute("Nullable", true);
-                                    actionElement.appendChild(returnTypeElement);
-                                }
-                                actionElements.push(actionElement);
-                            });
-
-                            //search for bound functions
-                            _.forEach(entityType.functions.concat(entityType.collection.functions), function(func) {
-                                var functionElement = doc.createElement("Function");
-                                functionElement.setAttribute("Name", func.name);
-                                functionElement.setAttribute("IsBound", true);
-                                if (func.isComposable) {
-                                    functionElement.setAttribute("IsComposable", func.isComposable);
-                                }
-                                _.forEach(func.parameters, function(parameter) {
-                                    var paramElement =  doc.createElement("Parameter");
-                                    paramElement.setAttribute("Name", parameter.name);
-                                    paramElement.setAttribute("Type", parameter.type);
-                                    var nullable = _.isBoolean(parameter.nullable) ? parameter.nullable : false;
-                                    if (!nullable) {
-                                        paramElement.setAttribute("Nullable", nullable);
-                                    }
-                                    //append Function > Parameter
-                                    functionElement.appendChild(paramElement)
-                                });
-                                if (func.returnType || func.returnCollectionType) {
-                                    var returnTypeElement =  doc.createElement("ReturnType");
-                                    var returnType = func.returnType;
-                                    if (func.returnCollectionType) {
-                                        returnType = func.returnCollectionType;
-                                        returnTypeElement.setAttribute("Type", sprintf("Collection(%s)", returnType));
-                                    }
-                                    else {
-                                        returnTypeElement.setAttribute("Type", returnType);
-                                    }
-                                    returnTypeElement.setAttribute("Nullable", true);
-                                    functionElement.appendChild(returnTypeElement);
-                                }
-                                functionElements.push(functionElement);
-                            });
-
-                            //create element Schema > EntityType
-                            var entityTypeElement = doc.createElement("EntityType");
-                            entityTypeElement.setAttribute("Name", entityType.name);
-                            entityTypeElement.setAttribute("OpenType", true);
-                            if (entityType.baseType) {
-                                entityTypeElement.setAttribute("BaseType", entityType.baseType);
-                            }
-
-                            if (entityType.key && entityType.key.propertyRef) {
-                                var keyElement = doc.createElement('Key');
-                                _.forEach(entityType.key.propertyRef, function(key) {
-                                    var keyRefElement = doc.createElement('PropertyRef');
-                                    keyRefElement.setAttribute("Name",key.name);
-                                    keyElement.appendChild(keyRefElement);
-                                });
-                                entityTypeElement.appendChild(keyElement);
-                            }
-                            //enumerate properties
-                            _.forEach(entityType.property, function(x) {
-                                var propertyElement = doc.createElement('Property');
-                                propertyElement.setAttribute("Name",x.name);
-                                propertyElement.setAttribute("Type",x.type);
-                                if (_.isBoolean(x.nullable) && (x.nullable===false)) {
-                                    propertyElement.setAttribute("Nullable",false);
-                                }
-                                entityTypeElement.appendChild(propertyElement);
-                            });
-                            //enumerate navigation properties
-                            _.forEach(entityType.navigationProperty, function(x) {
-                                var propertyElement = doc.createElement('NavigationProperty');
-                                propertyElement.setAttribute("Name",x.name);
-                                propertyElement.setAttribute("Type",x.type);
-                                if (!x.nullable) {
-                                    propertyElement.setAttribute("Nullable",false);
-                                }
-                                entityTypeElement.appendChild(propertyElement);
-                            });
-                            //append Schema > EntityType
-                            schemaElement.appendChild(entityTypeElement);
-                        });
-
-                    //append action elements to schema
-                    _.forEach(actionElements, function(actionElement) {
-                        schemaElement.appendChild(actionElement);
-                    });
-                    //append function elements to schema
-                    _.forEach(functionElements, function(functionElement) {
-                        schemaElement.appendChild(functionElement);
-                    });
-
-
-
-                    //create Schema > EntityContainer
-                    var entityContainerElement = doc.createElement("EntityContainer");
-                    entityContainerElement.setAttribute("Name", schema.entityContainer.name || "DefaultContainer");
-
-                    _.forEach(schema.entityContainer.entitySet,
-                        /**
-                         * @param {EntitySetConfiguration} child
-                         */
-                        function(child) {
-                            var childElement = doc.createElement(child.kind);
-                            childElement.setAttribute("Name", child.name);
-                            if ((child.kind === EntitySetKind.EntitySet) || (child.kind === EntitySetKind.Singleton)) {
-                                childElement.setAttribute("EntityType", child.entityType.name);
-                            }
-                            var childAnnotation = doc.createElement("Annotation");
-                            childAnnotation.setAttribute("Term", "Org.OData.Core.V1.ResourcePath");
-                            childAnnotation.setAttribute("String", child.getUrl());
-                            childElement.appendChild(childAnnotation);
-                            //append Schema > EntityContainer > (EntitySet, Singleton, FunctionImport)
-                            entityContainerElement.appendChild(childElement);
-                        });
-
-                    //append Schema > EntityContainer
-                    schemaElement.appendChild(entityContainerElement);
-
-                    //append edmx:Edmx > edmx:DataServices
-                    rootElement.appendChild(dataServicesElement);
+                    var doc = schemaToEdmDocument.bind(self)(schema);
                     return resolve(doc);
                 }).catch(function(err) {
                     return reject(err);
@@ -1466,8 +1507,23 @@ ODataModelBuilder.prototype.removeEntitySet = function(name) {
                 return reject(err);
             }
         });
-
     };
+// noinspection JSUnusedGlobalSymbols
+/**
+ * Returns an XML structure based on the configuration performed using this builder
+ * @returns {XDocument}
+ */
+ODataModelBuilder.prototype.getEdmDocumentSync = function() {
+
+    /**
+     * get schema configuration
+     * @type {SchemaConfiguration}
+     */
+    var schema = this.getEdmSync();
+    // convert schema to edm document
+    return schemaToEdmDocument.bind(this)(schema);
+};
+
 // noinspection JSUnusedGlobalSymbols
     /**
      * @param {Function} contextLinkFunc
@@ -1825,6 +1881,59 @@ LangUtils.inherits(ODataConventionModelBuilder, ODataModelBuilder);
 
     };
 
+/**
+ * @returns *
+ */
+ODataConventionModelBuilder.prototype.initializeSync = function() {
+    var self = this;
+    if (self[initializeProperty]) {
+        return;
+    }
+    /**
+     * @type {*|DataConfigurationStrategy}
+     */
+    var dataConfiguration = self.getConfiguration().getStrategy(DataConfigurationStrategy);
+    var schemaLoader = self.getConfiguration().getStrategy(SchemaLoaderStrategy);
+    if (schemaLoader instanceof DefaultSchemaLoaderStrategy) {
+        var nativeFsModule = 'fs';
+        var fs = require(nativeFsModule);
+        var modelPath = schemaLoader.getModelPath();
+        if (_.isNil(modelPath)) {
+            self[initializeProperty] = true;
+            return;
+        }
+        // read directory in sync mode
+        var files = fs.readdirSync(modelPath);
+        // enumerate models
+        var models = _.map(_.filter(files, function (x) {
+            return /\.json$/.test(x);
+        }), function (x) {
+            return /(.*?)\.json$/.exec(x)[1];
+        });
+        // add entity set
+        _.forEach(models, function (x) {
+            if (!_.isNil(x)) {
+                self.addEntitySet(x, pluralize(x));
+            }
+        });
+        //remove hidden models from entity set container
+        for (var i = 0; i < self[entityContainerProperty].length; i++) {
+            var x = self[entityContainerProperty][i];
+            //get model
+            var entityTypeName = x.entityType.name;
+            var definition = dataConfiguration.model(x.entityType.name);
+            if (definition && definition.hidden) {
+                self.removeEntitySet(x.name);
+                if (!definition.abstract) {
+                    self.ignore(entityTypeName);
+                }
+                i -= 1;
+            }
+        }
+    }
+    self[initializeProperty] = true;
+};
+
     /**
      * Creates and returns a structure based on the configuration performed using this builder
      * @returns {Promise|*}
@@ -1847,6 +1956,25 @@ LangUtils.inherits(ODataConventionModelBuilder, ODataModelBuilder);
             return Q.reject(err);
         }
     };
+
+/**
+ * Returns schema based on the configuration performed with this builder
+ * @returns {SchemaConfiguration}
+ */
+ODataConventionModelBuilder.prototype.getEdmSync = function() {
+    var superGetEdmSync = ODataConventionModelBuilder.super_.prototype.getEdmSync;
+    if (_.isObject(this[edmProperty])) {
+        return this[edmProperty];
+    }
+    // use sync initialization
+    this.initializeSync();
+    // get edm (and store schema configuration for future calls)
+    this[edmProperty] = superGetEdmSync.bind(this)();
+    // return schema configuration
+    return this[edmProperty];
+};
+
+
 
 
 

@@ -1170,7 +1170,7 @@ HttpApplication.prototype.useController = function(name, controllerCtor) {
     Args.notString(name,"Controller Name");
     Args.notFunction(controllerCtor,"Controller constructor");
     //get application controllers or default
-    let controllers = this.getConfiguration().getSourceAt('controllers') || { };
+    var controllers = this.getConfiguration().getSourceAt('controllers') || { };
     //set application controller
     controllers[name] = controllerCtor;
     //apply changes

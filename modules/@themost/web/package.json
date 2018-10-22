@@ -1,6 +1,6 @@
 {
   "name": "@themost/web",
-  "version": "2.1.12",
+  "version": "2.1.14",
   "description": "MOST Web Framework 2.0 - Web Server Module",
   "module": "index.js",
   "peerDependencies": {},
@@ -55,6 +55,8 @@
   },
   "devDependencies": {
     "@types/hashmap": "^2.0.29",
+    "@types/node": "^10.11.4",
+    "@types/q": "^1.5.1",
     "eslint": "^4.10.0"
   },
   "eslintConfig": {
