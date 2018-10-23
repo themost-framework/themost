@@ -487,14 +487,11 @@ HttpServiceController.prototype.getNavigationProperty = function(entitySet, navi
                                 var filter = Q.nbind(returnModel.filter, returnModel);
                                 //if the return value is a single instance
                                 if (!returnsCollection) {
-                                    //pass context parameters
-                                    var params = {};
-                                    if (_.isNil(navigationProperty)) {
-                                        params = {
-                                            "$select":context.params.$select,
-                                            "$expand":context.params.$expand
-                                        }
-                                    }
+                                    //pass context parameters (only $select and $expand)
+                                    var params = _.pick(context.params, [
+                                        "$select",
+                                        "$expand"
+                                    ]);
                                     //filter with parameters
                                     return filter(params).then(function(q) {
                                         //get item
@@ -702,10 +699,10 @@ HttpServiceController.prototype.getEntityAction = function(entitySet, entityActi
                         //pass context parameters (if navigationProperty is empty)
                         var params = {};
                         if (_.isNil(navigationProperty)) {
-                            params = {
-                                "$select":context.params.$select,
-                                "$expand":context.params.$expand
-                            }
+                            params = _.pick(context.params, [
+                                "$select",
+                                "$expand"
+                            ]);
                         }
                         return filter(params).then(function(q) {
                             //do not add context params
