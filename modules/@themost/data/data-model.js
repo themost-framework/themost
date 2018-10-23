@@ -1408,6 +1408,8 @@ function cast_(obj, state) {
             superModel = obj.getSuperModel();
         }
         self.attributes.filter(function(x) {
+            return x.hasOwnProperty('many') ? !x.many : true;
+        }).filter(function(x) {
             if (x.model!==self.name) { return false; }
             return (!x.readonly) ||
                 (x.readonly && (typeof x.calculation!=='undefined') && state===2) ||
