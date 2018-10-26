@@ -51,7 +51,7 @@ export class EdmMapping {
     static entityType(name: string);
     static action(name: string, returnType: any);
     static func(name: string, returnType: any);
-    static param(name: string, type: string, nullable?: boolean);
+    static param(name: string, type: string, nullable?: boolean, fromBody?: boolean);
     static navigationProperty(name: string, type: string, multiplicity: string);
     static property(name: string, type: string, nullable?: boolean);
     static hasOwnAction(obj: any, name: string): Function;
@@ -65,6 +65,7 @@ export declare interface ProcedureParameter {
     name: string;
     type: string;
     nullable?: boolean;
+    fromBody?: boolean;
 }
 
 export declare interface EntityTypeProperty {

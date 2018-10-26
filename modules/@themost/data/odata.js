@@ -267,8 +267,9 @@ ProcedureConfiguration.prototype.returnsCollection = function(type) {
  * @param {string} name
  * @param {string} type
  * @param {boolean=} nullable
+ * @param {boolean=} fromBody
  */
-ProcedureConfiguration.prototype.parameter = function(name, type, nullable) {
+ProcedureConfiguration.prototype.parameter = function(name, type, nullable, fromBody) {
     Args.notString(name, "Action parameter name");
     Args.notString(type, "Action parameter type");
     var findRe = new RegExp("^" + name + "$" ,"ig");
@@ -282,7 +283,8 @@ ProcedureConfiguration.prototype.parameter = function(name, type, nullable) {
         this.parameters.push({
             "name":name,
             "type":type,
-            "nullable": _.isBoolean(nullable) ? nullable : false
+            "nullable": _.isBoolean(nullable) ? nullable : false,
+            "fromBody": fromBody
         });
     }
     return this;
@@ -2136,9 +2138,10 @@ EdmMapping.func = function (name, returnType) {
  * @param {string} name
  * @param {*} type
  * @param {boolean=} nullable
+ * @param {boolean=} fromBody
  * @returns {Function}
  */
-EdmMapping.param = function(name, type, nullable) {
+EdmMapping.param = function(name, type, nullable, fromBody) {
     if (typeof name !== 'string') {
         throw new TypeError('Parameter name must be a string');
     }
@@ -2163,10 +2166,10 @@ EdmMapping.param = function(name, type, nullable) {
             typeString = type;
         }
         if (descriptor.value.actionDecorator instanceof ActionConfiguration) {
-            descriptor.value.actionDecorator.parameter(name, typeString, nullable);
+            descriptor.value.actionDecorator.parameter(name, typeString, nullable, fromBody);
         }
         else if (descriptor.value.functionDecorator instanceof FunctionConfiguration) {
-            descriptor.value.functionDecorator.parameter(name, typeString, nullable);
+            descriptor.value.functionDecorator.parameter(name, typeString, nullable, fromBody);
         }
         else {
             throw new Error('Procedure configuration cannot be empty for this member. Expected EdmMapping.action(name, returnType) or EdmMapping.func(name, returnType) decorator.');
@@ -2174,6 +2177,7 @@ EdmMapping.param = function(name, type, nullable) {
         return descriptor;
     }
 };
+
 
 /**
  * @static
