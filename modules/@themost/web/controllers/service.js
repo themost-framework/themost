@@ -494,8 +494,10 @@ HttpServiceController.prototype.getNavigationProperty = function(entitySet, navi
                                     ]);
                                     //filter with parameters
                                     return filter(params).then(function(q) {
+                                        // extend data queryable
+                                        var q1 = extendQueryable(result, q);
                                         //get item
-                                        return q.getItem().then(function(result) {
+                                        return q1.getItem().then(function(result) {
                                             if (_.isNil(result)) {
                                                 return Q.reject(new HttpNotFoundError());
                                             }
