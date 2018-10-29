@@ -1778,7 +1778,7 @@ LangUtils.inherits(ODataConventionModelBuilder, ODataModelBuilder);
                 //get instance actions
                 ownActions = EdmMapping.getOwnActions(DataObjectClass.prototype);
                 _.forEach(ownActions, function(x) {
-                    modelEntityType.addFunction(x.name);
+                    modelEntityType.addAction(x.name);
                     _.assign(modelEntityType.hasAction(x.name), x);
                 });
                 //add link function
