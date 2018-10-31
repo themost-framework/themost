@@ -1452,6 +1452,7 @@ ODataModelBuilder.prototype.removeEntitySet = function(name) {
  * @returns {SchemaConfiguration}
  */
 ODataModelBuilder.prototype.getEdmSync = function() {
+    var self = this;
     /**
      * @type {SchemaConfiguration}
      */
