@@ -349,6 +349,13 @@ DataPermissionEventListener.prototype.validate = function(event, callback) {
                         });
                 }
                 else if (item.type==='self') {
+                    // check if the specified privilege has account attribute
+                    if (typeof item.account !== 'undefined' && item.account !== null && item.account !== '*') {
+                        // if user does not have this account return
+                        if (accounts.findIndex(function(x) { return x.name === item.account; }) < 0) {
+                            return cb();
+                        }
+                    }
                     if (requestMask===PermissionMask.Create) {
                         var query = QueryUtils.query(model.viewAdapter);
                         var fields=[], field;
@@ -755,6 +762,13 @@ DataPermissionEventListener.prototype.beforeExecute = function(event, callback)
                         cb();
                     }
                     else if (item.type==='self') {
+                        // check if the specified privilege has account attribute
+                        if (typeof item.account !== 'undefined' && item.account !== null && item.account !== '*') {
+                            // if user does not have this account return
+                            if (accounts.findIndex(function(x) { return x.name === item.account; }) < 0) {
+                                return cb();
+                            }
+                        }
                         if (typeof item.filter === 'string' ) {
                             model.filter(item.filter, function(err, q) {
                                 if (err) {
