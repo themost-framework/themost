@@ -2863,7 +2863,7 @@ DataModel.prototype.getSubTypes = function () {
             .select("model")
             .groupBy("model")
             .all().then(function(result) {
-            var conf = self.context.getConfiguration(), arr = [];
+            var conf = self.context.getConfiguration().getStrategy(DataConfigurationStrategy), arr = [];
             result.forEach(function(x) {
                 var m = conf.getModelDefinition(x.model);
                 if (m && m.inherits === self.name) {
