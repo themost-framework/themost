@@ -109,6 +109,8 @@ export declare class DataAssociationMapping {
     parentField?: string;
     childField?: string;
     refersTo?: string;
+    associationObjectField?: string;
+    associationValueField?: string;
     cascade?: any;
     associationType?: string;
     select?: Array<string>;

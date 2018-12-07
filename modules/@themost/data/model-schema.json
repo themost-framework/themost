@@ -136,6 +136,12 @@
               "associationAdapter": {
                 "type": "string"
               },
+              "associationObjectField": {
+                "type": "string"
+              },
+              "associationValueField": {
+                "type": "string"
+              },
               "parentModel": {
                 "type": "string"
               },

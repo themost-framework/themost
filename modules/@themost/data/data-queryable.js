@@ -430,24 +430,20 @@ DataAttributeResolver.prototype.resolveJunctionAttributeJoin = function(attr) {
         //the underlying model is the parent model e.g. Group > Group Members
         if (mapping.parentModel === self.name) {
 
-            var parentField = "parentId", valueField = "valueId";
-            if (typeof mapping.childModel === 'undefined') {
-                parentField = "object"; valueField = "value"
-            }
             q =QueryUtils.query(self.viewAdapter).select(['*']);
             //init an entity based on association adapter (e.g. GroupMembers as members)
             entity = new QueryEntity(mapping.associationAdapter).as(field.name);
             //init join expression between association adapter and current data model
-            //e.g. Group.id = GroupMembers.parentId
+            //e.g. Group.id = GroupMembers.parent
             expr = QueryUtils.query().where(QueryField.select(mapping.parentField).from(self.viewAdapter))
-                    .equal(QueryField.select(parentField).from(field.name));
+                    .equal(QueryField.select(mapping.associationObjectField).from(field.name));
             //append join
             q.join(entity).with(expr);
             //data object tagging
             if (typeof mapping.childModel === 'undefined') {
                 return {
                     $expand:[q.$expand],
-                    $select:QueryField.select(valueField).from(field.name)
+                    $select:QueryField.select(mapping.associationValueField).from(field.name)
                 }
             }
 
@@ -455,7 +451,7 @@ DataAttributeResolver.prototype.resolveJunctionAttributeJoin = function(attr) {
             if (member[1] === mapping.childField) {
                 return {
                     $expand:[q.$expand],
-                    $select:QueryField.select(valueField).from(field.name)
+                    $select:QueryField.select(mapping.associationValueField).from(field.name)
                 }
             }
             else {
@@ -467,7 +463,7 @@ DataAttributeResolver.prototype.resolveJunctionAttributeJoin = function(attr) {
                 //create new join
                 var alias = field.name + "_" + childModel.name;
                 entity = new QueryEntity(childModel.viewAdapter).as(alias);
-                expr = QueryUtils.query().where(QueryField.select("valueId").from(field.name))
+                expr = QueryUtils.query().where(QueryField.select(mapping.associationValueField).from(field.name))
                     .equal(QueryField.select(mapping.childField).from(alias));
                 //append join
                 q.join(entity).with(expr);
@@ -483,16 +479,16 @@ DataAttributeResolver.prototype.resolveJunctionAttributeJoin = function(attr) {
             //init an entity based on association adapter (e.g. GroupMembers as groups)
             entity = new QueryEntity(mapping.associationAdapter).as(field.name);
             //init join expression between association adapter and current data model
-            //e.g. Group.id = GroupMembers.parentId
+            //e.g. Group.id = GroupMembers.parent
             expr = QueryUtils.query().where(QueryField.select(mapping.childField).from(self.viewAdapter))
-                .equal(QueryField.select("valueId").from(field.name));
+                .equal(QueryField.select(mapping.associationValueField).from(field.name));
             //append join
             q.join(entity).with(expr);
-            //return the resolved attribute for futher proccesing e.g. members.id
+            //return the resolved attribute for further processing e.g. members.id
             if (member[1] === mapping.parentField) {
                 return {
                     $expand:[q.$expand],
-                    $select:QueryField.select("parentId").from(field.name)
+                    $select:QueryField.select(mapping.associationObjectField).from(field.name)
                 }
             }
             else {
@@ -504,7 +500,7 @@ DataAttributeResolver.prototype.resolveJunctionAttributeJoin = function(attr) {
                 //create new join
                 var parentAlias = field.name + "_" + parentModel.name;
                 entity = new QueryEntity(parentModel.viewAdapter).as(parentAlias);
-                expr = QueryUtils.query().where(QueryField.select("parentId").from(field.name))
+                expr = QueryUtils.query().where(QueryField.select(mapping.associationObjectField).from(field.name))
                     .equal(QueryField.select(mapping.parentField).from(parentAlias));
                 //append join
                 q.join(entity).with(expr);

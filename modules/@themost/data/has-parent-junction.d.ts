@@ -15,10 +15,9 @@ export declare class HasParentJunction extends DataQueryable {
     parent: DataObject;
     mapping: DataAssociationMapping;
     getBaseModel(): DataModel;
-    getChildField(): DataField;
-    getParentField(): DataField;
+    getChildField(): string;
+    getParentField(): string;
     insert(obj: any): Promise<any>;
     remove(obj: any): Promise<any>;
-    removeAll(): Promise<any>;
     migrate(callback: (err?: Error) => void);
 }

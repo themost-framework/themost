@@ -583,7 +583,7 @@ function unregisterContextListeners() {
     /**
      * @type {ModuleLoader|*}
      */
-    const moduleLoader = this.context.getConfiguration().getStrategy(ModuleLoader);
+    var moduleLoader = this.context.getConfiguration().getStrategy(ModuleLoader);
     //register configuration listeners
     if (this.eventListeners) {
         var listenerModulePath;
@@ -2559,6 +2559,41 @@ DataModel.prototype.inferMapping = function(name) {
     }
     //extend default mapping attributes
     var mapping = _.assign(defaultMapping, field.mapping);
+
+    var associationAdapter;
+    if (mapping.associationType === 'junction' && mapping.associationAdapter && typeof mapping.associationObjectField === 'undefined') {
+        // validate association adapter
+        associationAdapter = self.context.model(mapping.associationAdapter);
+        if (associationAdapter) {
+            // try to find association adapter parent field
+            var associationParentAttr = _.find(associationAdapter.attributes, function (x) {
+                return (x.primary === 'undefined' || x.primary === false) && x.type === mapping.parentModel;
+            });
+            if (associationParentAttr) {
+                mapping.associationObjectField = associationParentAttr.name;
+            }
+        }
+    }
+    if (mapping.associationType === 'junction') {
+        mapping.associationObjectField = mapping.associationObjectField || 'parentId';
+    }
+    if (mapping.associationType === 'junction' && mapping.associationAdapter && typeof mapping.associationValueField === 'undefined') {
+        // validate association adapter
+        associationAdapter = self.context.model(mapping.associationAdapter);
+        if (associationAdapter) {
+            // try to find association adapter parent field
+            var associationChildAttr = _.find(associationAdapter.attributes, function (x) {
+                return typeof (x.primary === 'undefined' || x.primary === false) &&  x.type === result.parentModel;
+            });
+            if (associationChildAttr) {
+                mapping.associationValueField = associationChildAttr.name;
+            }
+        }
+    }
+    if (mapping.associationType === 'junction') {
+        mapping.associationValueField = mapping.associationValueField || 'valueId';
+    }
+
     //if field model is different than the current model
     if (field.model !== self.name) {
         //if field mapping is already associated with the current model

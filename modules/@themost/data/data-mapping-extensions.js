@@ -87,10 +87,10 @@ var mappingExtensions = {
                     //query junction model
                     var HasParentJunction = require('./has-parent-junction').HasParentJunction;
                     var junction = new HasParentJunction(thisQueryable.model.convert({ }), mapping);
-                    junction.getBaseModel().where('valueId').in(values).flatten().silent().all(function(err, junctions) {
+                    junction.getBaseModel().where(mapping.associationValueField).in(values).flatten().silent().all(function(err, junctions) {
                         if (err) { return deferred.reject(err); }
                         //get array of parent key values
-                        values = _.intersection(junctions.map(function(x) { return x['parentId'] }));
+                        values = _.intersection(junctions.map(function(x) { return x[mapping.associationObjectField] }));
                         //get parent model
                         var parentModel = thisArg.getParentModel();
                         //query parent with parent key values
@@ -117,9 +117,9 @@ var mappingExtensions = {
                                 //otherwise loop result array
                                 arr.forEach(function(x) {
                                     //get child (key value)
-                                    var valueId = x[mapping.childField];
+                                    var childValue = x[mapping.childField];
                                     //get parent(s)
-                                    var p = junctions.filter(function(y) { return (y.valueId===valueId); }).map(function(r) { return r['parentId']; });
+                                    var p = junctions.filter(function(y) { return (y[mapping.associationValueField]===childValue); }).map(function(r) { return r[mapping.associationObjectField]; });
                                     //filter data and set property value (a filtered array of parent objects)
                                     x[mapping.refersTo] = parents.filter(function(z) { return p.indexOf(z[mapping.parentField])>=0; });
                                 });
@@ -161,21 +161,21 @@ var mappingExtensions = {
                         parentModel.filter(mapping.options, function(err, q) {
                             if (err) { return deferred.reject(err); }
                             //get junction sub-query
-                            var junctionQuery = QueryUtils.query(junction.getBaseModel().name).select(["parentId", "valueId"])
+                            var junctionQuery = QueryUtils.query(junction.getBaseModel().name).select([mapping.associationObjectField, mapping.associationValueField])
                                 .join(thisQueryable.query.as("j0"))
-                                .with(QueryUtils.where(new QueryEntity(junction.getBaseModel().name).select("valueId"))
+                                .with(QueryUtils.where(new QueryEntity(junction.getBaseModel().name).select(mapping.associationValueField))
                                     .equal(new QueryEntity("j0").select(mapping.childField)));
                             //append join statement with sub-query
                             q.query.join(junctionQuery.as("g0"))
                                 .with(QueryUtils.where(new QueryEntity(parentModel.viewAdapter).select(mapping.parentField))
-                                    .equal(new QueryEntity("g0").select("parentId")));
+                                    .equal(new QueryEntity("g0").select(mapping.associationObjectField)));
                             if (!q.query.hasFields()) {
                                 q.select();
                             }
                             //inherit silent mode
                             if (thisQueryable.$silent)  { q.silent(); }
                             //append child key field
-                            q.alsoSelect(QueryField.select("valueId").from("g0").as("ref__"));
+                            q.alsoSelect(QueryField.select(mapping.associationValueField).from("g0").as("ref__"));
                             return q.getItems().then(function (parents) {
                                 _.forEach(arr, function(x) {
                                     x[mapping.refersTo] = _.filter(parents, function(y) {
@@ -241,9 +241,9 @@ var mappingExtensions = {
                     var DataObjectJunction = require('./data-object-junction').DataObjectJunction;
                     var junction = new DataObjectJunction(thisQueryable.model.convert({ }), mapping);
                     //query junction model
-                    return junction.getBaseModel().where('parentId').in(values).silent().flatten().getItems().then(function(junctions) {
+                    return junction.getBaseModel().where(mapping.associationObjectField).in(values).silent().flatten().getItems().then(function(junctions) {
                         //get array of child key values
-                        var values = junctions.map(function(x) { return x['valueId'] });
+                        var values = junctions.map(function(x) { return x[mapping.associationValueField] });
                         //get child model
                         var childModel = thisArg.getChildModel();
                         childModel.filter(mapping.options, function(err, q) {
@@ -275,9 +275,9 @@ var mappingExtensions = {
                                 //otherwise loop result array
                                 arr.forEach(function(x) {
                                     //get parent (key value)
-                                    var parentId = x[mapping.parentField];
+                                    var parentValue = x[mapping.parentField];
                                     //get parent(s)
-                                    var p = junctions.filter(function(y) { return (y.parentId===parentId); }).map(function(r) { return r['valueId']; });
+                                    var p = junctions.filter(function(y) { return (y[mapping.associationObjectField]===parentValue); }).map(function(r) { return r[mapping.associationValueField]; });
                                     //filter data and set property value (a filtered array of parent objects)
                                     x[mapping.refersTo] = childs.filter(function(z) { return p.indexOf(z[mapping.childField])>=0; });
                                 });
@@ -324,19 +324,19 @@ var mappingExtensions = {
                                 q.select();
                             }
                             //get junction sub-query
-                            var junctionQuery = QueryUtils.query(junction.getBaseModel().name).select(["parentId", "valueId"])
+                            var junctionQuery = QueryUtils.query(junction.getBaseModel().name).select([mapping.associationObjectField, mapping.associationValueField])
                                 .join(thisQueryable.query.as("j0"))
-                                .with(QueryUtils.where(new QueryEntity(junction.getBaseModel().name).select("parentId"))
+                                .with(QueryUtils.where(new QueryEntity(junction.getBaseModel().name).select(mapping.associationObjectField))
                                     .equal(new QueryEntity("j0").select(mapping.parentField)));
                             //append join statement with sub-query
                             q.query.join(junctionQuery.as("g0"))
                                 .with(QueryUtils.where(new QueryEntity(childModel.viewAdapter).select(mapping.childField))
-                                    .equal(new QueryEntity("g0").select("valueId")));
+                                    .equal(new QueryEntity("g0").select(mapping.associationValueField)));
 
                             //inherit silent mode
                             if (thisQueryable.$silent)  { q.silent(); }
                             //append item reference
-                            q.alsoSelect(QueryField.select("parentId").from("g0").as("ref__"));
+                            q.alsoSelect(QueryField.select(mapping.associationObjectField).from("g0").as("ref__"));
                             return q.getItems().then(function (childs) {
                                 _.forEach(arr, function(x) {
                                     x[mapping.refersTo] = _.filter(childs, function(y) {

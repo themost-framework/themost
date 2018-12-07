@@ -578,6 +578,8 @@ function DataModelMigration() {
  * @property {string} childModel - Gets or sets the child model name
  * @property {string} parentField - Gets or sets the parent field name
  * @property {string} childField - Gets or sets the child field name
+ * @property {string} associationObjectField - Gets or sets the name of the parent field as it is defined in association adapter. This attribute is optional but it is required for many-to-many associations where parent and child model are the same.
+ * @property {string} associationValueField - Gets or sets the name of the child field as it is defined in association adapter. This attribute is optional but it is required for many-to-many associations where parent and child model are the same.
  * @property {string} refersTo - Gets or sets the parent property where this association refers to
  * @property {string} parentLabel - Gets or sets the parent field that is going to be used as label for this association
  * @property {string} cascade - Gets or sets the action that occurs when parent item is going to be deleted (all|none|null|delete). The default value is 'none'.

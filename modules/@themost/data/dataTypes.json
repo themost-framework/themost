@@ -56,6 +56,17 @@
         "sqltype":"Integer",
       "version":"1.0"
     },
+    "Short": {
+        "comment": "Short data type is a 16-bit signed two's complement integer. It has a minimum value of -32,768 and a maximum value of 32,767 (inclusive).",
+        "label": "Short",
+        "properties": {
+            "pattern":"^[+-]?[0-9]*$"
+        },
+        "url": "https://www.w3.org/TR/xmlschema-2/#short",
+        "type": "number",
+        "sqltype":"Integer",
+        "version":"1.0"
+    },
     "Counter": {
         "comment": "An integer which is generated automatically.",
         "label": "Counter",
