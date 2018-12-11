@@ -157,6 +157,37 @@
               "cascade": {
                 "type": "string",
                 "enum": ["delete", "none"]
+              },
+              "privileges": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "mask": {
+                      "default":15,
+                      "type": "number",
+                      "description":"A number which represents permission mask (1=Read,2=Create,4=Update,8=Delete,16=Execute)",
+                      "enum":[1,2,3,4,5,6,7,8,9,10,14,15,16]
+                    },
+                    "type": {
+                      "type": "string",
+                      "enum":["self","global","parent","item"],
+                      "description": "A string which represents the permission scope."
+                    },
+                    "account": {
+                      "type": "string",
+                      "description": "A string which represents the name of the security group where this privilege will be applied e.g. Administrators, Sales etc."
+                    },
+                    "filter": {
+                      "type": "string",
+                      "description": "A string which represents a filter expression for this privilege. This attribute is used for self privileges which are commonly derived from user's attributes e.g. 'owner eq me()' or 'orderStatus eq 1 and customer eq me()' etc."
+                    }
+                  },
+                  "required": [
+                    "mask",
+                    "type"
+                  ]
+                }
               }
             }
           }
@@ -220,7 +251,7 @@
             "default":15,
             "type": "number",
             "description":"A number which represents permission mask (1=Read,2=Create,4=Update,8=Delete,16=Execute)",
-            "enum":[1,2,4,8,15,16]
+            "enum":[1,2,3,4,5,6,7,8,9,10,14,15,16]
           },
           "type": {
             "type": "string",

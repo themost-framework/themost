@@ -584,6 +584,7 @@ function DataModelMigration() {
  * @property {string} parentLabel - Gets or sets the parent field that is going to be used as label for this association
  * @property {string} cascade - Gets or sets the action that occurs when parent item is going to be deleted (all|none|null|delete). The default value is 'none'.
  * @property {string} associationType - Gets or sets the type of this association (junction|association). The default value is 'association'.
+ * @property {Array<DataModelPrivilege>} privilege - Gets or sets a collection of privileges which are going to be attached in a many-to-many association
  * @property {string[]} select - Gets or sets an array of fields to select from associated model. If this property is empty then all associated model fields will be selected.
  * @property {*} options - Gets or sets a set of default options which are going to be used while expanding results based on this data association.
  * @param {*=} obj - An object that contains relation mapping attributes

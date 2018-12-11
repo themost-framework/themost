@@ -1,0 +1,114 @@
+{
+    "type": "Program",
+    "start": 0,
+    "end": 125,
+    "body": [
+        {
+            "type": "FunctionDeclaration",
+            "start": 0,
+            "end": 125,
+            "id": {
+                "type": "Identifier",
+                "start": 9,
+                "end": 16,
+                "name": "closure"
+            },
+            "generator": false,
+            "expression": false,
+            "params": [
+                {
+                    "type": "Identifier",
+                    "start": 17,
+                    "end": 18,
+                    "name": "x"
+                }
+            ],
+            "body": {
+                "type": "BlockStatement",
+                "start": 20,
+                "end": 125,
+                "body": [
+                    {
+                        "type": "ReturnStatement",
+                        "start": 34,
+                        "end": 114,
+                        "argument": {
+                            "type": "ObjectExpression",
+                            "start": 41,
+                            "end": 113,
+                            "properties": [
+                                {
+                                    "type": "Property",
+                                    "start": 59,
+                                    "end": 67,
+                                    "method": false,
+                                    "shorthand": false,
+                                    "computed": false,
+                                    "key": {
+                                        "type": "Identifier",
+                                        "start": 59,
+                                        "end": 61,
+                                        "name": "id"
+                                    },
+                                    "value": {
+                                        "type": "MemberExpression",
+                                        "start": 63,
+                                        "end": 67,
+                                        "object": {
+                                            "type": "Identifier",
+                                            "start": 63,
+                                            "end": 64,
+                                            "name": "x"
+                                        },
+                                        "property": {
+                                            "type": "Identifier",
+                                            "start": 65,
+                                            "end": 67,
+                                            "name": "id"
+                                        },
+                                        "computed": false
+                                    },
+                                    "kind": "init"
+                                },
+                                {
+                                    "type": "Property",
+                                    "start": 85,
+                                    "end": 111,
+                                    "method": false,
+                                    "shorthand": false,
+                                    "computed": false,
+                                    "key": {
+                                        "type": "Identifier",
+                                        "start": 85,
+                                        "end": 96,
+                                        "name": "dateCreated"
+                                    },
+                                    "value": {
+                                        "type": "MemberExpression",
+                                        "start": 98,
+                                        "end": 111,
+                                        "object": {
+                                            "type": "Identifier",
+                                            "start": 98,
+                                            "end": 99,
+                                            "name": "x"
+                                        },
+                                        "property": {
+                                            "type": "Identifier",
+                                            "start": 100,
+                                            "end": 111,
+                                            "name": "dateCreated"
+                                        },
+                                        "computed": false
+                                    },
+                                    "kind": "init"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "sourceType": "script"
+}

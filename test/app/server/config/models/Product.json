@@ -74,6 +74,59 @@
             "title": "Weight",
             "description": "The weight of the product.",
             "type": "QuantitativeValue"
+        },
+        {
+            "name": "followers",
+            "title": "Followers",
+            "type": "Person",
+            "many":true,
+            "mapping": {
+                "associationAdapter": "PersonFavouriteProducts",
+                "associationObjectField": "person",
+                "associationValueField": "product",
+                "parentModel": "Person",
+                "parentField": "id",
+                "childModel": "Product",
+                "childField": "id",
+                "associationType": "junction",
+                "cascade": "none",
+                "privileges": [
+                    { "mask":15,
+                        "type":"global"
+                    },
+                    {
+                        "mask":15,
+                        "type":"global",
+                        "account": "Administrators"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "tags",
+            "title": "Tags",
+            "type": "Text",
+            "many":true,
+            "mapping": {
+                "associationAdapter": "ProductTags",
+                "associationType": "junction",
+                "cascade": "none",
+                "privileges": [
+                    { "mask":15,
+                        "type":"global"
+                    },
+                    {
+                        "mask":1,
+                        "type":"global",
+                        "account":"*"
+                    },
+                    {
+                        "mask":15,
+                        "type":"global",
+                        "account": "Administrators"
+                    }
+                ]
+            }
         }
     ],
     "constraints": [

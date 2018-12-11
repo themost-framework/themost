@@ -35,7 +35,39 @@
     "@themost/data": "^2.0.25",
     "@themost/sqlite": "^2.0.6",
     "@themost/web": "^2.0.28",
+      "@themost/memcached": "^2.0.1",
+    "@types/acorn": "^4.0.3",
+    "acorn": "^5.7.1",
     "bootstrap": "^4.1.0",
     "jquery": "^3.3.1"
+  },
+  "eslintConfig": {
+      "parser": "babel-eslint",
+      "env": {
+          "browser": true,
+          "node": true,
+          "es6": true,
+          "jquery": true
+      },
+      "globals": {
+          "describe": false,
+          "it": false,
+          "before": false,
+          "after": false
+      },
+      "extends": "eslint:recommended",
+      "rules": {
+          "no-console": "off",
+          "no-invalid-this": "warn",
+          "no-undef": "error",
+          "no-unused-vars": "warn",
+          "no-var": [
+              "error"
+          ],
+          "strict": [
+              2,
+              "never"
+          ]
+      }
   }
 }

@@ -73,7 +73,8 @@ function inferTagMapping_(field) {
         "cascade": "delete",
         "parentModel": self.name,
         "parentField": primaryKey.name,
-        "refersTo": field.name
+        "refersTo": field.name,
+        "privileges": field.mapping && field.mapping.privileges
     });
 }
 
@@ -1662,17 +1663,18 @@ function save_(obj, callback) {
  */
 DataModel.prototype.save = function(obj, callback)
 {
-    if (typeof callback !== 'function') {
-        var d = Q.defer();
-        save_.call(this, obj, function(err) {
-            if (err) { return d.reject(err); }
-            d.resolve(obj);
+    var self = this;
+    if (typeof callback === 'undefined') {
+        return Q.Promise(function(resolve, reject) {
+            return save_.bind(self)( obj, function(err) {
+                if (err) {
+                    return reject(err);
+                }
+                return resolve(obj);
+            });
         });
-        return d.promise;
     }
-    else {
-        return save_.call(this, obj, callback);
-    }
+    return save_.bind(self)(obj, callback);
 };
 /**
  * Infers the state of the given object.
@@ -2574,8 +2576,18 @@ DataModel.prototype.inferMapping = function(name) {
             }
         }
     }
-    if (mapping.associationType === 'junction') {
-        mapping.associationObjectField = mapping.associationObjectField || 'parentId';
+    if (mapping.associationType === 'junction' && typeof mapping.associationObjectField === 'undefined') {
+        // todo: remove this rule and use always "object" as association object field (solve backward compatibility issues)
+        // set default object field
+        mapping.associationObjectField = "parentId";
+        if (mapping.refersTo && mapping.parentModel === self.name) {
+            // get type
+            var refersTo = self.getAttribute(mapping.refersTo);
+            // validate data object tag association
+            if (refersTo && self.context.getConfiguration().getStrategy(DataConfigurationStrategy).hasDataType(refersTo.type)) {
+                mapping.associationObjectField = "object";
+            }
+        }
     }
     if (mapping.associationType === 'junction' && mapping.associationAdapter && typeof mapping.associationValueField === 'undefined') {
         // validate association adapter
@@ -2583,15 +2595,25 @@ DataModel.prototype.inferMapping = function(name) {
         if (associationAdapter) {
             // try to find association adapter parent field
             var associationChildAttr = _.find(associationAdapter.attributes, function (x) {
-                return typeof (x.primary === 'undefined' || x.primary === false) &&  x.type === result.parentModel;
+                return typeof (x.primary === 'undefined' || x.primary === false) &&  x.type === mapping.childModel;
             });
             if (associationChildAttr) {
                 mapping.associationValueField = associationChildAttr.name;
             }
         }
     }
-    if (mapping.associationType === 'junction') {
-        mapping.associationValueField = mapping.associationValueField || 'valueId';
+    if (mapping.associationType === 'junction' && typeof mapping.associationValueField === 'undefined') {
+        // todo: remove this rule and use always "value" as association value field (solve backward compatibility issues)
+        // set default object field
+        mapping.associationValueField = "valueId";
+        if (mapping.refersTo && mapping.parentModel === self.name) {
+            // get type
+            var refersToAttr = self.getAttribute(mapping.refersTo);
+            // validate data object tag association
+            if (refersToAttr && self.context.getConfiguration().getStrategy(DataConfigurationStrategy).hasDataType(refersToAttr.type)) {
+                mapping.associationValueField = "value";
+            }
+        }
     }
 
     //if field model is different than the current model

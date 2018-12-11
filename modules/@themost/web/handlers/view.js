@@ -19,6 +19,7 @@ var path = require('path');
 var _ = require('lodash');
 var HttpConsumer = require('../consumers').HttpConsumer;
 var HttpResult = require('../mvc').HttpResult;
+var HttpNextResult = require('../mvc').HttpNextResult;
 var Q = require('q');
 var accepts = require('accepts');
 
@@ -210,7 +211,7 @@ ViewHandler.validateMediaType = function(context, callback) {
         return callback();
     }
     //validate mime type and route format
-    let accept = accepts(context.request);
+    var accept = accepts(context.request);
     if (context.request.route && context.request.route.format) {
         if (accept.type(context.request.route.format)) {
             return callback();
@@ -238,7 +239,19 @@ ViewHandler.prototype.mapRequest = function (context, callback) {
          * find route by querying application routes
          * @type {HttpRoute}
          */
-        var currentRoute = queryRoute(requestUri, context);
+        var currentRoute;
+        // check if view handler has been already attached to this request in order to continue route processing by using last route index
+        if (context.request.route && context.request.routeIndex) {
+            // destroy request route
+            delete context.request.route;
+            // destroy request route data
+            delete context.request.routeData;
+            // continue querying routes from the last index
+            currentRoute = queryRoute(requestUri, context, context.request.routeIndex);
+        }
+        else {
+            currentRoute = queryRoute(requestUri, context);
+        }
         if (typeof currentRoute === 'undefined' || currentRoute === null) {
             return callback();
         }
@@ -265,6 +278,7 @@ ViewHandler.prototype.mapRequest = function (context, callback) {
                 context.request.currentHandler = handler;
                 //set route data
                 context.request.route = _.assign({ },currentRoute.route);
+                context.request.routeIndex = currentRoute.routeIndex;
                 context.request.routeData = currentRoute.routeData;
                 //set route data as params
                 for(var prop in currentRoute.routeData) {
@@ -469,8 +483,30 @@ ViewHandler.prototype.processRequest = function (context, callback) {
                         }
                         if (useHttpMethodNamingConvention) {
                             var source = fn.apply(controller, params);
+                            // continue processing
+                            if (source instanceof HttpNextResult) {
+                                // destroy handler
+                                delete context.request.currentHandler;
+                                // execute ViewHandler.mapRequest() again
+                                return ViewHandler.prototype.mapRequest.bind(self)(context, function(err) {
+                                    if (err) {
+                                        return callback(err);
+                                    }
+                                    // if current handler is ViewHandler
+                                    if (context.request.currentHandler instanceof ViewHandler) {
+                                        // execute ViewHandler.processRequest()
+                                        return ViewHandler.prototype.processRequest.bind(self)(context, function(err) {
+                                            if (err) {
+                                                return callback(err);
+                                            }
+                                            return callback();
+                                        });
+                                    }
+                                    return callback();
+                                });
+                            }
                             //if action result is an instance of HttpResult
-                            if (source instanceof HttpResult) {
+                            else if (source instanceof HttpResult) {
                                 //execute http result
                                 return source.execute(context, callback);
                             }
@@ -532,20 +568,27 @@ ViewHandler.prototype.processRequest = function (context, callback) {
  *
  * @param {string|*} requestUri
  * @param {HttpContext} context
+ * @param {number=} startIndex
  * @returns {HttpRoute}
  * @private
  */
-function queryRoute(requestUri,context) {
+function queryRoute(requestUri, context, startIndex) {
     /**
      * @type Array
      * */
     var routes = context.getApplication().getConfiguration().routes;
-    //enumerate registered routes
+    // create http route instance
     var httpRoute = route.createInstance();
-    for (var i = 0; i < routes.length; i++) {
+    // validate start index
+    var index = typeof startIndex === 'number' && isFinite(startIndex) && startIndex>0 ? startIndex : -1;
+    // enumerate routes
+    for (var i = index + 1; i < routes.length; i++) {
         httpRoute.route = routes[i];
-        //if uri path is matched
+        // if uri path is matched
         if (httpRoute.isMatch(requestUri.pathname)) {
+            // set route index
+            httpRoute.routeIndex = i;
+            // and finally return current route
             return httpRoute;
         }
     }
@@ -643,8 +686,8 @@ function queryController(requestUri) {
         //and the controller of course is always the second segment.
             return segments[1];
     }
-    catch (e) {
-        throw e;
+    catch (err) {
+        throw err;
     }
 }
 

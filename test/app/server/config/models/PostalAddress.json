@@ -48,5 +48,6 @@
         "type": "Text"
     }
 ],"privileges":[
-    { "mask":15, "type":"global" }
+    { "mask":15, "type":"global" },
+    { "mask":1, "type":"global", "account":"*" }
 ]}

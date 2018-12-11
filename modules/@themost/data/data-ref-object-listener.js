@@ -126,7 +126,7 @@ function beforeRemoveParentConnectedObjects(event, mapping, callback) {
                 return callback();
             }
             var baseModel = junction.getBaseModel();
-            baseModel.where(junction.getChildField()).equal(childKey)
+            baseModel.where(junction.getValueField()).equal(childKey)
                 .select(baseModel.primaryKey)
                 .silent()
                 .all().then(function(items) {
@@ -179,7 +179,7 @@ function beforeRemoveChildConnectedObjects(event, mapping, callback) {
                 return callback();
             }
             var baseModel = junction.getBaseModel();
-            baseModel.where(junction.getParentField()).equal(parentKey)
+            baseModel.where(junction.getObjectField()).equal(parentKey)
                 .select(baseModel.primaryKey)
                 .silent()
                 .all().then(function(items) {

@@ -11,6 +11,8 @@ export declare class HttpRoute {
     constructor(route: any);
     isMatch(urlToMatch: string): boolean;
     routeData?: any;
+    route?: any;
+    routeIndex?: number;
     patterns: any;
     parsers: any;
 }

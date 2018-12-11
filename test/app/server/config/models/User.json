@@ -54,10 +54,6 @@
 			"name": "additionalType",
             "value":"javascript:return this.model.name;",
             "readonly":true
-		},
-		{
-			"name": "accountType",
-			"value": "javascript:return 0;"
 		}
 	], "privileges":[
 	{ "mask":15, "type":"global", "account": "Administrators" },

@@ -102,6 +102,13 @@ export declare class DataContextEmitter {
     ensureContext:void;
 }
 
+export declare interface DataModelPrivilege {
+    type: string;
+    mask: number;
+    account?: string;
+    filter?: string;
+}
+
 export declare class DataAssociationMapping {
     associationAdapter?: string;
     parentModel?: string;
@@ -114,6 +121,7 @@ export declare class DataAssociationMapping {
     cascade?: any;
     associationType?: string;
     select?: Array<string>;
+    privileges?: Array<DataModelPrivilege>;
   
 }
 

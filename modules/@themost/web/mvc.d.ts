@@ -96,6 +96,7 @@ export declare class HttpController {
     redirect(url: string): HttpRedirectResult;
     empty(): HttpEmptyResult;
     toPromise(resolver: (resolve: void, reject?: void) => Promise<any>): Promise<any>;
+    next(): HttpNextResult;
 
 }
 
@@ -111,4 +112,9 @@ export declare class HttpViewContext {
     init(): void;
     render(url: string, callback: (err?: Error, res?: any) => void);
     translate(key: string): string;
+}
+
+export declare class HttpNextResult extends HttpResult {
+    constructor();
+
 }

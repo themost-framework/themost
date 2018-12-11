@@ -185,8 +185,8 @@ function DataObjectJunction(obj, association) {
             var adapter = self.mapping.associationAdapter;
             baseModel = self.parent.context.model(adapter);
             if (_.isNil(baseModel)) {
-                var associationObjectField = self.mapping.associationObjectField || DataObjectJunction.PARENT_OBJECT_FIELD;
-                var associationValueField = self.mapping.associationValueField || DataObjectJunction.CHILD_OBJECT_FIELD;
+                var associationObjectField = self.mapping.associationObjectField || DataObjectJunction.DEFAULT_OBJECT_FIELD;
+                var associationValueField = self.mapping.associationValueField || DataObjectJunction.DEFAULT_VALUE_FIELD;
                 modelDefinition = { name:adapter, title: adapter, source:adapter, type:"hidden", hidden:true, sealed:false, view:adapter, version:'1.0', fields:[
                         { name: "id", type:"Counter", primary: true },
                         { name: associationObjectField, indexed: true, nullable:false, type: (parentField.type === 'Counter') ? 'Integer' : parentField.type },
@@ -197,8 +197,16 @@ function DataObjectJunction(obj, association) {
                             "type":"unique",
                             "fields": [ associationObjectField, associationValueField ]
                         }
-                    ], "privileges":[
-                        { "mask":15, "type":"global" }
+                    ], "privileges": self.mapping.privileges || [
+                        {
+                            "mask":15,
+                            "type":"global"
+                        },
+                        {
+                            "mask": 15,
+                            "type": "global",
+                            "account": "Administrators"
+                        }
                     ]};
 
                 conf.setModelDefinition(modelDefinition);
@@ -220,21 +228,21 @@ function DataObjectJunction(obj, association) {
 
     left[adapter] = [ relatedModel.primaryKey ];
     var baseAdapter = this.getBaseModel().viewAdapter;
-    right[baseAdapter] = [QueryField.select(this.getChildField()).from(baseAdapter).$name];
-    var field1 = QueryField.select(this.getParentField()).from(baseAdapter).$name;
+    right[baseAdapter] = [QueryField.select(this.getValueField()).from(baseAdapter).$name];
+    var field1 = QueryField.select(this.getObjectField()).from(baseAdapter).$name;
     this.query.join(baseAdapter, []).with([left, right]).where(field1).equal(obj[this.mapping.parentField]).prepare();
 
 }
 
-LangUtils.inherits(DataObjectJunction, DataQueryable);
+DataObjectJunction.DEFAULT_OBJECT_FIELD = 'parentId';
+DataObjectJunction.DEFAULT_VALUE_FIELD = 'valueId';
 
-DataObjectJunction.PARENT_OBJECT_FIELD = 'parentId';
-DataObjectJunction.CHILD_OBJECT_FIELD = 'valueId';
+LangUtils.inherits(DataObjectJunction, DataQueryable);
 
 /**
  * @returns {string=}
  */
-DataObjectJunction.prototype.getParentField = function() {
+DataObjectJunction.prototype.getObjectField = function() {
     var self = this;
     // get base model
     var baseModel = this.getBaseModel();
@@ -244,7 +252,7 @@ DataObjectJunction.prototype.getParentField = function() {
     }
     // if base model has the traditional parent attribute
     var attr = _.find(baseModel.attributes, function(x) {
-        return x.name === DataObjectJunction.PARENT_OBJECT_FIELD;
+        return x.name === DataObjectJunction.DEFAULT_OBJECT_FIELD;
     });
     if (attr) {
         return attr.name;
@@ -256,13 +264,13 @@ DataObjectJunction.prototype.getParentField = function() {
     if (attr) {
         return attr.name;
     }
-    return DataObjectJunction.PARENT_OBJECT_FIELD;
+    return DataObjectJunction.DEFAULT_OBJECT_FIELD;
 };
 
 /**
  * @returns {string=}
  */
-DataObjectJunction.prototype.getChildField = function() {
+DataObjectJunction.prototype.getValueField = function() {
     var self = this;
     // get base model
     var baseModel = this.getBaseModel();
@@ -272,7 +280,7 @@ DataObjectJunction.prototype.getChildField = function() {
     }
     // if base model has the traditional parent attribute
     var attr = _.find(baseModel.attributes, function(x) {
-        return x.name === DataObjectJunction.CHILD_OBJECT_FIELD;
+        return x.name === DataObjectJunction.DEFAULT_VALUE_FIELD;
     });
     if (attr) {
         return attr.name;
@@ -284,7 +292,7 @@ DataObjectJunction.prototype.getChildField = function() {
     if (attr) {
         return attr.name;
     }
-    return DataObjectJunction.CHILD_OBJECT_FIELD;
+    return DataObjectJunction.DEFAULT_VALUE_FIELD;
 };
 
 /**
@@ -314,6 +322,39 @@ DataObjectJunction.prototype.execute = function(callback) {
         if (err) { callback(err); return; }
         // noinspection JSPotentiallyInvalidConstructorUsage
         DataObjectJunction.super_.prototype.execute.call(self, callback);
+    });
+};
+
+/**
+ * Overrides DataQueryable.count() method
+ * @param callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise.
+ * @ignore
+ */
+DataObjectJunction.prototype.count = function(callback) {
+    var self = this;
+    if (typeof callback === 'undefined') {
+        return Q.Promise(function(resolve, reject) {
+            return self.migrate(function(err) {
+                if (err) {
+                   return reject(err);
+                }
+                // noinspection JSPotentiallyInvalidConstructorUsage
+                var superCount = DataObjectJunction.super_.prototype.count.bind(self);
+                return superCount().then(function(result) {
+                    return resolve(result);
+                }).catch(function(err) {
+                    return reject(err);
+                });
+            });
+        });
+    }
+    return self.migrate(function(err) {
+        if (err) {
+            return callback(err);
+        }
+        // noinspection JSPotentiallyInvalidConstructorUsage
+        var superCount = DataObjectJunction.super_.prototype.count.bind(self);
+        return superCount(callback);
     });
 };
 
@@ -446,7 +487,7 @@ function clear_(callback) {
         // get relation model
         var baseModel = self.getBaseModel();
         // validate relation existence
-        baseModel.where(self.getParentField()).equal(parentValue).all(function(err, result) {
+        baseModel.where(self.getObjectField()).equal(parentValue).all(function(err, result) {
             // if error occurred
             if (err) {
                 return callback();
@@ -501,7 +542,7 @@ function insertSingleObject_(obj, callback) {
     //get relation model
     var baseModel = self.getBaseModel();
     //validate relation existence
-    baseModel.silent(self.$silent).where(self.getParentField()).equal(parentValue).and(self.getChildField()).equal(childValue).first(function(err, result) {
+    baseModel.silent(self.$silent).where(self.getObjectField()).equal(parentValue).and(self.getValueField()).equal(childValue).first(function(err, result) {
         if (err) {
             //on error exit with error
             return callback(err);
@@ -514,8 +555,8 @@ function insertSingleObject_(obj, callback) {
             else {
                 //otherwise create new item
                 var newItem = { };
-                newItem[self.getParentField()] = parentValue;
-                newItem[self.getChildField()] = childValue;
+                newItem[self.getObjectField()] = parentValue;
+                newItem[self.getValueField()] = childValue;
                 // set silent flag
                 //and insert it
                 baseModel.silent(self.$silent).insert(newItem, callback);
@@ -658,7 +699,7 @@ DataObjectJunction.prototype.remove = function(obj, callback) {
     var childValue = child[self.mapping.childField];
     //get relation model
     var baseModel = self.getBaseModel();
-    baseModel.silent(self.$silent).where(self.getParentField()).equal(parentValue).and(self.getChildField()).equal(childValue).first(function(err, result) {
+    baseModel.silent(self.$silent).where(self.getObjectField()).equal(parentValue).and(self.getValueField()).equal(childValue).first(function(err, result) {
         if (err) {
             callback(err);
         }

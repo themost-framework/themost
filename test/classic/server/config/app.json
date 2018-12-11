@@ -12,6 +12,11 @@
     "controllers": {
     },
     "settings": {
+        "memcached": {
+            "host": "127.0.0.1",
+            "port": 11211,
+            "maxExpiration": 1200
+        },
         "crypto": {
             "algorithm": "aes256",
             "key": "6245767834677550466e7559344d3775664858464e775432756d4d6445726252"

@@ -1,0 +1,73 @@
+[
+  {
+    "url": "/?",
+    "controller": "root",
+    "action": "index"
+  },
+  {
+      "url": "/hello/:action.json",
+      "format": "json"
+  },
+  {
+    "url": "/{controller:plural}/:action.json",
+      "format":"json"
+  },
+    {
+        "url": "/{controller:plural}/:action.html",
+        "format":"html"
+    },
+  {
+    "url": "/api/?",
+    "controller": "service",
+    "action": "index",
+    "format": "json"
+  },
+  {
+    "url": "/api/\\$metadata/?",
+    "controller": "service",
+    "action": "metadata",
+    "format": "json"
+  },
+  {
+    "url": "/api/:entitySet/?",
+    "controller": "service",
+    "action": "items",
+    "format": "json"
+  },
+  {
+    "url": "/api/:entitySet/:entityFunction/?",
+    "controller": "service",
+    "action": "entitySetFunction",
+    "format": "json"
+  },
+  {
+    "url": "/api/:entitySet/:entityFunction/:navigationProperty/?",
+    "controller": "service",
+    "action": "entitySetFunction",
+    "format": "json"
+  },
+  {
+    "url": "/api/:entitySet/:id/?",
+    "controller": "service",
+    "action": "item",
+    "format": "json"
+  },
+  {
+    "url": "/api/:entitySet/:id/:navigationProperty/?",
+    "controller": "service",
+    "action": "navigationProperty",
+    "format": "json"
+  },
+  {
+    "url": "/api/:entitySet/:entityAction/?",
+    "controller": "service",
+    "action": "entityAction",
+    "format": "json"
+  },
+  {
+    "url": "/api/:entitySet/:entityAction/:navigationProperty/?",
+    "controller": "service",
+    "action": "entityAction",
+    "format": "json"
+  }
+]

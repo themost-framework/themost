@@ -180,8 +180,8 @@ function HasParentJunction(obj, association) {
             var adapter = self.mapping.associationAdapter;
             baseModel = self.parent.context.model(adapter);
             if (_.isNil(baseModel)) {
-                var associationObjectField = self.mapping.associationObjectField || DataObjectJunction.PARENT_OBJECT_FIELD ;
-                var associationValueField = self.mapping.associationValueField || DataObjectJunction.CHILD_OBJECT_FIELD;
+                var associationObjectField = self.mapping.associationObjectField || DataObjectJunction.DEFAULT_OBJECT_FIELD ;
+                var associationValueField = self.mapping.associationValueField || DataObjectJunction.DEFAULT_VALUE_FIELD;
                 var modelDefinition = { name:adapter, title: adapter, sealed:false, hidden:true, type:"hidden", source:adapter, view:adapter, version:'1.0', fields:[
                         { name: "id", type:"Counter", primary: true },
                         { name: associationObjectField, indexed: true, nullable:false, type: (parentField.type==='Counter') ? 'Integer' : parentField.type },
@@ -192,8 +192,15 @@ function HasParentJunction(obj, association) {
                             type:"unique",
                             fields: [ associationObjectField, associationValueField ]
                         }
-                    ], "privileges":[
-                        { "mask":15, "type":"global" }
+                    ], "privileges": self.mapping.privileges || [
+                        {
+                            "mask":15,
+                            "type":"global"
+                        },
+                        { "mask":15,
+                            "type":"global",
+                            "account": "Administrators"
+                        }
                     ]};
                 conf.setModelDefinition(modelDefinition);
                 //initialize base model
@@ -221,9 +228,9 @@ function HasParentJunction(obj, association) {
     // get association adapter
     var associationAdapter = self.mapping.associationAdapter;
     // get parent field
-    var parentField = QueryField.select(this.getParentField()).from(associationAdapter).$name;
+    var parentField = QueryField.select(this.getObjectField()).from(associationAdapter).$name;
     // get child field
-    var childField = QueryField.select(this.getChildField()).from(associationAdapter).$name;
+    var childField = QueryField.select(this.getValueField()).from(associationAdapter).$name;
     // set left operand of join expression
     left[adapter] = [ this.mapping.parentField ];
     // set right operand of join expression
@@ -237,15 +244,15 @@ LangUtils.inherits(HasParentJunction, DataQueryable);
 /**
  * @returns {string=}
  */
-HasParentJunction.prototype.getParentField = function() {
-    return DataObjectJunction.prototype.getParentField.bind(this)();
+HasParentJunction.prototype.getObjectField = function() {
+    return DataObjectJunction.prototype.getObjectField.bind(this)();
 };
 
 /**
  * @returns {string=}
  */
-HasParentJunction.prototype.getChildField = function() {
-    return DataObjectJunction.prototype.getChildField.bind(this)();
+HasParentJunction.prototype.getValueField = function() {
+    return DataObjectJunction.prototype.getValueField.bind(this)();
 };
 
 /**
@@ -266,7 +273,7 @@ function insertSingleObject_(obj, callback) {
     var parentValue = parent[self.mapping.parentField];
     var childValue = self.parent[self.mapping.childField];
     //validate relation existence
-    self.baseModel.silent(self.$silent).where(self.getParentField()).equal(parentValue).and(self.getChildField()).equal(childValue).first(function(err, result) {
+    self.baseModel.silent(self.$silent).where(self.getObjectField()).equal(parentValue).and(self.getValueField()).equal(childValue).first(function(err, result) {
         if (err) {
             //on error exit with error
             return callback(err);
@@ -279,8 +286,8 @@ function insertSingleObject_(obj, callback) {
             else {
                 //otherwise create new item
                 var newItem = { };
-                newItem[self.getParentField()] = parentValue;
-                newItem[self.getChildField()] = childValue;
+                newItem[self.getObjectField()] = parentValue;
+                newItem[self.getValueField()] = childValue;
                 //and insert it
                 self.baseModel.silent(self.$silent).insert(newItem, callback);
             }
@@ -401,7 +408,7 @@ function removeSingleObject_(obj, callback) {
     var parentValue = parent[self.mapping.parentField];
     var childValue = self.parent[self.mapping.childField];
     //get relation model
-    self.baseModel.silent(self.$silent).where(this.getParentField()).equal(parentValue).and(this.getChildField()).equal(childValue).first(function(err, result) {
+    self.baseModel.silent(self.$silent).where(this.getObjectField()).equal(parentValue).and(this.getValueField()).equal(childValue).first(function(err, result) {
         if (err) {
             callback(err);
         }
@@ -504,6 +511,39 @@ HasParentJunction.prototype.remove = function(obj, callback) {
 
 HasParentJunction.prototype.migrate = function(callback) {
     this.baseModel.migrate(callback);
+};
+
+/**
+ * Overrides DataQueryable.count() method
+ * @param callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise.
+ * @ignore
+ */
+HasParentJunction.prototype.count = function(callback) {
+    var self = this;
+    if (typeof callback === 'undefined') {
+        return Q.Promise(function(resolve, reject) {
+            return self.migrate(function(err) {
+                if (err) {
+                    return reject(err);
+                }
+                // noinspection JSPotentiallyInvalidConstructorUsage
+                var superCount = HasParentJunction.super_.prototype.count.bind(self);
+                return superCount().then(function(result) {
+                    return resolve(result);
+                }).catch(function(err) {
+                    return reject(err);
+                });
+            });
+        });
+    }
+    return self.migrate(function(err) {
+        if (err) {
+            return callback(err);
+        }
+        // noinspection JSPotentiallyInvalidConstructorUsage
+        var superCount = HasParentJunction.super_.prototype.count.bind(self);
+        return superCount(callback);
+    });
 };
 
 

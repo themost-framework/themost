@@ -25,7 +25,7 @@ var async = require('async');
 var PassThrough = require('stream').PassThrough;
 var ModuleLoaderStrategy = require('@themost/common/config').ModuleLoaderStrategy;
 var Symbol = require('symbol');
-const dataProperty = Symbol('data');
+var dataProperty = Symbol('data');
 
 /**
  * @private
@@ -1003,6 +1003,15 @@ HttpController.prototype.empty = function()
 };
 
 /**
+ * Creates an http next result.
+ * @returns HttpNextResult
+ * */
+HttpController.prototype.next = function()
+{
+    return new HttpNextResult();
+};
+
+/**
  * Promise resolver function
  * @callback PromiseResolverFunction
  * @param {Function} resolve
@@ -1124,6 +1133,18 @@ HttpViewContext.prototype.translate = function(s, lib) {
     return this.context.translate(s, lib);
 };
 
+/**
+ * Initializes an action to continue request processing.
+ * @class
+ * @constructor
+ * @augments HttpResult
+ */
+function HttpNextResult()
+{
+    //
+}
+LangUtils.inherits(HttpNextResult, HttpResult);
+
 if (typeof exports !== 'undefined')
 {
     module.exports.HttpResult  = HttpResult;
@@ -1137,6 +1158,7 @@ if (typeof exports !== 'undefined')
     module.exports.HttpViewResult =HttpViewResult;
     module.exports.HttpViewContext =HttpViewContext;
     module.exports.HttpController =HttpController;
+    module.exports.HttpNextResult  = HttpNextResult;
 }
 
 

@@ -11,7 +11,9 @@ var LangUtils = require('@themost/common/utils').LangUtils;
 var DataConfigurationStrategy = require('./data-configuration').DataConfigurationStrategy;
 var QueryField = require('@themost/query/query').QueryField;
 var _ = require('lodash');
+var Q = require('q');
 var types = require('./types');
+var DataObjectJunction = require("./data-object-junction").DataObjectJunction;
 var DataQueryable = require('./data-queryable').DataQueryable;
 
 /**
@@ -101,8 +103,9 @@ function DataObjectTag(obj, association) {
      * @type {DataObject}
      * @private
      */
-    var parent_ = obj,
-        DataModel = require('./data-model').DataModel;
+    var parent_ = obj;
+    var model;
+    var DataModel = require('./data-model').DataModel;
 
     /**
      * Gets or sets the parent data object
@@ -118,7 +121,7 @@ function DataObjectTag(obj, association) {
         //infer mapping from field name
         //set relation mapping
         if (self.parent!=null) {
-            var model = self.parent.getModel();
+            model = self.parent.getModel();
             if (model!=null)
                 self.mapping = model.inferMapping(association);
         }
@@ -144,10 +147,14 @@ function DataObjectTag(obj, association) {
             var strategy = context.getConfiguration().getStrategy(DataConfigurationStrategy);
             var definition = strategy.getModelDefinition(self.mapping.associationAdapter);
             if (_.isNil(definition)) {
-                var parentModel = self.parent.getModel(),
-                    refersToType = parentModel.getAttribute(self.mapping.refersTo).type,
-                    parentFieldType = parentModel.getAttribute(self.mapping.parentField).type;
-                if (parentFieldType === 'Counter') { parentFieldType = 'Integer'; }
+                var associationObjectField = self.mapping.associationObjectField || DataObjectTag.DEFAULT_OBJECT_FIELD;
+                var associationValueField = self.mapping.associationValueField || DataObjectTag.DEFAULT_VALUE_FIELD;
+                var parentModel = self.parent.getModel();
+                // get value type
+                var refersTo = context.model(self.mapping.parentModel).getAttribute(self.mapping.refersTo);
+                var refersToType = (refersTo && refersTo.type) || 'Text';
+                var objectFieldType = parentModel.getAttribute(self.mapping.parentField).type;
+                if (objectFieldType === 'Counter') { objectFieldType = 'Integer'; }
                 definition = {
                     "name": self.mapping.associationAdapter,
                     "hidden": true,
@@ -156,21 +163,38 @@ function DataObjectTag(obj, association) {
                     "version": "1.0",
                     "fields": [
                         {
-                            "name": "id", "type": "Counter", "nullable": false, "primary": true
+                            "name": "id",
+                            "type": "Counter",
+                            "nullable": false,
+                            "primary": true
                         },
                         {
-                            "name": "object", "type": parentFieldType, "nullable": false, "many": false
+                            "name": associationObjectField,
+                            "type": objectFieldType,
+                            "nullable": false,
+                            "many": false,
+                            "indexed": true
                         },
                         {
-                            "name": "value", "type": refersToType, "nullable": false
+                            "name": associationValueField,
+                            "type": refersToType,
+                            "nullable": false,
+                            "many": false,
+                            "indexed": true
                         }
                     ],
                     "constraints": [
-                        { "type":"unique", "fields": [ "object", "value" ] }
+                        { "type":"unique", "fields": [ associationObjectField, associationValueField ] }
                     ],
-                    "privileges": [
+                    "privileges": self.mapping.privileges || [
                         {
-                            "mask": 15, "type": "global"
+                            "mask": 15,
+                            "type": "global"
+                        },
+                        {
+                            "mask": 15,
+                            "type": "global",
+                            "account": "Administrators"
                         }
                     ]
                 };
@@ -190,20 +214,41 @@ function DataObjectTag(obj, association) {
         return this.baseModel;
     };
 
-    //call super class constructor
+    // call super class constructor
     DataObjectTag.super_.call(this, self.getBaseModel());
-    //add select
-    this.select("value").asArray();
-    //modify query (add join parent model)
+    // add select
+    this.select(this.getValueField()).asArray();
+    // modify query (add join parent model)
     var left = {}, right = {};
+    // get parent adapter
     var parentAdapter = self.parent.getModel().viewAdapter;
+    // set left operand of native join expression
     left[ parentAdapter ] = [ this.mapping.parentField ];
-    right[this.mapping.associationAdapter] = [ QueryField.select("object").from(this.mapping.associationAdapter).$name ];
-    var field1 = QueryField.select("object").from(this.mapping.associationAdapter).$name;
+    // set right operand of native join expression
+    right[this.mapping.associationAdapter] = [ QueryField.select(this.getObjectField()).from(this.mapping.associationAdapter).$name ];
+    var field1 = QueryField.select(this.getObjectField()).from(this.mapping.associationAdapter).$name;
+    // apply join expression
     this.query.join(parentAdapter, []).with([left, right]).where(field1).equal(obj[this.mapping.parentField]).prepare(false);
 }
 
 LangUtils.inherits(DataObjectTag, DataQueryable);
+
+DataObjectTag.DEFAULT_OBJECT_FIELD = "object";
+DataObjectTag.DEFAULT_VALUE_FIELD = "value";
+
+/**
+ * @returns {string=}
+ */
+DataObjectTag.prototype.getObjectField = function() {
+    return DataObjectJunction.prototype.getObjectField.bind(this)();
+};
+
+/**
+ * @returns {string=}
+ */
+DataObjectTag.prototype.getValueField = function() {
+    return DataObjectJunction.prototype.getValueField.bind(this)();
+};
 
 /**
  * Migrates the underlying data association adapter.
@@ -211,6 +256,39 @@ LangUtils.inherits(DataObjectTag, DataQueryable);
  */
 DataObjectTag.prototype.migrate = function(callback) {
     this.getBaseModel().migrate(callback);
+};
+
+/**
+ * Overrides DataQueryable.count() method
+ * @param callback - A callback function where the first argument will contain the Error object if an error occurred, or null otherwise.
+ * @ignore
+ */
+DataObjectTag.prototype.count = function(callback) {
+    var self = this;
+    if (typeof callback === 'undefined') {
+        return Q.Promise(function(resolve, reject) {
+            return self.migrate(function(err) {
+                if (err) {
+                    return reject(err);
+                }
+                // noinspection JSPotentiallyInvalidConstructorUsage
+                var superCount = DataObjectTag.super_.prototype.count.bind(self);
+                return superCount().then(function(result) {
+                    return resolve(result);
+                }).catch(function(err) {
+                    return reject(err);
+                });
+            });
+        });
+    }
+    return self.migrate(function(err) {
+        if (err) {
+            return callback(err);
+        }
+        // noinspection JSPotentiallyInvalidConstructorUsage
+        var superCount = DataObjectTag.super_.prototype.count.bind(self);
+        return superCount(callback);
+    });
 };
 
 /**
@@ -223,7 +301,7 @@ DataObjectTag.prototype.execute = function(callback) {
     self.migrate(function(err) {
         if (err) { return callback(err); }
         // noinspection JSPotentiallyInvalidConstructorUsage
-        DataObjectTag.super_.prototype.execute.call(self, callback);
+        DataObjectTag.super_.prototype.execute.bind(self)(callback);
     });
 };
 
@@ -234,30 +312,42 @@ DataObjectTag.prototype.execute = function(callback) {
  * @private
  */
 function insert_(obj, callback) {
-    var self = this, arr = [];
-    if (_.isArray(obj))
-        arr = obj;
+    var self = this;
+    var values = [];
+    if (_.isArray(obj)) {
+        values = obj;
+    }
     else {
-        arr.push(obj);
+        values.push(obj);
     }
     self.migrate(function(err) {
         if (err)
             return callback(err);
-
-        var items = arr.map(function (x) {
-            return {
-                "object": self.parent[self.mapping.parentField],
-                "value": x
-            }
+        // get object field name
+        var objectField = self.getObjectField();
+        // get value field name
+        var valueField = self.getValueField();
+        // map the given items
+        var items = _.map(_.filter(values, function(x) {
+            return !_.isNil(x);
+        }), function (x) {
+            var res = {};
+            res[objectField] = self.parent[self.mapping.parentField];
+            res[valueField] = x;
+            return res;
         });
-        if (self["$silent"]) { self.getBaseModel().silent(); }
-        return self.getBaseModel().save(items, callback);
+        // and finally save items
+        return self.getBaseModel().silent(self.$silent).save(items).then(function() {
+            return callback();
+        }).catch(function(err) {
+            return callback(err);
+        });
     });
 }
 
 /**
  * Inserts an array of values
- * @param {*} obj
+ * @param {*} item
  * @param {Function=} callback
  * @example
  context.model('Person').where('email').equal('veronica.fletcher@example.com')
@@ -273,19 +363,19 @@ function insert_(obj, callback) {
     });
  *
  */
-DataObjectTag.prototype.insert = function(obj, callback) {
+DataObjectTag.prototype.insert = function(item, callback) {
     var self = this;
-    if (typeof callback !== 'function') {
-        var Q = require('q'), deferred = Q.defer();
-        insert_.call(self, obj, function(err) {
-            if (err) { return deferred.reject(err); }
-            deferred.resolve(null);
+    if (typeof callback === 'undefined') {
+        return Q.Promise(function (resolve, reject) {
+            return insert_.bind(self)(item, function(err) {
+                if (err) {
+                    return reject(err);
+                }
+                return resolve();
+            });
         });
-        return deferred.promise;
     }
-    else {
-        return insert_.call(self, obj, callback);
-    }
+    return insert_.call(self, item, callback);
 };
 
 /**
@@ -299,8 +389,7 @@ function clear_(callback) {
         if (err) {
             return callback(err);
         }
-        if (self["$silent"]) { self.getBaseModel().silent(); }
-        self.getBaseModel().where("object").equal(self.parent[self.mapping.parentField]).select("id").all().then(function(result) {
+        self.getBaseModel().silent(self.$silent).where(self.getObjectField()).equal(self.parent[self.mapping.parentField]).select("id").getAllItems().then(function(result) {
             if (result.length===0) { return callback(); }
             return self.getBaseModel().remove(result).then(function () {
                return callback();
@@ -314,15 +403,7 @@ function clear_(callback) {
 /**
  * Removes all values
  * @param {Function=} callback
- * @deprecated - This method is deprecated. Use removeAll() method instead
- */
-DataObjectTag.prototype.clear = function(callback) {
-    return this.removeAll(callback);
-};
-
-/**
- * Removes all values
- * @param {Function=} callback
+ * @returns Promise<T>|*
  * @example
  context.model('Person').where('email').equal('veronica.fletcher@example.com')
  .getTypedItem().then(function(person) {
@@ -337,12 +418,12 @@ DataObjectTag.prototype.clear = function(callback) {
 DataObjectTag.prototype.removeAll = function(callback) {
     var self = this;
     if (typeof callback !== 'function') {
-        var Q = require('q'), deferred = Q.defer();
-        clear_.call(self, function(err) {
-            if (err) { return deferred.reject(err); }
-            deferred.resolve();
+        return Q.Promise(function (resolve, reject) {
+            return clear_.bind(self)(function(err) {
+                if (err) { return reject(err); }
+                return resolve();
+            });
         });
-        return deferred.promise;
     }
     else {
         return clear_.call(self, callback);
@@ -357,31 +438,37 @@ DataObjectTag.prototype.removeAll = function(callback) {
  */
 function remove_(obj, callback) {
     var self = this;
-    var arr = [];
+    var values = [];
     if (_.isArray(obj))
-        arr = obj;
+        values = obj;
     else {
-        arr.push(obj);
+        values.push(obj);
     }
     self.migrate(function(err) {
         if (err) {
             return callback(err);
         }
-        var items = arr.map(function (x) {
-            return {
-                "object": self.parent[self.mapping.parentField],
-                "value": x
-            }
+        // get object field name
+        var objectField = self.getObjectField();
+        // get value field name
+        var valueField = self.getValueField();
+        var items = _.map(_.filter(values, function(x) {
+            return !_.isNil(x);
+        }), function (x) {
+            var res = {};
+            res[objectField] = self.parent[self.mapping.parentField];
+            res[valueField] = x;
+            return res;
         });
-        if (self["$silent"]) { self.getBaseModel().silent(); }
-        return self.getBaseModel().remove(items, callback);
+        return self.getBaseModel().silent(self.$silent).remove(items, callback);
     });
 }
 
 /**
  * Removes a value or an array of values
- * @param {Array|*} obj
+ * @param {Array|*} item
  * @param {Function=} callback
+ * @returns Promise<T>|*
  * @example
  context.model('Person').where('email').equal('veronica.fletcher@example.com')
  .getTypedItem().then(function(person) {
@@ -395,19 +482,17 @@ function remove_(obj, callback) {
     });
  *
  */
-DataObjectTag.prototype.remove = function(obj, callback) {
+DataObjectTag.prototype.remove = function(item, callback) {
     var self = this;
     if (typeof callback !== 'function') {
-        var Q = require('q'), deferred = Q.defer();
-        remove_.call(self, obj, function(err) {
-            if (err) { return deferred.reject(err); }
-            deferred.resolve(null);
+        return Q.Promise(function (resolve, reject) {
+            return remove_.bind(self)(item, function(err) {
+                if (err) { return reject(err); }
+                return resolve();
+            });
         });
-        return deferred.promise;
     }
-    else {
-        return remove_.call(self, obj, callback);
-    }
+    return remove_.call(self, item, callback);
 };
 
 if (typeof exports !== 'undefined')

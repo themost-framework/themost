@@ -6,6 +6,7 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+//
 var LangUtils = require('@themost/common/utils').LangUtils;
 var DataQueryable = require('@themost/data/data-queryable').DataQueryable;
 var HttpNotFoundError = require('@themost/common/errors').HttpNotFoundError;
@@ -608,11 +609,17 @@ HttpServiceController.prototype.getNavigationProperty = function(entitySet, navi
                         var otherEntitySet = self.getBuilder().getEntityTypeEntitySet(junction.model.name);
                         if (count) {
                             return junction.getList().then(function (result) {
+                                if (typeof otherEntitySet === 'undefined') {
+                                    return Q.resolve(self.json(thisEntitySet.mapInstanceSet(context,result)));
+                                }
                                 return Q.resolve(self.json(otherEntitySet.mapInstanceSet(context,result)));
                             });
                         }
                         else {
                             return junction.getItems().then(function (result) {
+                                if (typeof otherEntitySet === 'undefined') {
+                                    return Q.resolve(self.json(thisEntitySet.mapInstanceSet(context,result)));
+                                }
                                 return Q.resolve(self.json(otherEntitySet.mapInstanceSet(context,result)));
                             });
                         }
@@ -694,7 +701,7 @@ HttpServiceController.prototype.getEntityAction = function(entitySet, entityActi
                 if (_.isNil(returnModel)) {
                     return Q.reject(new HttpNotFoundError("Result Entity not found"));
                 }
-                const returnEntitySet = self.getBuilder().getEntityTypeEntitySet(returnModel.name);
+                var returnEntitySet = self.getBuilder().getEntityTypeEntitySet(returnModel.name);
                 if (result instanceof DataQueryable) {
                     var filter = Q.nbind(returnModel.filter, returnModel);
                     if (!returnsCollection) {
@@ -753,10 +760,317 @@ HttpServiceController.prototype.getEntityAction = function(entitySet, entityActi
             });
         }
     }
-    return Q.reject(new HttpNotFoundError());
+    return this.next();
 };
 defineDecorator(HttpServiceController.prototype, 'getEntityAction', httpGet());
 defineDecorator(HttpServiceController.prototype, 'getEntityAction', httpAction("entityAction"));
+
+/**
+ *
+ * @param {string} entitySet
+ * @param {string} entityFunction
+ * @param {string=} navigationProperty
+ */
+HttpServiceController.prototype.getEntitySetFunction = function(entitySet, entityFunction, navigationProperty) {
+    var self = this;
+    var context = self.context;
+    var thisEntitySet = this.getBuilder().getEntitySet(entitySet);
+    if (_.isNil(thisEntitySet)) {
+        return Q.reject(new HttpNotFoundError("EntitySet not found"));
+    }
+    var model = context.model(thisEntitySet.entityType.name);
+    if (_.isNil(model)) {
+        return Q.reject(new HttpNotFoundError("Entity not found"));
+    }
+    var action = thisEntitySet.entityType.collection.hasFunction(entityFunction);
+    if (action) {
+        //get data object class
+        var DataObjectClass = model.getDataObjectType();
+        var staticFunc = EdmMapping.hasOwnFunction(DataObjectClass,entityFunction);
+        if (staticFunc) {
+            return Q.resolve(staticFunc(context)).then(function(result) {
+                var returnsCollection = _.isString(action.returnCollectionType);
+                var returnModel = context.model(action.returnType || action.returnCollectionType);
+                if (_.isNil(returnModel)) {
+                    return Q.reject(new HttpNotFoundError("Result Entity not found"));
+                }
+                var returnEntitySet = self.getBuilder().getEntityTypeEntitySet(returnModel.name);
+                if (result instanceof DataQueryable) {
+                    var filter = Q.nbind(returnModel.filter, returnModel);
+                    if (!returnsCollection) {
+                        //pass context parameters (if navigationProperty is empty)
+                        var params = {};
+                        if (_.isNil(navigationProperty)) {
+                            params = _.pick(context.params, [
+                                "$select",
+                                "$expand"
+                            ]);
+                        }
+                        return filter(params).then(function(q) {
+                            //do not add context params
+                            var q1 = extendQueryable(result, q);
+                            return q1.getItem().then(function(result) {
+                                if (_.isNil(result)) {
+                                    return Q.reject(new HttpNotFoundError());
+                                }
+                                if (_.isString(navigationProperty)) {
+                                    return self.getNavigationProperty(returnEntitySet.name,navigationProperty, result[returnModel.primaryKey])
+                                }
+                                return Q.resolve(self.json(returnEntitySet.mapInstance(context,result)));
+                            });
+                        });
+                    }
+                    if (typeof navigationProperty !== 'undefined') {
+                        return Q.reject(new HttpBadRequestError());
+                    }
+                    return filter( _.extend({
+                        "$top":DefaultTopQueryOption
+                    },context.params)).then(function(q) {
+                        var count = context.params.hasOwnProperty('$inlinecount') ? parseBoolean(context.params.$inlinecount) : (context.params.hasOwnProperty('$count') ? parseBoolean(context.params.$count) : false);
+                        var q1 = extendQueryable(result, q);
+                        if (count) {
+                            return q1.getList().then(function(result) {
+                                return Q.resolve(self.json(returnEntitySet.mapInstanceSet(context,result)));
+                            });
+                        }
+                        return q1.getItems().then(function(result) {
+                            return Q.resolve(self.json(returnEntitySet.mapInstanceSet(context,result)));
+                        });
+                    });
+                }
+                if (_.isNil(navigationProperty)) {
+                    if (returnsCollection) {
+                        return Q.resolve(self.json(returnEntitySet.mapInstanceSet(context,result)));
+                    }
+                    else {
+                        return Q.resolve(self.json(returnEntitySet.mapInstance(context,result)));
+                    }
+                }
+                if (_.isNil(returnEntitySet)) {
+                    return Q.reject(new HttpNotFoundError("Result EntitySet not found"));
+                }
+                return self.getNavigationProperty(returnEntitySet.name,navigationProperty, result[returnModel.primaryKey])
+            });
+        }
+    }
+    return this.next();
+};
+defineDecorator(HttpServiceController.prototype, 'getEntitySetFunction', httpGet());
+defineDecorator(HttpServiceController.prototype, 'getEntitySetFunction', httpAction("entitySetFunction"));
+
+/**
+ *
+ * @param {string} entitySet
+ * @param {string} entityAction
+ * @param {*} id
+ */
+HttpServiceController.prototype.postEntityAction = function(entitySet, entityAction, id) {
+    var self = this;
+    var context = self.context;
+    var thisEntitySet = this.getBuilder().getEntitySet(entitySet);
+    if (_.isNil(thisEntitySet)) {
+        return Q.reject(new HttpNotFoundError("Entity set not found"));
+    }
+    /**
+     * get current data model
+     * @type {DataModel}
+     */
+    var thisModel = context.model(thisEntitySet.entityType.name);
+
+    if (typeof thisModel === 'undefined') {
+        return Q.reject(new HttpNotFoundError("Entity type not found"));
+    }
+    if (typeof entityAction === 'undefined') {
+        return Q.reject(new HttpNotFoundError("Entity type action cannot be empty"));
+    }
+    /**
+     * get current model builder
+     * @type {ODataModelBuilder}
+     */
+    var builder = context.getApplication().getStrategy(ODataModelBuilder);
+
+    // validate entity type function
+    var action = thisEntitySet.entityType.hasAction(entityAction);
+    if (typeof action === 'undefined') {
+        return Q.reject(new HttpNotFoundError("Entity type action not found"));
+    }
+    // get typed item
+    return thisModel.where(thisModel.primaryKey).equal(id).select(thisModel.primaryKey).getTypedItem().then(function (obj) {
+        if (typeof obj === 'undefined') {
+            return Q.reject(new HttpNotFoundError("Entity type action cannot be empty"));
+        }
+        //check if entity set has a function with the same name
+        var memberFunc = EdmMapping.hasOwnAction(obj, action.name);
+        if (memberFunc) {
+            var actionParameters = [];
+            var parameters = _.filter(action.parameters, function (x) {
+                return x.name !== 'bindingParameter';
+            });
+            // if action has only one parameter and this parameter has fromBody flag
+            if (parameters.length === 1 && parameters[0].fromBody) {
+                actionParameters.push(context.request.body);
+            }
+            else {
+                // add other parameters by getting request body attributes
+                _.forEach(parameters, function (x) {
+                    actionParameters.push(context.request.body[x.name]);
+                });
+            }
+            return Q.resolve(memberFunc.apply(obj, actionParameters)).then(function (result) {
+                // check if action returns a collection of object
+                var returnsCollection = _.isString(action.returnCollectionType);
+                var returnEntitySet;
+                if (returnsCollection) {
+                    returnEntitySet = builder.getEntityTypeEntitySet(action.returnCollectionType);
+                }
+                if (result instanceof DataQueryable) {
+                    // todo:: validate return collection type and pass system query options ($filter, $expand, $select etc)
+                    if (returnsCollection) {
+                        // call DataModel.getItems() instead of DataModel.getList()
+                        // an action that returns a collection of objects must always return a native array (without paging parameters)
+                        return result.getItems().then(function (finalResult) {
+                            if (returnEntitySet) {
+                                return self.json(returnEntitySet.mapInstanceSet(context, finalResult));
+                            }
+                            return self.json(finalResult);
+                        });
+                    }
+                    else {
+                        // otherwise call DataModel.getItem() to get only the first item of the result set
+                        return result.getItem().then(function (finalResult) {
+                            return self.json(finalResult);
+                        });
+                    }
+                }
+                if (typeof result === 'undefined') {
+                    // return no content
+                    return self.json();
+                }
+                // return result as native object
+                if (returnsCollection && returnEntitySet) {
+                    return self.json(returnEntitySet.mapInstanceSet(context, result));
+                }
+                return self.json(result);
+            });
+        }
+        // entity type does not have an instance method with the given name, continue
+        return Q.reject(new HttpNotFoundError());
+    }).catch(function (err) {
+        return Q.reject(err);
+    });
+};
+defineDecorator(HttpServiceController.prototype, 'postEntityAction', httpPost());
+defineDecorator(HttpServiceController.prototype, 'postEntityAction', httpAction("entityAction"));
+
+/**
+ *
+ * @param {string} entitySet
+ * @param {string} entityAction
+ */
+HttpServiceController.prototype.postEntitySetAction = function(entitySet, entityAction) {
+    var self = this;
+    var context = self.context;
+    var thisEntitySet = this.getBuilder().getEntitySet(entitySet);
+    if (_.isNil(thisEntitySet)) {
+        return Q.reject(new HttpNotFoundError("Entity set not found"));
+    }
+    /**
+     * get current data model
+     * @type {DataModel}
+     */
+    var thisModel = context.model(thisEntitySet.entityType.name);
+
+    if (typeof thisModel === 'undefined') {
+        return Q.reject(new HttpNotFoundError("Entity type not found"));
+    }
+    if (typeof entityAction === 'undefined') {
+        return Q.reject(new HttpNotFoundError("Entity type action cannot be empty"));
+    }
+    /**
+     * get current model builder
+     * @type {ODataModelBuilder}
+     */
+    var builder = context.getApplication().getStrategy(ODataModelBuilder);
+
+    var action = thisEntitySet.entityType.collection.hasAction(entityAction);
+    if (action) {
+        //get data object class
+        var DataObjectClass = thisModel.getDataObjectType();
+        var actionFunc = EdmMapping.hasOwnAction(DataObjectClass, entityAction);
+        if (typeof actionFunc !== 'function') {
+            return Q.reject(new HttpBadRequestError('Invalid entity set configuration. The specified action cannot be found'));
+        }
+        var actionParameters = [];
+        var parameters = _.filter(action.parameters, function (x) {
+            return x.name !== 'bindingParameter';
+        });
+        // if parameters must be included in body
+        if (parameters.length) {
+            // validate request body
+            if (typeof context.request.body === 'undefined') {
+                // throw bad request if body is missing
+                return Q.reject(new HttpBadRequestError('Request body cannot be empty'));
+            }
+        }
+        // add context as the first parameter
+        actionParameters.push(context);
+        // if action has only one parameter and this parameter has fromBody flag
+        if (parameters.length === 1 && parameters[0].fromBody) {
+            actionParameters.push(context.request.body);
+        }
+        else {
+            // add other parameters by getting request body attributes
+            _.forEach(parameters, function (x) {
+                actionParameters.push(context.request.body[x.name]);
+            });
+        }
+        // invoke action
+        return Q.resolve(actionFunc.call(null, actionParameters)).then(function (result) {
+            // check if action returns a collection of object
+            var returnsCollection = _.isString(action.returnCollectionType);
+            var returnEntitySet;
+            // if func returns a collection of items
+            if (returnsCollection) {
+                // get return entity set
+                returnEntitySet = builder.getEntityTypeEntitySet(action.returnCollectionType);
+            }
+            if (result instanceof DataQueryable) {
+                // todo:: validate return collection type and pass system query options ($filter, $expand, $select etc)
+                if (returnsCollection) {
+                    // call DataModel.getItems() instead of DataModel.getList()
+                    // an action that returns a collection of objects must always return a native array (without paging parameters)
+                    return result.getItems().then(function (finalResult) {
+                        //return result
+                        if (returnEntitySet) {
+                            return self.json(returnEntitySet.mapInstanceSet(context,finalResult));
+                        }
+                        return self.json(finalResult);
+                    });
+                }
+                else {
+                    // otherwise call DataModel.getItem() to get only the first item of the result set
+                    return result.getItem().then(function (finalResult) {
+                        return self.json(finalResult);
+                    });
+                }
+            }
+            if (typeof result === 'undefined') {
+                // return no content
+                return self.json();
+            }
+            // return result as native object
+            return self.json(result);
+        }).catch(function (err) {
+            return Q.reject(err);
+        });
+
+    }
+    // there is no action with the given name, continue
+    return Q.reject(new HttpNotFoundError());
+
+};
+defineDecorator(HttpServiceController.prototype, 'postEntitySetAction', httpPost());
+defineDecorator(HttpServiceController.prototype, 'postEntitySetAction', httpAction("entitySetAction"));
 
 /**
  *

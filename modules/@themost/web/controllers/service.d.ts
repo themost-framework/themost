@@ -20,6 +20,9 @@ declare class HttpServiceController extends HttpBaseController {
     postItem(entitySet: string, id: any): Promise<HttpJsonResult>;
     getNavigationProperty(entitySet: string, navigationProperty: string, id: any): Promise<HttpJsonResult>;
     getEntityAction(entitySet: string, entityAction: string, navigationProperty: string): Promise<HttpJsonResult>;
+    getEntitySetFunction(entitySet: string, entityFunction: string, navigationProperty: string): Promise<HttpJsonResult>;
+    postEntityAction(entitySet: string, entityAction: string, id: any): Promise<HttpJsonResult>;
+    postEntitySetAction(entitySet: string, entityAction: string): Promise<HttpJsonResult>;
     getBuilder():any;
 
 }

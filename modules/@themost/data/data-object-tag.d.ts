@@ -15,6 +15,8 @@ export declare class DataObjectTag extends DataQueryable {
     parent: DataObject;
     mapping: DataAssociationMapping;
     getBaseModel(): DataModel;
+    getObjectField(): string;
+    getValueField(): string;
     insert(obj: any): Promise<any>;
     remove(obj: any): Promise<any>;
     removeAll(): Promise<any>;

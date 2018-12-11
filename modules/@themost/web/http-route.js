@@ -98,7 +98,8 @@ HttpRoute.prototype.isMatch = function (urlToMatch) {
     if (k >= 0)
         str1 = urlToMatch.substr(0, k);
     var re = /({([\w[\]]+)(?::\s*((?:[^{}\\]+|\\.|{(?:[^{}\\]+|\\.)*})+))?})|((:)([\w[\]]+))/ig;
-    var match = re.exec(this.route.url), params = [];
+    var match = re.exec(this.route.url);
+    var params = [];
     while(match) {
         if (typeof match[2] === 'undefined') {
             //parameter with colon (e.g. :id)
