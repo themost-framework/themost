@@ -2386,6 +2386,19 @@ function afterExecute_(result, callback) {
                             else if (_.isArray(mapping.select) && mapping.select.length>0) {
                                 options['$select'] = mapping.select.join(",");
                             }
+                            // check data view attribute mapping options
+                            if (self.$view) {
+                                // get view field
+                                var re = new RegExp('^' + expand.name + '$', 'ig');
+                                var viewField = self.$view.fields.find(function(x) {
+                                    return re.test(x.name);
+                                });
+                                // if view field has mapping options
+                                if (viewField && viewField.mapping && viewField.mapping.options) {
+                                    // assign this options to expand options
+                                    _.assign(options, viewField.mapping.options);
+                                }
+                            }
                         }
                     }
                 }
