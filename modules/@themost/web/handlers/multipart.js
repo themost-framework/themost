@@ -8,9 +8,10 @@
  */
 var formidable = require('formidable');
 var _ = require('lodash');
+var semver = require('semver');
 var LangUtils = require('@themost/common/utils').LangUtils;
 
-if (process.version>="v6.0.0") {
+if (semver.gte(process.versions.node, "6.0.0")) {
     var multipart_parser = require('formidable/lib/multipart_parser'),
         MultipartParser = multipart_parser.MultipartParser;
     MultipartParser.prototype.initWithBoundary = function(str) {
