@@ -9,7 +9,6 @@
 var _ = require('lodash');
 var HttpViewHelper = require('../helpers').HtmlViewHelper;
 var HttpNotFoundError = require('@themost/common/errors').HttpNotFoundError;
-var parseBoolean = require('@themost/common/utils').LangUtils.parseBoolean;
 var ejs = require('ejs');
 var path = require('path');
 var fs = require('fs');
@@ -17,8 +16,6 @@ var Symbol = require('symbol');
 var DirectiveEngine = require('./../handlers/directive').DirectiveEngine;
 var PostExecuteResultArgs = require('./../handlers/directive').PostExecuteResultArgs;
 var HttpViewContext = require('./../mvc').HttpViewContext;
-var partialProperty = "partial";
-
 var layoutFileProperty = Symbol();
 
 /**
@@ -43,10 +40,21 @@ function postRender(result, data, callback) {
         return callback(null, viewContext.body);
     });
 }
-
-function layout(view){
-  this.locals[layoutFileProperty] = view;
+/**
+ * @class
+ */ 
+function EjsLocals() {
+    
 }
+
+EjsLocals.prototype.layout = function(view){
+    if (/\.html\.ejs$/ig) {
+        this[layoutFileProperty] = view + '.html.ejs';
+    }
+    else {
+        this[layoutFileProperty] = view;
+    }
+};
 
 /**
  * @class
@@ -101,6 +109,7 @@ EjsEngine.prototype.filter = function(name, filterFunc) {
  */
 EjsEngine.prototype.render = function(filename, data, callback) {
     var self = this;
+    var locals;
     try {
         fs.readFile(filename,'utf-8', function(err, str) {
             try {
@@ -112,6 +121,11 @@ EjsEngine.prototype.render = function(filename, data, callback) {
                     return callback(err);
                 }
                 else {
+                    // init locals as an instance of EjsLocals
+                    locals = _.assign(new EjsLocals(), {
+                            model: _.assign({ }, data),
+                            html:new HttpViewHelper(self.context)
+                    });
                     //get view header (if any)
                     var matcher = /^(\s*)<%#(.*?)%>/;
                     var properties = {
@@ -121,25 +135,13 @@ EjsEngine.prototype.render = function(filename, data, callback) {
                         layout:null
                     };
                     if (matcher.test(str)) {
+                        
                         var matches = matcher.exec(str);
                         properties = JSON.parse(matches[2]);
                         //remove match
                         str = str.replace(matcher,'');
                     }
-                    //create view context// render
-                        var result = ejs.render(str, locals);
-                    var partial = false;
-                    if (self.context && self.context.request.route) {
-                        partial = parseBoolean(self.context.request.route[partialProperty]);
-                    }
-                    var model;
-                    if (_.isArray(data)) {
-                        model = _.assign([], properties, data);
-                    }
-                    else {
-                        model = _.assign(properties, data);
-                    }
-                    if (properties.layout && !partial) {
+                    if (properties.layout) {
                         var layout;
                         if (/^\//.test(properties.layout)) {
                             //relative to application folder e.g. /views/shared/master.html.ejs
@@ -148,12 +150,12 @@ EjsEngine.prototype.render = function(filename, data, callback) {
                         else {
                             //relative to view file path e.g. ./../master.html.html.ejs
                             layout = path.resolve(path.dirname(filename), properties.layout);
-                        }// render
-                        var result = ejs.render(str, locals);
+                        }
                         //set current view buffer (after rendering)
-                        var body = ejs.render(str, {
-                            model: model,
-                            html:new HttpViewHelper(self.context)
+                        var body = ejs.render(str, locals);
+                        // assign body
+                        _.assign(locals, {
+                            body: htmlResult
                         });
                         //render master layout
                         fs.readFile(layout,'utf-8', function(err, layoutData) {
@@ -164,12 +166,8 @@ EjsEngine.prototype.render = function(filename, data, callback) {
                                     }
                                     return callback(err);
                                 }
-                                var result = ejs.render(layoutData, {
-                                    model: model,
-                                    html:new HttpViewHelper(self.context),
-                                    body: body
-                                });
-                                return postRender.bind(self)(result, model, function(err, finalResult) {
+                                var result = ejs.render(layoutData,locals);
+                                return postRender.bind(self)(result, locals.model, function(err, finalResult) {
                                     if (err) {
                                         return callback(err);
                                     }
@@ -182,13 +180,6 @@ EjsEngine.prototype.render = function(filename, data, callback) {
                         });
                     }
                     else {
-                        // set locals
-                        var locals = {
-                            model: model,
-                            html: new HttpViewHelper(self.context)
-                        };
-                        // bind layout func
-                        locals.layout = layout.bind(layout);
                         // render
                         var htmlResult = ejs.render(str, locals);
                         // validate layout
@@ -207,7 +198,7 @@ EjsEngine.prototype.render = function(filename, data, callback) {
                                    return callback(err);
                                } 
                                // execute post render
-                               return postRender.bind(self)(result, model, function(err, finalResult) {
+                               return postRender.bind(self)(result, locals.model, function(err, finalResult) {
                                     if (err) {
                                         return callback(err);
                                     }
@@ -215,7 +206,7 @@ EjsEngine.prototype.render = function(filename, data, callback) {
                                 });
                             });
                         }
-                        return postRender.bind(self)(htmlResult, model, function(err, finalResult) {
+                        return postRender.bind(self)(htmlResult, locals.model, function(err, finalResult) {
                             if (err) {
                                 return callback(err);
                             }
