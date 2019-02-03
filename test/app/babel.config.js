@@ -1,17 +1,21 @@
 module.exports = function (api) {
     api.cache(false);
     return {
-        "sourceMaps": "both",
+        "sourceMaps": true,
         "retainLines": true,
-        "presets": [
+         "presets": [
             [
                 "@babel/preset-env",
                 {
                     "targets": {
                         "node": "current"
-                    }
+                    },
+                     "modules": "commonjs"
                 }
             ]
+        ],
+        "ignore": [
+          "./node_modules/"
         ],
         "plugins": [
             [
@@ -22,9 +26,6 @@ module.exports = function (api) {
             ],
             [
                 "@babel/plugin-proposal-export-namespace-from"
-            ],
-            [
-                "@babel/plugin-transform-modules-commonjs"
             ],
             [
                 "@babel/plugin-proposal-decorators",

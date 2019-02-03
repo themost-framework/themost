@@ -40,9 +40,11 @@
     "@themost/web": "^2.1.16"
   },
   "dependencies": {
+    "@themost/sqlite": "^2.1.5",
     "@types/chai": "^4.1.7",
     "bootstrap": "^4.1.0",
-    "jquery": "^3.3.1"
+    "jquery": "^3.3.1",
+    "source-map-support": "^0.5.10"
   },
   "eslintConfig": {
     "parser": "babel-eslint",

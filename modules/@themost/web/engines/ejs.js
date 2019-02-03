@@ -13,10 +13,13 @@ var parseBoolean = require('@themost/common/utils').LangUtils.parseBoolean;
 var ejs = require('ejs');
 var path = require('path');
 var fs = require('fs');
+var Symbol = require('symbol');
 var DirectiveEngine = require('./../handlers/directive').DirectiveEngine;
 var PostExecuteResultArgs = require('./../handlers/directive').PostExecuteResultArgs;
 var HttpViewContext = require('./../mvc').HttpViewContext;
 var partialProperty = "partial";
+
+var layoutFileProperty = Symbol();
 
 /**
  * @this EjsEngine
@@ -41,6 +44,9 @@ function postRender(result, data, callback) {
     });
 }
 
+function layout(view){
+  this.locals[layoutFileProperty] = view;
+}
 
 /**
  * @class
@@ -120,7 +126,8 @@ EjsEngine.prototype.render = function(filename, data, callback) {
                         //remove match
                         str = str.replace(matcher,'');
                     }
-                    //create view context
+                    //create view context// render
+                        var result = ejs.render(str, locals);
                     var partial = false;
                     if (self.context && self.context.request.route) {
                         partial = parseBoolean(self.context.request.route[partialProperty]);
@@ -141,7 +148,8 @@ EjsEngine.prototype.render = function(filename, data, callback) {
                         else {
                             //relative to view file path e.g. ./../master.html.html.ejs
                             layout = path.resolve(path.dirname(filename), properties.layout);
-                        }
+                        }// render
+                        var result = ejs.render(str, locals);
                         //set current view buffer (after rendering)
                         var body = ejs.render(str, {
                             model: model,
@@ -174,11 +182,40 @@ EjsEngine.prototype.render = function(filename, data, callback) {
                         });
                     }
                     else {
-                        var result = ejs.render(str, {
+                        // set locals
+                        var locals = {
                             model: model,
                             html: new HttpViewHelper(self.context)
-                        });
-                        return postRender.bind(self)(result, model, function(err, finalResult) {
+                        };
+                        // bind layout func
+                        locals.layout = layout.bind(layout);
+                        // render
+                        var htmlResult = ejs.render(str, locals);
+                        // validate layout
+                        if (typeof locals[layoutFileProperty] === 'string') {
+                            // resolve layout file path (relative to this view)
+                            var layoutFile = path.resolve(path.dirname(filename), locals[layoutFileProperty]);
+                            // remove private layout attribute
+                            delete locals[layoutFileProperty];
+                            // assign body
+                            _.assign(locals, {
+                                body: htmlResult
+                            });
+                            // render layout file
+                            return ejs.renderFile(layoutFile, locals, function(err, result) {
+                               if (err) {
+                                   return callback(err);
+                               } 
+                               // execute post render
+                               return postRender.bind(self)(result, model, function(err, finalResult) {
+                                    if (err) {
+                                        return callback(err);
+                                    }
+                                    return callback(null, finalResult);
+                                });
+                            });
+                        }
+                        return postRender.bind(self)(htmlResult, model, function(err, finalResult) {
                             if (err) {
                                 return callback(err);
                             }
