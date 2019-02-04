@@ -10,9 +10,11 @@
     
     <title>MOST Web Framework - Bootstrap 4 Template</title>
     <!-- Bootstrap core CSS -->
-    <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-    <link href="assets/css/bootstrap-theme.css" rel="stylesheet">
+    <link href="/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/css/bootstrap-theme.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
     <!-- Custom styles for this template -->
+    <%-stylesheets-%>
     
 </head>
 
@@ -36,6 +38,9 @@
                     <a class="nav-link" href="#">About</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" href="/customers/index.html">Customers</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="#">Services</a>
                 </li>
                 <li class="nav-item">
@@ -49,10 +54,13 @@
 <!-- Page Content -->
 <%-body%>
 
-<!-- Bootstrap core JavaScript -->
-<script src="vendor/jquery/jquery.min.js"></script>
-<script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 
 </body>
+
+<!-- Bootstrap core JavaScript -->
+<script src="/vendor/jquery/jquery.min.js"></script>
+<script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<!-- Custom scripts for this template -->
+<%-scripts%>
 
 </html>

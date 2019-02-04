@@ -61,9 +61,20 @@ QuerystringHandler.prototype.beginRequest = function(context, callback) {
         //apply case insensitivity search in params object
         context.params.attr = caseInsensitiveAttribute;
         context.params.hasAttr = caseInsensitiveHasAttribute;
+        // set default query params
+        request.query = { };
         //add query string params
-        if (request.url.indexOf('?') > 0)
-            _.assign(context.params, querystring.parse(request.url.substring(request.url.indexOf('?') + 1)));
+        if (request.url.indexOf('?') > 0) {
+            // set request query
+            request.query = querystring.parse(request.url.substring(request.url.indexOf('?') + 1));
+            /**
+             * @name ClientRequest#query
+             * @description Gets or sets an object which represents the query string of an HTTP request
+             * @type *
+             */ 
+            // extend context.params
+            _.assign(context.params, request.query);
+        }
         callback();
     }
     catch(e) {

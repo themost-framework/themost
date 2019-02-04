@@ -1,0 +1,24 @@
+<div class="m-1">
+    <div class="card" style="width: 18rem;">
+      <div class="card-img-top" 
+      style="background-color:#dedede; height: 180px; width: 100%; display: block;">
+          <div class="row justify-content-center h-100">
+                 <% if (model.gender === 'F') { %>
+                    <i class="fas fa-female fa-5x align-self-center"></i>
+                 <% } else { %>
+                    <i class="fas fa-male fa-5x align-self-center"></i>
+                 <% } %>
+            </div>
+          
+      </div>
+      <div class="card-body">
+        <h5 class="card-title"><%=model.givenName%> <%=model.familyName%>
+        <h6 class="card-title small"><%=model.jobTitle%></h6>
+        </h5>
+        <p style="min-height: 64px" class="card-text">
+            <%=model.address.streetAddress%>, <%=model.address.addressLocality%>, <%=model.address.addressCountry%> 
+        </p>
+        <a href="#" class="btn btn-primary">Orders</a>
+      </div>
+    </div>
+</div>
