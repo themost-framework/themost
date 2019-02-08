@@ -146,6 +146,7 @@ export declare class DataField {
     validation?: any;
     virtual?: boolean;
     indexed?: boolean;
+    size?: number;
 }
 
 export declare class DataEventArgs {

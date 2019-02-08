@@ -10,8 +10,9 @@
 import {IncomingMessage, ServerResponse} from 'http';
 import {HttpApplication} from "./app";
 import {HttpConfiguration} from "./config";
+import {DefaultDataContext} from '@themost/data/data-context';
 
-export declare class HttpContext {
+export declare class HttpContext extends DefaultDataContext {
 		
 	constructor(httpRequest : IncomingMessage, httpResponse : ServerResponse);
 	getApplication(): HttpApplication;
@@ -43,5 +44,6 @@ export declare class HttpContext {
 	engine(extension : string): void;
 	request : IncomingMessage;
 	response: ServerResponse;
+	resolveUrl(appRelativeUrl: string): string;
 }
 

@@ -2613,7 +2613,7 @@ DataQueryable.prototype.title = function(value) {
 };
 /**
  * Gets or sets a boolean which indicates whether results should be cached or not. This parameter is valid for models which have caching mechanisms.
- * @param {string=} value
+ * @param {boolean=} value
  * @returns {string|DataQueryable}
  */
 DataQueryable.prototype.cache = function(value) {

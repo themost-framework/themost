@@ -734,6 +734,13 @@ HttpContext.prototype.engine = function(extension) {
         return engineModule.createInstance(this);
     }
 };
+/**
+ * Resolves an application relative url starting with a tilde e.g. ~/orders/index.html
+ * @param {string} appRelativeUrl
+ */ 
+HttpContext.prototype.resolveUrl = function(appRelativeUrl) {
+    return this.getApplication().resolveUrl(appRelativeUrl);
+};
 
 
 if (typeof exports !== 'undefined') {

@@ -45,7 +45,7 @@ export declare class DataQueryable implements DataContextEmitter {
     migrate(callback:(err?: Error) => void);
     silent(value?: boolean): DataQueryable;
     flatten(value?: boolean): DataQueryable;
-    cache(value?: boolean): DataQueryable|boolean;
+    cache(value?: boolean): DataQueryable;
     data(name: string, value?: any): DataQueryable|any;
     title(value?: string): DataQueryable|string;
     toMD5(): string;
