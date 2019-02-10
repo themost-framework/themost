@@ -831,7 +831,7 @@ function createRequestInternal(options) {
         host: 'localhost',
         'user-agent': 'Mozilla/5.0 (X11; Linux i686; rv:10.0) Gecko/20100101 Firefox/22.0',
         accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'accept-language': 'en-US,en;q=0.5',
+        'accept-language': 'en,en-US;q=0.5',
         'accept-encoding': 'gzip, deflate',
         connection: 'keep-alive',
         'cache-control': 'max-age=0' };

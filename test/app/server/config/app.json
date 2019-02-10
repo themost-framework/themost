@@ -22,8 +22,12 @@
             "slidingExpiration": false
         },
         "localization": {
-            "cultures": [ "en-us" ],
-            "default": "en-us"
+            "cultures": [ "en", "el", "fr" ],
+            "default": "en"
+        },
+        "i18n": {
+            "locales": [ "en", "el", "fr" ],
+            "defaultLocale": "en"
         }
     },
     "adapterTypes": [

@@ -10,11 +10,14 @@ import {HttpApplicationService} from "./types";
 
 export declare abstract class LocalizationStrategy extends HttpApplicationService {
     abstract getCultures(): Array<string>;
-    abstract getDefaultCulture(): string;
-    hasCulture(culture: string): boolean;
-    abstract getLocaleString(locale: string, str: string);
-    abstract setLocaleString(locale: string, data: any, shouldMerge?: boolean);
 
+    abstract getDefaultCulture(): string;
+
+    hasCulture(culture: string): boolean;
+
+    abstract getLocaleString(locale: string, ...str: any): string;
+
+    abstract setLocaleString(locale: string, data: any, shouldMerge?: boolean);
 }
 
 export declare class DefaultLocalizationStrategy extends LocalizationStrategy {
@@ -22,10 +25,9 @@ export declare class DefaultLocalizationStrategy extends LocalizationStrategy {
 
     getDefaultCulture(): string;
 
-    getLocaleString(locale: string, str: string);
+    getLocaleString(locale: string, ...str: any): string;
 
     setLocaleString(locale: string, data: any, shouldMerge?: boolean);
-
 }
 
 export declare class I18nLocalizationStrategy extends DefaultLocalizationStrategy {

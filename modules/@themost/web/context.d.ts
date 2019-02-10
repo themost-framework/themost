@@ -40,7 +40,7 @@ export declare class HttpContext extends DefaultDataContext {
 	handlePut(fn : Function): HttpContext;
 	handleDelete(fn : Function): HttpContext;
 	currentHandler(value? : any): HttpContext;
-	translate(text : string, lib? : string): void;
+	translate(...text : string[]): string;
 	engine(extension : string): void;
 	request : IncomingMessage;
 	response: ServerResponse;

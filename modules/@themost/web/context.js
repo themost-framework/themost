@@ -95,8 +95,9 @@ function HttpContext(httpRequest, httpResponse) {
 
     Object.defineProperty(this, 'format', {
         get: function () {
+            // parse url
             var uri = url.parse(self.request.url);
-
+            // check of current route has format parameter
             if (self.request.route && self.request.route.format) {
                 return self.request.route.format;
             }
@@ -112,6 +113,7 @@ function HttpContext(httpRequest, httpResponse) {
                     return mime.extension.substr(1).toLowerCase();
                 }
             }
+            return null;
         }, configurable: false, enumerable: false
     });
 
@@ -431,46 +433,49 @@ HttpContext.prototype.unattended = function(fn, callback) {
 HttpContext.prototype.culture = function(value) {
     var self = this;
     if (typeof value === 'undefined') {
+        // if context culture is already defined
         if (this._culture)
+        {
+            // return this culture
             return this._culture;
-        //get available cultures and default culture
-        var cultures = ['en-us'], defaultCulture = 'en-us';
-        if (this.getApplication().getConfiguration().hasSourceAt('settings/localization/cultures')) {
-            cultures=this.getApplication().getConfiguration().getSourceAt('settings/localization/cultures');
         }
-        if (this.getApplication().getConfiguration().hasSourceAt('settings/localization/default')) {
-            defaultCulture=this.getApplication().getConfiguration().getSourceAt('settings/localization/default');
-        }
+        // get available cultures
+        var cultures = this.getApplication().getLocalizationStrategy().getCultures();
+        // get default culture
+        var defaultCulture = this.getApplication().getLocalizationStrategy().getDefaultCulture();
         var lang = defaultCulture;
-        //1. Check HTTP cookie .LANG value
+        // check HTTP cookie .LANG value
         if (typeof self.cookie(".LANG") === "string") {
             lang = self.cookie(".LANG");
         }
-        //2. Check [lang] HTTP request param
+        // check [lang] HTTP request param
         else if (self.params && self.params.lang) {
             lang = self.params.lang;
         }
-        //2. Check request HTTP header [accept-language]
+        // check request HTTP header [accept-language]
         else if (self.request && self.request.headers && self.request.headers['accept-language']) {
             var langs = self.request.headers['accept-language'].split(';');
             if (langs.length>0) {
                 lang = langs[0].split(',')[0] || defaultCulture;
             }
         }
+        // if current language is defined in context
         if (lang) {
-            //search application cultures
-            var obj = cultures.find(function(x) {
-                return (x == lang.toLowerCase()) || (x.substr(0,2) == lang.toLowerCase().substr(0,2));
+            // validate culture in application cultures
+            var findCulture = _.find(cultures, function(x) {
+                return (x === lang.toLowerCase()) || (x.substr(0,2) === lang.toLowerCase().substr(0,2));
             });
-            //if user culture is valid for this application
-            if (obj) {
-                //set context culture
-                this._culture=obj;
+            // if user culture exists
+            if (findCulture) {
+                // set context culture
+                this._culture = findCulture;
+                // and finally return culture
                 return this._culture;
             }
         }
         //otherwise use default culture
         this._culture = defaultCulture;
+        // and return
         return this._culture;
     }
     else {
@@ -702,12 +707,18 @@ HttpContext.prototype.currentHandler = function (value) {
 
 /**
  * Translates the given string to the language specified in this context
- * @param {string} text - The string to translate
- * @param {string=} lib - A string that represents the library which contains the source string. This arguments is optional. If this argument is missing, then the operation will use the default (global) library.
- * @returns {*}
+ * @param {...string} text - The string to translate
+ * @returns {string}
  */
-HttpContext.prototype.translate = function(text, lib) {
-    return this.getApplication().getLocalizationStrategy().getLocaleString(this.culture(),text,lib);
+/* eslint-disable-next-line no-unused-vars */
+HttpContext.prototype.translate = function(text) {
+    // get arguments and append culture as first argument
+    var args = Array.prototype.slice.call(arguments);
+    args.unshift(this.culture());
+    // get localization strategy
+    var strategy = this.getApplication().getLocalizationStrategy();
+    // get locale string
+    return strategy.getLocaleString.apply(strategy, args);
 };
 
 /**
@@ -737,7 +748,7 @@ HttpContext.prototype.engine = function(extension) {
 /**
  * Resolves an application relative url starting with a tilde e.g. ~/orders/index.html
  * @param {string} appRelativeUrl
- */ 
+ */
 HttpContext.prototype.resolveUrl = function(appRelativeUrl) {
     return this.getApplication().resolveUrl(appRelativeUrl);
 };
