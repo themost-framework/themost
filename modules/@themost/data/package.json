@@ -1,6 +1,6 @@
 {
   "name": "@themost/data",
-  "version": "2.2.4",
+  "version": "2.3.1-dev.1",
   "description": "MOST Web Framework 2.0 - ORM module",
   "module": "common.js",
   "peerDependencies": {},
@@ -16,14 +16,14 @@
   "homepage": "https://github.com/themost-framework/themost#readme",
   "dependencies": {
     "@themost/common": "^2.1.1",
-    "@themost/query": "^2.1.1",
+    "@themost/query": "^2.3.1-dev.1",
     "@themost/xml": "^2.1.1",
     "async": "0.2.10",
     "lodash": "^4.17.4",
     "moment": "^2.19.3",
     "node-cache": "^1.1.0",
     "pluralize": "^7.0.0",
-    "q": "~1.1.1",
+    "q": "^1.4.1",
     "source-map-support": "^0.4.11",
     "sprintf": "^0.1.5",
     "symbol": "^0.3.1"

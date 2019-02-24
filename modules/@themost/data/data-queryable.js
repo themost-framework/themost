@@ -70,7 +70,7 @@ DataAttributeResolver.prototype.selectAggregatedAttribute = function(aggregation
     else {
         result = self.fieldOf(attribute);
     }
-    var sAlias = result.as(), name = result.name(), expr;
+    var sAlias = result.as(), name = result.getName(), expr;
     if (sAlias) {
         expr = result[sAlias];
         result[sAlias] = { };
@@ -231,7 +231,7 @@ DataAttributeResolver.prototype.testAttribute = function(s) {
      * attribute aggregate function with alias e.g. f(x) as a
      * @ignore
      */
-    matches = /^(\w+)\((\w+)\)\sas\s([\u0001-\u007F\u0080-\uFFFF]+)$/i.exec(s);
+    matches = /^(\w+)\((\w+)\)\sas\s([\u0020-\u007F\u0080-\uFFFF]+)$/i.exec(s);
     if (matches) {
         return { name: matches[1] + '(' + matches[2] + ')' , property:matches[3] };
     }
@@ -239,7 +239,7 @@ DataAttributeResolver.prototype.testAttribute = function(s) {
      * attribute aggregate function with alias e.g. x as a
      * @ignore
      */
-    matches = /^(\w+)\sas\s([\u0001-\u007F\u0080-\uFFFF]+)$/i.exec(s);
+    matches = /^(\w+)\sas\s([\u0020-\u007F\u0080-\uFFFF]+)$/i.exec(s);
     if (matches) {
         return { name: matches[1] , property:matches[2] };
     }
@@ -272,7 +272,7 @@ DataAttributeResolver.prototype.testAggregatedNestedAttribute = function(s) {
      * nested attribute aggregate function with alias e.g. f(x/b) as a
      * @ignore
      */
-    matches = /^(\w+)\((\w+)\/(\w+)\)\sas\s([\u0001-\u007F\u0080-\uFFFF]+)$/i.exec(s);
+    matches = /^(\w+)\((\w+)\/(\w+)\)\sas\s([\u0020-\u007F\u0080-\uFFFF]+)$/i.exec(s);
     if (matches) {
         return { aggr: matches[1], name: matches[2] + '/' + matches[3], property:matches[4] };
     }
@@ -280,7 +280,7 @@ DataAttributeResolver.prototype.testAggregatedNestedAttribute = function(s) {
      * nested attribute aggregate function with alias e.g. f(x/b/c) as a
      * @ignore
      */
-    matches = /^(\w+)\((\w+)\/(\w+)\/(\w+)\)\sas\s([\u0001-\u007F\u0080-\uFFFF]+)$/i.exec(s);
+    matches = /^(\w+)\((\w+)\/(\w+)\/(\w+)\)\sas\s([\u0020-\u007F\u0080-\uFFFF]+)$/i.exec(s);
     if (matches) {
         return { aggr: matches[1], name: matches[2] + '/' + matches[3] + '/' + matches[4], property:matches[5] };
     }
@@ -317,7 +317,7 @@ DataAttributeResolver.prototype.testNestedAttribute = function(s) {
      * nested attribute aggregate function with alias e.g. f(x/b) as a
      * @ignore
      */
-    matches = /^(\w+)\((\w+)\/(\w+)\)\sas\s([\u0001-\u007F\u0080-\uFFFF]+)$/i.exec(s);
+    matches = /^(\w+)\((\w+)\/(\w+)\)\sas\s([\u0020-\u007F\u0080-\uFFFF]+)$/i.exec(s);
     if (matches) {
         return { name: matches[1] + '(' + matches[2] + '/' + matches[3]  + ')', property:matches[4] };
     }
@@ -325,7 +325,7 @@ DataAttributeResolver.prototype.testNestedAttribute = function(s) {
      * nested attribute aggregate function with alias e.g. f(x/b/c) as a
      * @ignore
      */
-    matches = /^(\w+)\((\w+)\/(\w+)\/(\w+)\)\sas\s([\u0001-\u007F\u0080-\uFFFF]+)$/i.exec(s);
+    matches = /^(\w+)\((\w+)\/(\w+)\/(\w+)\)\sas\s([\u0020-\u007F\u0080-\uFFFF]+)$/i.exec(s);
     if (matches) {
         return { name: matches[1] + '(' + matches[2] + '/' + matches[3] + '/' + matches[4]  + ')', property:matches[5] };
     }
@@ -333,7 +333,7 @@ DataAttributeResolver.prototype.testNestedAttribute = function(s) {
      * nested attribute aggregate function with alias e.g. f(x/b/c/d) as a
      * @ignore
      */
-    matches = /^(\w+)\((\w+)\/(\w+)\/(\w+)\/(\w+)\)\sas\s([\u0001-\u007F\u0080-\uFFFF]+)$/i.exec(s);
+    matches = /^(\w+)\((\w+)\/(\w+)\/(\w+)\/(\w+)\)\sas\s([\u0020-\u007F\u0080-\uFFFF]+)$/i.exec(s);
     if (matches) {
         return { name: matches[1] + '(' + matches[2] + '/' + matches[3] + '/' + matches[4] + '/' + matches[5]  + ')', property:matches[6] };
     }
@@ -341,7 +341,7 @@ DataAttributeResolver.prototype.testNestedAttribute = function(s) {
      * nested attribute with alias e.g. x/b as a
      * @ignore
      */
-    matches = /^(\w+)\/(\w+)\sas\s([\u0001-\u007F\u0080-\uFFFF]+)$/i.exec(s);
+    matches = /^(\w+)\/(\w+)\sas\s([\u0020-\u007F\u0080-\uFFFF]+)$/i.exec(s);
     if (matches) {
         return { name: matches[1] + '/' + matches[2], property:matches[3] };
     }
@@ -349,7 +349,7 @@ DataAttributeResolver.prototype.testNestedAttribute = function(s) {
      * nested attribute with alias e.g. x/b/c as a
      * @ignore
      */
-    matches = /^(\w+)\/(\w+)\/(\w+)\sas\s([\u0001-\u007F\u0080-\uFFFF]+)$/i.exec(s);
+    matches = /^(\w+)\/(\w+)\/(\w+)\sas\s([\u0020-\u007F\u0080-\uFFFF]+)$/i.exec(s);
     if (matches) {
         return { name: matches[1] + '/' + matches[2] + '/' + matches[3], property:matches[4] };
     }
@@ -357,7 +357,7 @@ DataAttributeResolver.prototype.testNestedAttribute = function(s) {
      * nested attribute with alias e.g. x/b/c/d as a
      * @ignore
      */
-    matches = /^(\w+)\/(\w+)\/(\w+)\/(\w+)\sas\s([\u0001-\u007F\u0080-\uFFFF]+)$/i.exec(s);
+    matches = /^(\w+)\/(\w+)\/(\w+)\/(\w+)\sas\s([\u0020-\u007F\u0080-\uFFFF]+)$/i.exec(s);
     if (matches) {
         return { name: matches[1] + '/' + matches[2] + '/' + matches[3] + '/' + matches[4], property:matches[5] };
     }
@@ -842,7 +842,7 @@ DataQueryable.prototype.equal = function(obj) {
 DataQueryable.prototype.is = function(obj) {
     return this.equal(obj);
 };
-
+// noinspection JSUnusedGlobalSymbols
 /**
  * Prepares a not equal comparison.
  * @param obj {*} - The right operand of the expression
@@ -862,7 +862,7 @@ DataQueryable.prototype.notEqual = function(obj) {
     this.query.notEqual(resolveValue.bind(this)(obj));
     return this;
 };
-
+// noinspection JSUnusedGlobalSymbols
 /**
  * Prepares a greater than comparison.
  * @param obj {*} - The right operand of the expression
@@ -971,7 +971,7 @@ DataQueryable.prototype.lowerOrEqual = function(obj) {
     this.query.lowerOrEqual(resolveValue.bind(this)(obj));
     return this;
 };
-
+// noinspection JSUnusedGlobalSymbols
 /**
  * Prepares an ends with comparison
  * @param obj {*} - The string to be searched for at the end of a field.
@@ -996,7 +996,7 @@ DataQueryable.prototype.startsWith = function(obj) {
     this.query.startsWith(obj);
     return this;
 };
-
+// noinspection JSUnusedGlobalSymbols
 /**
  * Prepares an ends with comparison
  * @param obj {*} - The string to be searched for at the end of a field.
@@ -1379,7 +1379,7 @@ DataQueryable.prototype.select = function(attr) {
 
     return this;
 };
-
+// noinspection JSUnusedGlobalSymbols
 DataQueryable.prototype.dateOf = function(attr) {
     if (typeof attr ==='undefined' || attr === null)
         return attr;
@@ -1412,7 +1412,7 @@ DataQueryable.prototype.fieldOf = function(attr, alias) {
             //if nested attribute exists
             if (nestedAttr) {
                 if (_.isNil(alias)) {
-                    var nestedMatches = /as\s([\u0001-\u007F\u0080-\uFFFF]+)$/i.exec(attr);
+                    var nestedMatches = /as\s([\u0020-\u007F\u0080-\uFFFF]+)$/i.exec(attr);
                     alias = _.isNil(nestedMatches) ? aggr.concat('Of_', matches[2].replace(/\//g, "_")) : nestedMatches[1];
                 }
                 /**
@@ -1426,7 +1426,7 @@ DataQueryable.prototype.fieldOf = function(attr, alias) {
         if (typeof  field === 'undefined' || field === null)
             throw new Error(sprintf('The specified field %s cannot be found in target model.', matches[2]));
         if (_.isNil(alias)) {
-            matches = /as\s([\u0001-\u007F\u0080-\uFFFF]+)$/i.exec(attr);
+            matches = /as\s([\u0020-\u007F\u0080-\uFFFF]+)$/i.exec(attr);
             if (matches) {
                 alias = matches[1];
             }
@@ -1454,7 +1454,7 @@ DataQueryable.prototype.fieldOf = function(attr, alias) {
             if (typeof  field === 'undefined' || field === null)
                 throw new Error(sprintf('The specified field %s cannot be found in target model.', matches[2]));
             if (_.isNil(alias)) {
-                matches = /as\s([\u0001-\u007F\u0080-\uFFFF]+)$/i.exec(attr);
+                matches = /as\s([\u0021-\u007F\u0080-\uFFFF]+)$/i.exec(attr);
                 if (matches) {
                     alias = matches[1];
                 }
@@ -2146,7 +2146,7 @@ DataQueryable.prototype.migrate = function(callback) {
     }
 
 };
-
+// noinspection JSUnusedGlobalSymbols
 DataQueryable.prototype.postExecute = function(result, callback) {
     callback();
 };
@@ -2161,59 +2161,66 @@ DataQueryable.prototype.postExecute = function(result, callback) {
     var self = this;
     self.migrate(function(err) {
         if (err) { callback(err); return; }
-        var event = { model:self.model, query:self.query, type:'select' };
-        var flatten = self.$flatten || (self.getLevels()===0);
-        if (!flatten) {
-            //get expandable fields
-            var expandables = self.model.attributes.filter(function(x) { return x.expandable; });
-            //get selected fields
-            var selected = self.query.$select[self.model.viewAdapter];
-            if (_.isArray(selected)) {
-                //remove hidden fields
-                var hiddens = self.model.attributes.filter(function(x) { return x.hidden; });
-                if (hiddens.length>0) {
-                    for (var i = 0; i < selected.length; i++) {
-                        var x = selected[i];
-                        var hiddenField = hiddens.find(function(y) {
-                            var f = x instanceof QueryField ? x : new QueryField(x);
-                            return f.name() === y.name;
-                        });
-                        if (hiddenField) {
-                            selected.splice(i, 1);
-                            i-=1;
+        try {
+            var event = { model:self.model, query:self.query, type:'select' };
+            var flatten = self.$flatten || (self.getLevels()===0);
+            if (!flatten) {
+                //get expandable fields
+                var expandables = self.model.attributes.filter(function(x) { return x.expandable; });
+                //get selected fields
+                var selected = self.query.$select[self.model.viewAdapter];
+                if (_.isArray(selected)) {
+                    //remove hidden fields
+                    var hiddens = self.model.attributes.filter(function(x) { return x.hidden; });
+                    if (hiddens.length>0) {
+                        for (var i = 0; i < selected.length; i++) {
+                            /**
+                             * @type {QueryField}
+                             */
+                            var x = selected[i] instanceof QueryField ? selected[i] : new QueryField(selected[i]);
+                            var hiddenField = hiddens.find(function(y) {
+                                return x.getName() === y.name;
+                            });
+                            if (hiddenField) {
+                                selected.splice(i, 1);
+                                i-=1;
+                            }
                         }
                     }
-                }
-                //expand fields
-                if (expandables.length>0) {
-                    selected.forEach(function(x) {
-                        //get field
-                        var field = expandables.find(function(y) {
-                            var f = x instanceof QueryField ? x : new QueryField(x);
-                            return f.name() === y.name;
-                        });
-                        //add expandable models
-                        if (field) {
-                            var mapping = self.model.inferMapping(field.name);
-                            if (mapping) {
-                                self.$expand = self.$expand || [ ];
-                                var expand1 = self.$expand.find(function(x) {
-                                    return x.name === field.name;
-                                });
-                                if (typeof expand1 === 'undefined') {
-                                    self.expand(mapping);
+                    //expand fields
+                    if (expandables.length>0) {
+                        selected.forEach(function(x) {
+                            //get field
+                            var field = expandables.find(function(y) {
+                                var f = x instanceof QueryField ? x : new QueryField(x);
+                                return f.getName() === y.name;
+                            });
+                            //add expandable models
+                            if (field) {
+                                var mapping = self.model.inferMapping(field.name);
+                                if (mapping) {
+                                    self.$expand = self.$expand || [ ];
+                                    var expand1 = self.$expand.find(function(x) {
+                                        return x.name === field.name;
+                                    });
+                                    if (typeof expand1 === 'undefined') {
+                                        self.expand(mapping);
+                                    }
                                 }
-                            }
 
-                        }
-                    });
+                            }
+                        });
+                    }
                 }
             }
+        }
+        catch(err) {
+            return callback(err);
         }
 
         //merge view filter. if any
         if (self.$view) {
-            self.model.filter({ $filter: self.$view.filter, $order:self.$view.order, $group:self.$view.group }, function(err, q) {
+            return self.model.filter({ $filter: self.$view.filter, $order:self.$view.order, $group:self.$view.group }, function(err, q) {
                 if (err) {
                     if (err) { callback(err); }
                 }
@@ -2237,13 +2244,13 @@ DataQueryable.prototype.postExecute = function(result, callback) {
                         }
                     }
                     //execute query
-                    finalExecuteInternal_.call(self, event, callback);
+                    return finalExecuteInternal_.call(self, event, callback);
                 }
             });
         }
         else {
             //execute query
-            finalExecuteInternal_.call(self, event, callback);
+            return finalExecuteInternal_.call(self, event, callback);
         }
     });
 }
@@ -3034,6 +3041,7 @@ DataQueryable.prototype.getFullYear = function() {
 DataQueryable.prototype.getMonth = function() {
     this.query.getMonth(); return this;
 };
+// noinspection JSUnusedGlobalSymbols
 /**
  * Prepares an expression by getting the day of the month of a datetime field
  * @returns {DataQueryable}
@@ -3052,6 +3060,7 @@ DataQueryable.prototype.getMonth = function() {
 DataQueryable.prototype.getDay = function() {
     this.query.getDay(); return this;
 };
+// noinspection JSUnusedGlobalSymbols
 /**
  * Prepares an expression by getting the hours (from 0 to 23) a datetime field
  * @returns {DataQueryable}
@@ -3059,6 +3068,7 @@ DataQueryable.prototype.getDay = function() {
 DataQueryable.prototype.getHours = function() {
     this.query.getHours(); return this;
 };
+// noinspection JSUnusedGlobalSymbols
 /**
  * Prepares an expression by getting the minutes (from 0 to 59) a datetime field
  * @returns {DataQueryable}
@@ -3066,6 +3076,7 @@ DataQueryable.prototype.getHours = function() {
 DataQueryable.prototype.getMinutes = function() {
     this.query.getMinutes(); return this;
 };
+// noinspection JSUnusedGlobalSymbols
 /**
  * Prepares an expression by getting the seconds (from 0 to 59) a datetime field
  * @returns {DataQueryable}
@@ -3264,18 +3275,17 @@ DataQueryable.prototype.getItem = function() {
 };
 /**
  * Gets an instance of DataObject by executing the defined query.
- * @returns {Promise.<DataObject>}
+ * @returns {Promise|*}
  */
 DataQueryable.prototype.getTypedItem = function() {
-    var self = this, d = Q.defer();
-    process.nextTick(function() {
+    var self = this;
+    return Q.Promise(function (resolve, reject) {
         self.first().then(function (result) {
-            return d.resolve(self.model.convert(result));
+            return resolve(self.model.convert(result));
         }).catch(function(err) {
-            return d.reject(err);
+            return reject(err);
         });
     });
-    return d.promise;
 };
 /**
  * Gets a collection of DataObject instances by executing the defined query.
@@ -3317,7 +3327,7 @@ DataQueryable.prototype.getTypedList = function() {
 DataQueryable.prototype.getAllItems = function() {
     return this.all();
 };
-
+// noinspection JSUnusedGlobalSymbols
 /**
  * Executes the specified query and returns all objects which satisfy the specified criteria.
  * @returns {Promise|*}

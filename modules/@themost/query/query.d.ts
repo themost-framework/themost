@@ -25,14 +25,14 @@ export declare class QueryExpression {
     hasFields(): boolean;
     hasPaging(): boolean;
     distinct(value: any): QueryExpression;
-    where(name: string): QueryExpression;
+    where(field: any): QueryExpression;
     injectWhere(where: any);
     delete(entity: string): QueryExpression;
     insert(obj: any): QueryExpression;
     into(entity: string): QueryExpression;
     update(entity: string): QueryExpression;
     set(obj: any): QueryExpression;
-    select(props: Array<any>);
+    select(...field: Array<any>): QueryExpression;
     count(alias: string): QueryExpression;
     from(alias: string): QueryExpression;
     join(entity: any, props?: any, alias?: any): QueryExpression;
@@ -41,9 +41,9 @@ export declare class QueryExpression {
     orderByDescending(name: string): QueryExpression;
     thenBy(name: string): QueryExpression;
     thenByDescending(name: string): QueryExpression;
-    groupBy(name: string): QueryExpression;
-    or(name: string): QueryExpression;
-    and(name: string): QueryExpression;
+    groupBy(...field: Array<any>): QueryExpression;
+    or(field: any): QueryExpression;
+    and(field: any): QueryExpression;
     equal(value: any): QueryExpression;
     notEqual(value: any): QueryExpression;
     in(values: Array<any>): QueryExpression;
@@ -89,7 +89,7 @@ export declare class QueryField {
     constructor(name?: string);
     $name: string;
 
-    static select(name: string): QueryField;
+    static select(field: any): QueryField;
     static count(name: string): QueryField;
     static min(name: string): QueryField;
     static max(name: string): QueryField;
@@ -124,6 +124,7 @@ export declare class QueryField {
     as(alias: string): QueryField;
     concat(...str:string[]): QueryField;
     name(): string;
+    getName(): string;
 
 }
 
