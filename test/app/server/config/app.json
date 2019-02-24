@@ -38,6 +38,11 @@
             "options": {
                 "database":"db/local.db"
             }
+        },
+        { "name":"testing", "invariantName":"sqlite", "default":false,
+            "options": {
+                "database":"test/app/db/local.db"
+            }
         }
     ],
     "mimes": [

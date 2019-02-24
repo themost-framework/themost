@@ -181,7 +181,7 @@ QueryUtils.query = function(entity) {
 };
 /**
  * Initializes a select query expression
- * @param {*...} fields
+ * @param {...*} fields
  */
 QueryUtils.select = function(fields) {
     var q = new QueryExpression();

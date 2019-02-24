@@ -8,7 +8,10 @@
  */
 ///
 var sprintf = require('sprintf').sprintf;
+var Args = require('@themost/common').Args;
 var _ = require('lodash');
+var Symbol = require('symbol');
+var aggregate = Symbol();
 // eslint-disable-next-line no-unused-vars
 //noinspection JSUnusedLocalSymbols
 require('./natives');
@@ -134,7 +137,13 @@ function QueryExpression()
     /**
      * @private
      */
-    this.privates = function() { };
+    Object.defineProperty(this, 'privates', {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: { }
+    });
+    
 
 }
 
@@ -145,9 +154,9 @@ function QueryExpression()
  */
 QueryExpression.prototype.prop = function(s)
 {
-    if (typeof s === 'undefined') { return this.privates.__prop; }
-    if (_.isNil(s)) { delete this.privates.__prop; }
-    this.privates.__prop = s;
+    if (typeof s === 'undefined') { return this.privates.property; }
+    if (_.isNil(s)) { delete this.privates.property; }
+    this.privates.property = s;
 };
 
 /**
@@ -162,7 +171,7 @@ QueryExpression.prototype.prop = function(s)
  */
 QueryExpression.prototype.clone = function()
 {
-    return _.assign(new QueryExpression(), this);
+    return _.cloneDeep(this);
 };
 
 /**
@@ -215,7 +224,6 @@ QueryExpression.prototype.fields = function() {
     _.forEach(arr, function(x)
     {
         if (typeof x === 'string') {
-            //todo:add entity alias (if (/^[A-Za-z]+$/.test(x))
             re.lastIndex=0;
             if (!re.test(x))
                 fields.push(new QueryField(x));
@@ -238,7 +246,6 @@ QueryExpression.prototype.fields = function() {
             var table = Object.key(x.$entity), tableFields = x.$entity[table] || [];
             _.forEach(tableFields, function(y) {
                 if (typeof x === 'string') {
-                    //todo:add table alias (if (/^[A-Za-z]+$/.test(y))
                     fields.push(new QueryField(y));
                 }
                 else {
@@ -341,19 +348,19 @@ QueryExpression.prototype.distinct = function(value)
 };
 
 /**
- * @param name {string|QueryField|*}
+ * @param {*} field
  * @returns {QueryExpression}
  */
-QueryExpression.prototype.where = function(name)
+QueryExpression.prototype.where = function(field)
 {
-    if (_.isNil(name))
+    if (_.isNil(field))
         throw new Error('Left operand cannot be empty. Expected string or object.');
     delete this.$where;
-    if (typeof name === 'string') {
-        this.prop(name);
+    if (typeof field === 'string') {
+        this.prop(field);
     }
-    else if (typeof name === 'object') {
-        this.prop(QueryField.prototype.nameOf.call(name))
+    else if (typeof field === 'object') {
+        this.prop(QueryField.prototype.nameOf.call(field))
     }
     else {
         throw new Error('Invalid left operand. Expected string or object.');
@@ -471,36 +478,49 @@ QueryExpression.prototype.set = function(obj)
 };
 
 /**
- *
- * @param {Array} props
+ * Prepares a SELECT statement by defining a field or an array of fields
+ * we want to select data from
+ * @param {...*} field - A param array of fields that are going to be used in select statement
  * @returns {QueryExpression}
+ * @example
+ * const q = new QueryExpression().from('UserBase').select('id', 'name');
+ * const formatter = new SqlFormatter();
+ * console.log('SQL', formatter.formatSelect(q))
+ * // SELECT UserBase.id, UserBase.name FROM UserBase
  */
-QueryExpression.prototype.select = function(props)
+/* eslint-disable-next-line no-unused-vars */
+QueryExpression.prototype.select = function(field)
 {
-    if (_.isNil(props))
+    // get argument
+    var arr = Array.prototype.slice.call(arguments);
+    if (arr.length === 0) {
         return this;
-    var fields = [];
-    if (!_.isArray(props))
-    {
-        if (typeof props === 'string')
-            fields.push(props);
-        else
-            throw new Error('Invalid argument type. Select argument must be an array.');
     }
-    else
-        fields = props;
+    // validate arguments
+    var fields = [];
+    arr.forEach( function (x) {
+        // backward compatibility
+        // any argument may be an array of fields
+        // this operation needs to be deprecated
+        if (Array.isArray(x)) {
+            fields.push.apply(fields, x);
+        }
+        else {
+            fields.push(x);
+        }
+    });
     //if entity is already defined
-    if (this.privates.__entity)
+    if (this.privates.entity)
     {
         //initialize $select property
         this.$select = {};
         //and set array of fields
-        this.$select[this.privates.__entity] = fields;
+        this.$select[this.privates.entity] = fields;
     }
     else
     {
         //otherwise store array of fields in temporary property and wait
-        this.privates.__fields = fields;
+        this.privates.fields = fields;
     }
     //delete other properties (if any)
     delete this.$delete;
@@ -541,14 +561,14 @@ QueryExpression.prototype.from = function(entity) {
     else {
         name = entity.valueOf();
     }
-    if (this.privates.__fields) {
+    if (this.privates.fields) {
         //initialize $select property
         this.$select = {};
         //and set array of fields
-        this.$select[name] = this.privates.__fields;
+        this.$select[name] = this.privates.fields;
     }
     else {
-        this.privates.__entity = name;
+        this.privates.entity = name;
     }
     //delete other properties (if any)
     delete this.$delete;
@@ -585,7 +605,7 @@ QueryExpression.prototype.join = function(entity, props, alias) {
         if (typeof alias === 'string')
             obj.$as=alias;
     }
-    this.privates.__expand =  { $entity: obj };
+    this.privates.expand =  { $entity: obj };
     //and return this object
     return this;
 };
@@ -598,7 +618,7 @@ QueryExpression.prototype.with = function(obj) {
 
     if (_.isNil(obj))
         return this;
-    if (_.isNil(this.privates.__expand))
+    if (_.isNil(this.privates.expand))
         throw new Error('Join entity cannot be empty when adding a join expression. Use QueryExpression.join(entity, props) before.');
     if (obj instanceof QueryExpression)
     {
@@ -611,31 +631,32 @@ QueryExpression.prototype.with = function(obj) {
             where = expr.$prepared ? { $and: [expr.$prepared, expr.$where] } : expr.$where;
         else if (expr.$prepared)
             where = expr.$prepared;
-        this.privates.__expand.$with = where;
+        this.privates.expand.$with = where;
     }
     else {
-        this.privates.__expand.$with = obj;
+        this.privates.expand.$with = obj;
     }
     if (_.isNil(this.$expand)) {
-        this.$expand = this.privates.__expand;
+        this.$expand = this.privates.expand;
     }
     else {
         if (_.isArray(this.$expand)) {
-            this.$expand.push(this.privates.__expand);
+            this.$expand.push(this.privates.expand);
         }
         else {
             //get expand object
             var expand = this.$expand;
             //and create array of expand objects
-            this.$expand = [expand, this.privates.__expand];
+            this.$expand = [expand, this.privates.expand];
         }
     }
     //destroy temp object
-    this.privates.__expand = null;
+    this.privates.expand = null;
     //and return QueryExpression
     return this;
 };
 
+// noinspection JSUnusedGlobalSymbols
 /**
  * Applies an ascending ordering to a query expression
  * @param name {string|Array}
@@ -650,6 +671,7 @@ QueryExpression.prototype.orderBy = function(name) {
     this.$order.push({ $asc: name });
     return this;
 };
+// noinspection JSUnusedGlobalSymbols
 /**
  * Applies a descending ordering to a query expression
  * @param name
@@ -696,26 +718,34 @@ QueryExpression.prototype.thenByDescending = function(name) {
     this.$order.push({ $desc: name });
     return this;
 };
+// noinspection JSUnusedGlobalSymbols
 /**
  *
- * @param name {string|Array}
+ * @param {...*} field
  * @returns {QueryExpression}
  */
-QueryExpression.prototype.groupBy = function(name) {
+/* eslint-disable-next-line no-unused-vars */
+QueryExpression.prototype.groupBy = function(field) {
 
-    if (_.isNil(name))
+    // get argument
+    var arr = Array.prototype.slice.call(arguments);
+    if (arr.length === 0) {
         return this;
-    if (_.isNil(this.$group))
-        this.$group = [];
-    var self = this;
-    if (_.isArray(name)) {
-        _.forEach(name, function (x) {
-            if (x)
-                self.$group.push(x);
-        });
     }
-    else
-        this.$group.push(name);
+    // validate arguments
+    var fields = [];
+    arr.forEach( function (x) {
+        // backward compatibility
+        // any argument may be an array of fields
+        // this operation needs to be deprecated
+        if (Array.isArray(x)) {
+            fields.push.apply(fields, x);
+        }
+        else {
+            fields.push(x);
+        }
+    });
+    this.$group = fields;
     return this;
 };
 /**
@@ -729,7 +759,7 @@ QueryExpression.prototype.__append = function(expr) {
         this.$where = expr;
     }
     else {
-        var op = this.privates.__expr;
+        var op = this.privates.expression;
         if (op) {
             //get current operator
             var keys = _.keys(this.$where);
@@ -743,48 +773,47 @@ QueryExpression.prototype.__append = function(expr) {
             }
         }
     }
-    delete this.privates.__prop;
-    delete this.privates.__expr;
-    delete this.privates.__aggr;
+    delete this.privates.property;
+    delete this.privates.expression;
 };
 /**
- * @param name {string|QueryField}
+ * @param {*} field
  * @returns {QueryExpression}
  */
-QueryExpression.prototype.or = function(name)
+QueryExpression.prototype.or = function(field)
 {
-    if (_.isNil(name))
+    if (_.isNil(field))
         throw new Error('Left operand cannot be empty. Expected string or object.');
-    if (typeof name === 'string') {
-        this.prop(name);
+    if (typeof field === 'string') {
+        this.prop(field);
     }
-    else if (typeof name === 'object') {
-        this.prop(QueryField.prototype.nameOf.call(name))
+    else if (typeof field === 'object') {
+        this.prop(QueryField.prototype.nameOf.call(field))
     }
     else {
         throw new Error('Invalid left operand. Expected string or object.');
     }
-    this.privates.__expr = '$or';
+    this.privates.expression = '$or';
     return this;
 };
 /**
- * @param name {string|QueryField|*}
+ * @param {*} field
  * @returns {QueryExpression}
  */
-QueryExpression.prototype.and = function(name)
+QueryExpression.prototype.and = function(field)
 {
-    if (_.isNil(name))
+    if (_.isNil(field))
         throw new Error('Left operand cannot be empty. Expected string or object.');
-    if (typeof name === 'string') {
-        this.prop(name);
+    if (typeof field === 'string') {
+        this.prop(field);
     }
-    else if (typeof name === 'object') {
-        this.prop(QueryField.prototype.nameOf.call(name))
+    else if (typeof field === 'object') {
+        this.prop(QueryField.prototype.nameOf.call(field))
     }
     else {
         throw new Error('Invalid left operand. Expected string or object.');
     }
-    this.privates.__expr = '$and';
+    this.privates.expression = '$and';
     return this;
 };
 /**
@@ -800,9 +829,9 @@ QueryExpression.prototype.equal = function(value)
     if (p0) {
         var comparison = value;
         //apply aggregation if any
-        if (typeof this.__aggr === 'object') {
-            comparison = QueryFieldAggregator.prototype.wrapWith.call(this.__aggr, value);
-            delete this.__aggr;
+        if (typeof this[aggregate] === 'object') {
+            comparison = QueryFieldAggregator.prototype.wrapWith.call(this[aggregate], value);
+            delete this[aggregate];
         }
         var expr = QueryFieldComparer.prototype.compareWith.call(p0, comparison);
         this.__append(expr);
@@ -829,9 +858,9 @@ QueryExpression.prototype.notEqual = function(value)
     var p0 = this.prop();
     if (p0) {
         var comparison = { $ne:value };
-        if (typeof this.__aggr === 'object') {
-            comparison = QueryFieldAggregator.prototype.wrapWith.call(this.__aggr,{ $ne:value });
-            delete this.__aggr;
+        if (typeof this[aggregate] === 'object') {
+            comparison = QueryFieldAggregator.prototype.wrapWith.call(this[aggregate],{ $ne:value });
+            delete this[aggregate];
         }
         var expr = QueryFieldComparer.prototype.compareWith.call(p0, comparison);
         this.__append(expr);
@@ -851,9 +880,9 @@ QueryExpression.prototype.in = function(values)
     var p0 = this.prop();
     if (p0) {
         var comparison = { $in : values };
-        if (typeof this.__aggr === 'object') {
-            comparison = QueryFieldAggregator.prototype.wrapWith.call(this.__aggr, comparison);
-            delete this.__aggr;
+        if (typeof this[aggregate] === 'object') {
+            comparison = QueryFieldAggregator.prototype.wrapWith.call(this[aggregate], comparison);
+            delete this[aggregate];
         }
         var expr = QueryFieldComparer.prototype.compareWith.call(p0, comparison);
         this.__append(expr);
@@ -872,9 +901,9 @@ QueryExpression.prototype.notIn = function(values)
     var p0 = this.prop();
     if (p0) {
         var comparison = { $nin : values };
-        if (typeof this.__aggr === 'object') {
-            comparison = QueryFieldAggregator.prototype.wrapWith.call(this.__aggr,{ $nin : values });
-            delete this.__aggr;
+        if (typeof this[aggregate] === 'object') {
+            comparison = QueryFieldAggregator.prototype.wrapWith.call(this[aggregate],{ $nin : values });
+            delete this[aggregate];
         }
         var expr = QueryFieldComparer.prototype.compareWith.call(p0, comparison);
         this.__append(expr);
@@ -891,9 +920,9 @@ QueryExpression.prototype.mod = function(value, result)
     var p0 = this.prop();
     if (p0) {
         var comparison = { $mod : [ value, result] };
-        if (typeof this.__aggr === 'object') {
-            comparison = QueryFieldAggregator.prototype.wrapWith.call(this.__aggr, comparison);
-            delete this.__aggr;
+        if (typeof this[aggregate] === 'object') {
+            comparison = QueryFieldAggregator.prototype.wrapWith.call(this[aggregate], comparison);
+            delete this[aggregate];
         }
         var expr = QueryFieldComparer.prototype.compareWith.call(p0, comparison);
         this.__append(expr);
@@ -911,9 +940,9 @@ QueryExpression.prototype.bit = function(value, result)
     var p0 = this.prop();
     if (p0) {
         var comparison = { $bit : [ value, result] };
-        if (typeof this.__aggr === 'object') {
-            comparison = QueryFieldAggregator.prototype.wrapWith.call(this.__aggr, comparison);
-            delete this.__aggr;
+        if (typeof this[aggregate] === 'object') {
+            comparison = QueryFieldAggregator.prototype.wrapWith.call(this[aggregate], comparison);
+            delete this[aggregate];
         }
         var expr = QueryFieldComparer.prototype.compareWith.call(p0, comparison);
         this.__append(expr);
@@ -932,16 +961,16 @@ QueryExpression.prototype.greaterThan = function(value)
     var p0 = this.prop();
     if (p0) {
         var comparison = { $gt:value };
-        if (typeof this.__aggr === 'object') {
-            comparison = QueryFieldAggregator.prototype.wrapWith.call(this.__aggr, comparison);
-            delete this.__aggr;
+        if (typeof this[aggregate] === 'object') {
+            comparison = QueryFieldAggregator.prototype.wrapWith.call(this[aggregate], comparison);
+            delete this[aggregate];
         }
         var expr = QueryFieldComparer.prototype.compareWith.call(p0, comparison);
         this.__append(expr);
     }
     return this;
 };
-
+// noinspection JSUnusedGlobalSymbols
 /**
  * @param value {RegExp|*}
  * @returns {QueryExpression}
@@ -954,16 +983,16 @@ QueryExpression.prototype.startsWith = function(value)
             throw new Error('Invalid argument. Expected string.');
         }
         var comparison = { $regex : '^' + value, $options:'i' };
-        if (typeof this.__aggr === 'object') {
-            comparison = QueryFieldAggregator.prototype.wrapWith.call(this.__aggr,{ $regex : '^' + value, $options:'i' });
-            delete this.__aggr;
+        if (typeof this[aggregate] === 'object') {
+            comparison = QueryFieldAggregator.prototype.wrapWith.call(this[aggregate],{ $regex : '^' + value, $options:'i' });
+            delete this[aggregate];
         }
         var expr = QueryFieldComparer.prototype.compareWith.call(p0, comparison);
         this.__append(expr);
     }
     return this;
 };
-
+// noinspection JSUnusedGlobalSymbols
 /**
  * @param value {*}
  * @returns {QueryExpression}
@@ -998,9 +1027,9 @@ QueryExpression.prototype.contains = function(value)
     if (p0) {
         var comparison = { $text: { $search: value } };
         //apply aggregation if any
-        if (typeof this.__aggr === 'object') {
-            comparison = QueryFieldAggregator.prototype.wrapWith.call(this.__aggr, comparison);
-            delete this.__aggr;
+        if (typeof this[aggregate] === 'object') {
+            comparison = QueryFieldAggregator.prototype.wrapWith.call(this[aggregate], comparison);
+            delete this[aggregate];
         }
         var expr = QueryFieldComparer.prototype.compareWith.call(p0, comparison );
         this.__append(expr);
@@ -1014,9 +1043,9 @@ QueryExpression.prototype.notContains = function(value)
     if (p0) {
         var comparison = { $text: { $search: value } };
         //apply aggregation if any
-        if (typeof this.__aggr === 'object') {
-            comparison = QueryFieldAggregator.prototype.wrapWith.call(this.__aggr, comparison);
-            delete this.__aggr;
+        if (typeof this[aggregate] === 'object') {
+            comparison = QueryFieldAggregator.prototype.wrapWith.call(this[aggregate], comparison);
+            delete this[aggregate];
         }
         var expr = { $not: QueryFieldComparer.prototype.compareWith.call(p0, comparison) };
         this.__append(expr);
@@ -1038,9 +1067,9 @@ QueryExpression.prototype.lowerThan = function(value)
     var p0 = this.prop();
     if (p0) {
         var comparison = { $lt:value };
-        if (typeof this.__aggr === 'object') {
-            comparison = QueryFieldAggregator.prototype.wrapWith.call(this.__aggr, comparison);
-            delete this.__aggr;
+        if (typeof this[aggregate] === 'object') {
+            comparison = QueryFieldAggregator.prototype.wrapWith.call(this[aggregate], comparison);
+            delete this[aggregate];
         }
         var expr = QueryFieldComparer.prototype.compareWith.call(p0, comparison);
         this.__append(expr);
@@ -1061,9 +1090,9 @@ QueryExpression.prototype.lowerOrEqual = function(value)
     var p0 = this.prop();
     if (p0) {
         var comparison = { $lte:value };
-        if (typeof this.__aggr === 'object') {
-            comparison = QueryFieldAggregator.prototype.wrapWith.call(this.__aggr, comparison);
-            delete this.__aggr;
+        if (typeof this[aggregate] === 'object') {
+            comparison = QueryFieldAggregator.prototype.wrapWith.call(this[aggregate], comparison);
+            delete this[aggregate];
         }
         var expr = QueryFieldComparer.prototype.compareWith.call(p0, comparison);
         this.__append(expr);
@@ -1085,9 +1114,9 @@ QueryExpression.prototype.greaterOrEqual = function(value)
     var p0 = this.prop();
     if (p0) {
         var comparison = { $gte:value };
-        if (typeof this.__aggr === 'object') {
-            comparison = QueryFieldAggregator.prototype.wrapWith.call(this.__aggr, comparison);
-            delete this.__aggr;
+        if (typeof this[aggregate] === 'object') {
+            comparison = QueryFieldAggregator.prototype.wrapWith.call(this[aggregate], comparison);
+            delete this[aggregate];
         }
         var expr = QueryFieldComparer.prototype.compareWith.call(p0, comparison);
         this.__append(expr);
@@ -1105,10 +1134,10 @@ QueryExpression.prototype.between = function(value1, value2)
     var p0 = this.prop();
     if (p0) {
         var comparison1 = { $gte:value1}, comparison2 = { $lte:value2 };
-        if (typeof this.__aggr === 'object') {
+        if (typeof this[aggregate] === 'object') {
             comparison1 = QueryFieldAggregator.prototype.wrapWith({ $gte:value1} );
             comparison2 = QueryFieldAggregator.prototype.wrapWith({ $lte:value2} );
-            delete this.__aggr
+            delete this[aggregate]
         }
         var comp1 = QueryFieldComparer.prototype.compareWith.call(p0, comparison1);
         var comp2 = QueryFieldComparer.prototype.compareWith.call(p0, comparison2);
@@ -1165,7 +1194,7 @@ QueryExpression.zeroPad = function(number, length) {
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.add = function(x) {
-    this.__aggr = { $add:[ x, new QueryParameter() ] };
+    this[aggregate] = { $add:[ x, new QueryParameter() ] };
     return this;
 };
 /**
@@ -1173,7 +1202,7 @@ QueryExpression.prototype.add = function(x) {
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.subtract = function(x) {
-    this.__aggr = { $subtract:[ x, new QueryParameter() ] };
+    this[aggregate] = { $subtract:[ x, new QueryParameter() ] };
     return this;
 };
 /**
@@ -1181,7 +1210,7 @@ QueryExpression.prototype.subtract = function(x) {
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.multiply = function(x) {
-    this.__aggr = { $multiply:[ x, new QueryParameter() ] };
+    this[aggregate] = { $multiply:[ x, new QueryParameter() ] };
     return this;
 };
 /**
@@ -1189,7 +1218,7 @@ QueryExpression.prototype.multiply = function(x) {
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.divide = function(x) {
-    this.__aggr = { $divide:[ x, new QueryParameter() ] };
+    this[aggregate] = { $divide:[ x, new QueryParameter() ] };
     return this;
 };
 /**
@@ -1197,7 +1226,7 @@ QueryExpression.prototype.divide = function(x) {
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.round = function(n) {
-    this.__aggr = { $round:[ n, new QueryParameter() ] };
+    this[aggregate] = { $round:[ n, new QueryParameter() ] };
     return this;
 };
 /**
@@ -1206,7 +1235,7 @@ QueryExpression.prototype.round = function(n) {
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.substr = function(start,length) {
-    this.__aggr = { $substr:[ start, length, new QueryParameter() ] };
+    this[aggregate] = { $substr:[ start, length, new QueryParameter() ] };
     return this;
 };
 /**
@@ -1214,7 +1243,7 @@ QueryExpression.prototype.substr = function(start,length) {
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.indexOf = function(s) {
-    this.__aggr = { $indexOf:[ s, new QueryParameter() ] };
+    this[aggregate] = { $indexOf:[ s, new QueryParameter() ] };
     return this;
 };
 /**
@@ -1222,98 +1251,105 @@ QueryExpression.prototype.indexOf = function(s) {
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.concat = function(s) {
-    this.__aggr = { $concat:[ s, new QueryParameter()] };
+    this[aggregate] = { $concat:[ s, new QueryParameter()] };
     return this;
 };
 /**
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.trim = function() {
-    this.__aggr = { $trim: new QueryParameter() };
+    this[aggregate] = { $trim: new QueryParameter() };
     return this;
 };
 /**
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.length = function() {
-    this.__aggr = { $length: new QueryParameter() };
+    this[aggregate] = { $length: new QueryParameter() };
     return this;
 };
 /**
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.getDate = function() {
-    this.__aggr = { $date: new QueryParameter() };
+    this[aggregate] = { $date: new QueryParameter() };
     return this;
 };
 /**
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.getYear = function() {
-    this.__aggr = { $year: new QueryParameter() };
+    this[aggregate] = { $year: new QueryParameter() };
     return this;
 };
+// noinspection JSUnusedGlobalSymbols
 /**
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.getMonth = function() {
-    this.__aggr = { $month: new QueryParameter() };
+    this[aggregate] = { $month: new QueryParameter() };
     return this;
 };
+// noinspection JSUnusedGlobalSymbols
 /**
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.getDay = function() {
-    this.__aggr = { $dayOfMonth: new QueryParameter() };
+    this[aggregate] = { $dayOfMonth: new QueryParameter() };
     return this;
 };
+// noinspection JSUnusedGlobalSymbols
 /**
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.getHours = function() {
-    this.__aggr = { $hour: new QueryParameter() };
+    this[aggregate] = { $hour: new QueryParameter() };
     return this;
 };
+// noinspection JSUnusedGlobalSymbols
 /**
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.getMinutes = function() {
-    this.__aggr = { $minutes: new QueryParameter() };
+    this[aggregate] = { $minutes: new QueryParameter() };
     return this;
 };
+// noinspection JSUnusedGlobalSymbols
 /**
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.getSeconds = function() {
-    this.__aggr = { $seconds: new QueryParameter() };
+    this[aggregate] = { $seconds: new QueryParameter() };
     return this;
 };
 /**
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.floor = function() {
-    this.__aggr = { $floor: new QueryParameter() };
+    this[aggregate] = { $floor: new QueryParameter() };
     return this;
 };
 /**
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.ceil = function() {
-    this.__aggr = { $ceiling: new QueryParameter() };
+    this[aggregate] = { $ceiling: new QueryParameter() };
     return this;
 };
+// noinspection JSUnusedGlobalSymbols
 /**
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.toLocaleLowerCase = function() {
-    this.__aggr = { $toLower: new QueryParameter() };
+    this[aggregate] = { $toLower: new QueryParameter() };
     return this;
 };
+// noinspection JSUnusedGlobalSymbols
 /**
  * @returns {QueryExpression}
  */
 QueryExpression.prototype.toLocaleUpperCase = function() {
-    this.__aggr = { $toUpper: new QueryParameter() };
+    this[aggregate] = { $toUpper: new QueryParameter() };
     return this;
 };
 
@@ -1424,6 +1460,11 @@ QueryEntity.prototype.right = function() {
  */
 function QueryField(obj) {
     if (typeof  obj === 'string') {
+        /**
+         * @property QueryField#$name
+         * @private
+         * @type {string}
+         */
         this.$name = obj;
     }
     else if (_.isObject(obj)) {
@@ -1431,17 +1472,22 @@ function QueryField(obj) {
     }
 }
 /**
- * @param name {string} The name of the field that is going to be selected
+ * Sets the name of a query field
+ * @param name {string} - A string which represents a field name
+ * @example
+ * // { $name: 'price' }
+ * let field = new QueryField().select('price');
  * @returns {QueryField}
  */
 QueryField.prototype.select = function(name)
 {
-    if (typeof name !== 'string')
-        throw  new Error('Invalid argument. Expected string');
-    //clear object
+    // validate name
+    Args.notString(name, 'name');
+    // clear object
     Object.clear(this);
-    // field as string e.g. { $name: 'price' }
+    // set field name
     this.$name = name;
+    // return this
     return this;
 };
 
@@ -1495,62 +1541,106 @@ QueryField.prototype.from = function(entity)
     return this;
 };
 
-
+/**
+ * Defines a COUNT() query expression for the given field
+ * @example
+ * // { orderCount: { $count: 'order' } }
+ * let field = new QueryField().count('order').as('orderCount')
+ * @param {string} name - A string which represents a field name
+ * @returns {QueryField}
+ */
 QueryField.prototype.count = function(name) {
-    if (typeof name !== 'string')
-        throw  new Error('Invalid argument. Expected string');
+    // validate name argument
+    Args.notString(name, 'name');
     //clear object
     Object.clear(this);
-    // field as aggregate function e.g. { price: { $count: 'price' } }
+    // set count aggregate function
     this[name] = { $count: name };
+    // return this
     return this;
 };
 /**
  * @param {...string} str
  * @return {QueryField}
  */
+/* eslint-disable-next-line no-unused-vars */
 QueryField.prototype.concat = function(str) {
     this.$name.concat.apply(this.$name, Array.prototype.slice.call(arguments));
     return this;
 };
-
+/**
+ * Defines a SUM() query expression for the given field
+ * @param {string} name - A string which represents a field name
+ * // { total: { $sum: 'price' } }
+ * let field = new QueryField().sum('price').as('total')
+ * @returns {QueryField}
+ */
 QueryField.prototype.sum = function(name) {
-    if (typeof name !== 'string')
-        throw  new Error('Invalid argument. Expected string');
+    // validate field
+    Args.notString(name, 'name');
     //clear object
     Object.clear(this);
     // field as aggregate function e.g. { price: { $sum: 'price' } }
     this[name] = { $sum: name };
     return this;
 };
-
+/**
+ * Defines a MIN() query expression for the given field
+ * @param {string} name - A string which represents a field name
+ * // { minimumPrice: { $min: 'price' } }
+ * let field = new QueryField().sum('price').as('minimumPrice')
+ * @returns {QueryField}
+ */
 QueryField.prototype.min = function(name) {
     if (typeof name !== 'string')
         throw  new Error('Invalid argument. Expected string');
     //clear object
     Object.clear(this);
-    // field as aggregate function e.g. { price: { $min: 'price' } }
+    // set aggregate function
     this[name] = { $min: name };
     return this;
 };
-
+/**
+ * Defines an AVG() query expression for the given field
+ * @param {string} name - A string which represents a field name
+ * // { averagePrice: { $avg: 'price' } }
+ * let field = new QueryField().sum('price').as('averagePrice')
+ * @returns {QueryField}
+ */
 QueryField.prototype.average = function(name) {
-    if (typeof name !== 'string')
-        throw  new Error('Invalid argument. Expected string');
+    // validate field
+    Args.notString(name, 'name');
     //clear object
     Object.clear(this);
-    // field as aggregate function e.g. { price: { $avg: 'price' } }
+    // set aggregate function
     this[name] = { $avg: name };
     return this;
 };
-
+/**
+ * Defines an AVG() query expression for the given field
+ * @param {string} name - A string which represents a field name
+ * // { averagePrice: { $avg: 'price' } }
+ * let field = new QueryField().sum('price').as('averagePrice')
+ * @returns {QueryField}
+ */
+QueryField.prototype.avg = function(name) {
+    return this.average(name);
+};
+/**
+ * Defines a MAX() query expression for the given field
+ * @param {string} name - A string which represents a field name
+ * // { maxPrice: { $max: 'price' } }
+ * let field = new QueryField().max('price').as('maxPrice')
+ * @returns {QueryField}
+ */
 QueryField.prototype.max = function(name) {
-    if (typeof name !== 'string')
-        throw  new Error('Invalid argument. Expected string');
+    // validate field
+    Args.notString(name, 'name');
     //clear object
     Object.clear(this);
-    // field as aggregate function e.g. { price: { $max: 'price' } }
+    // set aggregate function
     this[name] = { $max: name };
+    // return this
     return this;
 };
 
@@ -1584,8 +1674,11 @@ QueryField.prototype.as = function(alias) {
     return this;
 };
 
-
-QueryField.prototype.name = function() {
+/**
+ * Gets query field name
+ * @returns {string}
+ */
+QueryField.prototype.getName = function() {
     var name = null;
     if (typeof this.$name === 'string') {
         name = this.$name
@@ -1604,7 +1697,6 @@ QueryField.prototype.name = function() {
         else
             return name.split('.')[1];
     }
-    return null;
 };
 
 QueryField.prototype.nameOf = function() {
@@ -1630,19 +1722,18 @@ QueryField.prototype.valueOf = function() {
     return this.$name;
 };
 /**
- * @param name {string}
+ * @param {*} field
  * @returns {QueryField}
  */
-QueryField.select = function(name) {
-    return new QueryField(name);
+QueryField.select = function(field) {
+    return new QueryField(field);
 };
 /**
  * @param name {string}
  * @returns {QueryField}
  */
 QueryField.count = function(name) {
-    var f = new QueryField();
-    return f.count(name);
+    return new QueryField().count(name);
 };
 
 /**
@@ -1650,40 +1741,35 @@ QueryField.count = function(name) {
  * @returns {QueryField}
  */
 QueryField.min = function(name) {
-    var f = new QueryField();
-    return f.min(name);
+    return new QueryField().min(name);
 };
 /**
  * @param name {string}
  * @returns {QueryField}
  */
 QueryField.max = function(name) {
-    var f = new QueryField();
-    return f.max(name);
+    return new QueryField().max(name);
 };
 /**
  * @param name {string}
  * @returns {QueryField}
  */
 QueryField.average = function(name) {
-    var f = new QueryField();
-    return f.average(name);
+    return new QueryField().average(name);
 };
 /**
  * @param name {string}
  * @returns {QueryField}
  */
 QueryField.avg = function(name) {
-    var f = new QueryField();
-    return f.average(name);
+    return new QueryField().average(name);
 };
 /**
  * @param name {string}
  * @returns {QueryField}
  */
 QueryField.sum = function(name) {
-    var f = new QueryField();
-    return f.sum(name);
+    return new QueryField().sum(name);
 };
 /**
  * @param {string} name
@@ -1691,7 +1777,7 @@ QueryField.sum = function(name) {
  */
 QueryField.floor = function(name) {
     var f = { };
-    f[name] = { $floor:[ QueryField.select(name) ] };
+    f[name] = { $floor:[ new QueryField(name) ] };
     return _.assign(new QueryField(), f);
 };
 
@@ -1701,7 +1787,7 @@ QueryField.floor = function(name) {
  */
 QueryField.ceil = function(name) {
     var f = { };
-    f[name] = { $ceiling:[ QueryField.select(name) ] };
+    f[name] = { $ceiling:[ new QueryField(name) ] };
     return _.assign(new QueryField(), f);
 };
 
@@ -1712,7 +1798,7 @@ QueryField.ceil = function(name) {
  */
 QueryField.modulo = function(name, divider) {
     var f = { };
-    f[name] = { $mod:[ QueryField.select(name), divider ] };
+    f[name] = { $mod:[ new QueryField(name), divider ] };
     return _.assign(new QueryField(), f);
 };
 
@@ -1723,7 +1809,7 @@ QueryField.modulo = function(name, divider) {
  */
 QueryField.add = function(name, x) {
     var f = { };
-    f[name] = { $add:[ QueryField.select(name), x ] };
+    f[name] = { $add:[ new QueryField(name), x ] };
     return _.assign(new QueryField(), f);
 };
 /**
@@ -1733,7 +1819,7 @@ QueryField.add = function(name, x) {
  */
 QueryField.subtract = function(name, x) {
     var f = { };
-    f[name] = { $subtract:[ QueryField.select(name), x ] };
+    f[name] = { $subtract:[ new QueryField(name), x ] };
     return _.assign(new QueryField(), f);
 };
 
@@ -1744,7 +1830,7 @@ QueryField.subtract = function(name, x) {
  */
 QueryField.divide = function(name, divider) {
     var f = { };
-    f[name] = { $divide:[ QueryField.select(name), divider ] };
+    f[name] = { $divide:[ new QueryField(name), divider ] };
     return _.assign(new QueryField(), f);
 };
 /**
@@ -1754,7 +1840,7 @@ QueryField.divide = function(name, divider) {
  */
 QueryField.multiply = function(name, multiplier) {
     var f = { };
-    f[name] = { $multiply:[ QueryField.select(name), multiplier ] };
+    f[name] = { $multiply:[ new QueryField(name), multiplier ] };
     return _.assign(new QueryField(), f);
 };
 
@@ -1765,7 +1851,7 @@ QueryField.multiply = function(name, multiplier) {
  */
 QueryField.round = function(name, n) {
     var f = { };
-    f[name] = { $round:[ QueryField.select(name), typeof n !== 'number' ? n : 2 ] };
+    f[name] = { $round:[ new QueryField(name), typeof n !== 'number' ? n : 2 ] };
     return _.assign(new QueryField(), f);
 };
 
@@ -1775,7 +1861,7 @@ QueryField.round = function(name, n) {
  */
 QueryField.strLength = function(name) {
     var f = { };
-    f[name] = { $length:[ QueryField.select(name) ] };
+    f[name] = { $length:[ new QueryField(name) ] };
     return _.assign(new QueryField(), f);
 };
 /**
@@ -1784,7 +1870,7 @@ QueryField.strLength = function(name) {
  */
 QueryField.trim = function(name) {
     var f = { };
-    f[name] = { $trim:[ QueryField.select(name) ] };
+    f[name] = { $trim:[ new QueryField(name) ] };
     return _.assign(new QueryField(), f);
 };
 /**
@@ -1793,7 +1879,7 @@ QueryField.trim = function(name) {
  */
 QueryField.year = function(name) {
     var f = { };
-    f[name] = { $year:[ QueryField.select(name) ] };
+    f[name] = { $year:[ new QueryField(name) ] };
     return _.assign(new QueryField(), f);
 };
 /**
@@ -1802,7 +1888,7 @@ QueryField.year = function(name) {
  */
 QueryField.day = function(name) {
     var f = { };
-    f[name] = { $day:[ QueryField.select(name) ] };
+    f[name] = { $day:[ new QueryField(name) ] };
     return _.assign(new QueryField(), f);
 };
 /**
@@ -1811,7 +1897,7 @@ QueryField.day = function(name) {
  */
 QueryField.date = function(name) {
     var f = { };
-    f[name] = { $date:[ QueryField.select(name) ] };
+    f[name] = { $date:[ new QueryField(name) ] };
     return _.assign(new QueryField(), f);
 };
 /**
@@ -1820,7 +1906,7 @@ QueryField.date = function(name) {
  */
 QueryField.hour = function(name) {
     var f = { };
-    f[name] = { $hour:[ QueryField.select(name) ] };
+    f[name] = { $hour:[ new QueryField(name) ] };
     return _.assign(new QueryField(), f);
 };
 /**
@@ -1829,7 +1915,7 @@ QueryField.hour = function(name) {
  */
 QueryField.minute = function(name) {
     var f = { };
-    f[name] = { $minute:[ QueryField.select(name) ] };
+    f[name] = { $minute:[ new QueryField(name) ] };
     return _.assign(new QueryField(), f);
 };
 /**
@@ -1838,7 +1924,7 @@ QueryField.minute = function(name) {
  */
 QueryField.second = function(name) {
     var f = { };
-    f[name] = { $second:[ QueryField.select(name) ] };
+    f[name] = { $second:[ new QueryField(name) ] };
     return _.assign(new QueryField(), f);
 };
 
@@ -1848,7 +1934,7 @@ QueryField.second = function(name) {
  */
 QueryField.month = function(name) {
     var f = { };
-    f[name] = { $month:[ QueryField.select(name) ] };
+    f[name] = { $month:[ new QueryField(name) ] };
     return _.assign(new QueryField(), f);
 };
 
@@ -1884,16 +1970,7 @@ QueryFieldComparer.prototype.compareWith = function(comparison) {
     expr[name][aggr] = comparison;
     return expr;
 };
-// noinspection JSUnusedGlobalSymbols
-/**
- *
- * @param aggr
- * @param comparison
- */
-// eslint-disable-next-line no-unused-vars
-QueryFieldComparer.prototype.wrapWithAggregate = function(aggr, comparison) {
-    //
-};
+
 /**
  * @class
  * @constructor
@@ -1918,7 +1995,12 @@ function OpenDataQuery() {
     /**
      * @private
      */
-    this.privates = function() {};
+    Object.defineProperty(this, 'privates', {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: { }
+    });
 }
 /**
  * @private
@@ -2004,7 +2086,7 @@ OpenDataQuery.prototype.skip = function(val) {
     this.$skip = isNaN(val) ? 0 : val;
     return this;
 };
-
+// noinspection JSUnusedGlobalSymbols
 /**
  * @param {string} name
  * @returns OpenDataQuery
@@ -2015,7 +2097,7 @@ OpenDataQuery.prototype.orderBy = function(name) {
     }
     return this;
 };
-
+// noinspection JSUnusedGlobalSymbols
 /**
  * @param {String} name
  * @returns OpenDataQuery
@@ -2096,7 +2178,7 @@ OpenDataQuery.prototype.indexOf = function(name) {
     this.privates.left = 'indexof(' + name + ')';
     return this;
 };
-
+// noinspection JSUnusedGlobalSymbols
 /**
  * @param {*} name
  * @param {*} s
@@ -2106,7 +2188,7 @@ OpenDataQuery.prototype.endsWith = function(name, s) {
     this.privates.left = sprintf('endswith(%s,%s)',name,QueryExpression.escape(s));
     return this;
 };
-
+// noinspection JSUnusedGlobalSymbols
 /**
  * @param {*} name
  * @param {*} s
@@ -2280,16 +2362,17 @@ OpenDataQuery.prototype.ceiling = function(name) {
     this.privates.left = sprintf('ceiling(%s)',name);
     return this;
 };
-
+// noinspection JSUnusedGlobalSymbols
 /**
  * @param {*} value
  * @returns OpenDataQuery
  */
+// noinspection JSUnusedGlobalSymbols
 OpenDataQuery.prototype.notEqual = function(value) {
     this.privates.op = 'ne';this.privates.right = value; return this.append();
 };
 
-
+// noinspection JSUnusedGlobalSymbols
 /**
  * @param {*} value
  * @returns OpenDataQuery
