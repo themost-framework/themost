@@ -58,7 +58,7 @@
             "type": "boolean",
             "description": "A boolean which indicates whether this model is hidden or not. The default value is false."
         },
-        "model": {
+        "classPath": {
             "type": "string",
             "description": "A string which represents a module path that exports a class which maps this database model e.g. './models/some-model'"
         },
