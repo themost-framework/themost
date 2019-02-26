@@ -168,6 +168,11 @@
                         "type": "boolean",
                         "description": "A boolean value which indicates whether the associated object(s) will be automatically expanded or not."
                     },
+                    "nested": {
+                        "default": false,
+                        "type": "boolean",
+                        "description": "A boolean which indicates whether this attribute defines an association between two models where child objects are always treated as a part of the parent object."
+                    },
                     "mapping": {
                         "type": "object",
                         "properties": {
