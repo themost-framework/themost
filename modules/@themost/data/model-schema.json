@@ -1,5 +1,5 @@
 {
-    "id": "https://themost.io/models/2018/2/schema.json",
+    "id": "https://themost-framework.github.io/themost/models/2018/2/schema.json",
     "$schema": "http://json-schema.org/draft-04/schema#",
     "type": "object",
     "definitions": {
@@ -211,7 +211,7 @@
                                 "properties": {
                                     "$orderby": {
                                         "type": "string",
-                                        "description": "The $orderby system Query option specifies the order in which items are returned from the service. e.g. $orderby=dateCreated desc"
+                                        "description": "The $orderby system query option specifies the order in which items are returned from the service. e.g. $orderby=dateCreated desc"
                                     },
                                     "$select": {
                                         "type": "string",
@@ -219,11 +219,11 @@
                                     },
                                     "$expand": {
                                         "type": "string",
-                                        "description": "string\n(query)\t\nThe set of expanded entities can be further refined through the application of expand options, expressed as a semicolon-separated list of system query options."
+                                        "description": "The set of expanded entities can be further refined through the application of expand options, expressed as a semicolon-separated list of system query options."
                                     },
                                     "$levels": {
                                         "type": "string",
-                                        "description": "The value of the $levels option is a positive integer to specify the number of levels to expand e.g. $levels=2"
+                                        "description": "The value of the $levels system query option is a positive integer to specify the number of levels to expand e.g. $levels=2"
                                     }
                                 }
                             },
@@ -263,6 +263,54 @@
                                         "type"
                                     ]
                                 }
+                            }
+                        }
+                    },
+                    "validation": {
+                        "type": "object",
+                        "description": "Defines a data validator for this attribute",
+                        "properties": {
+                            "minValue": {
+                                "description": "Sets a value which represents the min value."
+                            },
+                            "maxValue": {
+                                "description": "Sets a value which represents the max value."
+                            },
+                            "minLength": {
+                                "type": "integer",
+                                "description": "Sets a value which represents the min length."
+                            },
+                            "maxLength": {
+                                "type": "integer",
+                                "description": "Sets a value which represents the max allowed length."
+                            },
+                            "pattern": {
+                                "type": "string",
+                                "description": "A string which represents a regular expression that validates values of this attribute."
+                            },
+                            "patternMessage": {
+                                "type": "string",
+                                "description": "A string which represents a message that is going to be used when pattern validation fails."
+                            },
+                            "message": {
+                                "type": "string",
+                                "description": "A string which represents a message that is going to be used when validation fails."
+                            },
+                            "type": {
+                                "type": "string",
+                                "description": "Defines a validation against a pre-defined data type e.g. PositiveInteger, URL etc",
+                                "oneOf": [
+                                    {
+                                        "$ref": "#/definitions/types"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/unknownTypes"
+                                    }
+                                ]
+                            },
+                            "validator": {
+                                "type": "string",
+                                "description": "A string which represetns the module path that exports a custom validator e.g. ./validators/custom-validator.js"
                             }
                         }
                     }
