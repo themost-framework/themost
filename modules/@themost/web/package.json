@@ -21,9 +21,9 @@
   "dependencies": {
     "@themost/client": "^2.0.5",
     "@themost/common": "^2.1.1",
-    "@themost/data": "^2.1.1",
+    "@themost/data": "^2.3.1-dev.2",
     "@themost/node": "^2.0.5",
-    "@themost/query": "^2.1.1",
+    "@themost/query": "^2.3.1-dev.1",
     "@themost/xml": "^2.1.1",
     "accepts": "^1.3.3",
     "async": "0.2.10",
