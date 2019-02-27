@@ -8,6 +8,7 @@ let app = new HttpApplication(path.resolve(__dirname));
 app.useStaticContent(path.resolve('./app'));
 //configure api
 ODataModelBuilderConfiguration.config(app).then((builder)=> {
+    builder.serviceRoot = '/api/';
     builder.hasContextLink((context)=> {
        return '/api/$metadata';
     });
