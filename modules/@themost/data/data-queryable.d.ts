@@ -2,6 +2,7 @@ import {DataModel} from "./data-model";
 import {DataContextEmitter} from "./types";
 
 export declare class DataQueryable implements DataContextEmitter {
+    constructor(model: DataModel);
     readonly model: DataModel;
     clone(): DataQueryable;
     where(attr: string): DataQueryable;
@@ -80,4 +81,16 @@ export declare class DataQueryable implements DataContextEmitter {
     toExpand(): string;
 
     ensureContext: void;
+}
+
+export declare class DataAttributeResolver {
+    orderByNestedAttribute(attr: string): any;
+    selecteNestedAttribute(attr: string): any;
+    selectAggregatedAttribute(aggregation: string, attribute: string, alias: string): any;
+    resolveNestedAttribute(attr: string): any;
+    resolveNestedAttributeJoin(memberExpr: string): any;
+    testAttribute(s: string): any;
+    testAggregatedNestedAttribute(s: string): any;
+    testNestedAttribute(s: string): any;
+    resolveJunctionAttributeJoin(attr: string): any;
 }

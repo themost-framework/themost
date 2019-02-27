@@ -366,6 +366,44 @@ function DataModel(obj) {
                     //otherwise set one-to-many attribute to false
                     x.many = false;
             }
+            // define virtual attribute
+            if (x.many) {
+                // set multiplicity property EdmMultiplicity.Many
+                x.multiplicity = 'Many';
+            }
+            if (x.nested) {
+                // try to find if current field defines one-to-one association
+                var mapping = x.mapping;
+                if (mapping &&
+                    mapping.associationType === 'association' &&
+                    mapping.parentModel === self.name) {
+                    /**
+                     * get child model
+                     * @type {DataModel}
+                     */
+                    var childModel = (mapping.childModel === self.name) ? self : self.context.model(mapping.childModel);
+                    // check child model constraints for one-to-one parent to child association
+                    if (childModel &&
+                        childModel.constraints &&
+                        childModel.constraints.length &&
+                        childModel.find(function (constraint) {
+                            return constraint.fields && constraint.fields.length === 1 && constraint.fields.indeOf(x.name) === 0;
+                        })) {
+                        // backward compatibility  issue
+                        // set [many] attribute to true because is being used by query processing
+                        x.many = true;
+                        // set multiplicity property EdmMultiplicity.ZeroOrOne or EdmMultiplicity.One
+                        if (typeof x.nullable === 'boolean') {
+                            x.multiplicity = x.nullable ? 'ZeroOrOne' : 'One';
+                        }
+                        else {
+                            x.multiplicity = 'ZeroOrOne';
+                        }
+
+                    }
+                }
+            }
+
             //re-define field model attribute
             if (typeof x.model === 'undefined')
                 x.model = self.name;
@@ -587,7 +625,6 @@ function unregisterContextListeners() {
     var moduleLoader = this.context.getConfiguration().getStrategy(ModuleLoader);
     //register configuration listeners
     if (this.eventListeners) {
-        var listenerModulePath;
         for (var i = 0; i < this.eventListeners.length; i++) {
             var listener = this.eventListeners[i];
             //get listener type (e.g. type: require('./custom-listener.js'))
@@ -1935,7 +1972,7 @@ function update_(obj, callback) {
     var self = this;
     //ensure callback
     callback = callback || function() {};
-    if ((obj==null) || obj === undefined) {
+    if (obj == null) {
         callback.call(self, null);
     }
     //set state

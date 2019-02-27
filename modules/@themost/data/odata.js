@@ -686,6 +686,7 @@ EntityTypeConfiguration.prototype.getBuilder = function() {
         return this;
     };
 
+// noinspection JSUnusedGlobalSymbols
 /**
  * @param {*} context
  * @param {*} any
@@ -705,6 +706,31 @@ EntityTypeConfiguration.prototype.mapInstance = function(context, any) {
     return any;
 };
 
+// noinspection JSUnusedGlobalSymbols
+/**
+ * @param {*} context
+ * @param {string} property
+ * @param {*} any
+ */
+EntityTypeConfiguration.prototype.mapInstanceProperty = function(context, property, any) {
+    var builder = this.getBuilder();
+    if (context && typeof builder.getContextLink === 'function') {
+        var contextLink = builder.getContextLink(context);
+        if (contextLink) {
+            if (context.request && context.request.url) {
+                contextLink += '#';
+                contextLink += context.request.url.replace(builder.serviceRoot, '');
+            }
+            return {
+                "@odata.context":contextLink,
+                "value": any
+            };
+        }
+    }
+    return {
+        "value": any
+    };
+};
 // noinspection JSUnusedGlobalSymbols
 /**
  *
@@ -980,6 +1006,32 @@ EntitySetConfiguration.prototype.mapInstance = function(context, any) {
     }
     return any;
 };
+// noinspection JSUnusedGlobalSymbols
+/**
+ * @param {*} context
+ * @param {string} property
+ * @param {*} any
+ */
+EntitySetConfiguration.prototype.mapInstanceProperty = function(context, property, any) {
+    var builder = this.getBuilder();
+    if (context && typeof builder.getContextLink === 'function') {
+        var contextLink = builder.getContextLink(context);
+        if (contextLink) {
+            if (context.request && context.request.url) {
+                contextLink += '#';
+                contextLink += context.request.url.replace(builder.serviceRoot, '');
+            }
+            return {
+                "@odata.context":contextLink,
+                "value": any
+            };
+        }
+    }
+    return {
+        "value": any
+    };
+};
+
 // noinspection JSUnusedGlobalSymbols
 /**
  *
@@ -1749,7 +1801,13 @@ LangUtils.inherits(ODataConventionModelBuilder, ODataModelBuilder);
                         var namespacedType = x.type;
                         //add navigation property
                         var isNullable = x.hasOwnProperty('nullable') ? x.nullable : true;
-                        modelEntityType.addNavigationProperty(name, namespacedType, x.many ? EdmMultiplicity.Many: (isNullable ? EdmMultiplicity.ZeroOrOne : EdmMultiplicity.One));
+                        // add an exception for one-to-one association
+                        if (x.multiplicity === EdmMultiplicity.ZeroOrOne || x.multiplicity === EdmMultiplicity.One) {
+                            modelEntityType.addNavigationProperty(name, namespacedType, x.multiplicity);
+                        }
+                        else {
+                            modelEntityType.addNavigationProperty(name, namespacedType, x.many ? EdmMultiplicity.Many: (isNullable ? EdmMultiplicity.ZeroOrOne : EdmMultiplicity.One));
+                        }
                         //add navigation property entity (if type is not a primitive type)
                         if (!strategy.dataTypes.hasOwnProperty(x.type)) {
                             self.addEntitySet(x.type, pluralize(x.type));

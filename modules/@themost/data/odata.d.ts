@@ -163,6 +163,7 @@ export declare class EntitySetConfiguration {
     hasEditLink(editLinkFunc: (context: DataContext) => string);
     mapInstance(context: DataContext, any: any): any;
     mapInstanceSet(context: DataContext, any: any): any;
+    mapInstanceProperty(context: DataContext, any: any): any;
 }
 
 export declare class SingletonConfiguration extends EntitySetConfiguration{
