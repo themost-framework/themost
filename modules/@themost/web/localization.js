@@ -18,6 +18,7 @@ var _ = require('lodash');
 var  Symbol = require('symbol');
 var sprintf = require('sprintf').sprintf;
 var i18n = require('i18n');
+var optionsProperty = Symbol('options');
 /**
  * @abstract
  * @class
@@ -251,7 +252,9 @@ function I18nLocalizationStrategy(app) {
         "directory": path.resolve(this.getApplication().getExecutionPath(),'i18n'),
         "autoReload": false
     }, configuration.getSourceAt('settings/i18n'));
-
+    // set options
+    this[culturesProperty] = options.locales;
+    this[defaultCultureProperty] = options.defaultLocale;
     i18n.configure(options);
 }
 LangUtils.inherits(I18nLocalizationStrategy, DefaultLocalizationStrategy);
@@ -281,7 +284,17 @@ I18nLocalizationStrategy.prototype.resolveLocalePath = function(locale) {
  * @returns {Array<string>}
  */
 I18nLocalizationStrategy.prototype.getCultures = function() {
-    return i18n.getLocales();
+    return this[culturesProperty];
+};
+
+/**
+ * Gets the default culture of an HTTP application
+ * @abstract
+ * @public
+ * @returns {string}
+ */
+I18nLocalizationStrategy.prototype.getDefaultCulture = function() {
+    return this[defaultCultureProperty];
 };
 
 /**
