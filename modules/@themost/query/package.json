@@ -1,9 +1,11 @@
 {
   "name": "@themost/query",
-  "version": "2.3.1-dev.1",
+  "version": "2.3.1",
   "description": "MOST Web Framework 2.0 - query module",
-  "module": "common.js",
-  "peerDependencies": {},
+  "main": "index.js",
+  "peerDependencies": {
+    "@themost/common": "^2.3.1"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/themost-framework/themost.git"
@@ -15,11 +17,9 @@
   },
   "homepage": "https://github.com/themost-framework/themost#readme",
   "dependencies": {
-    "@themost/common": "^2.0.8",
     "async": "0.2.10",
     "esprima": "^4.0.0",
     "lodash": "^4.17.4",
-    "source-map-support": "^0.4.11",
     "sprintf": "^0.1.5",
     "symbol": "^0.3.1"
   },
