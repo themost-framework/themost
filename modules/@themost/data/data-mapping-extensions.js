@@ -533,6 +533,11 @@ var mappingExtensions = {
                             if (_.isNil(childField)) {
                                 return deferred.reject("The specified field cannot be found on child model");
                             }
+                            // check if child field has a unique constraint with parent
+                            var hasUniqueConstraint = thisArg.getChildModel().find(function(constraint) {
+                                return constraint.fields && constraint.fields.length === 1 && constraint.fields.indexOf(childField.name) === 0;
+                            });
+
                             var foreignKeyField = childField.property || childField.name;
                             //Important Backward compatibility issue (<1.8.0)
                             //Description: if $levels parameter is not defined then set the default value to 0.
@@ -557,6 +562,11 @@ var mappingExtensions = {
                                         }
                                         return y[foreignKeyField] === x[keyField];
                                     });
+                                    // if child model has a unique constraint with parent
+                                    if (hasUniqueConstraint) {
+                                        // convert array to object
+                                        x[mapping.refersTo] = x[mapping.refersTo][0];
+                                    }
                                 });
                                 return deferred.resolve();
                             }).catch(function(err) {

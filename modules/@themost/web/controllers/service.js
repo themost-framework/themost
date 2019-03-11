@@ -28,6 +28,7 @@ var defineDecorator = require('../decorators').defineDecorator;
 var HttpBaseController = require('./base');
 var ODataModelBuilder = require('@themost/data/odata').ODataModelBuilder;
 var EdmMapping = require('@themost/data/odata').EdmMapping;
+var EdmType = require('@themost/data/odata').EdmType;
 var DefaultTopQueryOption = 50;
 /**
  * @classdesc HttpBaseController class describes a base controller.
@@ -641,9 +642,26 @@ HttpServiceController.prototype.getNavigationProperty = function(entitySet, navi
                             });
                         }
                         else {
-                            return q.where(mapping.childField).equal(key).getItems().then(function (result) {
-                                return Q.resolve(self.json(associatedEntitySet.mapInstanceSet(context,result)));
-                            });
+                            // get navigation property
+                            var property = thisEntitySet.getEntityTypeNavigationProperty(navigationProperty, true);
+                            if (property == null) {
+                                return Q.reject(_.assign(new HttpBadRequestError('Invalid navigation property.'), {
+                                    entitySet: thisEntitySet.name,
+                                    navigationProperty: navigationProperty
+                                }));
+                            }
+                            // if navigation property type is a collection of objects
+                            if (EdmType.IsCollection(property.type)) {
+                                return q.where(mapping.childField).equal(key).getItems().then(function (result) {
+                                    return Q.resolve(self.json(associatedEntitySet.mapInstanceSet(context,result)));
+                                });
+                            }
+                            else {
+                                // else send
+                                return q.where(mapping.childField).equal(key).getItem().then(function (result) {
+                                    return Q.resolve(self.json(thisEntitySet.mapInstanceProperty(context, navigationProperty, result)));
+                                });
+                            }
                         }
                     });
                 }

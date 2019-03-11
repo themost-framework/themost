@@ -1323,7 +1323,7 @@ DataQueryable.prototype.select = function(attr) {
         //get array of attributes
         if (_.isArray(arg)) {
             arr = [];
-            //check if field is a model dataview
+            //check if field is a data view
             if (arg.length === 1 && typeof arg[0] === 'string') {
                 if (self.model.dataviews(arg[0])) {
                     return self.select(arg[0]);
@@ -1339,8 +1339,9 @@ DataQueryable.prototype.select = function(attr) {
                                 "options":field.options
                             });
                         }
-                        else
+                        else {
                             arr.push(self.fieldOf(field.name));
+                        }
                     }
                     //test nested attribute and simple attribute expression
                     else {
@@ -1362,12 +1363,12 @@ DataQueryable.prototype.select = function(attr) {
     if (_.isNil(arr)) {
         if (!self.query.hasFields()) {
             // //enumerate fields
-            var fields = _.map(_.filter(self.model.attributes, function(x) {
+            var fields = self.model.attributes.filter(function (x) {
                 return (x.many === false) || (_.isNil(x.many)) || ((x.expandable === true) && (self.getLevels()>0));
-            }), function(x) {
-              return x.property || x.name;
+            }).map(function(x) {
+                return x.property || x.name;
             });
-            if (_.isNil(fields)) {
+            if (fields.length === 0) {
                 return this;
             }
             return self.select.apply(self, fields);

@@ -1,4 +1,4 @@
-import {EdmMapping} from '@themost/data/odata';
+const EdmMapping = require('@themost/data/odata').EdmMapping;
 let Account = require('./account-model');
 /**
  * @class

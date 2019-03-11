@@ -110,6 +110,7 @@ export declare interface DataModelPrivilege {
 }
 
 export declare class DataAssociationMapping {
+    constructor(obj: any);
     associationAdapter?: string;
     parentModel?: string;
     childModel?: string;
@@ -145,6 +146,7 @@ export declare class DataField {
     help?: string;
     validation?: any;
     virtual?: boolean;
+    multiplicity?: string;
     indexed?: boolean;
     size?: number;
 }

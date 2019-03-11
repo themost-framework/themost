@@ -1,0 +1,61 @@
+{
+    "$schema": "https://themost-framework.github.io/themost/models/2018/2/schema.json",
+    "@id": "https://themost.io/entities/PersonConfiguration",
+    "name": "PersonConfiguration",
+    "description": "Contains a collection of configuration for a person.",
+    "title": "PersonConfiguration",
+    "abstract": false,
+    "sealed": false,
+    "hidden": true,
+    "version": "1.1",
+    "implements": "Thing",
+    "fields": [
+        {
+            "@id": "http://schema.org/additionalType",
+            "name": "additionalType",
+            "title": "additionalType",
+            "description": "An additional type for the item.",
+            "type": "URL",
+            "value": "javascript:return this.model.name",
+            "nullable": false,
+            "readonly": true
+        },
+        {
+            "@id": "https://themost.io/properties/person",
+            "name": "person",
+            "title": "Person",
+            "type": "Person",
+            "editable": false,
+            "nullable": false
+        },
+        {
+            "@id": "https://themost.io/properties/defaultCurrency",
+            "name": "defaultCurrency",
+            "title": "Default Currency",
+            "type": "Text",
+            "nullable": false
+        }
+    ],
+    "constraints": [
+        {
+            "type": "unique",
+            "fields": [ "person" ]
+        }
+    ],
+    "privileges": [
+        {
+            "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 1,
+            "type": "global",
+            "account": "*"
+        },
+        {
+            "mask": 15,
+            "type": "global",
+            "account": "Administrators"
+        }
+    ]
+}

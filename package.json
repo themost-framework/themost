@@ -36,8 +36,16 @@
     "url": "https://github.com/kbarbounakis/themost/issues"
   },
   "homepage": "https://github.com/kbarbounakis/themost#readme",
-  "dependencies": {},
+  "dependencies": {
+    "@themost/node": "^2.1.1"
+  },
   "devDependencies": {
+    "@themost/client": "^2.1.3",
+    "@themost/common": "file:./modules/@themost/common",
+    "@themost/data": "file:modules/@themost/data",
+    "@themost/query": "file:./modules/@themost/query",
+    "@themost/web": "file:modules/@themost/web",
+    "@themost/xml": "file:modules/@themost/xml",
     "@types/chai": "^4.1.7",
     "@types/mocha": "^5.2.5",
     "babel-eslint": "^10.0.1",
