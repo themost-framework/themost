@@ -550,6 +550,8 @@ var mappingExtensions = {
                             if (thisQueryable.$silent)  { q.silent(); }
                             //final execute query
                             return q.getItems().then(function(childs) {
+                                // get referrer field of parent model
+                                var refersTo = thisArg.getParentModel().getAttribute(mapping.refersTo);
                                 _.forEach(arr, function(x) {
                                     var items = _.filter(childs, function(y) {
                                         if (!_.isNil(y[foreignKeyField]) && y[foreignKeyField].hasOwnProperty(keyField)) {
@@ -558,7 +560,7 @@ var mappingExtensions = {
                                         return y[foreignKeyField] === x[keyField];
                                     });
                                     // if parent field multiplicity attribute defines an one-to-one association
-                                    if (parentField.multiplicity === 'ZeroOrOne' || parentField.multiplicity === 'One') {
+                                    if (refersTo && (refersTo.multiplicity === 'ZeroOrOne' || refersTo.multiplicity === 'One')) {
                                         if (items[0] != null) {
                                             // todo raise error if there are more than one items
                                             // get only the first item
