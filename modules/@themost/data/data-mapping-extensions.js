@@ -533,11 +533,6 @@ var mappingExtensions = {
                             if (_.isNil(childField)) {
                                 return deferred.reject("The specified field cannot be found on child model");
                             }
-                            // check if child field has a unique constraint with parent
-                            var hasUniqueConstraint = thisArg.getChildModel().find(function(constraint) {
-                                return constraint.fields && constraint.fields.length === 1 && constraint.fields.indexOf(childField.name) === 0;
-                            });
-
                             var foreignKeyField = childField.property || childField.name;
                             //Important Backward compatibility issue (<1.8.0)
                             //Description: if $levels parameter is not defined then set the default value to 0.
@@ -555,17 +550,30 @@ var mappingExtensions = {
                             if (thisQueryable.$silent)  { q.silent(); }
                             //final execute query
                             return q.getItems().then(function(childs) {
+                                // get referrer field of parent model
+                                var refersTo = thisArg.getParentModel().getAttribute(mapping.refersTo);
                                 _.forEach(arr, function(x) {
-                                    x[mapping.refersTo] = _.filter(childs, function(y) {
+                                    var items = _.filter(childs, function(y) {
                                         if (!_.isNil(y[foreignKeyField]) && y[foreignKeyField].hasOwnProperty(keyField)) {
                                             return y[foreignKeyField][keyField] === x[keyField];
                                         }
                                         return y[foreignKeyField] === x[keyField];
                                     });
-                                    // if child model has a unique constraint with parent
-                                    if (hasUniqueConstraint) {
-                                        // convert array to object
-                                        x[mapping.refersTo] = x[mapping.refersTo][0];
+                                    // if parent field multiplicity attribute defines an one-to-one association
+                                    if (refersTo && (refersTo.multiplicity === 'ZeroOrOne' || refersTo.multiplicity === 'One')) {
+                                        if (items[0] != null) {
+                                            // todo raise error if there are more than one items
+                                            // get only the first item
+                                            x[mapping.refersTo] = items[0];
+                                        }
+                                        else {
+                                            // or nothing
+                                            x[mapping.refersTo] = null;
+                                        }
+                                    }
+                                    else {
+                                        // otherwise get all items
+                                        x[mapping.refersTo] = items;
                                     }
                                 });
                                 return deferred.resolve();
