@@ -834,7 +834,7 @@ DefaultModelClassLoaderStrategy.prototype.resolve = function(model) {
     else {
         //try to find module by using capitalize naming convention
         // e.g. OrderDetail -> OrderDetailModel.js
-        var classPath = PathUtils.join(this.getConfiguration().getExecutionPath(),'models',model.name.concat('Model.js'));
+        var classPath = PathUtils.join(this.getConfiguration().getExecutionPath(),'models',model.name.concat('Model'));
         try {
             modelDefinition[dataObjectClassProperty] = DataObjectClass = interopRequireDefault(classPath);
         }
@@ -843,7 +843,7 @@ DefaultModelClassLoaderStrategy.prototype.resolve = function(model) {
                 try {
                     //try to find module by using dasherize naming convention
                     // e.g. OrderDetail -> order-detail-model.js
-                    classPath = PathUtils.join(this.getConfiguration().getExecutionPath(),'models',_.dasherize(model.name).concat('-model.js'));
+                    classPath = PathUtils.join(this.getConfiguration().getExecutionPath(),'models',_.dasherize(model.name).concat('-model'));
                     modelDefinition[dataObjectClassProperty] = DataObjectClass = interopRequireDefault(classPath);
                 }
                 catch(err) {
