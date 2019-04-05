@@ -14,7 +14,8 @@ var Symbol = require('symbol');
 
 /**
  *
- * @interface
+ * @class
+ * @abstract
  * @param {string=} configPath
  */
 // eslint-disable-next-line no-unused-vars
@@ -63,7 +64,8 @@ IApplication.prototype.getConfiguration = function() {
 
 /**
  *
- * @interface
+ * @class
+ * @abstract
  * @param {IApplication} app
  */
 // eslint-disable-next-line no-unused-vars
@@ -99,9 +101,6 @@ ApplicationService.prototype.getApplication = function() {
     return this[applicationProperty];
 };
 
-if (typeof exports !== 'undefined')
-{
-    module.exports.IApplication = IApplication;
-    module.exports.IApplicationService = IApplicationService;
-    module.exports.ApplicationService = ApplicationService;
-}
+module.exports.IApplication = IApplication;
+module.exports.IApplicationService = IApplicationService;
+module.exports.ApplicationService = ApplicationService;

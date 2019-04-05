@@ -12,6 +12,7 @@ var _errors  = require('./errors');
 var _emitter  = require('./emitter');
 var _config  = require('./config');
 var _html  = require('./html');
+var _app  = require('./app');
 
 if (typeof exports !== 'undefined') {
 
@@ -57,5 +58,9 @@ if (typeof exports !== 'undefined') {
     module.exports.ConfigurationStrategy  = _config.ConfigurationStrategy;
     module.exports.ModuleLoaderStrategy  = _config.ModuleLoaderStrategy;
     module.exports.DefaultModuleLoaderStrategy  = _config.DefaultModuleLoaderStrategy;
+
+    module.exports.IApplication = _app.IApplication;
+    module.exports.IApplicationService = _app.IApplicationService;
+    module.exports.ApplicationService = _app.ApplicationService;
     
 }
