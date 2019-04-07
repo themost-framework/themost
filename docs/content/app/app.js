@@ -26,7 +26,7 @@ class WikiHomeController {
     constructor($element, $http, $state) {
         // get version
         const version = $state.params.version;
-        $http.get(`../wiki/${version}/_Sidebar.md`).then( response => {
+        $http.get(`../wiki/${version}/sidebar.md`).then( response => {
             if (response.status !== 200) {
                 // throw error
                 return;
