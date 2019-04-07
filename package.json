@@ -7,9 +7,7 @@
   "scripts": {
     "babel": "babel",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "test:express": "babel-node $NODE_DEBUG_OPTION ./test/express/server.es6",
-    "docs": "jsdoc --configure ./docs.conf.json",
-    "jsdoc2md": "jsdoc2md"
+    "serve:wiki": "gulp serve"
   },
   "engines": {
     "node": ">= 5.4.1"
@@ -36,23 +34,36 @@
     "url": "https://github.com/kbarbounakis/themost/issues"
   },
   "homepage": "https://github.com/kbarbounakis/themost#readme",
-  "dependencies": {
-    "@themost/node": "^2.1.1"
-  },
+  "dependencies": {},
   "devDependencies": {
+    "@primer/css": "^12.2.1",
     "@themost/client": "^2.1.3",
     "@themost/common": "file:./modules/@themost/common",
     "@themost/data": "file:modules/@themost/data",
+    "@themost/node": "^2.1.1",
     "@themost/query": "file:./modules/@themost/query",
     "@themost/web": "file:modules/@themost/web",
     "@themost/xml": "file:modules/@themost/xml",
+    "@types/angular-ui-router": "^1.1.40",
+    "@types/angularjs": "^1.5.14-alpha",
     "@types/chai": "^4.1.7",
     "@types/mocha": "^5.2.5",
+    "@types/showdown": "^1.9.2",
+    "@types/systemjs": "^0.20.6",
+    "@types/url-parse": "^1.4.3",
+    "@uirouter/angularjs": "^1.0.22",
+    "angular": "^1.7.8",
     "babel-eslint": "^10.0.1",
     "chai": "^4.2.0",
     "eslint": "^5.6.1",
-    "jsdoc-to-markdown": "^4.0.1",
+    "gulp": "^4.0.0",
+    "gulp-concat": "^2.6.1",
+    "gulp-connect": "^5.7.0",
+    "highlight.js": "^9.15.6",
+    "material-kit": "^2.0.4",
     "mocha": "^5.2.0",
+    "prettier": "^1.16.4",
+    "showdown": "^1.9.0",
     "supertest": "^3.4.2"
   }
 }

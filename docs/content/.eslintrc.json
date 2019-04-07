@@ -1,0 +1,30 @@
+{
+    "parserOptions": {
+        "sourceType": "module"
+    },
+    "env": {
+        "browser": true,
+        "node": true,
+        "es6": true,
+        "jquery": true
+    },
+    "globals": {
+        "angular": true,
+        "jQuery": true,
+        "System": true
+    },
+    "extends": "eslint:recommended",
+    "rules": {
+        "no-console": "warn",
+        "no-invalid-this": "warn",
+        "no-undef": "error",
+        "no-unused-vars": "warn",
+        "no-var": [
+            "error"
+        ],
+        "strict": [
+            2,
+            "never"
+        ]
+    }
+}
