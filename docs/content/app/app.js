@@ -141,7 +141,7 @@ function routeConfig($locationProvider, $stateProvider, $urlRouterProvider) {
     $urlRouterProvider.otherwise(function($injector){
         //eslint-disable-next-line no-unused-vars
         const state = $injector.get('$state');
-        return '/wiki/2.3.0/';
+        return '/wiki/2.3.0/index.md';
     });
     $locationProvider.html5Mode(false);
 }
