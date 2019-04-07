@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>MOST Web Framework | Wiki Pages</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="assets/img/favicon.png">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css"
+          integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr"
+          crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css?family=Inconsolata" rel="stylesheet">
+    <link href="https://unpkg.com/material-kit@2.0.4/assets/css/material-kit.css" rel="stylesheet">
+    <link href="https://unpkg.com/highlight.js@9.15.6/styles/github.css" rel="stylesheet">
+    <link href="assets/css/styles.css" rel="stylesheet">
+    <script src="https://unpkg.com/systemjs@0.21.6/dist/system.src.js"
+            integrity="sha384-Q7zFl8Z7DuQWEIKLHKCbCy0Qv1vOJ0X2WPacBMSS+IRiSqZPhjHNh0l/PAueUx4T"
+            crossorigin="anonymous"></script>
+    <script src="systemjs.config.js"></script>
+    <script src="https://unpkg.com/popper.js@1.11.0/dist/umd/popper.js" integrity="sha384-rhMnTp3C09wAlxvC1UYI1PqkEPo3eEAC1rdD8/MrovlWd+lF9zV1sPjSXuvb2WSM" crossorigin="anonymous"></script>
+</head>
+<body>
+<div ng-app="docs">
+    <nav class="navbar navbar-expand-lg navbar-primary bg-primary">
+        <button type="button" id="sidebarCollapse" class="btn btn-primary btn-sidebar-toggler">
+            <i class="fas fa-align-left"></i>
+        </button>
+        <a class="navbar-brand ml-4" ui-sref="wikiHome({version: '2.3.0'})">MOST Web Framework Wiki</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Docs</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">About</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <ui-view></ui-view>
+</div>
+</body>
+<script>
+    (function() {
+        // noinspection JSDeprecatedSymbols
+        return System.import('./app/app.js');
+    })();
+</script>
+</html>

@@ -1,0 +1,122 @@
+body {
+    background-color: #fff;
+}
+.hljs {
+    background-color: #f4f4f4;
+}
+/* ---------------------------------------------------
+    SIDEBAR STYLE
+----------------------------------------------------- */
+
+
+.wrapper {
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+}
+
+#sidebarCollapse {
+    padding: 12px 16px;
+    margin-left: 8px;
+}
+
+#sidebar {
+    min-width: 250px;
+    max-width: 250px;
+    background: #fafafa;
+    color: #242424;
+    transition: all 0.3s;
+    margin-top: -24px;
+    min-height: 100vh;
+    box-shadow: 6px 0 6px rgba(0,0,0,.1);
+}
+
+@media (max-width: 768px) {
+    #sidebar {
+        margin-left: -250px;
+    }
+}
+
+
+#sidebar.active {
+    margin-left: -250px;
+}
+
+#sidebar .sidebar-header {
+    padding: 20px;
+    background: #fafafa;
+}
+
+#sidebar ul.components {
+    padding: 20px 0;
+}
+
+#sidebar ul p {
+    color: #fff;
+    padding: 10px;
+}
+
+#sidebar ul li a {
+    padding: 4px 10px 4px 10px;
+    color: #242424;
+    font-size: 0.875em;
+    display: block;
+    position: relative;
+}
+
+#sidebar ul li a:hover {
+    color: #242424;
+    background: #e2e3e5;
+}
+
+#sidebar ul li.active>a,
+a[aria-expanded="true"] {
+    color: #242424;
+    background: #e2e3e5;
+}
+
+a[data-toggle="collapse"] {
+    position: relative;
+}
+
+.dropdown-toggle::after {
+    display: block;
+    position: absolute;
+    top: 50%;
+    right: 20px;
+    transform: translateY(-50%);
+}
+
+ul ul a {
+    font-size: 0.9em !important;
+    padding-left: 30px !important;
+    background: #fafafa;
+}
+
+ul.CTAs {
+    padding: 20px;
+}
+
+ul.CTAs a {
+    text-align: center;
+    font-size: 0.9em !important;
+    display: block;
+    border-radius: 5px;
+    margin-bottom: 5px;
+}
+
+a.download {
+    background: #fff;
+    color: #7386D5;
+}
+
+a.article,
+a.article:hover {
+    background: #6d7fcc !important;
+    color: #fff !important;
+}
+
+.hljs {
+    font-size: 0.75rem;
+    line-height: 1.5;
+}
