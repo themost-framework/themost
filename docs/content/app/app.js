@@ -22,6 +22,8 @@ hljs.registerLanguage('bash', bashLanguage);
 // initialize app
 const app = angular.module('docs', ['ngSanitize', 'ui.router']);
 
+// add url parser
+
 class WikiHomeController {
     constructor($element, $http, $state) {
         // get version
@@ -39,10 +41,10 @@ class WikiHomeController {
             ul.find('ul').addClass('list-unstyled');
             // enumerate anchors
             ul.find('a').each((index, element) => {
-                // get href attribute
-                const href = $(element).attr('href');
-                // build angular router link e.g. #!/wiki/2.3.0/Get-Started.md
-                $(element).attr('href', `#!/wiki/${version}/${href}`);
+                // get href attribute (add base url only for parsing)
+                const href = new URL($(element).attr('href'), `https://themost-framework.github.io/wiki/${version}/`);
+                // build angular router link e.g. #!/wiki/2.3.0/Get-Started.md (get URL.pathname)
+                $(element).attr('href', `#!${href.pathname}`);
                 // check if anchor has a sub-menu
                 const ul = $(element).closest('li').find('ul');
                 // if ul exists then anchor has child menu
@@ -93,8 +95,19 @@ class WikiPageViewController {
                 return;
             }
             const html = $(new showdown.Converter().makeHtml(response.data));
+            // format code
             html.find('code').addClass('hljs').each((index, codeElement) => {
                 hljs.highlightBlock(codeElement);
+            });
+            // parse markdown links
+            const locationPath = $location.path();
+            html.find('a').each((index, element) => {
+                const href = $(element).attr('href');
+               if (/\.md$/.test(href)) {
+                   const finalHref = new URL(href, `https://themost-framework.github.io${locationPath}`);
+                   // build angular router link e.g. #!/wiki/2.3.0/Get-Started.md (get URL.pathname)
+                   $(element).attr('href', `#!${finalHref.pathname}`);
+               }
             });
             $element.html(html);
         });
@@ -133,9 +146,19 @@ function routeConfig($locationProvider, $stateProvider, $urlRouterProvider) {
         url: '/:page',
         component: 'wikiPage'
     }).state({
-        name: 'childPage',
+        name: 'page2',
         parent: 'wikiHome',
-        url: '/:page/:childPage',
+        url: '/:dir1/:page',
+        component: 'wikiPage'
+    }).state({
+        name: 'page3',
+        parent: 'wikiHome',
+        url: '/:dir1/:dir2/:page',
+        component: 'wikiPage'
+    }).state({
+        name: 'page4',
+        parent: 'wikiHome',
+        url: '/:dir1/:dir2/:dir3/:page',
         component: 'wikiPage'
     });
     $urlRouterProvider.otherwise(function($injector){
