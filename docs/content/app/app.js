@@ -76,7 +76,7 @@ app.component('wikiHome', {
         template: `<div class="wrapper">
     <nav id="sidebar">
     </nav>
-    <div class="container clearfix">
+    <div class="container-fluid clearfix">
         <ui-view></ui-view>
     </div>
 </div>`,
