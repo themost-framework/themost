@@ -42,9 +42,11 @@ describe('Extend Data Model Class', () => {
         // get model
         const model = configuration.model('Account');
         // get model class
-        const AccountModelClass = loader.resolve(model);
+        let AccountModelClass = loader.resolve(model);
         // validate model class
         assert.isFunction(AccountModelClass);
+        // get model class
+        AccountModelClass = loader.resolve(configuration.model('Account'));
         return done();
     });
 
