@@ -610,7 +610,7 @@ DataConfigurationStrategy.prototype.model = function(name) {
  * @returns DataConfigurationStrategy - An instance of DataConfiguration class which represents the current data configuration
  */
 DataConfigurationStrategy.getCurrent = function() {
-    const configuration = ConfigurationBase.getCurrent();
+    var configuration = ConfigurationBase.getCurrent();
     if (!configuration.hasStrategy(DataConfigurationStrategy)) {
         configuration.useStrategy(DataConfigurationStrategy, DataConfigurationStrategy);
     }
@@ -722,7 +722,7 @@ DefaultSchemaLoaderStrategy.prototype.setModelPath = function(p) {
  * @returns {*}
  */
 DefaultSchemaLoaderStrategy.prototype.getModelDefinition = function(name) {
-    const getModelDefinitionSuper = DefaultSchemaLoaderStrategy.super_.prototype.getModelDefinition;
+    var getModelDefinitionSuper = DefaultSchemaLoaderStrategy.super_.prototype.getModelDefinition;
     var i;
     if (typeof name !== 'string')
         return;
@@ -737,7 +737,7 @@ DefaultSchemaLoaderStrategy.prototype.getModelDefinition = function(name) {
         return modelDefinition;
     }
     //otherwise open definition file
-    const modelPath = this.getModelPath();
+    var modelPath = this.getModelPath();
     //read files from models directory
     //store file list in a private variable
     if (typeof this[filesProperty] === 'undefined') {
@@ -817,12 +817,14 @@ LangUtils.inherits(DefaultModelClassLoaderStrategy,ModelClassLoaderStrategy);
 DefaultModelClassLoaderStrategy.prototype.resolve = function(model) {
     Args.notNull(model, 'Model');
     var dataObjectClassProperty = 'DataObjectClass';
-    var DataObjectClass = this[dataObjectClassProperty];
-    if (_.isFunction(DataObjectClass)) {
+    // get data object class from the given model
+    var DataObjectClass = model.DataObjectClass;
+    // if DataObjectClass is a constructor
+    if (typeof DataObjectClass === 'function') {
         return DataObjectClass;
     }
     //get model definition
-    const modelDefinition = this.getConfiguration().getStrategy(SchemaLoaderStrategy).getModelDefinition(model.name);
+    var modelDefinition = this.getConfiguration().getStrategy(SchemaLoaderStrategy).getModelDefinition(model.name);
     if (typeof model.classPath === 'string') {
         if (/^\.\//.test(model.classPath)) {
             modelDefinition[dataObjectClassProperty] = DataObjectClass = interopRequireDefault(PathUtils.join(this.getConfiguration().getExecutionPath(),model.classPath));
