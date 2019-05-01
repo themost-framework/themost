@@ -15,6 +15,7 @@
         "angular": false,
         "jQuery": false,
         "before": false,
+        "beforeEach": false,
         "after": false
     },
     "extends": "eslint:recommended",

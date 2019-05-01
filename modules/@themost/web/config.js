@@ -128,9 +128,23 @@ function HttpRouteConfiguration() {
 
     /**
      * @property
+     * @name HttpRouteConfiguration#path
+     * @type {string}
+     * @description Gets or sets a string which represents the root path of view templates which are going to be used for this route
+     */
+
+    /**
+     * @property
      * @name HttpRouteConfiguration#params
      * @type {*}
      * @description Gets or sets a set of parameters associated with an HTTP route e.g. static query parameters
+     */
+
+    /**
+     * @property
+     * @name HttpRouteConfiguration#name
+     * @type {string}
+     * @description Gets or sets a string which represents the name of this route.
      */
 }
 

@@ -18,6 +18,8 @@ export declare class HttpRouteConfiguration {
     format?: string;
     mime?: string;
     params?: any;
+    path?: string;
+    name?: string;
 }
 
 export declare class HttpHandlerConfiguration {
