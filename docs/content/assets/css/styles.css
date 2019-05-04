@@ -120,3 +120,18 @@ a.article:hover {
     font-size: 0.75rem;
     line-height: 1.5;
 }
+
+wiki-page table {
+    border: solid 1px #adb5bd;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+wiki-page table td {
+    padding: 8px 16px 8px 16px;
+}
+
+wiki-page table th {
+    padding: 8px 16px 4px 16px;
+}
+

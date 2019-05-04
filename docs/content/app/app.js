@@ -34,7 +34,7 @@ class WikiHomeController {
                 return;
             }
             const nav = $element.find('nav');
-            const ul = $(new showdown.Converter().makeHtml(response.data));
+            const ul = $(new showdown.Converter({tables: true}).makeHtml(response.data));
             // add class for parent ul
             ul.addClass('list-unstyled components');
             // add class to child ul
@@ -94,7 +94,7 @@ class WikiPageViewController {
                 // throw error
                 return;
             }
-            const html = $(new showdown.Converter().makeHtml(response.data));
+            const html = $(new showdown.Converter({tables: true}).makeHtml(response.data));
             // format code
             html.find('code').addClass('hljs').each((index, codeElement) => {
                 hljs.highlightBlock(codeElement);

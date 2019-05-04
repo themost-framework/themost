@@ -255,7 +255,7 @@ DataPermissionEventListener.prototype.validate = function(event, callback) {
                         and('target').equal('0').
                         and('workspace').equal(workspace).
                         and('account').in(accounts.map(function(x) { return x.id; })).
-                        and('mask').bit(requestMask).silent().count(function(err, count) {
+                        and('mask').bit(requestMask, requestMask).silent().count(function(err, count) {
                             if (err) {
                                 cb(err);
                             }
@@ -280,7 +280,7 @@ DataPermissionEventListener.prototype.validate = function(event, callback) {
                             and('target').equal(event.target[mapping.childField]).
                             and('workspace').equal(workspace).
                             and('account').in(accounts.map(function(x) { return x.id; })).
-                            and('mask').bit(requestMask).silent().count(function(err, count) {
+                            and('mask').bit(requestMask, requestMask).silent().count(function(err, count) {
                                 if (err) {
                                     cb(err);
                                 }
@@ -305,7 +305,7 @@ DataPermissionEventListener.prototype.validate = function(event, callback) {
                                     and('target').equal(result[mapping.childField]).
                                     and('workspace').equal(workspace).
                                     and('account').in(accounts.map(function(x) { return x.id; })).
-                                    and('mask').bit(requestMask).silent().count(function(err, count) {
+                                    and('mask').bit(requestMask, requestMask).silent().count(function(err, count) {
                                         if (err) {
                                             cb(err);
                                         }
@@ -335,7 +335,7 @@ DataPermissionEventListener.prototype.validate = function(event, callback) {
                         and('target').equal(event.target[model.primaryKey]).
                         and('workspace').equal(workspace).
                         and('account').in(accounts.map(function(x) { return x.id; })).
-                        and('mask').bit(requestMask).silent().count(function(err, count) {
+                        and('mask').bit(requestMask, requestMask).silent().count(function(err, count) {
                             if (err) {
                                 cb(err);
                             }
@@ -719,7 +719,7 @@ DataPermissionEventListener.prototype.beforeExecute = function(event, callback)
                             and('target').equal('0').
                             and('workspace').equal(1).
                             and('account').in(accounts.map(function(x) { return x.id; })).
-                            and('mask').bit(requestMask).silent().count(function(err, count) {
+                            and('mask').bit(requestMask, requestMask).silent().count(function(err, count) {
                                 if (err) {
                                     cb(err);
                                 }
@@ -756,7 +756,7 @@ DataPermissionEventListener.prototype.beforeExecute = function(event, callback)
                             and(perms1.select('privilege')).equal(model.name).
                             and(perms1.select('parentPrivilege')).equal(null).
                             and(perms1.select('workspace')).equal(workspace).
-                            and(perms1.select('mask')).bit(requestMask).
+                            and(perms1.select('mask')).bit(requestMask, requestMask).
                             and(perms1.select('account')).in(accounts.map(function(x) { return x.id; })).prepare(true);
                         assigned=true;
                         cb();
