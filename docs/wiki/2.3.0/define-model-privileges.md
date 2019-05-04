@@ -63,6 +63,16 @@ This filter expression normally uses user data, in any form, to validate user ac
 
 which gives read access to items that have been created by the interactive user.
 
+or
+
+    {
+        "mask": 1,
+        "type": "self",
+        "filter": "customer/user eq me()"
+    }
+
+which gives read access to items where associated customer is the interactive user.
+
 ###### Item privileges
 
 An item privilege definition activates row-level access rights for items that belong to a data model.
@@ -88,3 +98,31 @@ e.g.
      }
 
 which gives read access for an offer (with id equal to 1250) to guests.
+
+###### Parent privileges
+
+A parent item privilege definition activates row-level access rights for items 
+based on an association between an object and its children.
+
+Mask attribute sets the level of access rights that may be given by a parent item privilege.
+
+     {
+         "mask": 1,
+         "type": "parent",
+         "property": "itemOffered"
+     }
+     
+e.g.
+
+    {
+         "privilege": "Offer",
+         "parentPrivilege": "Product",
+         "account": {
+             "name": "Guests"
+         },
+         "target": 34,
+         "mask": 1,
+         "workspace": 1
+     }
+     
+which gives read access for offers of a specific product (with id equal to 34) to guests.
