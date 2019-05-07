@@ -89,7 +89,7 @@ describe('test service controller', () => {
     });
 
 
-    it('should use entity function which returns an entity', ()=> {
+    it('should use entity set function which returns an entity', ()=> {
         return request(app)
             .post('/api/users/FunctionReturnsEntity')
             .set('Accept', 'application/json')
@@ -101,7 +101,7 @@ describe('test service controller', () => {
             });
     });
 
-    it('should use entity function which returns a data queryable entity', ()=> {
+    it('should use entity set function which returns a data queryable entity', ()=> {
         return request(app)
             .post('/api/users/FunctionReturnsEntityQueryable')
             .set('Accept', 'application/json')
@@ -113,7 +113,7 @@ describe('test service controller', () => {
             });
     });
 
-    it('should use entity function which returns a collection of entities', ()=> {
+    it('should use entity set function which returns a collection of entities', ()=> {
         return request(app)
             .post('/api/users/FunctionReturnsEntityCollection')
             .set('Accept', 'application/json')
@@ -125,7 +125,7 @@ describe('test service controller', () => {
             });
     });
 
-    it('should use entity function which returns a data queryable collection of entities', ()=> {
+    it('should use entity set function which returns a data queryable collection of entities', ()=> {
         return request(app)
             .post('/api/users/FunctionReturnsEntityCollectionQueryable')
             .set('Accept', 'application/json')
@@ -149,31 +149,6 @@ describe('test service controller', () => {
                 assert.isArray(response.body.value);
                 const findGroup = response.body.value.find( x => x.name === 'Guests');
                 assert.isObject(findGroup);
-            });
-    });
-
-    it('should use entity function which returns a data object', ()=> {
-        return request(app)
-            .get('/api/users/me/memberof?group=Guests')
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-            .expect(200)
-            .then( response => {
-                assert.isObject(response.body);
-                assert.equal(response.body.name, 'Guests');
-            });
-    });
-
-    it('should use entity action which returns a data object', ()=> {
-        return request(app)
-            .post('/api/users/me/postMemberOf')
-            .set('Accept', 'application/json')
-            .send({ group: 'Guests' })
-            .expect('Content-Type', /json/)
-            .expect(200)
-            .then( response => {
-                assert.isObject(response.body);
-                assert.equal(response.body.name, 'Guests');
             });
     });
 
@@ -274,42 +249,6 @@ describe('test service controller', () => {
             });
     });
 
-    it('should use entity function (query entity by id) which returns a data object', ()=> {
-        return request(app)
-            .get('/api/users/1/memberof?group=Guests')
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-            .expect(200)
-            .then( response => {
-                assert.isObject(response.body);
-                assert.equal(response.body.name, 'Guests');
-            });
-    });
-
-    it('should use entity function (query entity by id) which returns a primitive value', ()=> {
-        return request(app)
-            .get('/api/users/1/InstanceFunc1')
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-            .expect(200)
-            .then( response => {
-                assert.isObject(response.body);
-                assert.equal(response.body.value.message, 'Hello');
-            });
-    });
-
-    it('should use entity action (query entity by id) which returns a data object', ()=> {
-        return request(app)
-            .post('/api/users/1/postMemberOf')
-            .set('Accept', 'application/json')
-            .send({ group: 'Guests' })
-            .expect('Content-Type', /json/)
-            .expect(200)
-            .then( response => {
-                assert.isObject(response.body);
-                assert.equal(response.body.name, 'Guests');
-            });
-    });
 
     it('should use entity action (query entity by id) which returns a primitive value', ()=> {
         return request(app)
@@ -333,6 +272,243 @@ describe('test service controller', () => {
                 assert.isObject(response.body);
                 assert.isArray(response.body.value);
                 assert.equal(response.body.value[0], 'Hello');
+            });
+    });
+
+    it('should use instance function (query entity by id) which returns an entity', ()=> {
+        return request(app)
+            .get('/api/users/1/InstanceFunctionReturnsEntity')
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .then( response => {
+                assert.isObject(response.body);
+                assert.equal(response.body['@odata.context'], '/api/$metadata#User');
+                assert.isUndefined(response.body.value);
+            });
+    });
+
+    it('should use instance function (query entity by id) which returns a data queryable entity', ()=> {
+        return request(app)
+            .get('/api/users/1/InstanceFunctionReturnsEntityQueryable')
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .then( response => {
+                assert.isObject(response.body);
+                assert.equal(response.body['@odata.context'], '/api/$metadata#User');
+                assert.isUndefined(response.body.value);
+            });
+    });
+
+    it('should use instance function (query entity by id) which returns a collection of entities', ()=> {
+        return request(app)
+            .get('/api/users/1/InstanceFunctionReturnsEntityCollection')
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .then( response => {
+                assert.isObject(response.body);
+                assert.equal(response.body['@odata.context'], '/api/$metadata#Group');
+                assert.isArray(response.body.value);
+            });
+    });
+
+    it('should use instance function (query entity by id) which returns a data queryable collection of entities', ()=> {
+        return request(app)
+            .get('/api/users/1/InstanceFunctionReturnsEntityCollectionQueryable')
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .then( response => {
+                assert.isObject(response.body);
+                assert.equal(response.body['@odata.context'], '/api/$metadata#Group');
+                assert.isArray(response.body.value);
+            });
+    });
+
+    it('should use instance function (query entity by id) which returns a primitive value', ()=> {
+        return request(app)
+            .get('/api/users/1/InstanceFunctionReturnString')
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .then( response => {
+                assert.isObject(response.body);
+                assert.equal(response.body.value, 'Hello');
+            });
+    });
+
+    it('should use instance function (query entity by id) which returns an array of primitive values', ()=> {
+        return request(app)
+            .get('/api/users/1/InstanceFunctionReturnStringArray')
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .then( response => {
+                assert.isObject(response.body);
+                assert.isArray(response.body.value);
+                assert.equal(response.body.value[0], 'Hello');
+            });
+    });
+
+    it('should use instance function (of entity set function result) which returns a primitive value', ()=> {
+        return request(app)
+            .get('/api/users/me/InstanceFunctionReturnString')
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .then( response => {
+                assert.isObject(response.body);
+                assert.equal(response.body['@odata.context'], '/api/$metadata#Edm.String');
+                assert.equal(response.body.value, 'Hello');
+            });
+    });
+
+    it('should use instance function (of entity set function result) which returns an array of primitive values', ()=> {
+        return request(app)
+            .get('/api/users/me/InstanceFunctionReturnStringArray')
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .then( response => {
+                assert.isObject(response.body);
+                assert.equal(response.body['@odata.context'], '/api/$metadata#Edm.String');
+                assert.isArray(response.body.value);
+                assert.equal(response.body.value[0], 'Hello');
+            });
+    });
+
+
+    it('should use instance function (of entity set function result) which returns an entity', ()=> {
+        return request(app)
+            .get('/api/users/me/InstanceFunctionReturnsEntity')
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .then( response => {
+                assert.isObject(response.body);
+                assert.equal(response.body['@odata.context'], '/api/$metadata#User');
+                assert.isUndefined(response.body.value);
+            });
+    });
+
+    it('should use instance function (of entity set function result) which returns a data queryable entity', ()=> {
+        return request(app)
+            .get('/api/users/me/InstanceFunctionReturnsEntityQueryable')
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .then( response => {
+                assert.isObject(response.body);
+                assert.equal(response.body['@odata.context'], '/api/$metadata#User');
+                assert.isUndefined(response.body.value);
+            });
+    });
+
+    it('should use instance function (of entity set function result) which returns a collection of entities', ()=> {
+        return request(app)
+            .get('/api/users/me/InstanceFunctionReturnsEntityCollection')
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .then( response => {
+                assert.isObject(response.body);
+                assert.equal(response.body['@odata.context'], '/api/$metadata#Group');
+                assert.isArray(response.body.value);
+            });
+    });
+
+    it('should use instance function (of entity set function result) which returns a data queryable collection of entities', ()=> {
+        return request(app)
+            .get('/api/users/me/InstanceFunctionReturnsEntityCollectionQueryable')
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .then( response => {
+                assert.isObject(response.body);
+                assert.equal(response.body['@odata.context'], '/api/$metadata#Group');
+                assert.isArray(response.body.value);
+            });
+    });
+
+    it('should use entity action (of entity set function result) which returns a primitive value', ()=> {
+        return request(app)
+            .post('/api/users/me/InstanceActionReturnString')
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .then( response => {
+                assert.isObject(response.body);
+                assert.equal(response.body['@odata.context'], '/api/$metadata#Edm.String');
+                assert.equal(response.body.value, 'Hello');
+            });
+    });
+
+    it('should use entity action (of entity set function result) which returns an array of primitive values', ()=> {
+        return request(app)
+            .post('/api/users/me/InstanceActionReturnStringArray')
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .then( response => {
+                assert.isObject(response.body);
+                assert.isArray(response.body.value);
+                assert.equal(response.body['@odata.context'], '/api/$metadata#Edm.String');
+                assert.equal(response.body.value[0], 'Hello');
+            });
+    });
+
+
+    it('should use instance action (of entity set function result) which returns an entity', ()=> {
+        return request(app)
+            .post('/api/users/me/InstanceActionReturnsEntity')
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .then( response => {
+                assert.isObject(response.body);
+                assert.equal(response.body['@odata.context'], '/api/$metadata#User');
+                assert.isUndefined(response.body.value);
+            });
+    });
+
+    it('should use instance action (of entity set function result) which returns a data queryable entity', ()=> {
+        return request(app)
+            .post('/api/users/me/InstanceActionReturnsEntityQueryable')
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .then( response => {
+                assert.isObject(response.body);
+                assert.equal(response.body['@odata.context'], '/api/$metadata#User');
+                assert.isUndefined(response.body.value);
+            });
+    });
+
+    it('should use instance action (of entity set function result) which returns a collection of entities', ()=> {
+        return request(app)
+            .post('/api/users/me/InstanceActionReturnsEntityCollection')
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .then( response => {
+                assert.isObject(response.body);
+                assert.equal(response.body['@odata.context'], '/api/$metadata#Group');
+                assert.isArray(response.body.value);
+            });
+    });
+
+    it('should use instance action (of entity set function result) which returns a data queryable collection of entities', ()=> {
+        return request(app)
+            .post('/api/users/me/InstanceActionReturnsEntityCollectionQueryable')
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .then( response => {
+                assert.isObject(response.body);
+                assert.equal(response.body['@odata.context'], '/api/$metadata#Group');
+                assert.isArray(response.body.value);
             });
     });
 

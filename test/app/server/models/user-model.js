@@ -51,7 +51,7 @@ class User extends Account {
 
     @EdmMapping.action('FunctionReturnsEntity','User')
     // eslint-disable-next-line no-unused-vars
-    static async postFunctionReturnsEntity(context) {
+    static async getFunctionReturnsEntity(context) {
         return await context.model('User')
             .where('name').equal(context.user && context.user.name)
             .getItem();
@@ -59,31 +59,63 @@ class User extends Account {
 
     @EdmMapping.action('FunctionReturnsEntityQueryable','User')
     // eslint-disable-next-line no-unused-vars
-    static async postFunctionReturnsEntityQueryable(context) {
+    static async getFunctionReturnsEntityQueryable(context) {
         return await context.model('User')
             .where('name').equal(context.user && context.user.name).prepare();
     }
 
     @EdmMapping.action('FunctionReturnsEntityCollection',EdmType.CollectionOf('Group'))
     // eslint-disable-next-line no-unused-vars
-    static async postFunctionReturnsEntityCollection(context) {
+    static async getFunctionReturnsEntityCollection(context) {
         return await context.model('Group')
             .getItems();
     }
 
     @EdmMapping.action('FunctionReturnsEntityCollectionQueryable',EdmType.CollectionOf('Group'))
     // eslint-disable-next-line no-unused-vars
-    static async postFunctionReturnsEntityCollectionQueryable(context) {
+    static async getFunctionReturnsEntityCollectionQueryable(context) {
         return await context.model('Group').asQueryable();
     }
 
 
+    @EdmMapping.func('InstanceFunctionReturnsEntity','User')
+    // eslint-disable-next-line no-unused-vars
+    async getInstanceFunctionReturnsEntity() {
+        return await this.context.model('User')
+            .where('name').equal(this.context.user && this.context.user.name)
+            .getItem();
+    }
 
-    @EdmMapping.func('InstanceFunc1',EdmType.EdmString)
-    async getInstanceFunc1() {
-        return {
-            message: 'Hello'
-        };
+    @EdmMapping.func('InstanceFunctionReturnsEntityQueryable','User')
+    // eslint-disable-next-line no-unused-vars
+    async getInstanceFunctionReturnsEntityQueryable() {
+        return await this.context.model('User')
+            .where('name').equal(this.context.user && this.context.user.name).prepare();
+    }
+
+    @EdmMapping.func('InstanceFunctionReturnsEntityCollection',EdmType.CollectionOf('Group'))
+    // eslint-disable-next-line no-unused-vars
+    async getInstanceFunctionReturnsEntityCollection() {
+        return await this.context.model('Group')
+            .getItems();
+    }
+
+    @EdmMapping.func('InstanceFunctionReturnsEntityCollectionQueryable',EdmType.CollectionOf('Group'))
+    // eslint-disable-next-line no-unused-vars
+    async getInstanceFunctionReturnsEntityCollectionQueryable() {
+        return await this.context.model('Group').asQueryable();
+    }
+
+    @EdmMapping.func('InstanceFunctionReturnStringArray',EdmType.CollectionOf(EdmType.EdmString))
+    // eslint-disable-next-line no-unused-vars
+    async getInstanceFunctionReturnStringArray(context) {
+        return ['Hello', 'Bonjour'];
+    }
+
+    @EdmMapping.func('InstanceFunctionReturnString',EdmType.EdmString)
+    // eslint-disable-next-line no-unused-vars
+    async getInstanceFunctionReturnString(context) {
+        return 'Hello';
     }
 
     @EdmMapping.action('ActionReturnString',EdmType.EdmString)
@@ -138,29 +170,35 @@ class User extends Account {
         return ['Hello', 'Bonjour'];
     }
 
-    @EdmMapping.param('group', EdmType.EdmString, false)
-    @EdmMapping.func('memberOf','Group')
-    async isMemberOf(group) {
-        const user = await this.context.model('User')
+
+    @EdmMapping.action('InstanceActionReturnsEntity','User')
+    // eslint-disable-next-line no-unused-vars
+    async postInstanceActionReturnsEntity() {
+        return await this.context.model('User')
             .where('name').equal(this.context.user && this.context.user.name)
-            .expand('groups')
             .getItem();
-        return user.groups.find( x => {
-            return x.name === group
-        });
     }
 
-    @EdmMapping.param('group', EdmType.EdmString, false)
-    @EdmMapping.action('postMemberOf','Group')
-    async postMemberOf(group) {
-        const user = await this.context.model('User')
-            .where('name').equal(this.context.user && this.context.user.name)
-            .expand('groups')
-            .getItem();
-        return user.groups.find( x => {
-            return x.name === group
-        });
+    @EdmMapping.action('InstanceActionReturnsEntityQueryable','User')
+    // eslint-disable-next-line no-unused-vars
+    async postInstanceActionReturnsEntityQueryable() {
+        return await this.context.model('User')
+            .where('name').equal(this.context.user && this.context.user.name).prepare();
     }
+
+    @EdmMapping.action('InstanceActionReturnsEntityCollection',EdmType.CollectionOf('Group'))
+    // eslint-disable-next-line no-unused-vars
+    async postInstanceActionReturnsEntityCollection() {
+        return await this.context.model('Group')
+            .getItems();
+    }
+
+    @EdmMapping.action('InstanceActionReturnsEntityCollectionQueryable',EdmType.CollectionOf('Group'))
+    // eslint-disable-next-line no-unused-vars
+    async postInstanceActionReturnsEntityCollectionQueryable() {
+        return await this.context.model('Group').asQueryable();
+    }
+
 
 }
 module.exports = User;

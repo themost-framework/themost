@@ -541,14 +541,12 @@ HttpServiceController.prototype.getNavigationProperty = function(entitySet, navi
                         }).map(function(x) {
                             return LangUtils.parseValue(context.params[x.name]);
                         });
+                        // get entity type
+                        var returnEntityType = self.getBuilder().getEntity(func.returnType || func.returnCollectionType);
                         return Promise.resolve(memberFunc.apply(obj, funcParameters)).then(function(result) {
                             if (result instanceof DataQueryable) {
                                 if (returnModel == null) {
                                     return Promise.reject(new HttpNotFoundError("Result Entity not found"));
-                                }
-                                var returnEntitySet = self.getBuilder().getEntityTypeEntitySet(returnModel.name);
-                                if (returnEntitySet == null) {
-                                    returnEntitySet = self.getBuilder().getEntity(returnModel.name);
                                 }
                                 //if the return value is a single instance
                                 if (!returnsCollection) {
@@ -564,7 +562,7 @@ HttpServiceController.prototype.getNavigationProperty = function(entitySet, navi
                                         //get item
                                         return q1.getItem().then(function(result) {
                                             //return result
-                                            return Promise.resolve(returnEntitySet.mapInstance(context,result));
+                                            return Promise.resolve(returnEntityType.mapInstance(context,result));
                                         });
                                     });
                                 }
@@ -576,16 +574,15 @@ HttpServiceController.prototype.getNavigationProperty = function(entitySet, navi
                                     var q1 = extendQueryable(result, q);
                                     if (count) {
                                         return q1.getList().then(function(result) {
-                                            return Promise.resolve(returnEntitySet.mapInstanceSet(context,result));
+                                            return Promise.resolve(returnEntityType.mapInstanceSet(context,result));
                                         });
                                     }
                                     return q1.getItems().then(function(result) {
-                                        return Promise.resolve(returnEntitySet.mapInstanceSet(context,result));
+                                        return Promise.resolve(returnEntityType.mapInstanceSet(context,result));
                                     });
                                 });
                             }
-                            // get entity type
-                            var returnEntityType = self.getBuilder().getEntity(func.returnType || func.returnCollectionType);
+
                             // if return entity type is defined
                             if (returnEntityType) {
                                 if (returnsCollection) {
@@ -596,9 +593,7 @@ HttpServiceController.prototype.getNavigationProperty = function(entitySet, navi
                                 return Promise.resolve(returnEntityType.mapInstance(context, result));
                             }
                             // otherwise return value
-                            return Promise.resolve({
-                                value: result
-                            });
+                            return Promise.resolve(mapPrimitiveInstance.bind(self)(context, result, func.returnType || func.returnCollectionType));
                         });
                     }
                 }
@@ -1016,29 +1011,26 @@ HttpServiceController.prototype.postEntityAction = function(entitySet, entityAct
                     actionParameters.push(context.request.body[x.name]);
                 });
             }
+            // get result entity type
+            var returnEntityType = self.getBuilder().getEntity(action.returnType || action.returnCollectionType);
             return Promise.resolve(memberFunc.apply(obj, actionParameters)).then(function (result) {
                 // check if action returns a collection of object
                 var returnsCollection = typeof action.returnCollectionType === 'string';
-                var returnEntitySet;
-                if (returnsCollection) {
-                    returnEntitySet = builder.getEntityTypeEntitySet(action.returnCollectionType);
-                }
+
                 if (result instanceof DataQueryable) {
                     if (returnsCollection) {
                         // an action that returns a collection of objects must always return a native array (without paging parameters)
                         return result.getItems().then(function (finalResult) {
-                            return Promise.resolve(returnEntitySet.mapInstanceSet(context, finalResult));
+                            return Promise.resolve(returnEntityType.mapInstanceSet(context, finalResult));
                         });
                     }
                     else {
                         // otherwise call DataModel.getItem() to get only the first item of the result set
                         return result.getItem().then(function (finalResult) {
-                            return Promise.resolve(returnEntitySet.mapInstance(context, finalResult));
+                            return Promise.resolve(returnEntityType.mapInstance(context, finalResult));
                         });
                     }
                 }
-                // get result entity type
-                var returnEntityType = self.getBuilder().getEntity(action.returnType || action.returnCollectionType);
                 // if return entity type is defined
                 if (returnEntityType) {
                     if (returnsCollection) {
