@@ -1127,6 +1127,35 @@ HttpApplication.prototype.start = function (options, callback) {
  */
 HttpApplication.prototype.runtime = function() {
     var self = this;
+
+    function nextError(context, err) {
+        //handle context error event
+        if (context.listeners('error').length>0) {
+            return context.emit('error', { error:err }, function() {
+                context.finalize(function() {
+                    if (context.response) { context.response.end(); }
+                });
+            });
+        }
+        if (self.listeners('error').length === 0) {
+            self.onError(context, err, function () {
+                if (_.isNil(context)) { return; }
+                context.finalize(function() {
+                    if (context.response) { context.response.end(); }
+                });
+            });
+        }
+        else {
+            //raise application error event
+            self.emit('error', { context:context, error:err }, function() {
+                if (typeof context === 'undefined' || context === null) { return; }
+                context.finalize(function() {
+                    if (context.response) { context.response.end(); }
+                });
+            });
+        }
+    }
+
     return function runtimeParser(req, res, next) {
         //create context
         var context = self.createContext(req,res);
@@ -1147,15 +1176,16 @@ HttpApplication.prototype.runtime = function() {
         //process request
         self.processRequest(context, function(err) {
             if (err) {
-                context.finalize(function() {
-                    return next(err);
-                });
+                if (typeof next === 'function') {
+                    return context.finalize(function() {
+                        return next(err);
+                    });
+                }
+                return nextError(context, err);
             }
-            else {
-                context.finalize(function() {
-                    context.response.end();
-                });
-            }
+            return context.finalize(function() {
+                context.response.end();
+            });
         });
     };
 };

@@ -67,12 +67,7 @@
                 "childModel": "User",
                 "childField": "id",
                 "associationType": "junction",
-                "cascade": "delete",
-                "select": [
-                    "id",
-                    "name",
-                    "alternateName"
-                ]
+                "cascade": "delete"
             }
         },
         {
@@ -91,11 +86,6 @@
             "mask": 1,
             "type": "self",
             "filter": "id eq me()"
-        },
-        {
-            "mask": 1,
-            "type": "global",
-            "account": "*"
         }
     ],
     "constraints": [

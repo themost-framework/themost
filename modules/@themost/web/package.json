@@ -1,6 +1,6 @@
 {
   "name": "@themost/web",
-  "version": "2.3.3",
+  "version": "2.4.1",
   "description": "MOST Web Framework 2.0 - Web Server Module",
   "main": "index.js",
   "peerDependencies": {
@@ -10,6 +10,9 @@
     "@themost/data": "^2.3.1",
     "@themost/client": "^2.0.5",
     "@themost/node": "^2.0.5"
+  },
+  "engines": {
+    "node": "^6.9.0"
   },
   "repository": {
     "type": "git",
@@ -70,6 +73,7 @@
       "jquery": true
     },
     "globals": {
+      "Promise": true,
       "describe": false,
       "it": false,
       "angular": true

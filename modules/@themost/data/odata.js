@@ -699,7 +699,7 @@ EntityTypeConfiguration.prototype.mapInstance = function(context, any) {
         var contextLink = this.getBuilder().getContextLink(context);
         if (contextLink) {
             return _.assign({
-                "@odata.context":contextLink + '/$entity'
+                "@odata.context":contextLink + '#' + this.name
             }, any);
         }
     }
@@ -746,7 +746,7 @@ EntityTypeConfiguration.prototype.mapInstanceSet = function(context, any) {
     if (context) {
         var contextLink = this.getBuilder().getContextLink(context);
         if (contextLink) {
-            result["@odata.context"] = contextLink;
+            result["@odata.context"] = contextLink + '#' + this.name;
         }
     }
     //search for total property for backward compatibility issues

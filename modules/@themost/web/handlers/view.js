@@ -582,14 +582,20 @@ function queryRoute(requestUri, context, startIndex) {
     // validate start index
     var index = typeof startIndex === 'number' && isFinite(startIndex) && startIndex>0 ? startIndex : -1;
     // enumerate routes
+    var re = new RegExp('\\b' + context.request.method + '\\b|^\\*$', 'ig');
+    var allow = true;
     for (var i = index + 1; i < routes.length; i++) {
         httpRoute.route = routes[i];
         // if uri path is matched
         if (httpRoute.isMatch(requestUri.pathname)) {
-            // set route index
-            httpRoute.routeIndex = i;
-            // and finally return current route
-            return httpRoute;
+            // validate allow attribute
+            allow = routes[i].allow ? re.test(routes[i].allow) : true;
+            if (allow) {
+                // set route index
+                httpRoute.routeIndex = i;
+                // and finally return current route
+                return httpRoute;
+            }
         }
     }
 }
