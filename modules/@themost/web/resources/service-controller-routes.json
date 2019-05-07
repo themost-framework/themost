@@ -1,0 +1,70 @@
+[
+    {
+        "url": "/api/?",
+        "controller": "service",
+        "action": "index",
+        "format": "json"
+    },
+    {
+        "url": "/api/\\$metadata/?",
+        "controller": "service",
+        "action": "metadata",
+        "format": "json"
+    },
+    {
+        "url": "/api/:entitySet/?",
+        "controller": "service",
+        "action": "items",
+        "allow": "GET,HEAD,OPTIONS,POST,PUT,DELETE,PATCH",
+        "format": "json"
+    },
+    {
+        "url": "/api/:entitySet/:entitySetFunction/?",
+        "controller": "service",
+        "action": "entitySetFunction",
+        "allow": "GET,HEAD,OPTIONS",
+        "format": "json"
+    },
+    {
+        "url": "/api/:entitySet/:entitySetAction/?",
+        "controller": "service",
+        "action": "entitySetAction",
+        "allow": "POST,HEAD,OPTIONS",
+        "format": "json"
+    },
+    {
+        "url": "/api/:entitySet/:entitySetFunction/:navigationProperty/?",
+        "controller": "service",
+        "action": "entitySetFunction",
+        "allow": "GET,HEAD,OPTIONS",
+        "format": "json"
+    },
+    {
+        "url": "/api/:entitySet/:entitySetFunction/:entityAction/?",
+        "controller": "service",
+        "action": "entitySetFunction",
+        "allow": "POST,HEAD,OPTIONS",
+        "format": "json"
+    },
+    {
+        "url": "/api/:entitySet/:id/?",
+        "controller": "service",
+        "action": "item",
+        "allow": "GET,HEAD,OPTIONS,POST,PUT,DELETE,PATCH",
+        "format": "json"
+    },
+    {
+        "url": "/api/:entitySet/:id/:navigationProperty/?",
+        "controller": "service",
+        "action": "navigationProperty",
+        "allow": "GET,HEAD,OPTIONS",
+        "format": "json"
+    },
+    {
+        "url": "/api/:entitySet/:id/:entityAction/?",
+        "controller": "service",
+        "action": "entityAction",
+        "allow": "POST,HEAD,OPTIONS",
+        "format": "json"
+    }
+]

@@ -31,6 +31,11 @@ var ODataModelBuilder = require('@themost/data/odata').ODataModelBuilder;
 var EdmMapping = require('@themost/data/odata').EdmMapping;
 var EdmType = require('@themost/data/odata').EdmType;
 var DefaultTopQueryOption = 50;
+var Args = require('@themost/common').Args;
+/**
+ * @type {Array<HttpRouteConfiguration>}
+ */
+var SERVICE_DEFAULT_ROUTES = require('../resources/service-controller-routes');
 
 /**
  * @this HttpServiceController
@@ -165,6 +170,7 @@ HttpServiceController.prototype.postItems = function(entitySet) {
         if (model == null) {
             return Promise.reject(new HttpNotFoundError("Entity not found"));
         }
+        // noinspection JSUnresolvedVariable
         var body = context.request.body;
         return model.save(body).then(function () {
             if (Array.isArray(body)) {
@@ -203,6 +209,7 @@ HttpServiceController.prototype.deleteItems = function(entitySet) {
         if (model == null) {
             return Promise.reject(new HttpNotFoundError("Entity not found"));
         }
+        // noinspection JSUnresolvedVariable
         var body = context.request.body;
         return model.remove(body).then(function () {
             if (Array.isArray(body)) {
@@ -243,6 +250,7 @@ HttpServiceController.prototype.getItem = function(entitySet, id) {
             }
             if (id == null) {
                 // search route parameters
+                // noinspection JSUnresolvedVariable
                 if (context.request.route && context.request.route.params && context.request.route.params.$filter) {
                     return model.filter({
                         "$filter": context.request.route.params.$filter
@@ -302,6 +310,7 @@ HttpServiceController.prototype.patchItem = function(entitySet, id) {
                 return Promise.reject(new HttpNotFoundError('Entity not found'));
             }
             if (id == null) {
+                // noinspection JSUnresolvedVariable
                 if (context.request.route && context.request.route.params && context.request.route.params.$filter) {
                     return model.filter({
                         "$filter": context.request.route.params.$filter
@@ -322,6 +331,7 @@ HttpServiceController.prototype.patchItem = function(entitySet, id) {
             if (result == null) {
                 return Promise.reject(new HttpNotFoundError('The requested object cannot be found or is inaccessible.'));
             }
+            // noinspection JSUnresolvedVariable
             var body = Object.assign(context.request.body, result);
             // save item
             return model.save(body).then(function () {
@@ -359,6 +369,7 @@ HttpServiceController.prototype.deleteItem = function(entitySet, id) {
         }
         // validate object identifier
         if (typeof id === 'undefined') {
+            // noinspection JSUnresolvedVariable
             if (context.request.route && context.request.route.params && context.request.route.params.$filter) {
                 return model.filter({
                     "$filter":context.request.route.params.$filter
@@ -414,6 +425,7 @@ HttpServiceController.prototype.postItem = function(entitySet) {
             return Promise.reject(new HttpNotFoundError('Entity not found'));
         }
         // get request body
+        // noinspection JSUnresolvedVariable
         var body = context.request.body;
         // save object
         return model.save(body).then(function () {
@@ -508,6 +520,7 @@ HttpServiceController.prototype.getNavigationProperty = function(entitySet, navi
         }
         // validate object identifier
         if (id == null) {
+            // noinspection JSUnresolvedVariable
             if (context.request.route && context.request.route.params && context.request.route.params.$filter) {
                 return model.filter({
                     "$filter": context.request.route.params.$filter
@@ -978,11 +991,6 @@ HttpServiceController.prototype.postEntityAction = function(entitySet, entityAct
     if (typeof entityAction === 'undefined') {
         return Promise.reject(new HttpNotFoundError("Entity type action cannot be empty"));
     }
-    /**
-     * get current model builder
-     * @type {ODataModelBuilder}
-     */
-    var builder = context.getApplication().getStrategy(ODataModelBuilder);
 
     // validate entity type function
     var action = thisEntitySet.entityType.hasAction(entityAction);
@@ -1003,11 +1011,13 @@ HttpServiceController.prototype.postEntityAction = function(entitySet, entityAct
             });
             // if action has only one parameter and this parameter has fromBody flag
             if (parameters.length === 1 && parameters[0].fromBody) {
+                // noinspection JSUnresolvedVariable
                 actionParameters.push(context.request.body);
             }
             else {
                 // add other parameters by getting request body attributes
                 parameters.forEach(function (x) {
+                    // noinspection JSUnresolvedVariable
                     actionParameters.push(context.request.body[x.name]);
                 });
             }
@@ -1093,6 +1103,7 @@ HttpServiceController.prototype.postEntitySetAction = function(entitySet, entity
         // if parameters must be included in body
         if (parameters.length) {
             // validate request body
+            // noinspection JSUnresolvedVariable
             if (typeof context.request.body === 'undefined') {
                 // throw bad request if body is missing
                 return Promise.reject(new HttpBadRequestError('Request body cannot be empty'));
@@ -1102,11 +1113,13 @@ HttpServiceController.prototype.postEntitySetAction = function(entitySet, entity
         actionParameters.push(context);
         // if action has only one parameter and this parameter has fromBody flag
         if (parameters.length === 1 && parameters[0].fromBody) {
+            // noinspection JSUnresolvedVariable
             actionParameters.push(context.request.body);
         }
         else {
             // add other parameters by getting request body attributes
             parameters.forEach(function (x) {
+                // noinspection JSUnresolvedVariable
                 actionParameters.push(context.request.body[x.name]);
             });
         }
@@ -1220,6 +1233,33 @@ defineDecorator(HttpServiceController.prototype, 'postEntitySetFunction', httpAc
  */
 HttpServiceController.prototype.getBuilder = function() {
     return this.context.getApplication().getService(ODataModelBuilder);
+};
+/**
+ * Registers HttpServiceController
+ * @param {HttpApplication} app
+ * @param {string=} serviceRoot A relative service root URL e.g. /api/
+ */
+HttpServiceController.configure = function(app, serviceRoot) {
+    if (serviceRoot != null) {
+        Args.check(/^\//g.test(serviceRoot), 'Service controller root path must be a valid relative url starting with a /.');
+        Args.check(/\/$/.test(serviceRoot),'Service controller root path must be a valid relative url ending with a /.');
+    }
+    serviceRoot = serviceRoot || '/api/';
+    // register controller
+    app.useController('service', HttpServiceController);
+    /**
+     * map controller routes
+     * @type {HttpRouteConfiguration[]}
+     */
+    var serviceRoutes = SERVICE_DEFAULT_ROUTES.map(function (route) {
+        route.url = route.url.replace(/\/api\//, serviceRoot);
+        return route;
+    });
+    // get configuration routes
+    var routes = app.getConfiguration().routes;
+    // add routes to the end of the collection
+    // noinspection JSCheckFunctionSignatures
+    routes.push.apply(routes, serviceRoutes);
 };
 
 if (typeof module !== 'undefined') {
