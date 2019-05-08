@@ -11,6 +11,10 @@ declare interface ApplicationOptions {
     cluster?: number|string;
 }
 
+export declare interface HttpControllerConfiguration {
+    configure(app:HttpApplication);
+}
+
 export declare class HttpContextProvider {
     constructor (app:HttpApplication);
     create(req:IncomingMessage, res: ServerResponse):HttpContext;

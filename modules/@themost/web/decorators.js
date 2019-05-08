@@ -7,8 +7,6 @@
  * found in the LICENSE file at https://themost.io/license
  */
 ///
-var _ = require('lodash');
-var Q = require('q');
 var TraceUtils = require('@themost/common/utils').TraceUtils;
 var LangUtils = require('@themost/common/utils').LangUtils;
 var HttpBadRequestError = require('@themost/common/errors').HttpBadRequestError;
@@ -23,10 +21,6 @@ var RequiredValidator = require('@themost/data/data-validator').RequiredValidato
 var PatternValidator = require('@themost/data/data-validator').PatternValidator;
 
 /**
- * @module @themost/web/decorators
- */
-
-/**
  * @class
  * @constructor
  * @extends Error
@@ -38,13 +32,21 @@ function DecoratorError() {
 LangUtils.inherits(DecoratorError, Error);
 
 /**
+ * @param {string} name
  * @returns {Function}
  */
-function httpController() {
+function httpController(name) {
     return function (target, key, descriptor) {
         if (typeof target === 'function') {
             target.httpController = true;
         }
+        // define controller name
+        Object.defineProperty(target, 'httpControllerName', {
+            value: name,
+            configurable: false,
+            enumerable: true,
+            writable: true
+        });
         return descriptor;
     }
 }
@@ -208,18 +210,18 @@ function httpParam(options) {
         }
 
         descriptor.value.httpParams = descriptor.value.httpParams || { };
-        descriptor.value.httpParams[options.name] = _.extend({"type":"Text"}, options);
+        descriptor.value.httpParams[options.name] = Object.assign({"type":"Text"}, options);
         if (typeof descriptor.value.httpParam === 'undefined') {
             descriptor.value.httpParam = new HttpConsumer(function (context) {
                 var httpParamValidationFailedCallback = function httpParamValidationFailedCallback(context, httpParam, validationResult) {
-                    TraceUtils.log(_.assign(validationResult, {
+                    TraceUtils.log(Object.assign(validationResult, {
                         "param":httpParam,
                         "request": {
                             "url":context.request.url,
                             "method":context.request.method
                         }
                     }));
-                    return Q.reject(new HttpBadRequestError('Bad request parameter', httpParam.message || validationResult.message));
+                    return Promise.reject(new HttpBadRequestError('Bad request parameter', httpParam.message || validationResult.message));
                 };
                 var methodParams = LangUtils.getFunctionParams(descriptor.value);
                 var httpParams = descriptor.value.httpParams;
@@ -233,9 +235,9 @@ function httpParam(options) {
                         else {
                             contextParam = context.params[functionParam];
                         }
-                        if (_.isObject(httpParams)) {
+                        if (httpParams) {
                             httpParam = httpParams[functionParam];
-                            if (_.isObject(httpParam)) {
+                            if (httpParam) {
                                 if (typeof httpParam.type === 'string') {
                                     //--validate type
                                     validator = new DataTypeValidator(httpParam.type);
@@ -305,7 +307,7 @@ function httpParam(options) {
                         k += 1;
                     }
                 }
-                return Q();
+                return Promise.resolve();
             });
         }
         return descriptor;
@@ -328,9 +330,9 @@ function httpAuthorize(value) {
         if (authorize) {
             descriptor.value.authorize = new HttpConsumer(function (context) {
                 if (context.user && context.user.name !== 'anonymous') {
-                    return Q();
+                    return Promise.resolve();
                 }
-                return Q.reject(new HttpUnauthorizedError());
+                return Promise.reject(new HttpUnauthorizedError());
             });
         }
         return descriptor;
@@ -381,6 +383,68 @@ function httpActionConsumer(name, consumer) {
     };
 }
 
+/**
+ * Defines an http route that is going to be registered by an http controller
+ * @param {string} url
+ * @param {string=} format
+ * @param {number=} index
+ * @returns {Function}
+ */
+function httpRoute(url, format, index) {
+    return function (target, key, descriptor) {
+        if (typeof descriptor.value === 'function') {
+            Object.defineProperty(descriptor.value, 'httpRoute', {
+               get: function () {
+                   /**
+                    * @type {HttpRouteConfiguration}
+                    */
+                   var route = {
+                       url: url,
+                       controller: target.httpControllerName || target.name,
+                       action: descriptor.value.httpAction,
+                       format: format
+                   };
+                   if (descriptor.value.hasOwnProperty('httpAny') === false) {
+                       // set httpHead if does not exists
+                       if (descriptor.value.hasOwnProperty('httpHead') === false) {
+                           descriptor.value.httpHead = true;
+                       }
+                       // set httpOptions if does not exists
+                       if (descriptor.value.hasOwnProperty('httpOptions') === false) {
+                           descriptor.value.httpOptions = true;
+                       }
+                       // enumerate http methods and format allow attribute
+                       var allowString = [
+                           'httpGet',
+                           'httpHead',
+                           'httpOptions',
+                           'httpPost',
+                           'httpPut',
+                           'httpDelete',
+                           'httpPatch' ].filter( function(httpKey) {
+                           return descriptor.value.hasOwnProperty(httpKey) && descriptor.value[httpKey];
+                       }).map(function(httpKey) {
+                           return httpKey.replace(/^http/,'').toUpperCase();
+                       }).join(',');
+                       // set allow attribute
+                       Object.assign(route, {
+                           allow: allowString
+                       });
+                   }
+                   return route;
+               },
+                configurable: false,
+                enumerable: true
+            });
+            // set route index
+            Object.defineProperty(descriptor.value, 'httpRouteIndex', {
+                value: index || 0
+            });
+        }
+        return descriptor;
+    }
+}
+
 //extend object
 if (typeof Object.defineDecorator === 'undefined') {
     /**
@@ -404,6 +468,7 @@ module.exports.httpDelete = httpDelete;
 module.exports.httpOptions = httpOptions;
 module.exports.httpHead = httpHead;
 module.exports.httpAction = httpAction;
+module.exports.httpRoute = httpRoute;
 module.exports.httpController = httpController;
 module.exports.httpParamAlias = httpParamAlias;
 module.exports.httpParam = httpParam;

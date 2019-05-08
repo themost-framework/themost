@@ -15,6 +15,7 @@ var route = require('../http-route');
 var LangUtils = require('@themost/common/utils').LangUtils;
 var TraceUtils = require('@themost/common/utils').TraceUtils;
 var HttpError = require('@themost/common/errors').HttpError;
+var HttpNotFoundError = require('@themost/common/errors').HttpNotFoundError;
 var path = require('path');
 var _ = require('lodash');
 var HttpConsumer = require('../consumers').HttpConsumer;
@@ -502,7 +503,7 @@ ViewHandler.prototype.processRequest = function (context, callback) {
                                             return callback();
                                         });
                                     }
-                                    return callback();
+                                    return callback(new HttpNotFoundError());
                                 });
                             }
                             //if action result is an instance of HttpResult

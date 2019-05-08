@@ -199,6 +199,17 @@ class User extends Account {
         return await this.context.model('Group').asQueryable();
     }
 
+    /**
+     *
+     * @param {DataContext} context
+     * @returns {*}
+     */
+    @EdmMapping.func('FunctionReturnsNull', EdmType.CollectionOf(EdmType.EdmString))
+    // eslint-disable-next-line no-unused-vars
+    static async postFunctionReturnsNull(context) {
+        return null;
+    }
+
 
 }
 module.exports = User;

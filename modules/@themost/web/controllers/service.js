@@ -18,6 +18,7 @@ var HttpBadRequestError = require('@themost/common/errors').HttpBadRequestError;
 var parseBoolean = require('@themost/common/utils').LangUtils.parseBoolean;
 var pluralize = require('pluralize');
 var _ = require('lodash');
+var httpRoute = require('../decorators').httpRoute;
 var httpGet = require('../decorators').httpGet;
 var httpPost = require('../decorators').httpPost;
 var httpPut = require('../decorators').httpPut;
@@ -69,7 +70,7 @@ function HttpServiceController(context) {
     HttpServiceController.super_.bind(this)(context);
 }
 LangUtils.inherits(HttpServiceController, HttpBaseController);
-defineDecorator(HttpServiceController, 'constructor', httpController());
+defineDecorator(HttpServiceController, 'constructor', httpController('api'));
 
 HttpServiceController.prototype.getMetadata = function() {
     var self = this;
@@ -78,7 +79,7 @@ HttpServiceController.prototype.getMetadata = function() {
     });
 };
 defineDecorator(HttpServiceController.prototype, 'getMetadata', httpGet());
-defineDecorator(HttpServiceController.prototype, 'getMetadata', httpAction("metadata"));
+defineDecorator(HttpServiceController.prototype, 'getMetadata', httpAction('metadata'));
 
 HttpServiceController.prototype.getIndex = function() {
     var self = this;
@@ -402,7 +403,7 @@ HttpServiceController.prototype.deleteItem = function(entitySet, id) {
 };
 
 defineDecorator(HttpServiceController.prototype, 'deleteItem', httpDelete());
-defineDecorator(HttpServiceController.prototype, 'patchItem', httpAction("item"));
+defineDecorator(HttpServiceController.prototype, 'deleteItem', httpAction("item"));
 
 /**
  *
@@ -444,7 +445,7 @@ HttpServiceController.prototype.postItem = function(entitySet) {
 
 defineDecorator(HttpServiceController.prototype, 'postItem', httpPost());
 defineDecorator(HttpServiceController.prototype, 'postItem', httpPut());
-defineDecorator(HttpServiceController.prototype, 'postItem', httpAction("item"));
+defineDecorator(HttpServiceController.prototype, 'postItem', httpAction('item'));
 
 /**
  * @param {DataQueryable} target
@@ -965,7 +966,7 @@ HttpServiceController.prototype.getEntitySetFunction = function(entitySet, entit
 };
 defineDecorator(HttpServiceController.prototype, 'getEntitySetFunction', httpGet());
 defineDecorator(HttpServiceController.prototype, 'getEntitySetFunction', httpAction("entitySetFunction"));
-
+defineDecorator(HttpServiceController.prototype, 'getEntitySetFunction', httpRoute(':entitySet/:entitySetFunction/?', 'json', 8));
 /**
  *
  * @param {string} entitySet
@@ -1167,6 +1168,7 @@ HttpServiceController.prototype.postEntitySetAction = function(entitySet, entity
 };
 defineDecorator(HttpServiceController.prototype, 'postEntitySetAction', httpPost());
 defineDecorator(HttpServiceController.prototype, 'postEntitySetAction', httpAction("entitySetAction"));
+defineDecorator(HttpServiceController.prototype, 'postEntitySetAction', httpRoute(':entitySet/:entitySetAction/?', 'json', 9));
 
 HttpServiceController.prototype.postEntitySetFunction = function(entitySet, entitySetFunction, entityAction) {
     var self = this;
@@ -1237,16 +1239,17 @@ HttpServiceController.prototype.getBuilder = function() {
 /**
  * Registers HttpServiceController
  * @param {HttpApplication} app
- * @param {string=} serviceRoot A relative service root URL e.g. /api/
  */
-HttpServiceController.configure = function(app, serviceRoot) {
-    if (serviceRoot != null) {
-        Args.check(/^\//g.test(serviceRoot), 'Service controller root path must be a valid relative url starting with a /.');
-        Args.check(/\/$/.test(serviceRoot),'Service controller root path must be a valid relative url ending with a /.');
+HttpServiceController.configure = function(app) {
+
+    /**
+     * @type ODataModelBuilder
+     */
+    var builder = app.getService(ODataModelBuilder);
+    var serviceRoot = '/api/';
+    if (builder) {
+        serviceRoot = builder.serviceRoot;
     }
-    serviceRoot = serviceRoot || '/api/';
-    // register controller
-    app.useController('service', HttpServiceController);
     /**
      * map controller routes
      * @type {HttpRouteConfiguration[]}

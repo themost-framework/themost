@@ -1,10 +1,11 @@
 {
+    "$schema": "https://themost-framework.github.io/themost/models/2018/2/schema.json",
     "@id": "http://schema.org/Thing",
     "name": "Thing",
     "description": "The most generic type of item.",
     "title": "Thing",
-    "abstract": false,
     "sealed": false,
+    "hidden": true,
     "version": "2.0",
     "fields": [
         {
