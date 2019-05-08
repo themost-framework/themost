@@ -64,7 +64,7 @@ application initialization in testing enviroments e.g.
 
 - Default html error page has been updated.
 
-- HttpServiceController has been updated to automatically add the approriate for its actions routes. 
+- HttpServiceController has been updated to automatically add action routes. 
 Simply use HttpApplication.useController() to add HttpServiceController to application controllers e.g. 
 
         # server.js
