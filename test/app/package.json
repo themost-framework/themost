@@ -7,7 +7,7 @@
   "private": true,
   "author": "",
   "scripts": {
-    "start": "node dist/server/server",
+    "start": "node bin/www",
     "build": "babel server --out-dir dist/server --copy-files --source-maps",
     "watch": "babel server --out-dir dist/server --watch --copy-files --source-maps",
     "themost": "themost"
@@ -25,6 +25,21 @@
     "@themost/node": "^2.2.1"
   },
   "dependencies": {
+  },
+  "nodemonConfig": {
+    "watch": [
+      "server",
+      "bin"
+    ],
+    "verbose": true,
+    "legacy-watch": true,
+    "execMap": {
+      "js": "node --require @babel/register"
+    },
+    "env": {
+      "NODE_ENV": "development"
+    },
+    "ext": "js,json"
   },
   "eslintConfig": {
     "parser": "babel-eslint",

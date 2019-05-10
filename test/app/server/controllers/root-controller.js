@@ -12,7 +12,7 @@ class RootController extends HttpBaseController {
     @httpGet()
     @httpAction('index')
     getIndex() {
-        return Promise.resolve(this.view());
+        return Promise.resolve(this.view({ message: 'Hello World!' }));
     }
     
     

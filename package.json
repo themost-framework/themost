@@ -69,6 +69,7 @@
     "gulp-concat": "^2.6.1",
     "gulp-connect": "^5.7.0",
     "mocha": "^5.2.0",
+    "nodemon": "^1.19.0",
     "supertest": "^3.4.2"
   }
 }
