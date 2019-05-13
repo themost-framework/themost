@@ -1,6 +1,5 @@
 import HttpBaseController from '@themost/web/controllers/base';
 import {httpController,httpGet, httpAction} from '@themost/web/decorators';
-import {HttpJsonResult} from "@themost/web/mvc";
 
 @httpController()
  class HelloController extends HttpBaseController {

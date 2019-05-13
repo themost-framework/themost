@@ -1,58 +1,32 @@
 <!DOCTYPE html>
-<html>
-<head lang="en">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <!--[if IE]><meta http-equiv="x-ua-compatible" content="IE=9" /><![endif]-->
-    <title>Error <%= (locals.error.statusCode || '500') + ' | ' + (locals.error.title || 'Internal Server Error')%></title>
-    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
-    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
-    <link href='//fonts.googleapis.com/css?family=Roboto:400,700&subset=cyrillic,latin,greek' rel='stylesheet' type='text/css'>
-    <link href='//fonts.googleapis.com/css?family=Ubuntu:400,700' rel='stylesheet' type='text/css'>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Error <%= (model.statusCode || '500') + ' | ' + (model.title || 'Internal Server Error')%></title>
+    <!-- Google font -->
+    <link href="https://fonts.googleapis.com/css?family=Raleway:400,700" rel="stylesheet">
     <style>
-        .error-page {
-            font-family: 'Roboto', Arial,sans-serif;
-            background-color: #f3f5f6;
-            color:#768399;
-        }
-        .error-number {
-            font-family: 'Ubuntu', serif;
-            font-weight:700;
-            font-size: 16em;
-            margin-top:0.5em;
-        }
-        .btn-default {
-            color:#768399;
-        }
-        .btn-default:hover {
-            color:#566379;
-        }
+        *{-webkit-box-sizing:border-box;box-sizing:border-box}body{padding:64px 64px;margin:0}#error{position:relative}#error .error{position:relative}.error{line-height:1.4}.error h2{font-family:Raleway,sans-serif;color:#292929;font-size:28px;font-weight:700;text-transform:uppercase;letter-spacing:2.5px;margin-top:0}.error p{font-family:Raleway,sans-serif;font-size:14px;font-weight:400;margin-top:0;margin-bottom:15px;color:#333}.error p.stack{font-family:monospace;font-size:100%;color:#333}.error a{font-family:Raleway,sans-serif;font-size:14px;text-decoration:none;text-transform:uppercase;background:#fff;display:inline-block;padding:15px 30px;border-radius:40px;color:#292929;font-weight:700;-webkit-box-shadow:0 4px 15px -5px rgba(0,0,0,.3);box-shadow:0 4px 15px -5px rgba(0,0,0,.3);-webkit-transition:.2s all;transition:.2s all}.error a:hover{color:#fff;background-color:#3700b3}@media only screen and (max-width:480px){.error{text-align:center}.error{padding-left:15px;padding-right:15px}}
     </style>
 </head>
-<body class="error-page">
-<div class="container">
-    <div class="col-md-12">
-        <h1 class="error-number text-center"><%=(locals.error.statusCode || 500)%></h1>
-        <h1 class="text-center"><%= (locals.error.title || 'Internal Server Error')%></h1>
-        <p class="text-center"><%= (locals.error.message || 'The server encountered an internal error and was unable to complete your request.')%></p>
-        <% if ((process.env.NODE_ENV === 'development') && (locals.error.innerMessage)) { %>
-            <p class="text-center">
-                <%=(locals.error.innerMessage)%>
-            </p>
-        <% } %>
-        <% if ((process.env.NODE_ENV === 'development') && (locals.error.stack)) { %>
-            <pre style="font-size:0.8em" class="col-md-push-2 col-md-8">
-                <%=(locals.error.stack)%>
-            </pre>
-        <% } %>
-        <div class="clearfix"></div>
-        <div class="text-center">
-            <div class="btn-group">
-                <a href="<%=(locals.returnUrl || '/index.html')%>" class="btn btn-default btn-lg text-normal"><i class="glyphicon glyphicon-home"></i> home</a>
-                <!--<a href="#" class="btn btn-default btn-lg"><i class="glyphicon glyphicon-inbox"></i> contact admin</a>-->
-            </div>
+<body>
+
+    <div id="error">
+        <div class="error">
+            <h2><%=(model.statusCode || 500) + '-' + (model.title || 'Internal Server Error')%></h2>
+            <p><%= (model.message || 'The server encountered an internal error and was unable to complete your request.')%></p>
+            <% if (process.env.NODE_ENV === 'development' && model.innerMessage) { %>
+                <p>
+                    <%=(model.innerMessage)%>
+                </p>
+            <% } %>
+            <% if (process.env.NODE_ENV === 'development' && model.stack) { %>
+                    <p class="stack"><%= model.stack %></p>
+            <% } %>
+            <a href="<%=html.resolveUrl('~/')%>">home page</a>
         </div>
     </div>
-</div>
 </body>
 </html>

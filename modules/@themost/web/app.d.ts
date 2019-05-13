@@ -1,4 +1,4 @@
-import {IncomingMessage, ServerResponse} from "http";
+import {IncomingMessage, ServerResponse, RequestListener} from "http";
 import {HttpContext} from "./context";
 import {HttpConfiguration} from "./config";
 import {AuthStrategy, EncryptionStrategy} from "./handlers/auth";
@@ -9,6 +9,10 @@ declare interface ApplicationOptions {
     port?: number|string;
     bind?: string;
     cluster?: number|string;
+}
+
+export declare interface HttpControllerConfiguration {
+    configure(app:HttpApplication);
 }
 
 export declare class HttpContextProvider {
@@ -43,7 +47,7 @@ export declare class HttpApplication extends SequentialEventEmitter {
     unattended (fn: (context: HttpContext) => void);
     executeRequest(options: any,  callback: (err?: Error, res?: any) => void);
     start(options?: ApplicationOptions);
-    runtime(): void;
+    runtime(): RequestListener;
     useController(name: string, controllerCtor: Function);
     useStrategy(serviceCtor: Function, strategyCtor: Function);
     useService(serviceCtor: Function);

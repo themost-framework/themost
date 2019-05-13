@@ -320,7 +320,9 @@ function HttpJsonResult(data)
     }
     else if (data instanceof Error) {
         var keys = Object.getOwnPropertyNames(data);
-        var thisData = {};
+        var thisData = {
+            type: (data.constructor && data.constructor.name) || 'Error'
+        };
         _.forEach(keys, function(key) {
             if (process.env.NODE_ENV !== 'development' && key==='stack') {
                 return;

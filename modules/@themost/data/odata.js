@@ -692,14 +692,14 @@ EntityTypeConfiguration.prototype.getBuilder = function() {
  * @param {*} any
  */
 EntityTypeConfiguration.prototype.mapInstance = function(context, any) {
-    if (_.isNil(any)) {
+    if (any == null) {
         return;
     }
     if (context) {
         var contextLink = this.getBuilder().getContextLink(context);
         if (contextLink) {
             return _.assign({
-                "@odata.context":contextLink + '/$entity'
+                "@odata.context":contextLink + '#' + this.name
             }, any);
         }
     }
@@ -739,14 +739,11 @@ EntityTypeConfiguration.prototype.mapInstanceProperty = function(context, proper
  * @returns {*}
  */
 EntityTypeConfiguration.prototype.mapInstanceSet = function(context, any) {
-    if (_.isNil(any)) {
-        return;
-    }
     var result = {};
     if (context) {
         var contextLink = this.getBuilder().getContextLink(context);
         if (contextLink) {
-            result["@odata.context"] = contextLink;
+            result["@odata.context"] = contextLink + '#' + this.name;
         }
     }
     //search for total property for backward compatibility issues
@@ -993,7 +990,7 @@ EntitySetConfiguration.prototype.getUrl = function() {
  * @param {*} any
  */
 EntitySetConfiguration.prototype.mapInstance = function(context, any) {
-    if (_.isNil(any)) {
+    if (any == null) {
         return;
     }
     if (context) {
@@ -1040,9 +1037,6 @@ EntitySetConfiguration.prototype.mapInstanceProperty = function(context, propert
  * @returns {*}
  */
 EntitySetConfiguration.prototype.mapInstanceSet = function(context, any) {
-    if (_.isNil(any)) {
-        return;
-    }
     var result = {};
     if (context) {
         var contextLink = this.getContextLink(context);

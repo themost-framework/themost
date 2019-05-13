@@ -9,6 +9,18 @@
 import {DataContext} from "./types";
 import {ConfigurationBase} from "../common";
 
+export declare interface SystemQueryOptions {
+    $filter?: string;
+    $select?: string;
+    $expand?: string;
+    $top?: number;
+    $skip?: number;
+    $orderby?: string;
+    $groupby?: string;
+    $inlinecount?:any;
+    $count?: any;
+}
+
 export declare class EdmType {
     static EdmBinary: string;
     static EdmBoolean: string;

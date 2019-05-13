@@ -72,6 +72,22 @@ ODataModelBuilderConfiguration.config = function(app) {
     });
 };
 
+ODataModelBuilderConfiguration.configSync = function(app) {
+    if (typeof app === 'undefined' || app === null) {
+        return Q.reject(new TypeError('Application may not be null'))
+    }
+    //create by default a new model convention builder
+    var builder = new ODataModelConventionBuilder(new DataConfiguration(app.getConfigurationPath()));
+    //initialize builder
+    builder.initializeSync();
+    //register service
+    app.useStrategy(ODataModelBuilder, function() {
+        return builder;
+    });
+    //return newly created builder for further processing
+    return builder;
+};
+
 if (typeof module !== 'undefined') {
     module.exports.ODataModelBuilderConfiguration = ODataModelBuilderConfiguration;
     module.exports.ODataJsonResult = ODataJsonResult;

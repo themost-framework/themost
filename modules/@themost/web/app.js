@@ -18,6 +18,7 @@ var mvc = require('./mvc');
 var LangUtils = require('@themost/common/utils').LangUtils;
 var path = require("path");
 var fs = require("fs");
+var ejs = require('ejs');
 var url = require('url');
 var http = require('http');
 var SequentialEventEmitter = require('@themost/common/emitter').SequentialEventEmitter;
@@ -44,6 +45,8 @@ var configPathProperty = Symbol('configPath');
 var configProperty = Symbol('config');
 var currentProperty = Symbol('current');
 var servicesProperty = Symbol('services');
+
+var DEFAULT_HTML_ERROR = fs.readFileSync(path.resolve(__dirname, 'http-error.html.ejs'), 'utf8');
 
 /**
  * @classdesc ApplicationOptions class describes the startup options of a MOST Web Framework application.
@@ -796,7 +799,7 @@ function handleRequestInternal(request, response, callback)
     self.processRequest(context, function (err) {
         if (err) {
             if (self.listeners('error').length === 0) {
-                self.onError(context, err, function () {
+                onError.bind(self)(context, err, function () {
                     response.end();
                     callback();
                 });
@@ -866,52 +869,46 @@ function createResponseInternal(req) {
  */
 function onHtmlError(context, err, callback) {
     try {
-        if (_.isNil(context)) {
-            callback(err);
-            return;
+        if (context == null) {
+            return callback(err);
         }
-        var request = context.request, response = context.response, ejs = require('ejs');
-        if (_.isNil(request) || _.isNil(response)) {
-            callback(err);
-            return;
+        // get request and response
+        var request = context.request;
+        var response = context.response;
+        // validate request
+        if ((request == null) || (response == null)) {
+            return callback(err);
         }
         //HTML custom errors
-        fs.readFile(path.join(__dirname, './http-error.html.ejs'), 'utf8', function (readErr, data) {
-            if (readErr) {
-                //log process error
-                TraceUtils.log(readErr);
-                //continue error execution
-                callback(err);
-                return;
-            }
-            //compile data
-            var str;
-            try {
-                if (err instanceof HttpError) {
-                    str = ejs.render(data, { error:err });
+        var str;
+        if (err instanceof HttpError) {
+            str = ejs.render(DEFAULT_HTML_ERROR, {
+                model:err,
+                html: {
+                    resolveUrl: context.resolveUrl.bind(context)
                 }
-                else {
-                    var httpErr = new HttpError(500, null, err.message);
-                    httpErr.stack = err.stack;
-                    str = ejs.render(data, {error: httpErr});
+            });
+        }
+        else {
+            // convert error to http error
+            var finalErr = new HttpError(500, null, err.message);
+            finalErr.stack = err.stack;
+            str = ejs.render(DEFAULT_HTML_ERROR, {
+                model: finalErr,
+                html: {
+                    resolveUrl: context.resolveUrl.bind(context)
                 }
-            }
-            catch (e) {
-                TraceUtils.log(e);
-                //continue error execution
-                callback(err);
-                return;
-            }
-            //write status header
-            response.writeHead(err.statusCode || 500 , { "Content-Type": "text/html" });
-            response.write(str);
-            response.end();
-            callback();
-        });
+            });
+        }
+        //write status header
+        response.writeHead(err.statusCode || 500 , { "Content-Type": "text/html" });
+        response.write(str);
+        response.end();
+        return callback();
     }
-    catch (e) {
+    catch (err) {
         //log process error
-        TraceUtils.log(e);
+        TraceUtils.error(err);
         //and continue execution
         callback(err);
     }
@@ -919,28 +916,54 @@ function onHtmlError(context, err, callback) {
 }
 
 /**
- *
+ * @private
+ * @this HttpApplication
  * @param {HttpContext} context
- * @param {Error|HttpError} err
+ * @param {Error|*} err
  * @param {Function} callback
  */
-HttpApplication.prototype.onError = function (context, err, callback) {
+function onError(context, err, callback) {
     callback = callback || function () { };
     try {
 
-        if (_.isNil(err)) {
-            return callback.bind(this)();
+        if (err == null) {
+            return callback();
         }
-        //always log error
-        TraceUtils.log(err);
+        // log request
+        if (context.request) {
+            TraceUtils.error(context.request.method + ' ' +
+                ((context.user && context.user.name) || 'unknwon') + ' ' +
+                context.request.url);
+        }
+        //log error
+        TraceUtils.error(err);
         //get response object
         var response = context.response;
-        if (_.isNil(response)) {
-            return callback.bind(this)();
+        // if response is null exit
+        if (response == null) {
+            return callback();
         }
+        // if response headers have been sent exit
         if (response._headerSent) {
-            return callback.bind(this)();
+            return callback();
         }
+        if (context.format) {
+            /**
+             * try to find an error handler based on current request
+             * @type Function
+             */
+            var errorHandler = this.errors[context.format];
+            if (typeof errorHandler === 'function') {
+                return errorHandler(context, err, function(err) {
+                    if (err) {
+                        TraceUtils.error('An error occurred while handling request error');
+                        TraceUtils.error(err);
+                    }
+                    return callback();
+                });
+            }
+        }
+
         onHtmlError(context, err, function(err) {
             if (err) {
                 //send plain text
@@ -955,15 +978,15 @@ HttpApplication.prototype.onError = function (context, err, callback) {
                 }
                 //send extra data (on development)
                 if (process.env.NODE_ENV === 'development') {
-                    if (!_.isEmpty(err.innerMessage)) {
+                    if (err.innerMessage) {
                         response.write(err.innerMessage + "\n");
                     }
-                    if (!_.isEmpty(err.stack)) {
+                    if (err.stack) {
                         response.write(err.stack + "\n");
                     }
                 }
             }
-            return callback.bind(this)();
+            return callback();
         });
     }
     catch (err) {
@@ -974,7 +997,9 @@ HttpApplication.prototype.onError = function (context, err, callback) {
             return callback.bind(this)();
         }
     }
-};
+}
+
+
 /**
  * @private
  * @type {string}
@@ -1018,35 +1043,49 @@ function startInternal(options, callback) {
             self.processRequest(context, function (err) {
                 if (err) {
                     //handle context error event
-                    if (context.listeners('error').length>0) {
+                    if (context.listeners('error').length > 0) {
                         return context.emit('error', { error:err }, function() {
-                            context.finalize(function() {
-                                if (context.response) { context.response.end(); }
+                            return context.finalize(function() {
+                                if (context.response) {
+                                    context.response.end();
+                                }
                             });
                         });
                     }
                     if (self.listeners('error').length === 0) {
-                        self.onError(context, err, function () {
-                            if (_.isNil(context)) { return; }
-                            context.finalize(function() {
-                                if (context.response) { context.response.end(); }
+                        onError.bind(self)(context, err, function () {
+                            if (context == null) {
+                                return;
+                            }
+                            return context.finalize(function() {
+                                if (context.response) {
+                                    context.response.end();
+                                }
                             });
                         });
                     }
                     else {
                         //raise application error event
-                        self.emit('error', { context:context, error:err }, function() {
-                            if (typeof context === 'undefined' || context === null) { return; }
+                        return self.emit('error', { context:context, error:err }, function() {
+                            if (context == null) {
+                                return;
+                            }
                             context.finalize(function() {
-                                if (context.response) { context.response.end(); }
+                                if (context.response) {
+                                    context.response.end();
+                                }
                             });
                         });
                     }
                 }
                 else {
-                    if (_.isNil(context)) { return; }
-                    context.finalize(function() {
-                        if (context.response) { context.response.end(); }
+                    if (context == null) {
+                        return;
+                    }
+                    return context.finalize(function() {
+                        if (context.response) {
+                            context.response.end();
+                        }
                     });
                 }
             });
@@ -1127,6 +1166,45 @@ HttpApplication.prototype.start = function (options, callback) {
  */
 HttpApplication.prototype.runtime = function() {
     var self = this;
+
+    function nextError(context, err) {
+        //handle context error event
+        if (context.listeners('error').length > 0) {
+            return context.emit('error', { error:err }, function() {
+                context.finalize(function() {
+                    if (context.response) {
+                        context.response.end();
+                    }
+                });
+            });
+        }
+        if (self.listeners('error').length === 0) {
+            onError.bind(self)(context, err, function () {
+                if (context == null) {
+                    return;
+                }
+                context.finalize(function() {
+                    if (context.response) {
+                        context.response.end();
+                    }
+                });
+            });
+        }
+        else {
+            //raise application error event
+            self.emit('error', { context:context, error:err }, function() {
+                if (context == null) {
+                    return;
+                }
+                context.finalize(function() {
+                    if (context.response) {
+                        context.response.end();
+                    }
+                });
+            });
+        }
+    }
+
     return function runtimeParser(req, res, next) {
         //create context
         var context = self.createContext(req,res);
@@ -1147,15 +1225,16 @@ HttpApplication.prototype.runtime = function() {
         //process request
         self.processRequest(context, function(err) {
             if (err) {
-                context.finalize(function() {
-                    return next(err);
-                });
+                if (typeof next === 'function') {
+                    return context.finalize(function() {
+                        return next(err);
+                    });
+                }
+                return nextError(context, err);
             }
-            else {
-                context.finalize(function() {
-                    context.response.end();
-                });
-            }
+            return context.finalize(function() {
+                context.response.end();
+            });
         });
     };
 };
@@ -1163,7 +1242,7 @@ HttpApplication.prototype.runtime = function() {
 /**
  * Registers an application controller
  * @param {string} name
- * @param {Function} controllerCtor
+ * @param {Function|HttpControllerConfiguration} controllerCtor
  * @returns HttpApplication
  */
 HttpApplication.prototype.useController = function(name, controllerCtor) {
@@ -1173,6 +1252,9 @@ HttpApplication.prototype.useController = function(name, controllerCtor) {
     var controllers = this.getConfiguration().getSourceAt('controllers') || { };
     //set application controller
     controllers[name] = controllerCtor;
+    if (typeof controllerCtor.configure === 'function') {
+        controllerCtor.configure(this);
+    }
     //apply changes
     this.getConfiguration().setSourceAt('controllers', controllers);
     return this;
@@ -1304,7 +1386,7 @@ function httpApplicationErrors(application) {
                 }
                 //execute redirect result
                 return result.execute(context, function(err) {
-                    return callback.bind(self)(err);
+                    return callback(err);
                 });
             }
             //go to next error if any

@@ -176,7 +176,7 @@ function AuthStrategy(app) {
 }
 LangUtils.inherits(AuthStrategy, HttpApplicationService);
 
-// noinspection JSUnusedLocalSymbols
+// noinspection JSUnusedLocalSymbols,JSUnusedGlobalSymbols
 /**
  * Sets the authentication cookie for the given context
  * @param {HttpContext} thisContext
@@ -188,7 +188,7 @@ LangUtils.inherits(AuthStrategy, HttpApplicationService);
 AuthStrategy.prototype.setAuthCookie = function(thisContext, userName, options) {
     throw new AbstractMethodError();
 };
-// noinspection JSUnusedLocalSymbols
+// noinspection JSUnusedLocalSymbols,JSUnusedGlobalSymbols
 /**
  * Gets the authentication cookie of the given context
  * @param {HttpContext} thisContext
@@ -200,7 +200,7 @@ AuthStrategy.prototype.getAuthCookie = function(thisContext) {
     throw new AbstractMethodError();
 };
 
-// noinspection JSUnusedGlobalSymbols
+// noinspection JSUnusedGlobalSymbols,JSUnusedLocalSymbols
 /**
  * Validates the specified credentials and authorizes the given context by setting the authorization cookie
  * @param {HttpContext} thisContext - The current context
@@ -215,7 +215,7 @@ AuthStrategy.prototype.login = function(thisContext, userName, userPassword) {
 };
 
 // noinspection JSUnusedGlobalSymbols
-// noinspection JSUnusedLocalSymbols
+// noinspection JSUnusedLocalSymbols,JSUnusedGlobalSymbols
 /**
  * Removes any authorization assigned to the given context
  * @param {HttpContext} thisContext
@@ -235,6 +235,7 @@ AuthStrategy.prototype.logout = function(thisContext) {
 AuthStrategy.prototype.getUnattendedExecutionAccount = function() {
     throw new AbstractMethodError();
 };
+// noinspection JSUnusedGlobalSymbols
 /**
  * Gets the options of this authentication strategy
  * @abstract
@@ -309,6 +310,7 @@ DefaultAuthStrategy.prototype.setAuthCookie = function(thisContext, userName, op
     thisContext.response.setHeader('Set-Cookie',str);
 };
 
+// noinspection JSUnusedGlobalSymbols
 /**
  * Validates the specified credentials and authorizes the given context by setting the authorization cookie
  * @param thisContext - The current context
@@ -331,7 +333,7 @@ DefaultAuthStrategy.prototype.login = function(thisContext, userName, userPasswo
                     return callback(new HttpForbiddenError('The account is disabled. Please contact your system administrator.'));
                 }
                 //user was found
-                const model = context.model('UserCredential');
+                var model = context.model('UserCredential');
                 if (typeof model === 'undefined' || model === null) {
                     TraceUtils.log('UserCredential model is missing.');
                     return callback(new Error('Login failed due to server error.'));
@@ -363,13 +365,14 @@ DefaultAuthStrategy.prototype.login = function(thisContext, userName, userPasswo
 
 };
 
+// noinspection JSUnusedGlobalSymbols
 /**
  * Removes any authorization assigned to the given context
  * @param thisContext
  * @returns {Promise|*}
  */
 DefaultAuthStrategy.prototype.logout = function(thisContext) {
-    const self = this;
+    var self = this;
     return Q.nfbind(function(callback) {
         //set auth cookie
         self.setAuthCookie(thisContext,'anonymous');
@@ -377,6 +380,7 @@ DefaultAuthStrategy.prototype.logout = function(thisContext) {
     })();
 };
 // JSUnusedGlobalSymbols
+// noinspection JSUnusedGlobalSymbols
 /**
  * Gets the authentication cookie of the given context
  * @param {HttpContext} thisContext
@@ -390,6 +394,7 @@ DefaultAuthStrategy.prototype.getAuthCookie = function(thisContext) {
     }
 };
 
+// noinspection JSUnusedGlobalSymbols
 /**
  * Gets the unattended execution account
  * @returns {string}
@@ -413,8 +418,10 @@ function EncryptionStrategy(app) {
 }
 LangUtils.inherits(EncryptionStrategy, HttpApplicationService);
 
+// noinspection JSUnusedLocalSymbols,JSUnusedGlobalSymbols
 /**
  * Encrypts the given data
+ * @abstract
  * @param {*} data
  * @returns {*}
  * */
@@ -423,7 +430,9 @@ EncryptionStrategy.prototype.encrypt = function(data) {
     throw new AbstractMethodError();
 };
 
+// noinspection JSUnusedLocalSymbols,JSUnusedGlobalSymbols
 /**
+ * @abstract
  * Decrypts the given data
  * @param {string} data
  * @returns {*}
@@ -453,6 +462,7 @@ LangUtils.inherits(DefaultEncryptionStrategy, EncryptionStrategy);
 DefaultEncryptionStrategy.prototype.getOptions = function() {
     return this[cryptoProperty];
 };
+// noinspection JSUnusedGlobalSymbols
 /**
  * Encrypts the given data
  * @param {*} data
@@ -463,15 +473,16 @@ DefaultEncryptionStrategy.prototype.encrypt = function(data) {
         return;
     }
     Args.check(this.getApplication().hasService(EncryptionStrategy),'Encryption strategy is missing');
-    const options = this.getOptions();
+    var options = this.getOptions();
     //validate settings
     Args.check(!_.isNil(options.algorithm), 'Data encryption algorithm is missing. The operation cannot be completed');
     Args.check(!_.isNil(options.key), 'Data encryption key is missing. The operation cannot be completed');
     //encrypt
-    const cipher = crypto.createCipher(options.algorithm, options.key);
+    var cipher = crypto.createCipher(options.algorithm, options.key);
     return cipher.update(data, 'utf8', 'hex') + cipher.final('hex');
 };
 
+// noinspection JSUnusedGlobalSymbols
 /**
  * Decrypts the given data
  * @param {string} data
@@ -482,12 +493,12 @@ DefaultEncryptionStrategy.prototype.decrypt = function(data) {
         return;
     Args.check(this.getApplication().hasService(EncryptionStrategy),'Encryption strategy is missing');
     //validate settings
-    const options = this.getOptions();
+    var options = this.getOptions();
     //validate settings
     Args.check(!_.isNil(options.algorithm), 'Data encryption algorithm is missing. The operation cannot be completed');
     Args.check(!_.isNil(options.key), 'Data encryption key is missing. The operation cannot be completed');
     //decrypt
-    const decipher = crypto.createDecipher(options.algorithm, options.key);
+    var decipher = crypto.createDecipher(options.algorithm, options.key);
     return decipher.update(data, 'hex', 'utf8') + decipher.final('utf8');
 };
 

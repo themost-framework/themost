@@ -1,7 +1,7 @@
 module.exports = function (api) {
     api.cache(false);
     return {
-        "sourceMaps": true,
+        "sourceMaps": "both",
         "retainLines": true,
          "presets": [
             [
@@ -9,8 +9,7 @@ module.exports = function (api) {
                 {
                     "targets": {
                         "node": "current"
-                    },
-                     "modules": "commonjs"
+                    }
                 }
             ]
         ],

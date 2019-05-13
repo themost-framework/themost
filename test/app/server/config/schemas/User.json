@@ -61,5 +61,16 @@
             "type": "global",
             "account": "Administrators"
         }
+    ],
+    "seed": [
+        {
+            "name": "anonymous",
+            "description": "Anonymous User",
+            "groups": [
+                {
+                    "name": "Guests"
+                }
+            ]
+        }
     ]
 }

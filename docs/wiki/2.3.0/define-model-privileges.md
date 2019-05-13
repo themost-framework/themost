@@ -126,3 +126,13 @@ e.g.
      }
      
 which gives read access for offers of a specific product (with id equal to 34) to guests.
+
+##### Examples
+
+Clone [api server example](https://github.com/themost-framework/oms-api-demo/)
+
+    git clone https://github.com/themost-framework/oms-api-demo.git
+    
+to see examples about data model privileges.
+
+

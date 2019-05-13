@@ -75,8 +75,17 @@ export declare function httpParam(attrs: HttpParamAttributeOptions);
 export declare function httpAuthorize();
 /**
  * Defines an HTTP controller
+ * @param {string=} name
  */
-export declare function httpController();
+export declare function httpController(name?: string);
+
+/**
+ * Defines an http route that is going to be registered by an http controller
+ * @param {string} url
+ * @param {string=} format
+ * @param {number=} index
+ */
+export declare function httpRoute(url, format, index);
 /**
  *
  * @param {Object|Function} proto - The constructor function of a class or the prototype of a class
