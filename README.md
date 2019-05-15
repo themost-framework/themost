@@ -493,4 +493,7 @@ A @themost web application may serve static files. HttpApplication#useStaticCont
     app.useStaticContent(path.resolve('./app'));
     ...
 
+## Use data models
+
+MOST Web Framework comes with a built-in powerfull ORM module. [@themost/data](https://github.com/themost-framework/themost/tree/master/modules/%40themost/data) has a wide set of features for creating data-driven scalable applications. See further instructions [here](https://github.com/themost-framework/themost/tree/master/modules/%40themost/data)
 
