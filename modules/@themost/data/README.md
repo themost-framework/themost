@@ -215,7 +215,7 @@ A data model may have many-to-many assocations with other models.
     ...
 
 ## Filtering
-The most-data module enables advanced data object filtering:
+Use advanced data object filtering:
 
         //get customers orders with status delivered
         context.model('Order').where('orderStatus/alternateName').equal('OrderedDelivered')
@@ -229,7 +229,7 @@ The most-data module enables advanced data object filtering:
 DataQueryable class offers a wide set of methods for filtering, paging, ordering and grouping data objects.
 
 ## Ordering
-The most-data module enables advanced data object ordering:
+Use data object ordering:
 
     //get orders order by order date
     context.model('Order').where('orderStatus/alternateName').equal('OrderProcessing')
@@ -310,7 +310,7 @@ are going to be executed before and after inserting, updating or deleting a data
         });
     }
 
-## Data model privileges
+## Privileges
 Data model definition may contain a collection of privileges which should be given in users or groups.
 User access rights will be validated during read, insert, update or delete data operations.
 
@@ -322,7 +322,7 @@ User access rights will be validated during read, insert, update or delete data 
     ...
 
 ## Caching
-The most-data module allows developers to use data caching mechanisms while getting data.
+The @themost/data module allows developers to use data caching mechanisms while getting data.
 DataModel.caching property indicates whether data will be cached or not.
 
     {
@@ -365,6 +365,7 @@ Data model definition may contain a seed property which is a collection of data 
 
 
 ## Data Adapters
+
 There are different data connectors for the most popular database engines. 
 
 * SQLite
@@ -374,4 +375,4 @@ There are different data connectors for the most popular database engines.
 * PostgreSQL
 * H2
 
-See further instructions [here](https://github.com/themost-framework/themost-adapters/) for using one of the available data adapters baased to your development or production environment.
+See further instructions [here](https://github.com/themost-framework/themost-adapters/) for using one of the available data adapters according to your development or production environment.
