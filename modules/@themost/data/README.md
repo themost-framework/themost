@@ -5,7 +5,7 @@ License: [BSD-3-Clause](https://github.com/themost-framework/themost/blob/master
 
 ## Install 
 
-  npm i @themost/data
+    npm i @themost/data
 
 ## Features
 ### JSON schemas
