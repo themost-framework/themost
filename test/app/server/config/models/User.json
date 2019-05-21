@@ -79,6 +79,10 @@
     "privileges": [
         {
             "mask": 15,
+            "type": "global"
+        },
+        {
+            "mask": 15,
             "type": "global",
             "account": "Administrators"
         },

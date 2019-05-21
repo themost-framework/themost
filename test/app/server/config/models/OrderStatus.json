@@ -1,12 +1,12 @@
 {
+    "$schema": "https://themost-framework.github.io/themost/models/2018/2/schema.json",
     "name": "OrderStatus",
-    "id": 9507079,
     "title": "Order Status",
     "hidden": false,
     "sealed": false,
     "abstract": false,
     "version": "2.0",
-    "caching":"always",
+    "caching":"conditional",
     "fields": [{
         "name": "id",
         "title": "Id",

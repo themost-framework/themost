@@ -9,9 +9,11 @@
 import {DataQueryable} from "./data-queryable";
 import {DataAssociationMapping} from "./types";
 import {DataObject} from "./data-object";
+import {DataModel} from "./data-model";
 
 export declare class HasOneAssociation extends DataQueryable{
     constructor(parent: any, association: DataAssociationMapping);
     parent: DataObject;
+    model: DataModel;
     mapping: DataAssociationMapping;
 }

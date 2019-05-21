@@ -213,14 +213,14 @@
             "type": "global"
         },
         {
-            "mask": 1,
-            "type": "global",
-            "account": "*"
-        },
-        {
             "mask": 15,
             "type": "global",
             "account": "Administrators"
+        },
+        {
+            "mask": 1,
+            "type": "self",
+            "filter": "user eq me()"
         }
     ]
 }
