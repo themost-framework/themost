@@ -205,6 +205,14 @@
             }
         }
     ],
+    "constraints": [
+        {
+            "type": "unique",
+            "fields": [
+                "email"
+            ]
+        }
+    ],
     "eventListeners": [
     ],
     "privileges": [
