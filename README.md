@@ -1,7 +1,7 @@
 # themost
 MOST Web Framework 2.0 **Codename Blueshift**
 
-The new version of [MOST Web Framework](http://github.com/kbarbounakis/most-web) 
+The new version of MOST Web Framework
 comes with a set of new features for building modern data-driven web applications and services.
 
 ## Changelog
@@ -493,4 +493,7 @@ A @themost web application may serve static files. HttpApplication#useStaticCont
     app.useStaticContent(path.resolve('./app'));
     ...
 
+## Use data models
+
+MOST Web Framework comes with a built-in powerfull ORM module. [@themost/data](https://github.com/themost-framework/themost/tree/master/modules/%40themost/data) has a wide set of features for creating data-driven scalable applications. See further instructions [here](https://github.com/themost-framework/themost/tree/master/modules/%40themost/data)
 
