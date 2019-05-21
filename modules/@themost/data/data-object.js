@@ -411,35 +411,55 @@ DataObject.prototype.property = function(name) {
         //return queryable field value
         return {
             value:function(callback) {
-                //if object has already an attribute with this name
-                if (self.hasOwnProperty(name)) {
-                    //return attribute
-                    return callback(null, self[name]);
-                }
-                else {
-                    //otherwise get attribute value
-                    if (self.hasOwnProperty(model.primaryKey)) {
-                        model.where(model.primaryKey).equal(self[model.primaryKey]).select(name).value(function(err, value) {
-                            if (err) { return callback(err); }
-                            callback(null, value);
-                        });
+
+                function getValueWithCallback(callback) {
+                    //if object has already an attribute with this name
+                    if (self.hasOwnProperty(name)) {
+                        //return attribute
+                        return callback(null, self[name]);
                     }
                     else {
-                        model.inferState(self, function(err, state) {
-                            if (err) { return callback(err); }
-                            if (state===2) {
-                                model.where(model.primaryKey).equal(self[model.primaryKey]).select(name).value(function(err, value) {
-                                    if (err) { return callback(err); }
-                                    callback(null, value);
-                                });
-                            }
-                            else {
-                                er = new Error('Object identity cannot be found due to missing primary key or unique constraint filter.'); er.code = 'EDATA';
-                                callback(er);
-                            }
-                        });
+                        //otherwise get attribute value
+                        if (self.hasOwnProperty(model.primaryKey)) {
+                            model.where(model.primaryKey).equal(self[model.primaryKey]).select(name).value(function(err, value) {
+                                if (err) { return callback(err); }
+                                // set property
+                                self[name] = value;
+                                callback(null, value);
+                            });
+                        }
+                        else {
+                            model.inferState(self, function(err, state) {
+                                if (err) { return callback(err); }
+                                if (state===2) {
+                                    model.where(model.primaryKey).equal(self.getId()).select(name).value(function(err, value) {
+                                        if (err) {
+                                            return callback(err);
+                                        }
+                                        // set property
+                                        self[name] = value;
+                                        return callback(null, value);
+                                    });
+                                }
+                                else {
+                                    return callback(null);
+                                }
+                            });
+                        }
                     }
                 }
+                if (typeof callback === 'function') {
+                    return getValueWithCallback(callback);
+                }
+                return Q.promise(function(resolve, reject) {
+                    return getValueWithCallback(function(err, value) {
+                        if (err) {
+                            return reject(err);
+                        }
+                        return resolve(value);
+                    });
+                });
+
             }
         };
     }

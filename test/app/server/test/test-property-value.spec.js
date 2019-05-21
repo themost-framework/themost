@@ -27,7 +27,18 @@ describe('test DataObject.property().value()', () => {
             name: 'amanda.hayward@example.com',
             autthenticationType: 'basic'
         };
-        const person = await context.model('Person').where('user/name').equal(context.user.name).getTypedItem();
+        const person = await context.model('Person').where('user/name').equal(context.user.name).select('id').getTypedItem();
+        assert.isObject(person);
+        const givenName = await person.property('givenName').value();
+        assert.isString(givenName);
+    });
+
+    it('should get object property without identifier', async () => {
+        context.user = {
+            name: 'amanda.hayward@example.com',
+            autthenticationType: 'basic'
+        };
+        const person = await context.model('Person').where('user/name').equal(context.user.name).select('email').getTypedItem();
         assert.isObject(person);
         const givenName = await person.property('givenName').value();
         assert.isString(givenName);
