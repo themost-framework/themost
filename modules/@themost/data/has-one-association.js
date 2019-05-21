@@ -9,10 +9,10 @@
 ///
 var LangUtils = require('@themost/common/utils').LangUtils;
 var _ = require('lodash');
-var QueryUtils = require('@themost/query/utils').QueryUtils;
+var QueryExpression = require('@themost/query').QueryExpression;
+var QueryField = require('@themost/query').QueryField;
 var DataAssociationMapping = require('./types').DataAssociationMapping;
 var DataQueryable = require('./data-queryable').DataQueryable;
-
 
 /**
  * @classdesc Represents a foreign key association between two models.
@@ -98,45 +98,99 @@ function HasOneAssociation(obj, association)
             self.mapping = _.assign(new DataAssociationMapping(), association);
     }
 
-    var q = null;
+    /**
+     * @type QueryExpression
+     */
+    var _query;
     //override query property
     Object.defineProperty(this, 'query', {
         get:function() {
             //if query is already defined
-            if (q!==null)
-            //return this query
-                return q;
+            if (_query != null) {
+                return _query;
+            }
             if (typeof self.mapping === 'undefined' || self.mapping===null)
                 throw new Error('Data association mapping cannot be empty at this context.');
-            //prepare query by selecting the foreign key of the related object
-            var associatedObject = self.parent[self.mapping.childField], associatedValue;
-            if (associatedObject.hasOwnProperty(self.mapping.parentField)) {
-                associatedValue = associatedObject[self.mapping.parentField];
+            //get parent object
+            var associatedValue = null;
+            if (self.parent.hasOwnProperty(self.mapping.childField)) {
+                // get associated object
+                var associatedObject = self.parent[self.mapping.childField];
+                // if parent object has a property for mapping child field
+                if (associatedObject && associatedObject.hasOwnProperty(self.mapping.parentField)) {
+                    // get associated value
+                    associatedValue = associatedObject[self.mapping.parentField];
+                }
+                else if (associatedObject != null ) {
+                    associatedValue = associatedObject;
+                }
+                // return query
+                _query = self.model.where(self.mapping.parentField).equal(associatedValue).prepare().query;
+                return _query;
             }
             else {
-                associatedValue = associatedObject;
+                var childModel = self.parent.getModel();
+                var parentModel = self.model;
+                /**
+                 * get empty query expression
+                 * @type QueryExpression
+                 */
+                _query = self.model.asQueryable().cache(false).select().query;
+                // get random alias
+                var alias = self.model.name + '0';
+                // get join left operand
+                var left = new QueryExpression().select(self.mapping.parentField).from(parentModel.viewAdapter).$select;
+                // get join right operand
+                var right = new QueryExpression().select(self.mapping.childField).from(alias).$select;
+                // create join
+                _query.join(childModel.viewAdapter, [], alias).with([left, right]);
+                // inject where
+                _query.injectWhere(new QueryExpression().where(new QueryField(self.model.primaryKey).from(alias)).equal(self.parent.getId()).$where);
+                // return query
+                return _query.prepare();
             }
-            q = QueryUtils.query(self.model.viewAdapter).where(self.mapping.parentField).equal(associatedValue).prepare();
-            return q;
-        }, configurable:false, enumerable:false
+        },
+        configurable:false,
+        enumerable:false
     });
 
-    var m = null;
-    //override model property
+    /**
+     * @type DataModel
+     */
+    var _model;
     Object.defineProperty(this, 'model', {
-        get:function() {
-            //if query is already defined
-            if (m!==null)
-            //return this query
-                return m;
-            m = self.parent.context.model(self.mapping.parentModel);
-            return m;
-        }, configurable:false, enumerable:false
+        get: function() {
+            if (_model) {
+                return _model;
+            }
+            if (self.parent && self.mapping) {
+                _model = this.parent.context.model(self.mapping.parentModel);
+                return _model;
+            }
+            return null;
+        },
+        enumerable: false
     });
 
 
 }
 LangUtils.inherits(HasOneAssociation, DataQueryable);
+
+HasOneAssociation.prototype.getItems = function() {
+    throw new Error('Unsupported method call:getItems()')
+};
+
+HasOneAssociation.prototype.getList = function() {
+    throw new Error('Unsupported method call:getList()')
+};
+
+HasOneAssociation.prototype.getItem = function() {
+    return HasOneAssociation.super_.prototype.getItem.bind(this)();
+};
+
+HasOneAssociation.prototype.getAllItems = function() {
+    throw new Error('Unsupported method call:getAllItems()')
+};
 
 if (typeof exports !== 'undefined')
 {

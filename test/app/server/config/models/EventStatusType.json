@@ -1,46 +1,77 @@
-{"name": "EventStatusType", "id": 277, "title": "Event Status Type", "hidden": false,
-    "sealed": false, "abstract": false, "version": "2.0", "fields": [
+{
+  "$schema": "https://themost-framework.github.io/themost/models/2018/2/schema.json",
+  "@id": "http://schema.org/EventStatusType",
+  "name": "EventStatusType",
+  "description": "EventStatusType is an enumeration type whose instances represent several states that an Event may be in.",
+  "title": "EventStatusType",
+  "abstract": false,
+  "sealed": false,
+  "implements": "Enumeration",
+  "version": "2.1",
+  "fields": [
     {
-        "name": "id",
-        "title": "Id",
-        "type": "Integer",
-        "nullable": false,
-        "primary": true
-    }, {
-        "name": "name",
-        "title": "Name",
-        "type": "Text",
-        "nullable": false,
-        "size":80
-    }, {
-        "name": "description",
-        "title": "Description",
-        "type": "Text",
-        "nullable": false
+      "@id": "https://themost.io/schemas/id",
+      "name": "id",
+      "title": "id",
+      "description": "The identifier of the item.",
+      "type": "Counter",
+      "primary": true
     }
-], "privileges":[
-    { "mask":1, "type":"global", "account":"*" },
-    { "mask":15, "type":"global" }
-],
-    "seed":[ {
-        "id":1, "name":"Created", "description":"The event has been initialized but has not yet been scheduled."
-        },
-        {
-            "id":2, "name":"Scheduled", "description":"The event has been scheduled and is waiting to start."
-        },
-        {
-            "id":3, "name":"Started", "description":"The event has been succesfully started."
-        },
-        {
-            "id":4, "name":"Canceled", "description":"The event has been cancelled."
-        },
-        {
-            "id":5, "name":"Paused", "description":"The event has been paused."
-        },
-        {
-            "id":6, "name":"Completed", "description":"The event has been succesfully completed."
-        },
-        {
-            "id":8, "name":"Rescheduled", "description":"The event has been rescheduled and is waiting to start."
-        }
-    ]}
+  ],
+  "privileges": [
+    {
+      "mask": 1,
+      "type": "global",
+      "account": "*"
+    },
+    {
+      "mask": 15,
+      "type": "global"
+    },
+    {
+      "mask": 15,
+      "type": "global",
+      "account": "Administrators"
+    }
+  ],
+  "constraints": [
+    {
+      "type": "unique",
+      "fields": [
+        "alternateName"
+      ]
+    }
+  ],
+  "seed": [
+    {
+      "name": "EventOpened",
+      "alternateName": "EventOpened",
+      "description": "The event has been set and is waiting for attend.",
+      "url": "http://schema.org/EventOpened"
+    },
+    {
+      "name": "EventPostponed",
+      "alternateName": "EventPostponed",
+      "description": "The event has been postponed and no new date has been set. The event's previousStartDate should be set.",
+      "url": "http://schema.org/EventPostponed"
+    },
+    {
+      "name": "EventRescheduled",
+      "alternateName": "EventRescheduled",
+      "description": "The event has been rescheduled. The event's previousStartDate should be set to the old date and the startDate should be set to the event's new date. (If the event has been rescheduled multiple times, the previousStartDate property may be repeated).",
+      "url": "http://schema.org/EventRescheduled"
+    },
+    {
+      "name": "EventScheduled",
+      "alternateName": "EventScheduled",
+      "description": "The event is taking place or has taken place on the startDate as scheduled. Use of this value is optional, as it is assumed by default.",
+      "url": "http://schema.org/EventScheduled"
+    },
+    {
+      "name": "EventCancelled",
+      "alternateName": "EventCancelled",
+      "description": "The event has been cancelled. If the event has multiple startDate values, all are assumed to be cancelled. Either startDate or previousStartDate may be used to specify the event's cancelled date(s).",
+      "url": "http://schema.org/EventCancelled"
+    }
+  ]
+}

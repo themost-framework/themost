@@ -210,7 +210,7 @@ function DataObject(type, obj)
     Object.defineProperty(this,'$$model',{
         get: function() {
             if (_.isNil(this[typeProperty]))
-                return;
+                return null;
             if (this[modelProperty]) {
                 return this[modelProperty];
             }
@@ -445,10 +445,12 @@ DataObject.prototype.property = function(name) {
     }
     //validate field association
     if (mapping.associationType==='association') {
-        if (mapping.parentModel===model.name)
-            return new HasManyAssociation(self, mapping);
-        else
+        if (mapping.childField===field.name && mapping.childModel === model.name) {
             return new HasOneAssociation(self, mapping);
+        }
+        else {
+            return new HasManyAssociation(self, mapping);
+        }
     }
     else if (mapping.associationType==='junction') {
         if (mapping.parentModel===model.name) {
