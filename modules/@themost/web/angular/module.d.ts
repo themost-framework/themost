@@ -10,6 +10,7 @@ import {HttpApplicationService} from "../types";
 
 export declare class AngularServerModule extends HttpApplicationService {
 
+    defaults: any;
     useBootstrapModule(modulePath: string): AngularServerModule;
     bootstrap(bootstrapFunc: (angular:any)=> void);
     service(name: string, ctor: any): AngularServerModule;

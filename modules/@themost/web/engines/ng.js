@@ -14,13 +14,58 @@ var DirectiveEngine = require('./../handlers/directive').DirectiveEngine;
 var PostExecuteResultArgs = require('./../handlers/directive').PostExecuteResultArgs;
 var HttpViewContext = require('./../mvc').HttpViewContext;
 var HttpViewResult = require('./../mvc').HttpViewResult;
-var HttpNotFoundError = require('@themost/common/errors').HttpNotFoundError;
+var HttpNotFoundError = require('@themost/common').HttpNotFoundError;
+var Args = require('@themost/common').Args;
 
+/**
+ * A standalone application for implementing NgEngine under native environments
+ * @constructor
+ */
+function NgApplication() {
+    // set services
+    Object.defineProperty(this, 'services', {
+        value: {}
+    });
+}
+
+NgApplication.prototype.hasService = function(serviceCtor) {
+    Args.notFunction(serviceCtor,"Service constructor");
+    return this.services.hasOwnProperty(serviceCtor.name);
+};
+
+NgApplication.prototype.useService = function(serviceCtor) {
+    Args.notFunction(serviceCtor,"Service constructor");
+    this.services[serviceCtor.name] = new serviceCtor(this);
+    return this;
+};
+
+NgApplication.prototype.getService = function(serviceCtor) {
+    Args.notFunction(serviceCtor,"Service constructor");
+    return this.services[serviceCtor.name];
+};
+
+// noinspection JSClosureCompilerSyntax
+/**
+ * A standalone context for implementing NgEngine under native environments
+ * @constructor
+ * @augments HttpContext
+ */
+function NgContext() {
+    this.application = null;
+    this.request = null;
+    this.response = null;
+}
+
+NgContext.prototype.getApplication = function() {
+    return this.application;
+};
+
+// noinspection JSClosureCompilerSyntax
 /**
  * @class
  * @constructor
  * @param {HttpContext=} context
- * @augments {HttpViewEngine}
+ * @augments HttpViewEngine
  */
 function NgEngine(context) {
     NgEngine.super_.bind(this)(context);
@@ -31,7 +76,7 @@ LangUtils.inherits(NgEngine, HttpViewEngine);
  *
  * @param {string} filename
  * @param {*=} data
- * @param {Function} callback
+ * @param {Function=} callback
  */
 NgEngine.prototype.render = function(filename, data, callback) {
     var self = this;
@@ -87,6 +132,34 @@ NgEngine.prototype.render = function(filename, data, callback) {
     return renderFile(filename, null, data, callback);
 
 };
+
+/**
+ *
+ * @param {string} str - A string which represents the template to be rendered
+ * @param {*=} data - Any object which represents the data to be used while rendering
+ * @returns Promise<any>
+ */
+NgEngine.prototype.renderString = function(str, data) {
+    const self = this;
+    return new Promise((resolve, reject) => {
+        var viewContext = new HttpViewContext(self.getContext());
+        viewContext.body = str;
+        viewContext.data = data || {};
+        var directiveHandler = new DirectiveEngine();
+        var args = Object.assign(new PostExecuteResultArgs(), {
+            "context": self.getContext(),
+            "target":viewContext
+        });
+        directiveHandler.postExecuteResult(args, function(err) {
+            if (err) {
+                return reject(err);
+            }
+            return resolve(viewContext.body);
+        });
+    });
+
+};
+
 /**
  * @param  {HttpContext=} context
  * @returns {NgEngine}
@@ -95,14 +168,13 @@ NgEngine.createInstance = function(context) {
     return new NgEngine(context);
 };
 
-
-if (typeof exports !== 'undefined') {
-    module.exports.NgEngine = NgEngine;
-    /**
-     * @param  {HttpContext=} context
-     * @returns {NgEngine}
-     */
-    module.exports.createInstance = function(context) {
-        return NgEngine.createInstance(context);
-    };
-}
+module.exports.NgEngine = NgEngine;
+module.exports.NgApplication = NgApplication;
+module.exports.NgContext = NgContext;
+/**
+ * @param  {HttpContext=} context
+ * @returns {NgEngine}
+ */
+module.exports.createInstance = function(context) {
+    return NgEngine.createInstance(context);
+};

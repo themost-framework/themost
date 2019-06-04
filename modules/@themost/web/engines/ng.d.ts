@@ -8,6 +8,20 @@
  */
 import {HttpContext} from "../context";
 import {HttpViewEngine} from "../types";
+import {IncomingMessage, ServerResponse} from "http";
+
+export declare class NgApplication {
+    useService(serviceCtor: Function): NgApplication;
+    hasService(serviceCtor: Function): any;
+    getService(serviceCtor: Function): any;
+}
+
+export declare class NgContext {
+    application: NgApplication;
+    request: IncomingMessage;
+    response: ServerResponse;
+    getApplication(): NgApplication;
+}
 
 export declare class NgEngine extends HttpViewEngine {
     constructor(context: HttpContext);
@@ -15,6 +29,7 @@ export declare class NgEngine extends HttpViewEngine {
     context: HttpContext;
     getContext(): HttpContext;
     render(filename: string, data: any, callback: (err?: Error, res?: string) => void)
+    renderString(str: string, data?: any): Promise<any>
 
 }
 
