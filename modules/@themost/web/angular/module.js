@@ -22,6 +22,7 @@ var jQueryScript = fs.readFileSync(jQueryModulePath, 'utf8');
 var jQueryExtensionsScript = fs.readFileSync(path.resolve(__dirname, '../jquery/extensions.js'), 'utf8');
 var angularModulePath = path.resolve(__dirname, './1.6.10/angular.js');
 var angularScript = fs.readFileSync(angularModulePath, 'utf8');
+// noinspection JSClosureCompilerSyntax
 /**
  * @class
  * @constructor
@@ -35,6 +36,12 @@ function AngularServerModule(app) {
     this.controllers = { };
     this.services = { };
     this.modules = { };
+    this.defaults = {
+        interpolation: {
+            startSymbol: '{{=',
+            endSymbol: '}}'
+        }
+    };
     //this.angular = ng.angular;
     //this.jQuery = ng.jQuery;
     applyDirectives(this);

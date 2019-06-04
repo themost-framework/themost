@@ -694,7 +694,7 @@ DataPermissionEventListener.prototype.beforeExecute = function(event, callback)
             });
 
             var cancel = false, assigned = false, entity = new QueryEntity(model.viewAdapter), expand = null,
-                perms1 = new QueryEntity(permissions.viewAdapter).as('p0'), expr = null;
+                perms1 = new QueryEntity(permissions.viewAdapter).as(permissions.viewAdapter + '0'), expr = null;
             async.eachSeries(privileges, function(item, cb) {
                 if (cancel) {
                     return cb();
@@ -815,7 +815,7 @@ DataPermissionEventListener.prototype.beforeExecute = function(event, callback)
                     return callback();
                 }
                 else if (expr) {
-                    return context.model("Permission").migrate(function(err) {
+                    return context.model('Permission').migrate(function(err) {
                         if (err) { return callback(err); }
                         var q = QueryUtils.query(model.viewAdapter).select([model.primaryKey]).distinct();
                         if (expand) {
@@ -825,7 +825,8 @@ DataPermissionEventListener.prototype.beforeExecute = function(event, callback)
                             });
                         }
                         q.join(perms1).with(expr);
-                        var pqAlias = 'pq' + RandomUtils.randomInt(100000,999999).toString();
+                        // set static alias
+                        var pqAlias = context.model('Permission').viewAdapter + '1';
                         event.query.join(q.as(pqAlias)).with(QueryUtils.where(entity.select(model.primaryKey)).equal(new QueryEntity(pqAlias).select(model.primaryKey)));
                         return callback();
                     });

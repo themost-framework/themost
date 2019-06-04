@@ -19,7 +19,7 @@ var QueryField = require('@themost/query/query').QueryField;
 var QueryEntity = require('@themost/query/query').QueryEntity;
 var QueryUtils = require('@themost/query/utils').QueryUtils;
 var Q = require('q');
-
+var hash = require('object-hash');
 var aliasProperty = Symbol('alias');
 
 /**
@@ -2565,13 +2565,14 @@ DataQueryable.prototype.silent = function(value) {
  * @returns {string}
  */
 DataQueryable.prototype.toMD5 = function() {
-    var q = { query:this.query };
-    if (typeof this.$expand !== 'undefined') { q.$expand =this.$expand; }
-    if (typeof this.$levels!== 'undefined') { q.$levels =this.$levels; }
-    if (typeof this.$flatten!== 'undefined') { q.$flatten =this.$flatten; }
-    if (typeof this.$silent!== 'undefined') { q.$silent =this.$silent; }
-    if (typeof this.$asArray!== 'undefined') { q.$asArray =this.$asArray; }
-    return TextUtils.toMD5(q);
+    return hash.MD5({
+        query: this.query,
+        $expand: this.$expand,
+        $levels: this.$levels,
+        $flatten: this.$flatten,
+        $silent: this.$silent,
+        $asArray: this.$asArray
+    });
 };
 
 /**

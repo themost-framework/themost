@@ -285,10 +285,21 @@ DirectiveEngine.prototype.postExecuteResult = function(args, callback) {
             appElement = angular.element(document).find('body').get(0);
         }
         if (appElement) {
+
             //get $q
             var $q = angular.injector(['ng']).get('$q');
             //get $rootScope
             var $rootScope = angular.injector(['ng']).get('$rootScope');
+
+            app.config(function($interpolateProvider) {
+                if ($interpolateProvider) {
+                    var interpolation = angularServer.defaults.interpolation;
+                    if (interpolation) {
+                        $interpolateProvider.startSymbol(interpolation.startSymbol || '{{=');
+                        $interpolateProvider.endSymbol(interpolation.endSymbol || '}}');
+                    }
+                }
+            });
 
             //set $rootScope
             app.run(function($rootScope, $await) {
