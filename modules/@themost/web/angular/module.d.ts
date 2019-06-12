@@ -7,12 +7,14 @@
  * found in the LICENSE file at https://themost.io/license
  */
 import {HttpApplicationService} from "../types";
+import * as angular from "angular";
+import IModule = angular.IModule;
 
 export declare class AngularServerModule extends HttpApplicationService {
 
     defaults: any;
     useBootstrapModule(modulePath: string): AngularServerModule;
-    bootstrap(bootstrapFunc: (angular:any)=> void);
+    bootstrap(bootstrapFunc: (angular: angular.IAngularStatic)=> IModule): AngularServerModule;
     service(name: string, ctor: any): AngularServerModule;
     directive(name: string, ctor: any): AngularServerModule;
     filter(name: string, ctor: any): AngularServerModule;
