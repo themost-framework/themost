@@ -9,6 +9,8 @@
 import {HttpContext} from "../context";
 import {HttpViewEngine} from "../types";
 import {IncomingMessage, ServerResponse} from "http";
+import * as angular from "angular";
+import IModule = angular.IModule;
 
 export declare class NgApplication {
     useService(serviceCtor: Function): NgApplication;
@@ -28,8 +30,9 @@ export declare class NgEngine extends HttpViewEngine {
 
     context: HttpContext;
     getContext(): HttpContext;
-    render(filename: string, data: any, callback: (err?: Error, res?: string) => void)
-    renderString(str: string, data?: any): Promise<any>
+    render(filename: string, data: any, callback: (err?: Error, res?: string) => void);
+    renderString(str: string, data?: any): Promise<any>;
+    bootstrap(bootstrapFunc: (angular: angular.IAngularStatic) => IModule): NgEngine;
 
 }
 

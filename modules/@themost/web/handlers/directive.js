@@ -188,7 +188,13 @@ DirectiveEngine.prototype.postExecuteResult = function(args, callback) {
         //create server module
         const angular = document.parentWindow.angular;
 
-        const app = angularServer.doBootstrap(angular);
+        let app;
+        if (this.hasOwnProperty('hasBootstrap') && typeof this.hasBootstrap === 'function') {
+            app = this.hasBootstrap(angular);
+        }
+        else {
+            app = angularServer.doBootstrap(angular);
+        }
         /**
          * @type {Array}
          */
@@ -291,16 +297,6 @@ DirectiveEngine.prototype.postExecuteResult = function(args, callback) {
             //get $rootScope
             var $rootScope = angular.injector(['ng']).get('$rootScope');
 
-            app.config(function($interpolateProvider) {
-                if ($interpolateProvider) {
-                    var interpolation = angularServer.defaults.interpolation;
-                    if (interpolation) {
-                        $interpolateProvider.startSymbol(interpolation.startSymbol || '{{=');
-                        $interpolateProvider.endSymbol(interpolation.endSymbol || '}}');
-                    }
-                }
-            });
-
             //set $rootScope
             app.run(function($rootScope, $await) {
                 if (_.isObject(view.data)) {
@@ -324,8 +320,14 @@ DirectiveEngine.prototype.postExecuteResult = function(args, callback) {
                 });
             });
 
+            if (app.name == null) {
+                return callback(new TypeError('Angular for server application module name is undefined'));
+            }
+            if (typeof app.name !== 'string') {
+                return callback(new TypeError('Angular for server application name should be a string'));
+            }
             //initialize app element
-            angular.bootstrap(appElement, ['server']);
+            angular.bootstrap(appElement, [app.name]);
 
         }
         else {

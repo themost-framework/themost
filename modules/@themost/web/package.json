@@ -1,6 +1,6 @@
 {
   "name": "@themost/web",
-  "version": "2.4.2-dev.1",
+  "version": "2.4.2-dev.2",
   "description": "MOST Web Framework 2.0 - Web Server Module",
   "main": "index.js",
   "peerDependencies": {
@@ -24,8 +24,6 @@
     "url": "https://github.com/themost-framework/themost/issues"
   },
   "scripts": {
-    "typedoc": "typedoc",
-    "docs": "jsdoc --configure ./conf.json"
   },
   "homepage": "https://github.com/themost-framework/themost#readme",
   "dependencies": {
@@ -58,12 +56,11 @@
     "xmldom": "^0.1.27"
   },
   "devDependencies": {
+    "@types/angular": "^1.6.54",
     "@types/hashmap": "^2.0.29",
     "@types/node": "^10.11.4",
     "@types/pluralize": "0.0.29",
-    "@types/q": "^1.5.1",
-    "eslint": "^4.10.0",
-    "mocha": "^5.2.0"
+    "@types/q": "^1.5.1"
   },
   "eslintConfig": {
     "env": {

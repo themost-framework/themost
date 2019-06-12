@@ -6,6 +6,7 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
+///
 var LangUtils = require('@themost/common/utils').LangUtils;
 var HttpViewEngine = require('../types').HttpViewEngine;
 var _ = require('lodash');
@@ -16,7 +17,6 @@ var HttpViewContext = require('./../mvc').HttpViewContext;
 var HttpViewResult = require('./../mvc').HttpViewResult;
 var HttpNotFoundError = require('@themost/common').HttpNotFoundError;
 var Args = require('@themost/common').Args;
-
 /**
  * A standalone application for implementing NgEngine under native environments
  * @constructor
@@ -104,6 +104,8 @@ NgEngine.prototype.render = function(filename, data, callback) {
                     "context": self.getContext(),
                     "target":viewContext
                 });
+                // set bootstrap method if any
+                directiveHandler.hasBootstrap = this.hasBootstrap;
                 directiveHandler.postExecuteResult(args, function(err) {
                     if (err) {
                         return done(err);
@@ -150,6 +152,8 @@ NgEngine.prototype.renderString = function(str, data) {
             "context": self.getContext(),
             "target":viewContext
         });
+        // set bootstrap method if any
+        directiveHandler.hasBootstrap = this.hasBootstrap;
         directiveHandler.postExecuteResult(args, function(err) {
             if (err) {
                 return reject(err);
@@ -158,6 +162,20 @@ NgEngine.prototype.renderString = function(str, data) {
         });
     });
 
+};
+/**
+ * Defines a bootstrap function for angular application
+ * @example
+ * this.bootstrap(function(angular) {
+ *     return angular.module('server', []);
+ * })
+ * @param {Function} bootstrapFunc
+ * @returns NgEngine
+ */
+NgEngine.prototype.bootstrap = function(bootstrapFunc) {
+    Args.notFunction(bootstrapFunc, 'Application bootstrap should be a function');
+    this.hasBootstrap = bootstrapFunc;
+    return this;
 };
 
 /**
