@@ -1,6 +1,6 @@
 {
   "name": "@themost/data",
-  "version": "2.4.3",
+  "version": "2.4.4",
   "description": "MOST Web Framework 2.0 - ORM module",
   "main": "index.js",
   "peerDependencies": {
