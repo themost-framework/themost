@@ -1,6 +1,6 @@
 {
   "name": "@themost/web",
-  "version": "2.4.5",
+  "version": "2.4.6",
   "description": "MOST Web Framework 2.0 - Web Server Module",
   "main": "index.js",
   "peerDependencies": {
