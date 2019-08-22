@@ -214,13 +214,13 @@ function httpParam(options) {
         if (typeof descriptor.value.httpParam === 'undefined') {
             descriptor.value.httpParam = new HttpConsumer(function (context) {
                 var httpParamValidationFailedCallback = function httpParamValidationFailedCallback(context, httpParam, validationResult) {
-                    TraceUtils.log(Object.assign(validationResult, {
+                    TraceUtils.error(JSON.stringify(Object.assign(validationResult, {
                         "param":httpParam,
                         "request": {
                             "url":context.request.url,
                             "method":context.request.method
                         }
-                    }));
+                    })));
                     return Promise.reject(new HttpBadRequestError('Bad request parameter', httpParam.message || validationResult.message));
                 };
                 var methodParams = LangUtils.getFunctionParams(descriptor.value);
