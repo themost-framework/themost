@@ -84,6 +84,7 @@ module.exports.EntityDataContext = _odata.EntityDataContext;
 module.exports.EntitySetKind = _odata.EntitySetKind;
 module.exports.ODataModelBuilder = _odata.ODataModelBuilder;
 module.exports.ODataConventionModelBuilder = _odata.ODataConventionModelBuilder;
+module.exports.EntitySetSchemaLoaderStrategy = _odata.EntitySetSchemaLoaderStrategy;
 
 module.exports.PermissionMask = _date_permission.PermissionMask;
 module.exports.DataPermissionEventArgs = _date_permission.DataPermissionEventArgs;
