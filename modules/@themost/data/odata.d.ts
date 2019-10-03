@@ -8,7 +8,6 @@
  */
 import {DataContext} from "./types";
 import {ConfigurationBase} from "../common";
-import { DefaultSchemaLoaderStrategy } from "./data-configuration";
 
 export declare interface SystemQueryOptions {
     $filter?: string;
@@ -219,7 +218,3 @@ export declare class ODataConventionModelBuilder extends ODataModelBuilder{
 }
 
 export declare function defineDecorator(proto: Object|Function, key: string, decorator:Function): void;
-
-export declare class EntitySetSchemaLoaderStrategy extends DefaultSchemaLoaderStrategy {
-    builder: ODataModelBuilder
-}

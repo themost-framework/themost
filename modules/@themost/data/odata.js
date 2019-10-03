@@ -12,7 +12,6 @@
 ///
 var Symbol = require('symbol');
 var LangUtils = require('@themost/common/utils').LangUtils;
-var PathUtils = require('@themost/common/utils').PathUtils;
 var sprintf = require('sprintf').sprintf;
 var Q = require('q');
 var pluralize = require('pluralize');
@@ -1958,9 +1957,9 @@ ODataConventionModelBuilder.prototype.initializeSync = function() {
             self[initializeProperty] = true;
             return;
         }
+        // read directory in sync mode
         var files = []
         if (fs.existsSync(modelPath)) {
-            // read directory in sync mode
             files = fs.readdirSync(modelPath);
         }
         // enumerate models
@@ -2382,56 +2381,6 @@ EdmMapping.getOwnActions = function(obj) {
     });
 };
 
-/**
- * @class
- * @constructor
- * @param {ConfigurationBase} config
- * @augments DefaultSchemaLoaderStrategy
- */
-function EntitySetSchemaLoaderStrategy(config) {
-    EntitySetSchemaLoaderStrategy.super_.bind(this)(config);
-
-    /**
-     * @name EntitySetSchemaLoaderStrategy#builder
-     * @type {ODataModelBuilder}
-     */
-
-    Object.defineProperty(this,'builder', {
-        get: function() {
-            return config.getStrategy(ODataModelBuilder);
-        },
-        configurable: true,
-        enumerable: false
-    });
-}
-
-LangUtils.inherits(EntitySetSchemaLoaderStrategy, DefaultSchemaLoaderStrategy);
-
-/**
- *
- * @param {string} name
- * @returns {*}
- */
-EntitySetSchemaLoaderStrategy.prototype.getModelDefinition = function(name) {
-    // validate argument
-    if (typeof name !== 'string') {
-        return;
-    }
-    // get super func
-    var getModelDefinitionSuper = EntitySetSchemaLoaderStrategy.super_.prototype.getModelDefinition;
-    /**
-     * try to get entity set
-     * @type {EntitySetConfiguration}
-     */
-    var entitySet = this.builder.getEntitySet(name);
-    // if entity set has been found
-    if (entitySet) {
-        // return model by calling super func
-        return getModelDefinitionSuper.bind(this)(entitySet.entityType.name);
-    }
-    // otherwise use super func as fallback
-    return getModelDefinitionSuper.bind(this)(name);
-}
 
 //exports
 
@@ -2448,4 +2397,3 @@ module.exports.ODataModelBuilder = ODataModelBuilder;
 module.exports.ODataConventionModelBuilder = ODataConventionModelBuilder;
 module.exports.EdmMapping = EdmMapping;
 module.exports.defineDecorator = defineDecorator;
-module.exports.EntitySetSchemaLoaderStrategy = EntitySetSchemaLoaderStrategy;

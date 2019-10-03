@@ -83,9 +83,14 @@ export declare class SchemaLoaderStrategy extends ConfigurationStrategy {
 
 }
 
+export declare interface DefaultSchemaLoaderStrategyOptions {
+    usePlural: boolean;
+}
+
 export declare class DefaultSchemaLoaderStrategy extends SchemaLoaderStrategy {
     getModelPath(): string;
     setModelPath(p: string): DefaultSchemaLoaderStrategy;
+    options: DefaultSchemaLoaderStrategyOptions;
 }
 
 export declare abstract class ModelClassLoaderStrategy extends ConfigurationStrategy {
