@@ -1958,7 +1958,10 @@ ODataConventionModelBuilder.prototype.initializeSync = function() {
             return;
         }
         // read directory in sync mode
-        var files = fs.readdirSync(modelPath);
+        var files = []
+        if (fs.existsSync(modelPath)) {
+            files = fs.readdirSync(modelPath);
+        }
         // enumerate models
         var models = _.map(_.filter(files, function (x) {
             return /\.json$/.test(x);

@@ -11,6 +11,7 @@ var _ = require("lodash");
 var Symbol = require('symbol');
 var TraceUtils = require('@themost/common/utils').TraceUtils;
 var path = require("path");
+var pluralize = require('pluralize');
 var LangUtils = require('@themost/common/utils').LangUtils;
 var Args = require('@themost/common/utils').Args;
 var ConfigurationBase = require('@themost/common/config').ConfigurationBase;
@@ -641,6 +642,7 @@ function SchemaLoaderStrategy(config) {
             { "type":"unique", "fields":[ "appliesTo", "version" ] }
         ]
     });
+    
 }
 LangUtils.inherits(SchemaLoaderStrategy,ConfigurationStrategy);
 
@@ -695,6 +697,10 @@ SchemaLoaderStrategy.prototype.getModels = function() {
 function DefaultSchemaLoaderStrategy(config) {
     DefaultSchemaLoaderStrategy.super_.bind(this)(config);
     this[modelPathProperty] = PathUtils.join(config.getConfigurationPath(), 'models');
+    // set default options
+    this.options = {
+        usePlural: true
+    };
 }
 LangUtils.inherits(DefaultSchemaLoaderStrategy,SchemaLoaderStrategy);
 
@@ -732,9 +738,21 @@ DefaultSchemaLoaderStrategy.prototype.getModelDefinition = function(name) {
     }
     var modelDefinition = getModelDefinitionSuper.bind(this)(name);
     //first of all try to find if model definition is already in cache
-    if (_.isObject(modelDefinition)) {
-        //and return it//and return it
+    if (modelDefinition) {
+        //and return it
         return modelDefinition;
+    }
+    // hold singular name of 
+    var singularName;
+    if (this.options.usePlural &&  pluralize.isPlural(name)) {
+        // try to find model based on singular name
+        singularName = pluralize.singular(name);
+        // call super func
+        modelDefinition = getModelDefinitionSuper.bind(this)(singularName);
+        if (modelDefinition) {
+            //and return it
+            return modelDefinition;
+        }
     }
     //otherwise open definition file
     var modelPath = this.getModelPath();
@@ -744,13 +762,23 @@ DefaultSchemaLoaderStrategy.prototype.getModelDefinition = function(name) {
         var nativeFsModule = 'fs';
         var fs = require(nativeFsModule);
         if (typeof fs.readdirSync === 'function') {
-            this[filesProperty] = fs.readdirSync(modelPath);
+            var dirExists = true;
+            if (typeof fs.existsSync === 'function') {
+                dirExists = fs.existsSync(modelPath);
+            }
+            if (dirExists) {
+                this[filesProperty] = fs.readdirSync(modelPath);
+            }
+            else {
+                this[filesProperty] = [];
+            }
         }
         else {
             //try load model definition
             try {
-                modelDefinition = require(PathUtils.join(modelPath, name.concat('json')));
+                modelDefinition = require(PathUtils.join(modelPath, name.concat('.json')));
                 this.setModelDefinition(modelDefinition);
+                return modelDefinition;
             }
             catch(err) {
                 //do nothing (log error)
@@ -761,12 +789,21 @@ DefaultSchemaLoaderStrategy.prototype.getModelDefinition = function(name) {
     }
     //and finally get this list of file
     var files = this[filesProperty];
-    if (files.length===0)
+    if (files.length===0) {
         return;
-    var r = new RegExp('^' + name.concat('.json') + '$','i');
+    }
+    var searchName;
+    if (singularName) {
+        // search for singular name also e.g. ^(User|Users)\.json$
+        searchName = new RegExp('^(' + singularName + '|' + name + ')\\.json$','i');   
+    }
+    else {
+        // otherwise search for name e.g. ^User\.json$
+        searchName = new RegExp('^' + name + '\\.json$','i');
+    }
     for (i = 0; i < files.length; i++) {
-        r.lastIndex=0;
-        if (r.test(files[i])) {
+        searchName.lastIndex=0;
+        if (searchName.test(files[i])) {
             //build model file path
             var finalPath = PathUtils.join(modelPath, files[i]);
             //get model
