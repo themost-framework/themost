@@ -18,7 +18,7 @@ export declare class DataAdapter {
      *
      * @param options
      */
-    new(options:any);
+    constructor(options:any);
     /**
      *
      */
