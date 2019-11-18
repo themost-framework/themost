@@ -15,8 +15,6 @@ var _utils = require("./utils");
 
 module.exports.SqlFormatter = _formatter.SqlFormatter;
 
-module.exports.SqlFormatter = _formatter.SqlFormatter;
-
 module.exports.Token = _odata.Token;
 module.exports.LiteralToken = _odata.LiteralToken;
 module.exports.SyntaxToken = _odata.SyntaxToken;
