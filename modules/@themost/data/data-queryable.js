@@ -175,13 +175,17 @@ DataAttributeResolver.prototype.resolveNestedAttributeJoin = function(memberExpr
             if (_.isNil(parentField)) {
                 throw new Error(sprintf('Referenced field (%s) cannot be found.', mapping.parentField));
             }
+            // get childField.name or childField.property
+            var childFieldName = childField.property || childField.name;
             /**
              * store temp query expression
              * @type QueryExpression
              */
             res =QueryUtils.query(self.viewAdapter).select(['*']);
-            expr = QueryUtils.query().where(QueryField.select(childField.name).from(self[aliasProperty] || self.viewAdapter)).equal(QueryField.select(mapping.parentField).from(mapping.childField));
-            entity = new QueryEntity(parentModel.viewAdapter).as(mapping.childField).left();
+            expr = QueryUtils.query().where(QueryField.select(childField.name)
+                .from(self[aliasProperty] || self.viewAdapter))
+                .equal(QueryField.select(mapping.parentField).from(childFieldName));
+            entity = new QueryEntity(parentModel.viewAdapter).as(childFieldName).left();
             res.join(entity).with(expr);
             if (arrMember.length>2) {
                 parentModel[aliasProperty] = mapping.childField;
