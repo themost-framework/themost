@@ -99,12 +99,28 @@ DataAttributeResolver.prototype.resolveNestedAttribute = function(attr) {
             expr = expr1.$expand;
         }
         else {
-            expr = DataAttributeResolver.prototype.resolveNestedAttributeJoin.call(self.model, attr);
+            // create member expression
+            var memberExpr = {
+                name: attr
+            };
+            // and pass member expression
+            expr = DataAttributeResolver.prototype.resolveNestedAttributeJoin.call(self.model, memberExpr);
             //select field
-            if (member.length>2)
+            if (member.length>2) {
+                if (memberExpr.name !== attr) {
+                    // get member segments again because they have been modified
+                    member = memberExpr.name.split('/');
+                }
                 select = QueryField.select(member[member.length-1]).from(member[member.length-2]);
-            else
+            }
+            else {
+                if (memberExpr.name !== attr) {
+                    // get member segments again because they have been modified
+                    member = memberExpr.name.split('/');
+                }
+                // and create query field expression
                 select  = QueryField.select(member[1]).from(member[0]);
+            }
         }
         if (expr) {
             if (_.isNil(self.query.$expand)) {
@@ -144,14 +160,21 @@ DataAttributeResolver.prototype.resolveNestedAttribute = function(attr) {
 
 /**
  *
- * @param {string} memberExpr - A string that represents a member expression e.g. user/id or article/published etc.
+ * @param {*} memberExpr - A string that represents a member expression e.g. user/id or article/published etc.
  * @returns {*} - An object that represents a query join expression
  */
 DataAttributeResolver.prototype.resolveNestedAttributeJoin = function(memberExpr) {
     var self = this, childField, parentField, res, expr, entity;
-    if (/\//.test(memberExpr)) {
+    var memberExprString;
+    if (typeof memberExpr === 'string') {
+        memberExprString = memberExpr;
+    }
+    else if (typeof memberExpr === 'object' && memberExpr.hasOwnProperty('name')) {
+        memberExprString = memberExpr.name
+    }
+    if (/\//.test(memberExprString)) {
         //if the specified member contains '/' e.g. user/name then prepare join
-        var arrMember = memberExpr.split('/');
+        var arrMember = memberExprString.split('/');
         var attrMember = self.field(arrMember[0]);
         if (_.isNil(attrMember)) {
             throw new Error(sprintf('The target model does not have an attribute named as %s',arrMember[0]));
@@ -208,10 +231,28 @@ DataAttributeResolver.prototype.resolveNestedAttributeJoin = function(memberExpr
             if (_.isNil(parentField)) {
                 throw new Error(sprintf('Referenced field (%s) cannot be found.', mapping.parentField));
             }
+            // get parent entity name for this expression
+            var parentEntity = self[aliasProperty] || self.viewAdapter;
+            // get child entity name for this expression
+            var childEntity = arrMember[0];
             res =QueryUtils.query('Unknown').select(['*']);
-            expr = QueryUtils.query().where(QueryField.select(parentField.name).from(self[aliasProperty] || self.viewAdapter)).equal(QueryField.select(childField.name).from(arrMember[0]));
-            entity = new QueryEntity(childModel.viewAdapter).as(arrMember[0]).left();
+            expr = QueryUtils.query().where(QueryField.select(parentField.name).from(parentEntity)).equal(QueryField.select(childField.name).from(childEntity));
+            entity = new QueryEntity(childModel.viewAdapter).as(childEntity).left();
             res.join(entity).with(expr);
+            if (arrMember.length === 2) {
+                // get child model member
+                var childMember = childModel.field(arrMember[1]);
+                if (childMember) {
+                    // try to validate if child member has an alias or not
+                    if (childMember.name !== arrMember[1]) {
+                        arrMember[1] = childMember.name;
+                        // set memberExpr
+                        if (typeof memberExpr === 'object' && memberExpr.hasOwnProperty('name')) {
+                            memberExpr.name = arrMember.join('/');
+                        }
+                    }
+                }
+            }
             return res.$expand;
         }
         else {
