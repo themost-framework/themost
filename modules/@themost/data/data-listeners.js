@@ -666,12 +666,17 @@ DataModelCreateViewListener.prototype.afterUpgrade = function(event, callback) {
     var self = event.model,
         db = self.context.db;
     var view = self.viewAdapter, adapter = self.sourceAdapter;
-    //if data model is a sealed model do nothing anb exit
-    if (self.sealed) { return callback(); }
-    //if view adapter is the same with source adapter do nothing and exit
-    if (view===adapter) { return callback(); }
+    // if data model is a sealed model do nothing anb exit
+    if (self.sealed) {
+        return callback();
+    }
+    // if view adapter is the same with source adapter do nothing and exit
+    if (view===adapter) {
+        return callback();
+    }
+    // get base model
     var baseModel = self.base();
-    //get array of fields
+    // get array of fields
     var fields = self.attributes.filter(function(x) {
         return (self.name=== x.model) && (!x.many);
     }).map(function(x) {
@@ -681,11 +686,13 @@ DataModelCreateViewListener.prototype.afterUpgrade = function(event, callback) {
      * @type {QueryExpression}
      */
     var q = QueryUtils.query(adapter).select(fields);
-    //get base adapter
-    var baseAdapter = _.isObject(baseModel) ? baseModel.name.concat('Data') : null;
+    var baseAdapter = null;
     var baseFields = [];
-    //enumerate columns of base model (if any)
-    if (_.isObject(baseModel)) {
+    // enumerate attributes of base model (if any)
+    if (baseModel) {
+        // get base adapter
+        baseAdapter = baseModel.viewAdapter;
+        // enumerate base model attributes
         baseModel.attributes.forEach(function(x) {
             //get all fields (except primary and one-to-many relations)
             if ((!x.primary) && (!x.many))
@@ -694,8 +701,8 @@ DataModelCreateViewListener.prototype.afterUpgrade = function(event, callback) {
     }
     if (baseFields.length>0)
     {
-        var from = new QueryFieldRef(adapter, self.key().name),
-            to = new QueryFieldRef(baseAdapter, self.base().key().name);
+        var from = new QueryFieldRef(adapter, self.key().name);
+        var to = new QueryFieldRef(baseAdapter, self.base().key().name);
         q.$expand = { $entity: { },$with:[] };
         q.$expand.$entity[baseAdapter]=baseFields;
         q.$expand.$with.push(from);
