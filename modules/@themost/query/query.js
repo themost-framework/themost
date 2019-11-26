@@ -12,6 +12,7 @@ var Args = require('@themost/common').Args;
 var _ = require('lodash');
 var Symbol = require('symbol');
 var aggregate = Symbol();
+var instanceOf = require('./instance-of').instanceOf;
 // eslint-disable-next-line no-unused-vars
 //noinspection JSUnusedLocalSymbols
 require('./natives');
