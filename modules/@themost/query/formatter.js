@@ -15,6 +15,7 @@ var _ = require('lodash');
 var query = require('./query');
 var QueryExpression = query.QueryExpression;
 var QueryField = query.QueryField;
+var instanceOf = require('./instance-of').instanceOf;
 
 if (typeof Object.key !== 'function') {
     /**
@@ -721,7 +722,7 @@ SqlFormatter.prototype.formatSelect = function(obj)
     if (obj.$ref && obj.$ref[entity]) {
         var entityRef = obj.$ref[entity];
         //escape entity ref
-        if (entityRef instanceof QueryExpression) {
+        if (instanceOf(entityRef, QueryExpression)) {
             escapedEntity = "(" + this.format(entityRef) + ") " + $this.escapeName(entity);
         }
         else {
@@ -748,7 +749,7 @@ SqlFormatter.prototype.formatSelect = function(obj)
     {
         //enumerate joins
         _.forEach(joins, function(x) {
-            if (x.$entity instanceof QueryExpression) {
+            if (instanceOf(x.$entity, QueryExpression)) {
                 //get on statement (the join comparison)
                 sql = sql.concat(sprintf(' INNER JOIN (%s)', $this.format(x.$entity)));
                 //add alias
@@ -1105,7 +1106,7 @@ SqlFormatter.prototype.format = function(obj, s)
             return this.formatFieldEx(field, s);
         }
         else if (s==='%o') {
-            if (obj instanceof QueryExpression)
+            if (instanceOf(obj, QueryExpression))
                 return this.formatOrder(obj.$order);
             return this.formatOrder(obj);
         }
@@ -1116,7 +1117,7 @@ SqlFormatter.prototype.format = function(obj, s)
      */
     var query = null;
     //cast object to QueryExpression
-    if (obj instanceof QueryExpression)
+    if (instanceOf(obj, QueryExpression))
         query = obj;
     else
         query = _.assign(new QueryExpression(), obj);
