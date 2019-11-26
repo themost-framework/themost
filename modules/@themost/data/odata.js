@@ -34,7 +34,7 @@ var initializeProperty = Symbol('initialize');
 var DataConfigurationStrategy = require('./data-configuration').DataConfigurationStrategy;
 var SchemaLoaderStrategy = require('./data-configuration').SchemaLoaderStrategy;
 var DefaultSchemaLoaderStrategy = require('./data-configuration').DefaultSchemaLoaderStrategy;
-
+var instanceOf = require('./instance-of').instanceOf;
 
 function Args() {
     //
@@ -1885,7 +1885,7 @@ LangUtils.inherits(ODataConventionModelBuilder, ODataModelBuilder);
              */
             var dataConfiguration = self.getConfiguration().getStrategy(DataConfigurationStrategy);
             var schemaLoader = self.getConfiguration().getStrategy(SchemaLoaderStrategy);
-            if (schemaLoader instanceof DefaultSchemaLoaderStrategy) {
+            if (instanceOf(schemaLoader, DefaultSchemaLoaderStrategy)) {
                 var nativeFsModule = 'fs';
                 var fs = require(nativeFsModule);
                 var modelPath = schemaLoader.getModelPath();
@@ -1949,7 +1949,7 @@ ODataConventionModelBuilder.prototype.initializeSync = function() {
      */
     var dataConfiguration = self.getConfiguration().getStrategy(DataConfigurationStrategy);
     var schemaLoader = self.getConfiguration().getStrategy(SchemaLoaderStrategy);
-    if (schemaLoader instanceof DefaultSchemaLoaderStrategy) {
+    if (instanceOf(schemaLoader, DefaultSchemaLoaderStrategy)) {
         var nativeFsModule = 'fs';
         var fs = require(nativeFsModule);
         var modelPath = schemaLoader.getModelPath();
@@ -2221,10 +2221,10 @@ EdmMapping.param = function(name, type, nullable, fromBody) {
         else if (typeof type === 'string') {
             typeString = type;
         }
-        if (descriptor.value.actionDecorator instanceof ActionConfiguration) {
+        if (instanceOf(descriptor.value.actionDecorator, ActionConfiguration)) {
             descriptor.value.actionDecorator.parameter(name, typeString, nullable, fromBody);
         }
-        else if (descriptor.value.functionDecorator instanceof FunctionConfiguration) {
+        else if (instanceOf(descriptor.value.functionDecorator, FunctionConfiguration)) {
             descriptor.value.functionDecorator.parameter(name, typeString, nullable, fromBody);
         }
         else {
@@ -2301,7 +2301,7 @@ EdmMapping.hasOwnAction = function(obj, name) {
     }
     var re = new RegExp("^" + name + "$", "ig");
     var functionName = _.find(getOwnPropertyNames(obj), function(x) {
-        return (typeof obj[x] === 'function') && (obj[x].actionDecorator instanceof ActionConfiguration) && re.test(obj[x].actionDecorator.name);
+        return (typeof obj[x] === 'function') && (instanceOf(obj[x].actionDecorator, ActionConfiguration)) && re.test(obj[x].actionDecorator.name);
     });
     if (functionName) {
         return obj[functionName];
@@ -2341,7 +2341,7 @@ EdmMapping.hasOwnFunction = function(obj, name) {
     }
     var re = new RegExp("^" + name + "$", "ig");
     var functionName = _.find(getOwnPropertyNames(obj), function(x) {
-        return (typeof obj[x] === 'function') && (obj[x].functionDecorator instanceof FunctionConfiguration) && re.test(obj[x].functionDecorator.name);
+        return (typeof obj[x] === 'function') && (instanceOf(obj[x].functionDecorator, FunctionConfiguration)) && re.test(obj[x].functionDecorator.name);
     });
     if (functionName) {
         return obj[functionName];
@@ -2359,7 +2359,7 @@ EdmMapping.getOwnFunctions = function(obj) {
         return;
     }
     return _.flatMap(_.filter(getOwnPropertyNames(obj), function(x) {
-        return (typeof obj[x] === 'function') && (obj[x].functionDecorator instanceof FunctionConfiguration);
+        return (typeof obj[x] === 'function') && (instanceOf(obj[x].functionDecorator, FunctionConfiguration));
     }),  function(x) {
         return obj[x].functionDecorator;
     });
@@ -2375,7 +2375,7 @@ EdmMapping.getOwnActions = function(obj) {
         return;
     }
     return _.flatMap(_.filter(getOwnPropertyNames(obj), function(x) {
-        return (typeof obj[x] === 'function') && (obj[x].actionDecorator instanceof ActionConfiguration);
+        return (typeof obj[x] === 'function') && (instanceOf(obj[x].actionDecorator, ActionConfiguration));
     }),  function(x) {
         return obj[x].actionDecorator;
     });
