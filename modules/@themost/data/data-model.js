@@ -2238,10 +2238,13 @@ DataModel.prototype.migrate = function(callback)
     var self = this;
     //cache: data model migration
     //prepare migration cache
-    var conf = self.context.getConfiguration();
-    conf.cache = conf.cache || {};
-    conf.cache[self.name] = conf.cache[self.name] || { };
-    if (conf.cache[self.name].version===self.version) {
+    var configuration = self.context.getConfiguration();
+    configuration.cache = configuration.cache || { };
+    if (configuration.cache.hasOwnProperty(self.name) === false) {
+        // set cache
+        configuration.cache[self.name] = { };
+    }
+    if (configuration.cache[self.name].version===self.version) {
         //model has already been migrated, so do nothing
         return callback();
     }
@@ -2367,7 +2370,7 @@ DataModel.prototype.migrate = function(callback)
         if (!err) {
             //set migration info to configuration cache (conf.cache.model.version=[current version])
             //cache: data model migration
-            conf.cache[self.name].version = self.version;
+            configuration.cache[self.name].version = self.version;
         }
         callback(err);
     });
