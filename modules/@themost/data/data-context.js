@@ -64,6 +64,15 @@ function DefaultDataContext()
         db_=null;
     };
     var self = this;
+    // set data context name with respect to DataContext implementation
+    var _name = 'default';
+    Object.defineProperty(this, 'name', {
+       enumerable: false,
+       configurable: true,
+        get: function() {
+             return _name;
+        }
+    });
 
     self.getDb = function() {
 
