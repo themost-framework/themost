@@ -1,5 +1,4 @@
 /**
- * @license
  * MOST Web Framework 2.0 Codename Blueshift
  * Copyright (c) 2017, THEMOST LP All rights reserved
  *
@@ -69,7 +68,7 @@ export declare class XDocument {
     static loadXML(xml: string): XDocument;
     static loadSync(file: string): XDocument;
     static load(file: string, callback: (err?: Error, res?: XDocument) => void): void;
-
+    documentElement: XNode;
     clear(): void;
     appendChild(node: any): void;
     createElement(name: string): XNode;
