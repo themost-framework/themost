@@ -1,10 +1,10 @@
 {
   "name": "@themost/query",
-  "version": "2.3.5",
+  "version": "2.5.0",
   "description": "MOST Web Framework Codename Blueshift - Query Module",
   "main": "index.js",
   "peerDependencies": {
-    "@themost/common": "^2.3.1"
+    "@themost/common": "^2.5.0"
   },
   "repository": {
     "type": "git",

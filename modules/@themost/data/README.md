@@ -1,5 +1,5 @@
 # @themost/data
-MOST Web Framework 2.0 Codename Blueshift ORM Module
+MOST Web Framework 2.0 Codename Blueshift Data Module
 
 License: [BSD-3-Clause](https://github.com/themost-framework/themost/blob/master/LICENSE)
 
