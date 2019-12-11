@@ -1,7 +1,0 @@
-[
-    {
-        "url": "/?",
-        "controller": "root",
-        "action": "index"
-    }
-]
