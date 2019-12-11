@@ -6,6 +6,7 @@
 ![GitHub last commit](https://img.shields.io/github/last-commit/themost-framework/themost)
 ![GitHub Release Date](https://img.shields.io/github/release-date/themost-framework/themost)
 [![npm](https://img.shields.io/npm/dw/@themost/data)](https://www.npmjs.com/package/@themost%2Fdata)
+![Snyk Vulnerabilities for npm package](https://img.shields.io/snyk/vulnerabilities/npm/@themost/data)
 
 # @themost/data
 MOST Web Framework 2.0 Codename Blueshift Data Module
