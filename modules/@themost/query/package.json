@@ -1,7 +1,7 @@
 {
   "name": "@themost/query",
-  "version": "2.3.4",
-  "description": "MOST Web Framework 2.0 - query module",
+  "version": "2.3.5",
+  "description": "MOST Web Framework Codename Blueshift - Query Module",
   "main": "index.js",
   "peerDependencies": {
     "@themost/common": "^2.3.1"
@@ -19,7 +19,7 @@
   "dependencies": {
     "async": "0.2.10",
     "esprima": "^4.0.0",
-    "lodash": "^4.17.4",
+    "lodash": "^4.17.15",
     "sprintf": "^0.1.5",
     "symbol": "^0.3.1"
   },

@@ -1,6 +1,0 @@
-{
-	"HelloWorld": "Hello World!",
-	"HelloString": "Hello %s!",
-	"OutOfRangerMessage": "Out of range. Value should be between %s to %s.",
-	"NewMessage": "NewMessage"
-}
