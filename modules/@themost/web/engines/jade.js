@@ -7,7 +7,7 @@
  * found in the LICENSE file at https://themost.io/license
  */
 var fs = require('fs');
-var jade = require('jade');
+var pug = require('pug');
 var LangUtils = require('@themost/common/utils').LangUtils;
 var ArgumentError = require('@themost/common/utils').ArgumentError;
 var HttpViewEngine = require('../types').HttpViewEngine;
@@ -66,7 +66,7 @@ JadeEngine.prototype.render = function(file, data, callback) {
             }
             //render data
             try {
-                const fn = jade.compile(source, {
+                var fn = pug.compile(source, {
                     filename: file,
                     pretty: true
                 });
@@ -77,7 +77,7 @@ JadeEngine.prototype.render = function(file, data, callback) {
                     },
                     enumerable:false, configurable:false
                 });
-                const result = fn({
+                var result = fn({
                     html:html,
                     model:data
                 });

@@ -1,12 +1,11 @@
 {
   "name": "themost-src",
-  "version": "2.0.6",
+  "version": "2.5.0",
   "private": true,
   "description": "MOST Web Framework 2.0 Codename Blueshift",
   "main": "index.js",
   "scripts": {
-    "babel": "babel",
-    "test": "mocha",
+    "test": "jasmine",
     "serve:wiki": "gulp serve"
   },
   "engines": {
@@ -36,7 +35,19 @@
   "homepage": "https://github.com/kbarbounakis/themost#readme",
   "dependencies": {},
   "devDependencies": {
-    "@themost/client": "^2.2.1",
+    "@babel/cli": "^7.7.5",
+    "@babel/core": "^7.7.5",
+    "@babel/plugin-proposal-class-properties": "^7.7.4",
+    "@babel/plugin-proposal-decorators": "^7.7.4",
+    "@babel/plugin-proposal-export-default-from": "^7.7.4",
+    "@babel/plugin-proposal-export-namespace-from": "^7.7.4",
+    "@babel/plugin-transform-async-to-generator": "^7.7.4",
+    "@babel/plugin-transform-strict-mode": "^7.7.4",
+    "@babel/plugin-transform-typeof-symbol": "^7.7.4",
+    "@babel/preset-env": "^7.7.6",
+    "@babel/register": "^7.7.4",
+    "@babel/runtime": "^7.7.6",
+    "@themost/client": "^2.4.1",
     "@themost/common": "file:./modules/@themost/common",
     "@themost/data": "file:modules/@themost/data",
     "@themost/node": "^2.2.1",
@@ -45,9 +56,13 @@
     "@themost/test": "^1.0.1",
     "@themost/web": "file:modules/@themost/web",
     "@themost/xml": "file:modules/@themost/xml",
+    "@types/jasmine": "^3.5.0",
+    "babel-eslint": "^10.0.3",
     "eslint": "^6.7.2",
     "express": "^4.16.4",
     "gulp": "^4.0.0",
-    "gulp-connect": "^5.7.0"
+    "gulp-connect": "^5.7.0",
+    "jasmine": "^3.5.0",
+    "jasmine-spec-reporter": "^4.2.1"
   }
 }
