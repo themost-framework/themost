@@ -1,0 +1,13 @@
+{
+  "spec_dir": "spec",
+  "spec_files": [
+    "**/*[sS]pec.js"
+  ],
+  "helpers": [
+    "helpers/babel.js",
+    "helpers/env.js",
+    "helpers/reporter.js"
+  ],
+  "stopSpecOnExpectationFailure": false,
+  "random": true
+}

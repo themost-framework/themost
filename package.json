@@ -5,8 +5,7 @@
   "description": "MOST Web Framework 2.0 Codename Blueshift",
   "main": "index.js",
   "scripts": {
-    "babel": "babel",
-    "test": "mocha",
+    "test": "jasmine",
     "serve:wiki": "gulp serve"
   },
   "engines": {
@@ -58,6 +57,7 @@
     "@themost/web": "file:modules/@themost/web",
     "@themost/xml": "file:modules/@themost/xml",
     "@types/jasmine": "^3.5.0",
+    "babel-eslint": "^10.0.3",
     "eslint": "^6.7.2",
     "express": "^4.16.4",
     "gulp": "^4.0.0",
