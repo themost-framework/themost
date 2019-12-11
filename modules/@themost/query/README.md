@@ -5,6 +5,8 @@
 [![License](https://img.shields.io/npm/l/@themost/query)](https://github.com/themost-framework/themost/blob/master/LICENSE)
 ![GitHub last commit](https://img.shields.io/github/last-commit/themost-framework/themost)
 ![GitHub Release Date](https://img.shields.io/github/release-date/themost-framework/themost)
+[![npm](https://img.shields.io/npm/dw/@themost/data)](https://www.npmjs.com/package/@themost%2Fquery)
+![Snyk Vulnerabilities for npm package](https://img.shields.io/snyk/vulnerabilities/npm/@themost/query)
 
 # @themost/query
 MOST Web Framework 2.0 **Codename Blueshift** Query Module
