@@ -8,6 +8,6 @@
     "helpers/env.js",
     "helpers/reporter.js"
   ],
-  "stopSpecOnExpectationFailure": false,
-  "random": true
+  "stopSpecOnExpectationFailure": true,
+  "random": false
 }
