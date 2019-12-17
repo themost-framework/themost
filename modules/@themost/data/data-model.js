@@ -1459,7 +1459,7 @@ function cast_(obj, state) {
             author:k.barbounakis@gmail.com
             description:exclude non editable attributes on update operation
              */
-            return (y.state===2) ? (y.hasOwnProperty("editable") ? y.editable : true) : true;
+            return (state===2) ? (y.hasOwnProperty("editable") ? y.editable : true) : true;
         }).forEach(function(x) {
             name = obj.hasOwnProperty(x.property) ? x.property : x.name;
             if (obj.hasOwnProperty(name))
@@ -1527,7 +1527,7 @@ function castForValidation_(obj, state) {
              author:k.barbounakis@gmail.com
              description:exclude non editable attributes on update operation
              */
-            return (y.state===2) ? (y.hasOwnProperty("editable") ? y.editable : true) : true;
+            return (state===2) ? (y.hasOwnProperty("editable") ? y.editable : true) : true;
         }).forEach(function(x) {
             name = obj.hasOwnProperty(x.property) ? x.property : x.name;
             if (obj.hasOwnProperty(name))
