@@ -544,7 +544,7 @@ EntityTypeConfiguration.prototype.getBuilder = function() {
      * Adds a new EDM primitive property to this entity type.
      * @param {string} name
      * @param {string} type
-     * @param {boolean=} nullable
+     * @param {boolean=} nullable,
      * @returns EntityTypeConfiguration
      */
     EntityTypeConfiguration.prototype.addProperty = function(name, type, nullable) {
@@ -1208,6 +1208,19 @@ function schemaToEdmDocument(schema) {
                 if (_.isBoolean(x.nullable) && (x.nullable===false)) {
                     propertyElement.setAttribute("Nullable",false);
                 }
+                // add annotations
+                if (x.immutable) {
+                    var immutableAnnotation = doc.createElement('Annonation');
+                    immutableAnnotation.setAttribute('Term', 'Org.OData.Core.V1.Immutable');
+                    immutableAnnotation.setAttribute('Tag', 'true');
+                    propertyElement.appendChild(immutableAnnotation);
+                }
+                if (x.computed) {
+                    var computedAnnotation = doc.createElement('Annonation');
+                    computedAnnotation.setAttribute('Term', 'Org.OData.Core.V1.Computed');
+                    computedAnnotation.setAttribute('Tag', 'true');
+                    propertyElement.appendChild(computedAnnotation);
+                }
                 entityTypeElement.appendChild(propertyElement);
             });
             //enumerate navigation properties
@@ -1790,6 +1803,29 @@ LangUtils.inherits(ODataConventionModelBuilder, ODataModelBuilder);
                         if (x.primary) {
                             modelEntityType.hasKey(name, edmType);
                         }
+                        const findProperty = modelEntityType.property.find( p => {
+                            return p.name === name;
+                        });
+                        // add immutable annotation
+                        if (Object.prototype.hasOwnProperty.call(x, 'editable')) {
+                            if (x.editable) {
+                                Object.defineProperty(findProperty, 'immutable', {
+                                    configurable: true,
+                                     enumerable: true,
+                                    writable: true,
+                                    value: true
+                                });
+                            }
+                        }
+                        // add computed annotation
+                        if (Object.prototype.hasOwnProperty.call(x, 'calculation')) {
+                            Object.defineProperty(findProperty, 'computed', {
+                                configurable: true,
+                                enumerable: true,
+                                writable: true,
+                                value: true
+                            });
+                        }
                     }
                     else {
                         var namespacedType = x.type;
@@ -2020,6 +2056,7 @@ ODataConventionModelBuilder.prototype.initializeSync = function() {
  * @returns {SchemaConfiguration}
  */
 ODataConventionModelBuilder.prototype.getEdmSync = function() {
+    // noinspection JSPotentiallyInvalidConstructorUsage
     var superGetEdmSync = ODataConventionModelBuilder.super_.prototype.getEdmSync;
     if (_.isObject(this[edmProperty])) {
         return this[edmProperty];

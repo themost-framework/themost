@@ -1,6 +1,6 @@
 {
   "name": "@themost/data",
-  "version": "2.5.0",
+  "version": "2.5.1",
   "description": "MOST Web Framework Codename Blueshift - Data module",
   "main": "index.js",
   "peerDependencies": {
@@ -31,30 +31,6 @@
     "q": "^1.4.1",
     "sprintf": "^0.1.5",
     "symbol": "^0.3.1"
-  },
-  "eslintConfig": {
-    "env": {
-      "browser": true,
-      "node": true,
-      "es6": false,
-      "jquery": true
-    },
-    "globals": {
-      "describe": false,
-      "it": false
-    },
-    "extends": "eslint:recommended",
-    "rules": {
-      "no-console": "warn",
-      "no-invalid-this": "warn",
-      "no-undef": "error",
-      "no-unused-vars": "warn",
-      "no-var": "off",
-      "strict": [
-        2,
-        "never"
-      ]
-    }
   },
   "devDependencies": {
     "@types/core-js": "^2.5.0",
