@@ -1208,6 +1208,19 @@ function schemaToEdmDocument(schema) {
                 if (_.isBoolean(x.nullable) && (x.nullable===false)) {
                     propertyElement.setAttribute("Nullable",false);
                 }
+                // add annotations
+                if (x.immutable) {
+                    var immutableAnnotation = doc.createElement('Annonation');
+                    immutableAnnotation.setAttribute('Term', 'Org.OData.Core.V1.Immutable');
+                    immutableAnnotation.setAttribute('Tag', 'true');
+                    propertyElement.appendChild(immutableAnnotation);
+                }
+                if (x.computed) {
+                    var computedAnnotation = doc.createElement('Annonation');
+                    computedAnnotation.setAttribute('Term', 'Org.OData.Core.V1.Computed');
+                    computedAnnotation.setAttribute('Tag', 'true');
+                    propertyElement.appendChild(computedAnnotation);
+                }
                 entityTypeElement.appendChild(propertyElement);
             });
             //enumerate navigation properties
