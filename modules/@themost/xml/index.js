@@ -6,9 +6,9 @@
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-var xmlCommon = require('./common.js');
-var xmlUtil = require('./util.js');
-var xpath = require('./xpath.js');
+var xmlCommon = require('./common');
+var xmlUtil = require('./util');
+var xpath = require('./xpath');
 
 function nodeRequire(module) {
     return require(module);

@@ -1,6 +1,6 @@
 {
   "name": "@themost/xml",
-  "version": "2.5.0",
+  "version": "2.5.1",
   "description": "MOST Web Framework Xml Module",
   "main": "index.js",
   "peerDependencies": {},
