@@ -1,13 +1,12 @@
 /**
- * @license
  * MOST Web Framework 2.0 Codename Blueshift
  * Copyright (c) 2017, THEMOST LP All rights reserved
  *
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-var xmlCommon = require('./common.js'),
-    xmlUtil = require('./util.js');
+var xmlCommon = require('./common'),
+    xmlUtil = require('./util');
 
 /**
  * Shallow-copies an array to the end of another array
