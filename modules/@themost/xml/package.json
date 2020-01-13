@@ -6,7 +6,8 @@
   "types": "dist/themost_xml.d.ts",
   "peerDependencies": {},
   "scripts": {
-    "build": "rollup -c ./rollup.config.js -m"
+    "build": "rollup -c ./rollup.config.js -m",
+    "prepublishOnly": "npm run build"
   },
   "repository": {
     "type": "git",
