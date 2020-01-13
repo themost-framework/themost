@@ -1,9 +1,16 @@
 {
   "name": "@themost/xml",
-  "version": "2.5.0",
-  "description": "MOST Web Framework Xml Module",
-  "main": "index.js",
+  "version": "2.5.1",
+  "description": "MOST Web Framework Codename Blueshift Xml Module",
+  "main": "dist/themost_xml.js",
+  "types": "dist/themost_xml.d.ts",
   "peerDependencies": {},
+  "scripts": {
+    "build": "rollup -c ./rollup.config.js -m",
+    "test-node": "jasmine src/**/*.spec.ts",
+    "test": "karma start",
+    "prepublishOnly": "npm run build"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/themost-framework/themost.git"
@@ -15,20 +22,7 @@
   },
   "homepage": "https://github.com/themost-framework/themost#readme",
   "dependencies": {},
-  "devDependencies": {},
-  "eslintConfig": {
-    "env": {
-      "browser": true,
-      "node": true,
-      "es6": false,
-      "jquery": true
-    },
-    "globals": {
-      "describe": false,
-      "it": false,
-      "before": false,
-      "after": false
-    },
-    "extends": "eslint:recommended"
+  "devDependencies": {
+    "@types/jasmine": "^3.5.0"
   }
 }

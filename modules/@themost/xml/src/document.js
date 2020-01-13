@@ -1,18 +1,13 @@
 /**
- * @license
  * MOST Web Framework 2.0 Codename Blueshift
  * Copyright (c) 2017, THEMOST LP All rights reserved
  *
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-var xmlCommon = require('./common.js');
-var xmlUtil = require('./util.js');
-var xpath = require('./xpath.js');
-
-function nodeRequire(module) {
-    return require(module);
-}
+var xmlCommon = require('./common');
+var xmlUtil = require('./util');
+var xpath = require('./xpath');
 
 function xmlResolveEntities(s) {
     var parts = xmlUtil.stringSplit(s, '&');
@@ -943,39 +938,22 @@ XDocument.loadXML= function(xml) {
 
 /**
  * @return XDocument
+ * @deprecated XDocument.loadSync() has been forcibly deprecated due to cross-platform compatibility issues and it's going to be removed
  */
+// eslint-disable-next-line no-unused-vars
 XDocument.loadSync = function(file) {
-    try {
-        var fs = nodeRequire('fs');
-        return XDocument.loadXML(fs.readFileSync(file, 'utf8'));
-    } catch (e) {
-        throw e;
-    }
+    throw new Error('XDocument.loadSync() has been forcibly deprecated due to cross-platform compatibility issues. Use more specific modules to load XML files.');
 };
 
 /**
  *
  * @param {string} file
  * @param {Function} callback
+ * @deprecated XDocument.load() has been forcibly deprecated due to cross-platform compatibility issues and it's going to be removed
  */
+// eslint-disable-next-line no-unused-vars
 XDocument.load = function(file, callback) {
-    try {
-        callback = callback || function() {};
-        var fs = nodeRequire('fs');
-        fs.readFile(file, 'utf8', function(err, data) {
-            if (err) {
-                return callback(err);
-            }
-            try {
-                callback(null,XDocument.loadXML(data));
-            }
-            catch(err) {
-                callback(err);
-            }
-        });
-    } catch (err) {
-        callback(err);
-    }
+    throw new Error('XDocument.load() has been forcibly deprecated due to cross-platform compatibility issues. Use more specific modules to load XML files.');
 };
 
 

@@ -38,6 +38,7 @@ export declare class XSerializer {
 
 export declare class XNode {
     constructor(type: string, name: string, opt_value?: any, opt_owner?: any);
+    nodeName: string;
     appendChild(node: XNode);
     replaceChild(newNode: XNode, oldNode: XNode);
     insertBefore(newNode: XNode, oldNode: XNode);
