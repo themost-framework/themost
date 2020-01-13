@@ -4,8 +4,10 @@
     "**/*[sS]pec.js"
   ],
   "helpers": [
-    "helpers/**/*.js"
+    "helpers/env.js",
+    "helpers/typescript.js",
+    "helpers/reporter.js"
   ],
   "stopSpecOnExpectationFailure": false,
-  "random": true
+  "random": false
 }
