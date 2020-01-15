@@ -1,12 +1,12 @@
 {
   "name": "@themost/data",
-  "version": "2.5.2",
+  "version": "2.5.3",
   "description": "MOST Web Framework Codename Blueshift - Data module",
   "main": "index.js",
   "peerDependencies": {
     "@themost/common": "^2.5.0",
     "@themost/query": "^2.5.0",
-    "@themost/xml": "^2.5.0"
+    "@themost/xml": "^2.5.1"
   },
   "engines": {
     "node": ">=6.9.0"
