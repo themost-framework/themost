@@ -20,7 +20,7 @@ var moment = require('moment');
 var parseBoolean = require('./types').parsers.parseBoolean;
 var DataModel = require('./data-model').DataModel;
 var DataContext = require('./types').DataContext;
-var XDocument = require('@themost/xml/index').XDocument;
+var XDocument = require('@themost/xml').XDocument;
 // noinspection JSUnusedLocalSymbols
 var entityTypesProperty = Symbol('entityTypes');
 // noinspection JSUnusedLocalSymbols

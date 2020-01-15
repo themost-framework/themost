@@ -6,7 +6,7 @@
   "peerDependencies": {
     "@themost/common": "^2.5.0",
     "@themost/query": "^2.5.0",
-    "@themost/xml": "^2.5.0"
+    "@themost/xml": "^2.5.1"
   },
   "engines": {
     "node": ">=6.9.0"
