@@ -2610,7 +2610,7 @@ DataQueryable.prototype.silent = function(value) {
  * @returns {string}
  */
 DataQueryable.prototype.toMD5 = function() {
-    return hash.MD5({
+    return TextUtils.toMD5({
         query: this.query,
         $expand: this.$expand,
         $levels: this.$levels,

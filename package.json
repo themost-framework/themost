@@ -59,7 +59,9 @@
     "@themost/xml": "file:modules/@themost/xml",
     "@types/jasmine": "^3.5.0",
     "babel-eslint": "^10.0.3",
+    "debug": "^4.1.1",
     "eslint": "^6.8.0",
+    "execution-time": "^1.4.1",
     "express": "^4.16.4",
     "gulp": "^4.0.0",
     "gulp-connect": "^5.7.0",
@@ -71,6 +73,7 @@
     "karma-jasmine-html-reporter": "^1.4.2",
     "karma-mocha-reporter": "^2.2.5",
     "karma-webpack": "^4.0.2",
+    "module-alias": "^2.2.2",
     "rollup": "^1.29.0",
     "rollup-plugin-auto-external": "^2.0.0",
     "rollup-plugin-commonjs": "^10.0.1",
@@ -81,5 +84,11 @@
     "typescript": "^3.7.3",
     "webpack": "^4.41.0",
     "webpack-karma-jasmine": "^3.0.8"
+  },
+  "_moduleAliases": {
+    "@themost/common": "./modules/@themost/common",
+    "@themost/query": "./modules/@themost/query",
+    "@themost/data": "./modules/@themost/data",
+    "@themost/web": "./modules/@themost/web"
   }
 }
