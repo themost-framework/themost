@@ -386,8 +386,8 @@ function DataModel(obj) {
                     if (childModel &&
                         childModel.constraints &&
                         childModel.constraints.length &&
-                        childModel.find(function (constraint) {
-                            return constraint.fields && constraint.fields.length === 1 && constraint.fields.indeOf(x.name) === 0;
+                        childModel.constraints.find(function (constraint) {
+                            return constraint.fields && constraint.fields.length === 1 && constraint.fields.indexOf(x.name) === 0;
                         })) {
                         // backward compatibility  issue
                         // set [many] attribute to true because is being used by query processing
