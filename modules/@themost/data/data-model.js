@@ -387,7 +387,10 @@ function DataModel(obj) {
                         childModel.constraints &&
                         childModel.constraints.length &&
                         childModel.constraints.find(function (constraint) {
-                            return constraint.fields && constraint.fields.length === 1 && constraint.fields.indexOf(x.name) === 0;
+                            return constraint.type === 'unique' &&
+                                constraint.fields &&
+                                constraint.fields.length === 1 &&
+                                constraint.fields.indexOf(mapping.childField) === 0;
                         })) {
                         // backward compatibility  issue
                         // set [many] attribute to true because is being used by query processing
