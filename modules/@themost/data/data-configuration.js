@@ -1,13 +1,11 @@
 /**
- * @license
  * MOST Web Framework 2.0 Codename Blueshift
  * Copyright (c) 2017, THEMOST LP All rights reserved
  *
  * Use of this source code is governed by an BSD-3-Clause license that can be
  * found in the LICENSE file at https://themost.io/license
  */
-///
-var _ = require("lodash");
+var _ = require('lodash');
 var Symbol = require('symbol');
 var TraceUtils = require('@themost/common/utils').TraceUtils;
 var path = require("path");
@@ -21,6 +19,9 @@ var RandomUtils = require('@themost/common/utils').RandomUtils;
 var AbstractMethodError = require('@themost/common/errors').AbstractMethodError;
 var DataCacheStrategy = require('./data-cache').DataCacheStrategy;
 var DefaultDataCacheStrategy = require('./data-cache').DefaultDataCacheStrategy;
+var hasOwnProperty = require('./has-own-property').hasOwnProperty;
+var ModuleLoader = require('./module-loader').ModuleLoader;
+var DefaultModuleLoader = require('./module-loader').DefaultModuleLoader;
 
 var modelsProperty = Symbol('models');
 var modelPathProperty = Symbol('modelPath');
@@ -479,7 +480,7 @@ function DataConfigurationStrategy(config) {
                     var defaultDataTypes = require('./dataTypes.json');
                     //enumerate default data types and replace or append application specific data types
                     _.forEach(_.keys(defaultDataTypes), function(key) {
-                        if (dataTypes.hasOwnProperty(key)) {
+                        if (hasOwnProperty(dataTypes, key)) {
                             if (dataTypes[key].version) {
                                 if (dataTypes[key].version <= defaultDataTypes[key].version) {
                                     //replace data type due to lower version
@@ -568,7 +569,7 @@ DataConfigurationStrategy.prototype.hasDataType = function(name) {
     if (typeof name !== 'string') {
         return false;
     }
-    return this.dataTypes.hasOwnProperty(name);
+    return hasOwnProperty(this.dataTypes, name);
 };
 
 /**
@@ -669,7 +670,7 @@ SchemaLoaderStrategy.prototype.getModelDefinition = function(name) {
  * @returns {SchemaLoaderStrategy}
  */
 SchemaLoaderStrategy.prototype.setModelDefinition = function(data) {
-    if (_.isNil(data)) {
+    if (data == null) {
         throw new Error("Invalid model definition. Expected object.")
     }
     if (typeof data === 'object') {
@@ -687,29 +688,74 @@ SchemaLoaderStrategy.prototype.setModelDefinition = function(data) {
 SchemaLoaderStrategy.prototype.getModels = function() {
     return _.keys(this[modelsProperty]);
 };
-
+/**
+ * @abstract
+ * @returns Array<string>
+ */
+SchemaLoaderStrategy.prototype.readSync = function() {
+    throw new AbstractMethodError();
+};
 /**
  * @class
  * @constructor
  * @param {ConfigurationBase} config
  * @augments ConfigurationStrategy
  */
-function DefaultSchemaLoaderStrategy(config) {
-    DefaultSchemaLoaderStrategy.super_.bind(this)(config);
+function FileSchemaLoaderStrategy(config) {
+    FileSchemaLoaderStrategy.super_.bind(this)(config);
+    // set default path for *.json schemas
     this[modelPathProperty] = PathUtils.join(config.getConfigurationPath(), 'models');
-    // set default options
+    /**
+     * @type {DefaultSchemaLoaderStrategyOptions}
+     */
+    var schemaOptions = config.getSourceAt('settings/schema');
+    /**
+     * set default options
+     * @type {DefaultSchemaLoaderStrategyOptions}
+     */
     this.options = {
         usePlural: true
     };
+    // get only DefaultSchemaLoaderStrategyOptions.usePlural if exists
+    if (schemaOptions && hasOwnProperty(schemaOptions, 'usePlural')) {
+        this.options.usePlural = schemaOptions.usePlural;
+    }
 }
-LangUtils.inherits(DefaultSchemaLoaderStrategy,SchemaLoaderStrategy);
+LangUtils.inherits(FileSchemaLoaderStrategy,SchemaLoaderStrategy);
 
 /**
  * Gets a string which represents the directory which contains model definitions.
  * @returns {string}
  */
-DefaultSchemaLoaderStrategy.prototype.getModelPath = function() {
+FileSchemaLoaderStrategy.prototype.getModelPath = function() {
     return this[modelPathProperty];
+};
+/**
+ * Reads available schemas
+ * @returns {Array<string>}
+ */
+FileSchemaLoaderStrategy.prototype.readSync = function() {
+    // load native fs module
+    var nativeFsModule = 'fs';
+    var modelPath = this.getModelPath();
+    var fs = require(nativeFsModule);
+    var files = [];
+    // read directory
+    if (typeof fs.readdirSync === 'function') {
+        var dirExists = true;
+        if (typeof fs.existsSync === 'function') {
+            dirExists = fs.existsSync(modelPath);
+        }
+        if (dirExists) {
+            // set files property
+            files = fs.readdirSync(modelPath).map( file => {
+                //strip file extension
+                return file.replace(/\.json$/i, '');
+            });
+        }
+    }
+    // return collection of schemas
+    return files;
 };
 
 /**
@@ -717,18 +763,18 @@ DefaultSchemaLoaderStrategy.prototype.getModelPath = function() {
  * @param {string} p
  * @returns {DefaultSchemaLoaderStrategy}
  */
-DefaultSchemaLoaderStrategy.prototype.setModelPath = function(p) {
+FileSchemaLoaderStrategy.prototype.setModelPath = function(p) {
     this[modelPathProperty] = p;
     return this;
 };
 
 /**
- *
+ * Gets a model definition
  * @param {string} name
  * @returns {*}
  */
-DefaultSchemaLoaderStrategy.prototype.getModelDefinition = function(name) {
-    var getModelDefinitionSuper = DefaultSchemaLoaderStrategy.super_.prototype.getModelDefinition;
+FileSchemaLoaderStrategy.prototype.getModelDefinition = function(name) {
+    var getModelDefinitionSuper = FileSchemaLoaderStrategy.super_.prototype.getModelDefinition;
     var i;
     if (typeof name !== 'string')
         return;
@@ -742,7 +788,7 @@ DefaultSchemaLoaderStrategy.prototype.getModelDefinition = function(name) {
         //and return it
         return modelDefinition;
     }
-    // hold singular name of 
+    // hold singular name of
     var singularName;
     if (this.options.usePlural &&  pluralize.isPlural(name)) {
         // try to find model based on singular name
@@ -754,48 +800,23 @@ DefaultSchemaLoaderStrategy.prototype.getModelDefinition = function(name) {
             return modelDefinition;
         }
     }
-    //otherwise open definition file
-    var modelPath = this.getModelPath();
-    //read files from models directory
-    //store file list in a private variable
-    if (typeof this[filesProperty] === 'undefined') {
-        var nativeFsModule = 'fs';
-        var fs = require(nativeFsModule);
-        if (typeof fs.readdirSync === 'function') {
-            var dirExists = true;
-            if (typeof fs.existsSync === 'function') {
-                dirExists = fs.existsSync(modelPath);
-            }
-            if (dirExists) {
-                this[filesProperty] = fs.readdirSync(modelPath);
-            }
-            else {
-                this[filesProperty] = [];
-            }
-        }
-        else {
-            //try load model definition
-            try {
-                modelDefinition = require(PathUtils.join(modelPath, name.concat('.json')));
-                this.setModelDefinition(modelDefinition);
-                return modelDefinition;
-            }
-            catch(err) {
-                //do nothing (log error)
-                TraceUtils.error('An error occurred while loading definition for model %s.', name);
-                TraceUtils.error(err);
-            }
-        }
+    if (this[filesProperty] == null) {
+        this[filesProperty] = this.readSync().map( file => {
+            return file.concat('.json')
+        });
     }
-    //and finally get this list of file
+    /**
+     * @type Array<string>
+     */
     var files = this[filesProperty];
     if (files.length===0) {
         return;
     }
+    var modelPath = this.getModelPath();
     var searchName;
     if (singularName) {
         // search for singular name also e.g. ^(User|Users)\.json$
-        searchName = new RegExp('^(' + singularName + '|' + name + ')\\.json$','i');   
+        searchName = new RegExp('^(' + singularName + '|' + name + ')\\.json$','i');
     }
     else {
         // otherwise search for name e.g. ^User\.json$
@@ -816,6 +837,110 @@ DefaultSchemaLoaderStrategy.prototype.getModelDefinition = function(name) {
     }
 };
 
+/**
+ * @class
+ * @constructor
+ * @param {ConfigurationBase} config
+ * @augments ConfigurationStrategy
+ */
+function DefaultSchemaLoaderStrategy(config) {
+    DefaultSchemaLoaderStrategy.super_.bind(this)(config);
+    this[modelPathProperty] = PathUtils.join(config.getConfigurationPath(), 'models');
+    /**
+     * @type {Array<SchemaLoaderStrategy>}
+     */
+    this.loaders = [];
+    /**
+     * get loaders from configuration
+     * @type {DefaultSchemaLoaderStrategyOptions}
+     * @example
+     * [
+     *      {
+     *          "loaderType": "any-library#CustomSchemaLoader"
+     *      },
+     *      {
+     *          "loaderType": "another-library#AnotherSchemaLoader"
+     *      }
+     * ]
+     */
+    var schemaOptions = config.getSourceAt('settings/schema');
+    /**
+     * prepare options
+     * @type {DefaultSchemaLoaderStrategyOptions}
+     */
+    this.options = _.assign({}, {
+        usePlural: true
+    }, schemaOptions);
+    // set loaders
+    var thisArg = this;
+    // if configuration has a collection of loaders
+    if (this.options.loaders && this.options.loaders.length) {
+        // get module loader service
+        var moduleLoader = config.getStrategy(ModuleLoader);
+        if (moduleLoader == null) {
+            moduleLoader = new DefaultModuleLoader(config.getExecutionPath());
+        }
+        // enumerate loader types
+        _.forEach(this.options.loaders, function(x) {
+            // if loader has a hash e.g. ./lib/index#AnotherLoader
+            var hashIndex = x.loaderType.indexOf('#');
+            if (hashIndex>-1) {
+                // get loader module
+                var typeModule = moduleLoader.require(x.loaderType.substr(0,hashIndex));
+                // get loader constructor
+                var typeCtor = x.loaderType.substr(hashIndex+1,x.loaderType.length-hashIndex);
+                // if module exports loader constructor
+                if (hasOwnProperty(typeModule, typeCtor)) {
+                    var LoaderCtor = typeModule[typeCtor];
+                    // add loader to collection
+                    thisArg.loaders.push(new LoaderCtor(config));
+                }
+            }
+            else {
+                // simply add module to collection of loaders
+                // we assume that module exports the required methods
+                // and acts like an instance of SchemaLoader class
+                thisArg.loaders.push(moduleLoader.require(x.loaderType));
+            }
+        });
+    }
+
+}
+LangUtils.inherits(DefaultSchemaLoaderStrategy,FileSchemaLoaderStrategy);
+
+/**
+ * Gets a model definition
+ * @param {string} name
+ * @returns {*}
+ */
+DefaultSchemaLoaderStrategy.prototype.getModelDefinition = function(name) {
+    // get super class method
+    var getModelDefinitionSuper = DefaultSchemaLoaderStrategy.super_.prototype.getModelDefinition;
+    // execute method
+    var model =  getModelDefinitionSuper.bind(this)(name);
+    // if model is missing
+    if (model == null) {
+        // try to load model from alternative loaders if any
+        if (this.loaders && this.loaders.length) {
+            for (let i = 0; i < this.loaders.length; i++) {
+                /**
+                 * @type {SchemaLoaderStrategy}
+                 */
+                var loader = this.loaders[i];
+                // try to get model
+                model = loader.getModelDefinition(name);
+                // if model exists
+                if (model != null) {
+                    // set model definition to avoid searching loaders again
+                    this.setModelDefinition(model);
+                    // and return
+                    return model;
+                }
+            }
+        }
+    }
+    return model;
+};
 /**
  * @class
  * @constructor
@@ -914,37 +1039,28 @@ DefaultModelClassLoaderStrategy.prototype.resolve = function(model) {
     return DataObjectClass;
 };
 
-var cfg = {
-
-};
-
-Object.defineProperty(cfg, 'current', {
-    get: function() {
-        return DataConfiguration.getCurrent();
-    }, configurable:false, enumerable:false
-    });
 /**
  * Gets the current data configuration
  * @returns DataConfiguration - An instance of DataConfiguration class which represents the current data configuration
  */
-cfg.getCurrent = function() {
+function getCurrent() {
     return DataConfiguration.getCurrent();
-};
+}
 /**
  * Sets the current data configuration
  * @param {DataConfiguration} configuration
  * @returns DataConfiguration - An instance of DataConfiguration class which represents the current data configuration
  */
-cfg.setCurrent = function(configuration) {
+function setCurrent(configuration) {
     return DataConfiguration.setCurrent(configuration);
-};
+}
 /**
  * Creates an instance of DataConfiguration class
  * @returns {DataConfiguration} - Returns an instance of DataConfiguration class
  */
-cfg.createInstance= function() {
+function createInstance() {
     return new DataConfiguration();
-};
+}
 
 /**
  * Gets an instance of DataConfiguration class based on the given name.
@@ -952,20 +1068,25 @@ cfg.createInstance= function() {
  * @param {string} name - A string which represents the name of the data configuration
  * @returns {DataConfiguration}
  */
-cfg.getNamedConfiguration = function(name) {
+function getNamedConfiguration(name) {
     return DataConfiguration.getNamedConfiguration(name);
+}
+
+module.exports = {
+    getCurrent,
+    setCurrent,
+    createInstance,
+    getNamedConfiguration,
+    DataTypePropertiesConfiguration,
+    DataTypeConfiguration,
+    DataAdapterTypeConfiguration,
+    DataAdapterConfiguration,
+    AuthSettingsConfiguration,
+    DataConfiguration,
+    DataConfigurationStrategy,
+    SchemaLoaderStrategy,
+    FileSchemaLoaderStrategy,
+    DefaultSchemaLoaderStrategy,
+    ModelClassLoaderStrategy,
+    DefaultModelClassLoaderStrategy
 };
-
-cfg.DataTypePropertiesConfiguration = DataTypePropertiesConfiguration;
-cfg.DataTypeConfiguration = DataTypeConfiguration;
-cfg.DataAdapterTypeConfiguration = DataAdapterTypeConfiguration;
-cfg.DataAdapterConfiguration = DataAdapterConfiguration;
-cfg.AuthSettingsConfiguration = AuthSettingsConfiguration;
-cfg.DataConfiguration = DataConfiguration;
-cfg.DataConfigurationStrategy = DataConfigurationStrategy;
-cfg.SchemaLoaderStrategy = SchemaLoaderStrategy;
-cfg.DefaultSchemaLoaderStrategy = DefaultSchemaLoaderStrategy;
-cfg.ModelClassLoaderStrategy = ModelClassLoaderStrategy;
-cfg.DefaultModelClassLoaderStrategy = DefaultModelClassLoaderStrategy;
-
-module.exports = cfg;

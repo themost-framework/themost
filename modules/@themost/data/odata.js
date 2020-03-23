@@ -1986,24 +1986,27 @@ ODataConventionModelBuilder.prototype.initializeSync = function() {
     var dataConfiguration = self.getConfiguration().getStrategy(DataConfigurationStrategy);
     var schemaLoader = self.getConfiguration().getStrategy(SchemaLoaderStrategy);
     if (instanceOf(schemaLoader, DefaultSchemaLoaderStrategy)) {
-        var nativeFsModule = 'fs';
-        var fs = require(nativeFsModule);
-        var modelPath = schemaLoader.getModelPath();
-        if (_.isNil(modelPath)) {
-            self[initializeProperty] = true;
-            return;
+        // read models
+        var models = schemaLoader.readSync();
+        // use loaders of DefaultSchemaLoaderStrategy
+        if (schemaLoader.loaders) {
+            _.forEach(schemaLoader.loaders,
+                /**
+                 * @param {SchemaLoaderStrategy} loader
+                 */
+                function(loader) {
+                    // get loader models
+                var otherModels = loader.readSync();
+                if (otherModels && otherModels.length) {
+                    // get new models provided by loader
+                    var addModels = _.filter(otherModels, function(otherModel) {
+                        return models.indexOf(otherModel) < 0;
+                    });
+                    // add those models
+                    models.push.apply(models, addModels);
+                }
+            });
         }
-        // read directory in sync mode
-        var files = []
-        if (fs.existsSync(modelPath)) {
-            files = fs.readdirSync(modelPath);
-        }
-        // enumerate models
-        var models = _.map(_.filter(files, function (x) {
-            return /\.json$/.test(x);
-        }), function (x) {
-            return /(.*?)\.json$/.exec(x)[1];
-        });
         // add entity set
         _.forEach(models, function (x) {
             if (!_.isNil(x)) {

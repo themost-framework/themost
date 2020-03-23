@@ -58,6 +58,7 @@
     "@themost/web": "file:modules/@themost/web",
     "@themost/xml": "file:modules/@themost/xml",
     "@types/jasmine": "^3.5.0",
+    "@types/lodash": "^4.14.149",
     "babel-eslint": "^10.0.3",
     "debug": "^4.1.1",
     "eslint": "^6.8.0",
