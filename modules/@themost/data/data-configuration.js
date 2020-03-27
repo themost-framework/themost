@@ -748,7 +748,10 @@ FileSchemaLoaderStrategy.prototype.readSync = function() {
         }
         if (dirExists) {
             // set files property
-            files = fs.readdirSync(modelPath).map( file => {
+            files = _.map(_.filter(fs.readdirSync(modelPath), function(file) {
+                // filter *.json files
+                return /\.json$/i.test(file);
+            }), function(file) {
                 //strip file extension
                 return file.replace(/\.json$/i, '');
             });
