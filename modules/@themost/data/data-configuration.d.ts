@@ -80,17 +80,28 @@ export declare class SchemaLoaderStrategy extends ConfigurationStrategy {
     getModelDefinition(name: string): any;
     setModelDefinition(data: any): SchemaLoaderStrategy;
     getModels(): Array<string>;
+    readSync: Array<string>;
 
+}
+
+export declare interface SchemaLoaderType {
+    loaderType?: string;
+    options?: any;
 }
 
 export declare interface DefaultSchemaLoaderStrategyOptions {
-    usePlural: boolean;
+    usePlural?: boolean;
+    loaders?: Array<SchemaLoaderType>
 }
 
-export declare class DefaultSchemaLoaderStrategy extends SchemaLoaderStrategy {
+export declare class FileSchemaLoaderStrategy extends SchemaLoaderStrategy {
     getModelPath(): string;
-    setModelPath(p: string): DefaultSchemaLoaderStrategy;
+    setModelPath(p: string): FileSchemaLoaderStrategy;
+}
+
+export declare class DefaultSchemaLoaderStrategy extends FileSchemaLoaderStrategy {
     options: DefaultSchemaLoaderStrategyOptions;
+    loaders: Array<SchemaLoaderStrategy>;
 }
 
 export declare abstract class ModelClassLoaderStrategy extends ConfigurationStrategy {

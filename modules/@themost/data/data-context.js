@@ -148,7 +148,7 @@ LangUtils.inherits(DefaultDataContext, DataContext);
  * @returns {ConfigurationBase|*}
  */
 DefaultDataContext.prototype.getConfiguration = function() {
-    return cfg.current;
+    return cfg.getCurrent();
 };
 
 /**

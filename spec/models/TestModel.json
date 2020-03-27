@@ -1,0 +1,9 @@
+{
+  "$schema": "https://themost-framework.github.io/themost/models/2018/2/schema.json",
+  "name": "TestModel",
+  "title": "TestModel",
+  "version": "1.0",
+  "inherits": "Thing",
+  "fields": [
+  ]
+}

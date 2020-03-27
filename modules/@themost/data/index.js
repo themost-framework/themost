@@ -42,6 +42,7 @@ module.exports.DataConfigurationStrategy = _data_configuration.DataConfiguration
 module.exports.DefaultModelClassLoaderStrategy = _data_configuration.DefaultModelClassLoaderStrategy;
 module.exports.ModelClassLoaderStrategy = _data_configuration.ModelClassLoaderStrategy;
 module.exports.SchemaLoaderStrategy = _data_configuration.SchemaLoaderStrategy;
+module.exports.FileSchemaLoaderStrategy = _data_configuration.FileSchemaLoaderStrategy;
 
 module.exports.DataQueryable = _data_queryable.DataQueryable;
 
