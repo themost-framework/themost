@@ -7,7 +7,7 @@
  * found in the LICENSE file at https://themost.io/license
  */
 import {DataAssociationMapping, DataContext, DataField} from "./types";
-import {SequentialEventEmitter} from "@themost/common/emitter";
+import {SequentialEventEmitter} from "@themost/common";
 import {DataQueryable} from "./data-queryable";
 import {DataObject} from "./data-object";
 

@@ -28,15 +28,15 @@ export declare class ConfigurationBase {
     public useStrategy(configStrategyCtor: any, strategyCtor: any): this;
     /**
      * Gets a configuration strategy
-     * @param {Function|*} configStrategyCtor
+     * @param {Function} configStrategyCtor
      * @returns {ConfigurationStrategy|*}
      */
-    public getStrategy(configStrategyCtor: any): any;
+    public getStrategy<T>(configStrategyCtor: new() => T): T;
     /**
      * Gets a configuration strategy
      * @param {Function} configStrategyCtor
      */
-    public hasStrategy(configStrategyCtor: any): boolean;
+    public hasStrategy<T>(configStrategyCtor: new() => T): boolean;
     /**
      * Returns the configuration source object
      * @returns {*}

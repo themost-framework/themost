@@ -1,4 +1,4 @@
-import {IApplication, IApplicationService} from "@themost/common/app";
+import {IApplication, IApplicationService} from "@themost/common";
 import {SequentialEventEmitter} from "../common";
 import {HttpContext} from "./context";
 

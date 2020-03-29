@@ -7,7 +7,7 @@
  * found in the LICENSE file at https://themost.io/license
  */
 import {HttpContext} from "./context";
-import {HtmlWriter} from "@themost/common/html";
+import {HtmlWriter} from "@themost/common";
 import {HttpViewEngineConfiguration} from "./config";
 
 

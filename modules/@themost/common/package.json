@@ -1,6 +1,6 @@
 {
   "name": "@themost/common",
-  "version": "2.5.0",
+  "version": "2.5.2",
   "description": "MOST Web Framework Codename Blueshift - Common Module",
   "main": "index.js",
   "peerDependencies": {},

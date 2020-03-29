@@ -15,7 +15,7 @@ export declare abstract class LocalizationStrategy extends HttpApplicationServic
 
     hasCulture(culture: string): boolean;
 
-    abstract getLocaleString(locale: string, ...str: any): string;
+    abstract getLocaleString(locale: string, ...str: Array<any>): string;
 
     abstract setLocaleString(locale: string, data: any, shouldMerge?: boolean);
 }
@@ -25,7 +25,7 @@ export declare class DefaultLocalizationStrategy extends LocalizationStrategy {
 
     getDefaultCulture(): string;
 
-    getLocaleString(locale: string, ...str: any): string;
+    getLocaleString(locale: string, ...str: Array<any>): string;
 
     setLocaleString(locale: string, data: any, shouldMerge?: boolean);
 }
