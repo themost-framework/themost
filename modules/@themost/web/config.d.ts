@@ -1,4 +1,4 @@
-import {ConfigurationBase} from "@themost/common/config";
+import {ConfigurationBase} from "@themost/common";
 
 export declare class MimeTypeConfiguration {
     extension: string;

@@ -3,7 +3,7 @@ import {HttpContext} from "./context";
 import {HttpConfiguration} from "./config";
 import {AuthStrategy, EncryptionStrategy} from "./handlers/auth";
 import {LocalizationStrategy} from "./localization";
-import {SequentialEventEmitter} from "@themost/common/emitter";
+import {SequentialEventEmitter} from "@themost/common";
 
 declare interface ApplicationOptions {
     port?: number|string;
@@ -53,6 +53,6 @@ export declare class HttpApplication extends SequentialEventEmitter {
     useService(serviceCtor: Function);
     hasStrategy(serviceCtor: Function);
     hasService(serviceCtor: Function);
-    getStrategy(serviceCtor: Function);
-    getService(serviceCtor: Function);
+    getStrategy<T>(serviceCtor: new() => T): T;
+    getService<T>(serviceCtor: new() => T): T;
 }

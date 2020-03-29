@@ -1,10 +1,10 @@
 {
   "name": "@themost/web",
-  "version": "2.5.1",
+  "version": "2.5.2",
   "description": "MOST Web Framework 2.0 - Web Server Module",
   "main": "index.js",
   "peerDependencies": {
-    "@themost/common": "^2.5.0",
+    "@themost/common": "^2.5.2",
     "@themost/query": "^2.5.0",
     "@themost/xml": "^2.5.0",
     "@themost/data": "^2.5.0",

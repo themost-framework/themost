@@ -10,7 +10,7 @@
 import {IncomingMessage, ServerResponse} from 'http';
 import {HttpApplication} from "./app";
 import {HttpConfiguration} from "./config";
-import {DefaultDataContext} from '@themost/data/data-context';
+import {DefaultDataContext} from '@themost/data';
 
 export declare class HttpContext extends DefaultDataContext {
 		
