@@ -153,14 +153,30 @@ DefaultDataContext.prototype.getConfiguration = function() {
 
 /**
  * Gets an instance of DataModel class based on the given name.
- * @param name {string} - A string that represents the model name.
+ * @param {*} name - A variable that represents the model name.
  * @returns {DataModel} - An instance of DataModel class associated with this data context.
  */
 DefaultDataContext.prototype.model = function(name) {
     var self = this;
-    if ((name === null) || (name === undefined))
+    if (name == null) {
         return null;
-    var obj = self.getConfiguration().getStrategy(DataConfigurationStrategy).model(name);
+    }
+    var modelName = name; 
+    // if model is a function (is a constructor)
+    if (typeof name === 'function') {
+        // try to get EdmMapping.entityType() decorator
+        if (Object.prototype.hasOwnProperty.call(name, 'entityTypeDecorator')) {
+            // if entityTypeDecorator is string
+            if (typeof name.entityTypeDecorator === 'string') {
+                // get model name
+                modelName = name.entityTypeDecorator;
+            }
+        } else {
+            // get function name as the requested model
+            modelName = name.name;
+        }
+    }
+    var obj = self.getConfiguration().getStrategy(DataConfigurationStrategy).model(modelName);
     if (_.isNil(obj))
         return null;
     var DataModel = require('./data-model').DataModel,
@@ -313,9 +329,25 @@ NamedDataContext.prototype.getConfiguration = function() {
  */
 NamedDataContext.prototype.model = function(name) {
     var self = this;
-    if ((name === null) || (name === undefined))
+    if (name == null) {
         return null;
-    var obj = self.getConfiguration().getStrategy(DataConfigurationStrategy).model(name);
+    }
+    var modelName = name; 
+    // if model is a function (is a constructor)
+    if (typeof name === 'function') {
+        // try to get EdmMapping.entityType() decorator
+        if (Object.prototype.hasOwnProperty.call(name, 'entityTypeDecorator')) {
+            // if entityTypeDecorator is string
+            if (typeof name.entityTypeDecorator === 'string') {
+                // get model name
+                modelName = name.entityTypeDecorator;
+            }
+        } else {
+            // get function name as the requested model
+            modelName = name.name;
+        }
+    }
+    var obj = self.getConfiguration().getStrategy(DataConfigurationStrategy).model(modelName);
     if (_.isNil(obj))
         return null;
     var DataModel = require('./data-model').DataModel;
