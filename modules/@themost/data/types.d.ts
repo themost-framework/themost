@@ -74,10 +74,10 @@ export declare class DataAdapter {
 export declare class DataContext extends SequentialEventEmitter {
     /**
      *
-     * @param {string} name
+     * @param {*} name
      * @returns {DataModel}
      */
-    model(name:string):DataModel
+    model(name:any):DataModel
 
     /**
      *
