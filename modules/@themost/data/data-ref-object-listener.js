@@ -12,6 +12,7 @@ var HasParentJunction = require('./has-parent-junction').HasParentJunction;
 var DataObjectJunction = require('./data-object-junction').DataObjectJunction;
 var DataError = require('@themost/common/errors').DataError;
 var _ = require('lodash');
+var hasOwnProperty = require('./has-own-property').hasOwnProperty;
 
 /**
  * @module @themost/data/data-ref-object-listener
@@ -47,7 +48,11 @@ function beforeRemoveAssociatedObjects(event, mapping, callback) {
         parentField = event.model.getAttribute(mapping.parentField),
         childField = childModel.getAttribute(mapping.childField);
     parentModel.where(parentModel.primaryKey).equal(target[parentModel.primaryKey])
-        .select(parentField.name).silent().flatten().value()
+        .select(parentField.name)
+        .cache(false)
+        .silent()
+        .flatten()
+        .value()
         .then(function(parentKey) {
             if (_.isNil(parentKey)) {
                 return callback();
@@ -61,12 +66,13 @@ function beforeRemoveAssociatedObjects(event, mapping, callback) {
                     else if (mapping.cascade === 'null' || mapping.cascade === 'default') {
                         return childModel.where(mapping.childField).equal(target[mapping.parentField])
                             .select(childModel.primaryKey, childModel.childField)
+                            .cache(false)
                             .silent()
                             .flatten()
                             .all().then(function(items) {
                                 var childKey = childField.property || childField.name;
                                 _.forEach(items, function(x) {
-                                    if (x.hasOwnProperty(childKey)) {
+                                    if (hasOwnProperty(x, childKey)) {
                                         x[childKey] = null;
                                     }
                                     else {
@@ -81,6 +87,7 @@ function beforeRemoveAssociatedObjects(event, mapping, callback) {
                     else if (mapping.cascade === 'delete') {
                         return childModel.where(mapping.childField).equal(target[mapping.parentField])
                             .select(childModel.primaryKey)
+                            .cache(false)
                             .silent()
                             .flatten()
                             .all().then(function(items) {
@@ -120,7 +127,11 @@ function beforeRemoveParentConnectedObjects(event, mapping, callback) {
         childField = childModel.getAttribute(mapping.childField);
     var junction = new DataObjectJunction(target, mapping);
     return childModel.where(childModel.primaryKey).equal(target.getId())
-        .select(childField.name).silent().flatten().value()
+        .select(childField.name)
+        .cache(false)
+        .silent()
+        .flatten()
+        .value()
         .then(function(childKey) {
             if (_.isNil(childKey)) {
                 return callback();
@@ -128,6 +139,7 @@ function beforeRemoveParentConnectedObjects(event, mapping, callback) {
             var baseModel = junction.getBaseModel();
             baseModel.where(junction.getValueField()).equal(childKey)
                 .select(baseModel.primaryKey)
+                .cache(false)
                 .silent()
                 .all().then(function(items) {
                 mapping.cascade = mapping.cascade || 'none';
@@ -173,7 +185,11 @@ function beforeRemoveChildConnectedObjects(event, mapping, callback) {
         parentField = parentModel.getAttribute(mapping.parentField);
     var junction = new HasParentJunction(target, mapping);
     return parentModel.where(parentModel.primaryKey).equal(target.getId())
-        .select(parentField.name).silent().flatten().value()
+        .select(parentField.name)
+        .cache(false)
+        .silent()
+        .flatten()
+        .value()
         .then(function(parentKey) {
             if (_.isNil(parentKey)) {
                 return callback();
@@ -181,6 +197,7 @@ function beforeRemoveChildConnectedObjects(event, mapping, callback) {
             var baseModel = junction.getBaseModel();
             baseModel.where(junction.getObjectField()).equal(parentKey)
                 .select(baseModel.primaryKey)
+                .cache(false)
                 .silent()
                 .all().then(function(items) {
                 mapping.cascade = mapping.cascade || 'none';
