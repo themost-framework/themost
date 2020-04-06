@@ -1,6 +1,6 @@
 {
   "name": "@themost/data",
-  "version": "2.5.9-dev.1",
+  "version": "2.5.9-dev.2",
   "description": "MOST Web Framework Codename Blueshift - Data module",
   "main": "index.js",
   "peerDependencies": {

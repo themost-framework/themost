@@ -57,7 +57,10 @@ function beforeRemoveAssociatedObjects(event, mapping, callback) {
             if (_.isNil(parentKey)) {
                 return callback();
             }
-            return childModel.where(mapping.childField).equal(parentKey).count().then(function(count) {
+            return childModel.where(mapping.childField).equal(parentKey)
+                .cache(false)
+                .silent()
+                .count().then(function(count) {
                 if (count>0) {
                     mapping.cascade = mapping.cascade || 'none';
                     if (mapping.cascade === 'none') {
