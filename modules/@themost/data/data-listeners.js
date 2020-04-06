@@ -376,14 +376,16 @@ DataCachingListener.prototype.beforeExecute = function(event, callback) {
         }
         //validate caching
         var caching = (event.model.caching==='always' || event.model.caching==='conditional');
-        if (!caching) { return callback(); }
+        if (!caching) {
+            return callback();
+        }
         // get cache attribute
         var dataCache;
         if (event.emitter && typeof event.emitter.data === 'function') {
             dataCache = event.emitter.data('cache');
         }
         // if caching is enabled and cache attribute is defined
-        if (caching && typeof dataCache === "boolean" && cache === false) {
+        if (typeof dataCache === "boolean" && dataCache === false) {
             return callback();
         }
         //validate conditional caching
@@ -467,14 +469,16 @@ DataCachingListener.prototype.afterExecute = function(event, callback) {
     try {
         //validate caching
         var caching = (event.model.caching==='always' || event.model.caching==='conditional');
-        if (!caching) { return callback(); }
+        if (!caching) {
+            return callback();
+        }
         // get cache attribute
         var dataCache;
         if (event.emitter && typeof event.emitter.data === 'function') {
             dataCache = event.emitter.data('cache');
         }
         // if caching is enabled and cache attribute is defined
-        if (caching && typeof dataCache === "boolean" && cache === false) {
+        if (typeof dataCache === "boolean" && dataCache === false) {
             return callback();
         }
         //validate conditional caching
