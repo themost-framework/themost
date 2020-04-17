@@ -8,6 +8,7 @@
     "test": "jasmine",
     "serve:wiki": "gulp serve",
     "build-xml": "cd modules/@themost/xml && npm run build",
+    "test-xml": "cd modules/@themost/xml && npm test",
     "publish-xml": "cd modules/@themost/xml && npm run build && npm publish ./"
   },
   "engines": {
