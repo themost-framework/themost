@@ -1,3 +1,6 @@
 [submodule "modules/@themost/xml"]
 	path = modules/@themost/xml
 	url = https://github.com/themost-framework/themost-xml.git
+[submodule "modules/@themost/common"]
+	path = modules/@themost/common
+	url = https://github.com/themost-framework/themost-common.git
