@@ -7,3 +7,6 @@
 [submodule "modules/@themost/query"]
 	path = modules/@themost/query
 	url = https://github.com/themost-framework/themost-query.git
+[submodule "modules/@themost/data"]
+	path = modules/@themost/data
+	url = https://github.com/themost-framework/themost-data.git
