@@ -4,3 +4,6 @@
 [submodule "modules/@themost/common"]
 	path = modules/@themost/common
 	url = https://github.com/themost-framework/themost-common.git
+[submodule "modules/@themost/query"]
+	path = modules/@themost/query
+	url = https://github.com/themost-framework/themost-query.git
