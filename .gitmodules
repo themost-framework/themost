@@ -10,3 +10,6 @@
 [submodule "modules/@themost/data"]
 	path = modules/@themost/data
 	url = https://github.com/themost-framework/themost-data.git
+[submodule "modules/@themost/web"]
+	path = modules/@themost/web
+	url = https://github.com/themost-framework/themost-web.git
