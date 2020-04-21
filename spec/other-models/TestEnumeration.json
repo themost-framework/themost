@@ -23,6 +23,13 @@
       "readonly": true,
       "value": "javascript:return this.user();",
       "calculation": "javascript:return this.user();"
+    },
+    {
+        "@id": "http://schema.org/identifier",
+        "name": "identifier",
+        "title": "identifier",
+        "type": "Text",
+        "editable": false
     }
   ]
 }

@@ -67,7 +67,38 @@ describe('ODataModelBuilder', ()=> {
         expect(nodeProperty).toBeTruthy();
         nodeAnnotation = nodeProperty.selectSingleNode('Annonation[@Term="Org.OData.Core.V1.Computed"]');
         expect(nodeAnnotation).toBeFalsy();
-        
+    });
+    it('should assign Immutable annotation to non-editable', async ()=> {
+        /**
+         * @type {ExpressDataApplication}
+         */
+        const application = app.get('ExpressDataApplication');
+        // use extra loader
+        const schemaLoader = application.getConfiguration().getStrategy(SchemaLoaderStrategy);
+        const findLoader = schemaLoader.loaders.find( loader => {
+            return loader instanceof OtherSchemaLoader;
+        });
+        if (findLoader == null) {
+            schemaLoader.loaders.push(new OtherSchemaLoader(application.getConfiguration()));
+            // reload builder
+            application.useModelBuilder();
+        }        
+        /**
+         * @type {ODataModelBuilder}
+         */
+        let builder = application.getStrategy(ODataModelBuilder);
+        const entity = builder.getEntity('TestEnumeration');
+        expect(entity).toBeTruthy();
+        /**
+         * @type XDocument
+         */
+        const document = builder.getEdmDocumentSync();
+        const node = document.documentElement.selectSingleNode('edmx:DataServices/Schema/EntityType[@Name="TestEnumeration"]');
+        expect(node).toBeTruthy();
+        let nodeProperty = node.selectSingleNode('Property[@Name="identifier"]');
+        expect(nodeProperty).toBeTruthy();
+        let nodeAnnotation = nodeProperty.selectSingleNode('Annonation[@Term="Org.OData.Core.V1.Immutable"]');
+        expect(nodeAnnotation).toBeTruthy();
 
     });
 });
