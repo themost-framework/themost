@@ -1,0 +1,9 @@
+{
+  "$schema": "https://themost-framework.github.io/themost/models/2018/2/schema.json",
+  "name": "TestEnumeration",
+  "title": "TestEnumeration",
+  "version": "1.0",
+  "implements": "Enumeration",
+  "fields": [
+  ]
+}
