@@ -55,17 +55,17 @@ describe('ODataModelBuilder', ()=> {
         expect(node).toBeTruthy();
         let nodeProperty = node.selectSingleNode('Property[@Name="additionalType"]');
         expect(nodeProperty).toBeTruthy();
-        let nodeAnnotation = nodeProperty.selectSingleNode('Annonation[@Term="Org.OData.Core.V1.Computed"]');
+        let nodeAnnotation = nodeProperty.selectSingleNode('Annotation[@Term="Org.OData.Core.V1.Computed"]');
         expect(nodeAnnotation).toBeTruthy();
 
         nodeProperty = node.selectSingleNode('NavigationProperty[@Name="createdBy"]');
         expect(nodeProperty).toBeTruthy();
-        nodeAnnotation = nodeProperty.selectSingleNode('Annonation[@Term="Org.OData.Core.V1.Computed"]');
+        nodeAnnotation = nodeProperty.selectSingleNode('Annotation[@Term="Org.OData.Core.V1.Computed"]');
         expect(nodeAnnotation).toBeTruthy();
 
         nodeProperty = node.selectSingleNode('Property[@Name="id"]');
         expect(nodeProperty).toBeTruthy();
-        nodeAnnotation = nodeProperty.selectSingleNode('Annonation[@Term="Org.OData.Core.V1.Computed"]');
+        nodeAnnotation = nodeProperty.selectSingleNode('Annotation[@Term="Org.OData.Core.V1.Computed"]');
         expect(nodeAnnotation).toBeFalsy();
     });
     it('should assign Immutable annotation to non-editable', async ()=> {
@@ -97,7 +97,7 @@ describe('ODataModelBuilder', ()=> {
         expect(node).toBeTruthy();
         let nodeProperty = node.selectSingleNode('Property[@Name="identifier"]');
         expect(nodeProperty).toBeTruthy();
-        let nodeAnnotation = nodeProperty.selectSingleNode('Annonation[@Term="Org.OData.Core.V1.Immutable"]');
+        let nodeAnnotation = nodeProperty.selectSingleNode('Annotation[@Term="Org.OData.Core.V1.Immutable"]');
         expect(nodeAnnotation).toBeTruthy();
     });
 
@@ -128,13 +128,13 @@ describe('ODataModelBuilder', ()=> {
         const document = builder.getEdmDocumentSync();
         let node = document.documentElement.selectSingleNode('edmx:DataServices/Schema/EntityType[@Name="TestEnumeration"]');
         expect(node).toBeTruthy();
-        let nodeAnnotation = node.selectSingleNode('Annonation[@Term="DataModel.OData.Core.V1.Implements"]');
+        let nodeAnnotation = node.selectSingleNode('Annotation[@Term="DataModel.OData.Core.V1.Implements"]');
         expect(nodeAnnotation).toBeTruthy();
         expect(nodeAnnotation.getAttribute('String')).toBe('Enumeration');
         
         node = document.documentElement.selectSingleNode('edmx:DataServices/Schema/EntityType[@Name="User"]');
         expect(node).toBeTruthy();
-        nodeAnnotation = node.selectSingleNode('Annonation[@Term="DataModel.OData.Core.V1.Implements"]');
+        nodeAnnotation = node.selectSingleNode('Annotation[@Term="DataModel.OData.Core.V1.Implements"]');
         expect(nodeAnnotation).toBeFalsy();
 
     });
