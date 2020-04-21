@@ -58,7 +58,7 @@ describe('ODataModelBuilder', ()=> {
         let nodeAnnotation = nodeProperty.selectSingleNode('Annonation[@Term="Org.OData.Core.V1.Computed"]');
         expect(nodeAnnotation).toBeTruthy();
 
-        nodeProperty = node.selectSingleNode('Property[@Name="createdBy"]');
+        nodeProperty = node.selectSingleNode('NavigationProperty[@Name="createdBy"]');
         expect(nodeProperty).toBeTruthy();
         nodeAnnotation = nodeProperty.selectSingleNode('Annonation[@Term="Org.OData.Core.V1.Computed"]');
         expect(nodeAnnotation).toBeTruthy();

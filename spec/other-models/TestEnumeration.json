@@ -5,5 +5,24 @@
   "version": "1.0",
   "implements": "Enumeration",
   "fields": [
+    {
+      "@id": "https://themost.io/schemas/createdBy",
+      "name": "createdBy",
+      "title": "createdBy",
+      "description": "Created by user.",
+      "type": "User",
+      "readonly": true,
+      "value": "javascript:return this.user();"
+    },
+    {
+      "@id": "https://themost.io/schemas/modifiedBy",
+      "name": "modifiedBy",
+      "title": "modifiedBy",
+      "description": "Last modified by user.",
+      "type": "User",
+      "readonly": true,
+      "value": "javascript:return this.user();",
+      "calculation": "javascript:return this.user();"
+    }
   ]
 }
