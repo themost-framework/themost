@@ -31,7 +31,7 @@ describe('ODataModelBuilder', ()=> {
         const document = builder.getEdmDocumentSync();
         expect(document).toBeTruthy();
     })
-    it('should treat readonly properties as computed', async ()=> {
+    it('should assign Computed annotation', async ()=> {
         /**
          * @type {ExpressDataApplication}
          */
@@ -99,6 +99,43 @@ describe('ODataModelBuilder', ()=> {
         expect(nodeProperty).toBeTruthy();
         let nodeAnnotation = nodeProperty.selectSingleNode('Annonation[@Term="Org.OData.Core.V1.Immutable"]');
         expect(nodeAnnotation).toBeTruthy();
+    });
+
+    it('should assign Implements annotation to entity types', async ()=> {
+        /**
+         * @type {ExpressDataApplication}
+         */
+        const application = app.get('ExpressDataApplication');
+        // use extra loader
+        const schemaLoader = application.getConfiguration().getStrategy(SchemaLoaderStrategy);
+        const findLoader = schemaLoader.loaders.find( loader => {
+            return loader instanceof OtherSchemaLoader;
+        });
+        if (findLoader == null) {
+            schemaLoader.loaders.push(new OtherSchemaLoader(application.getConfiguration()));
+            // reload builder
+            application.useModelBuilder();
+        }        
+        /**
+         * @type {ODataModelBuilder}
+         */
+        let builder = application.getStrategy(ODataModelBuilder);
+        const entity = builder.getEntity('TestEnumeration');
+        expect(entity).toBeTruthy();
+        /**
+         * @type XDocument
+         */
+        const document = builder.getEdmDocumentSync();
+        let node = document.documentElement.selectSingleNode('edmx:DataServices/Schema/EntityType[@Name="TestEnumeration"]');
+        expect(node).toBeTruthy();
+        let nodeAnnotation = node.selectSingleNode('Annonation[@Term="DataModel.OData.Core.V1.Implements"]');
+        expect(nodeAnnotation).toBeTruthy();
+        expect(nodeAnnotation.getAttribute('String')).toBe('Enumeration');
+        
+        node = document.documentElement.selectSingleNode('edmx:DataServices/Schema/EntityType[@Name="User"]');
+        expect(node).toBeTruthy();
+        nodeAnnotation = node.selectSingleNode('Annonation[@Term="DataModel.OData.Core.V1.Implements"]');
+        expect(nodeAnnotation).toBeFalsy();
 
     });
 });
