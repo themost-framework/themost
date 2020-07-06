@@ -8,14 +8,17 @@
   },
   "globals": {
     "describe": false,
+    "fdescribe": false,
     "it": false,
+    "fit": false,
     "before": false,
     "beforeEach": false,
     "beforeAll": false,
     "after": false,
     "expect": false,
     "spyOn": false,
-    "jasmine":false
+    "jasmine":false,
+    "expectAsync": false
   },
   "extends": "eslint:recommended",
   "rules": {
