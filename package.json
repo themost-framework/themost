@@ -74,7 +74,7 @@
     "karma-jasmine-html-reporter": "^1.5.3",
     "karma-mocha-reporter": "^2.2.5",
     "karma-webpack": "^4.0.2",
-    "mathjs": "^6.6.4",
+    "mathjs": "^7.5.1",
     "module-alias": "^2.2.2",
     "rollup": "^1.29.0",
     "rollup-plugin-auto-external": "^2.0.0",
