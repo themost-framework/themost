@@ -325,42 +325,52 @@
                         }
                     },
                     "query": {
-                        "type": "object",
+                        "type": "array",
                         "description": "Defines a custom query expression to be used while selecting field.",
-                        "$lookup": {
-                            "type": "object",
-                            "properties": {
-                                "from": {
-                                    "type": "string"
-                                },
-                                "localField": {
-                                    "type": "string"
-                                },
-                                "foreignField": {
-                                    "type": "string"
-                                },
-                                "let": {
+                        "items": {
+                            "anyOf":[
+                                {
                                     "type": "object",
-                                    "additionalProperties": true
+                                    "$lookup": {
+                                        "type": "object",
+                                        "properties": {
+                                            "from": {
+                                                "type": "string"
+                                            },
+                                            "localField": {
+                                                "type": "string"
+                                            },
+                                            "foreignField": {
+                                                "type": "string"
+                                            },
+                                            "let": {
+                                                "type": "object",
+                                                "additionalProperties": true
+                                            },
+                                            "pipeline": {
+                                                "type": "object",
+                                                "additionalProperties": true
+                                            },
+                                            "as": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "additionalProperties": true,
+                                        "required": [
+                                            "from"
+                                        ],
+                                        "description": "A query expression for joining other data models"
+                                    }
                                 },
-                                "pipeline": {
+                                {
                                     "type": "object",
-                                    "additionalProperties": true
-                                },
-                                "as": {
-                                    "type": "string"
+                                    "$project": {
+                                        "type": "object",
+                                        "additionalProperties": true,
+                                        "description": "A query expression for selecting field"
+                                    }
                                 }
-                            },
-                            "additionalProperties": true,
-                            "required": [
-                                "from"
-                            ],
-                            "description": "A query expression for joining other data models"
-                        },
-                        "$project": {
-                            "type": "object",
-                            "additionalProperties": true,
-                            "description": "A query expression for selecting field"
+                            ]
                         }
                     }
                 },
