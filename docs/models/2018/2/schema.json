@@ -178,6 +178,16 @@
                         "type": "boolean",
                         "description": "A boolean which indicates whether this attribute defines an association between two models where child objects are always treated as a part of the parent object."
                     },
+                    "multiplicity": {
+                        "type": "string",
+                        "enum": [
+                            "Many",
+                            "One",
+                            "Unknown",
+                            "ZeroOrOne"
+                        ],
+                        "description": "Indicates the level of association in the relationship between the two entities."
+                    },
                     "mapping": {
                         "type": "object",
                         "properties": {
@@ -234,6 +244,10 @@
                                     "$levels": {
                                         "type": "string",
                                         "description": "The value of the $levels system query option is a positive integer to specify the number of levels to expand e.g. $levels=2"
+                                    },
+                                    "$filter": {
+                                        "type": "string",
+                                        "description": "The $filter system query option indicates the pre-defined condition that should be met when returning the collection of associated resources."
                                     }
                                 }
                             },
