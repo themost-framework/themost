@@ -65,7 +65,7 @@
     "debug": "^4.1.1",
     "eslint": "^6.8.0",
     "execution-time": "^1.4.1",
-    "express": "^4.16.4",
+    "express": "^4.17.3",
     "jasmine": "^3.5.0",
     "jasmine-spec-reporter": "^4.2.1",
     "karma": "^5.0.2",
